@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CFE7BDBC-A740-4FD5-9749-E490E8173C46}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PTL.ATT</RootNamespace>
+    <AssemblyName>PTL.ATT</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\PTL.ATT.XML</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="FeatureSelector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <ExecutableExtension>.exe</ExecutableExtension>
+      <HintPath>..\..\NLP\Libraries\FeatureSelector.exe</HintPath>
+    </Reference>
+    <Reference Include="LAIR.Collections, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\NLP\Libraries\LAIR.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\NLP\Libraries\LAIR.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.IO, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\NLP\Libraries\LAIR.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.MachineLearning, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\NLP\Libraries\LAIR.MachineLearning.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.ResourceAPIs.PostGIS">
+      <HintPath>..\..\NLP\Libraries\LAIR.ResourceAPIs.PostGIS.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.ResourceAPIs.PostgreSQL">
+      <HintPath>..\..\NLP\Libraries\LAIR.ResourceAPIs.PostgreSQL.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.ResourceAPIs.R">
+      <HintPath>..\..\NLP\Libraries\LAIR.ResourceAPIs.R.dll</HintPath>
+    </Reference>
+    <Reference Include="LAIR.XML">
+      <HintPath>..\..\NLP\Libraries\LAIR.XML.dll</HintPath>
+    </Reference>
+    <Reference Include="Npgsql">
+      <HintPath>..\..\NLP\Libraries\Npgsql.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Area.cs" />
+    <Compile Include="AreaBoundingBoxes.cs" />
+    <Compile Include="AreaGeometry.cs" />
+    <Compile Include="Classifiers\Classifier.cs" />
+    <Compile Include="Classifiers\SvmRank.cs" />
+    <Compile Include="Exceptions\ZeroPositivePointsException.cs" />
+    <Compile Include="Models\FeatureExtractor.cs" />
+    <Compile Include="Models\IFeatureBasedDCM.cs" />
+    <Compile Include="Models\KernelDensityDCM.cs" />
+    <Compile Include="Classifiers\LibLinear.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="DB.cs" />
+    <Compile Include="Evaluation\Plot.cs" />
+    <Compile Include="Evaluation\SurveillancePlot.cs" />
+    <Compile Include="Incidents\Chicago\ChicagoIncident.cs" />
+    <Compile Include="Incidents\Chicago\ChicagoImporter.cs" />
+    <Compile Include="Incidents\Importer.cs" />
+    <Compile Include="Models\SpatialDistanceDCM.cs" />
+    <Compile Include="Models\DiscreteChoiceModel.cs" />
+    <Compile Include="Models\TimeSliceDCM.cs" />
+    <Compile Include="Point.cs" />
+    <Compile Include="PointPrediction.cs" />
+    <Compile Include="Feature.cs" />
+    <Compile Include="Incidents\Incident.cs" />
+    <Compile Include="PredictionGroup.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ShapeFiles\AreaShapeFile.cs" />
+    <Compile Include="ShapeFiles\FeatureShapeFile.cs" />
+    <Compile Include="ShapeFiles\ShapeFile.cs" />
+    <Compile Include="Prediction.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShapeFiles\ShapeFileGeometry.cs" />
+    <Compile Include="Reflection.cs" />
+    <Compile Include="Smoothers\KdeSmoother.cs" />
+    <Compile Include="Smoothers\MarsSmoother.cs" />
+    <Compile Include="Smoothers\Smoother.cs" />
+    <Compile Include="Smoothers\WeightedAverageSmoother.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="att_config.xml">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="README.txt" />
+    <Content Include="Todo.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

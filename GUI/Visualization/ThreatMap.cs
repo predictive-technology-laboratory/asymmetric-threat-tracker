@@ -1,0 +1,803 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using LAIR.Collections.Generic;
+using System.IO;
+using PTL.ATT.Models;
+using LAIR.Extensions;
+using PTL.ATT.Evaluation;
+using LAIR.Misc;
+using PostGIS = LAIR.ResourceAPIs.PostGIS;
+using Npgsql;
+using System.Drawing.Drawing2D;
+using System.Threading;
+using System.Drawing.Imaging;
+using PTL.ATT.Incidents;
+using PTL.ATT.Smoothers;
+using PTL.ATT.GUI.Properties;
+
+namespace PTL.ATT.GUI.Visualization
+{
+    public partial class ThreatMap : Visualizer
+    {
+        #region static members
+        private static Pen _pen;
+        private static SolidBrush _brush;
+
+        private static PointF ConvertMetersPointToDrawingPixels(PointF pointInMeters, PointF regionBottomLeftInMeters, float pixelsPerMeter, Rectangle drawingRectangle)
+        {
+            float drawingPixelsX = (pointInMeters.X - regionBottomLeftInMeters.X) * pixelsPerMeter + drawingRectangle.Left;
+            float drawingPixelsY = drawingRectangle.Height - ((pointInMeters.Y - regionBottomLeftInMeters.Y) * pixelsPerMeter) + drawingRectangle.Top;
+
+            return new PointF(drawingPixelsX, drawingPixelsY);
+        }
+        #endregion
+
+        private PointF _regionBottomLeftInMeters;
+        private SizeF _regionSizeInMeters;
+        private Dictionary<string, Color> _incidentColor;
+        private Dictionary<long, Dictionary<string, List<Tuple<PointF, double>>>> _sliceIncidentPointScores;
+        private Dictionary<long, Bitmap> _sliceThreatSurface;
+
+        private bool _dragging;
+        private System.Drawing.Point _draggingStart;
+        private Size _panOffset;
+        private int _panIncrement;
+
+        private float _zoomedImageWidth;
+        private float _zoomIncrement;
+        private System.Windows.Forms.Timer _clarifyZoomTimer;
+
+        private Rectangle _highlightedThreatRectangle;
+        private int _highlightedThreatRectangleRow;
+        private int _highlightedThreatRectangleCol;
+
+        private Rectangle _topPanelRectangle;
+
+        private Bitmap CurrentThreatSurface
+        {
+            get
+            {
+                Bitmap currentThreatSurface = null;
+
+                if (_sliceThreatSurface != null)
+                    _sliceThreatSurface.TryGetValue((int)timeSlice.Value, out currentThreatSurface);
+
+                return currentThreatSurface;
+            }
+        }
+
+        private float AspectRatio
+        {
+            get { return CurrentThreatSurface.Height / (float)CurrentThreatSurface.Width; }
+        }
+
+        private float ZoomedImageHeight
+        {
+            get { return AspectRatio * _zoomedImageWidth; }
+        }
+
+        private float ZoomFactor
+        {
+            get { return _zoomedImageWidth / CurrentThreatSurface.Width; }
+        }
+
+        public ThreatMap()
+        {
+            InitializeComponent();
+
+            _pen = new Pen(BackColor, 1);
+            _brush = new SolidBrush(BackColor);
+            _zoomIncrement = 0.1f;
+            _clarifyZoomTimer = new System.Windows.Forms.Timer();
+            _clarifyZoomTimer.Interval = 500;
+            _clarifyZoomTimer.Tick += new EventHandler(ClarifyZoom);
+
+            MouseWheel += new MouseEventHandler(ThreatMap_MouseWheel);
+
+            _highlightedThreatRectangle = Rectangle.Empty;
+            _topPanelRectangle = topPanel.Bounds;
+        }
+
+        public override void Display(Prediction prediction, IEnumerable<Overlay> overlays)
+        {
+            base.Display(prediction, overlays);
+
+            _dragging = false;
+            _draggingStart = System.Drawing.Point.Empty;
+            _panOffset = new Size(0, 0);
+            _panIncrement = 50;
+
+            DiscreteChoiceModel model = prediction.Model;
+
+            Dictionary<int, Point> idPoint = new Dictionary<int, Point>();
+            foreach (Point p in prediction.Points)
+                idPoint.Add(p.Id, p);
+
+            _incidentColor = new Dictionary<string, Color>();
+            _sliceIncidentPointScores = new Dictionary<long, Dictionary<string, List<Tuple<PointF, double>>>>();
+            float minPointX = float.MaxValue;
+            float minPointY = float.MaxValue;
+            float maxPointX = float.MinValue;
+            float maxPointY = float.MinValue;
+            foreach (PointPrediction pointPrediction in prediction.PointPredictions)
+            {
+                long slice = -1;
+                if (model is TimeSliceDCM)
+                    slice = (long)(pointPrediction.Time.Ticks / (model as TimeSliceDCM).TimeSliceTicks);
+
+                _sliceIncidentPointScores.EnsureContainsKey(slice, typeof(Dictionary<string, List<Tuple<PointF, double>>>));
+
+                Point point = idPoint[pointPrediction.PointId];
+
+                foreach (string incident in pointPrediction.IncidentScore.Keys)
+                {
+                    Color color;
+                    if (!_incidentColor.TryGetValue(incident, out color))
+                    {
+                        color = ColorPalette.GetColor();
+                        _incidentColor.Add(incident, color);
+                    }
+
+                    double score = pointPrediction.IncidentScore[incident];
+
+                    _sliceIncidentPointScores[slice].EnsureContainsKey(incident, typeof(List<Tuple<PointF, double>>));
+                    _sliceIncidentPointScores[slice][incident].Add(new Tuple<PointF, double>(new PointF((float)point.Location.X, (float)point.Location.Y), score));
+                }
+
+                float x = (float)point.Location.X;
+                float y = (float)point.Location.Y;
+                if (x < minPointX) minPointX = x;
+                if (x > maxPointX) maxPointX = x;
+                if (y < minPointY) minPointY = y;
+                if (y > maxPointY) maxPointY = y;
+            }
+
+            Invoke(new Action(delegate()
+                {
+                    incidentTypeCheckBoxes.Controls.Clear();
+                    bool first = true;
+                    foreach (string incidentType in _incidentColor.Keys)
+                    {
+                        ColoredCheckBox cb = new ColoredCheckBox(true, first ? CheckState.Checked : CheckState.Unchecked, incidentType, _incidentColor[incidentType]);
+                        cb.CheckBoxCheckStateChanged += new EventHandler(IncidentCheckBox_CheckStateChanged);
+                        cb.LabelClicked += new EventHandler(IncidentCheckBox_LabelClicked);
+                        incidentTypeCheckBoxes.Controls.Add(cb);
+                        first = false;
+                    }
+
+                    overlayCheckBoxes.Controls.Clear();
+                    foreach (Overlay overlay in Overlays)
+                    {
+                        ColoredCheckBox cb = new ColoredCheckBox(false, overlay.Displayed ? CheckState.Checked : CheckState.Unchecked, overlay.Name, overlay.Color);
+                        cb.CheckBoxCheckedChanged += new EventHandler(OverlayCheckBox_CheckedChanged);
+                        cb.LabelClicked += new EventHandler(OverlayCheckBox_LabelClicked);
+                        overlayCheckBoxes.Controls.Add(cb);
+
+                        IEnumerable<float> xs = overlay.Points.SelectMany(points => points).Select(point => point.X);
+                        IEnumerable<float> ys = overlay.Points.SelectMany(points => points).Select(point => point.Y);
+                        float minX = xs.Min();
+                        float maxX = xs.Max();
+                        float minY = ys.Min();
+                        float maxY = ys.Max();
+                        if (minX < minPointX) minPointX = minX;
+                        if (maxX > maxPointX) maxPointX = maxX;
+                        if (minY < minPointY) minPointY = minY;
+                        if (maxY > maxPointY) maxPointY = maxY;
+                    }
+
+                    _regionBottomLeftInMeters = new PointF(minPointX, minPointY);
+                    _regionSizeInMeters = new SizeF(maxPointX - minPointX, maxPointY - minPointY);
+
+                    bool newThreatSurface = threatResolution.Value != prediction.PointSpacing;
+                    threatResolution.Value = threatResolution.Minimum = prediction.PointSpacing;
+                    if (!newThreatSurface)
+                        GetThreatSurfaces(ClientRectangle, true);
+
+                    GetSliceTimeText();
+                }));
+        }
+
+        private void GetThreatSurfaces(Rectangle bitmapDimensions, bool displayFirstSlice = false)
+        {
+            if (_sliceIncidentPointScores == null)
+                return;
+
+            Set<string> selectedThreatSurfaces = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState != CheckState.Unchecked).Select(c => c.Text).ToArray());
+
+            float pixelsPerMeter;
+            float threatRectanglePixelWidth;
+            GetDrawingParameters(bitmapDimensions, out pixelsPerMeter, out threatRectanglePixelWidth);
+
+            _sliceThreatSurface = new Dictionary<long, Bitmap>(_sliceIncidentPointScores.Count);
+            Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>> sliceRowColIncidentScores = new Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>>();
+            foreach (long slice in _sliceIncidentPointScores.Keys)
+            {
+                _sliceThreatSurface.Add(slice, new Bitmap(bitmapDimensions.Width, bitmapDimensions.Height));
+
+                sliceRowColIncidentScores.EnsureContainsKey(slice, typeof(Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>));
+
+                foreach (string incident in _sliceIncidentPointScores[slice].Keys)
+                    if (selectedThreatSurfaces.Contains(incident))
+                        foreach (Tuple<PointF, double> pointScore in _sliceIncidentPointScores[slice][incident])
+                        {
+                            PointF drawingPoint = ConvertMetersPointToDrawingPixels(pointScore.Item1, _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+
+                            int row, col;
+                            GetThreatRectangleRowColumn(drawingPoint, threatRectanglePixelWidth, out row, out col);
+
+                            sliceRowColIncidentScores[slice].EnsureContainsKey(row, typeof(Dictionary<int, Dictionary<string, List<double>>>));
+                            sliceRowColIncidentScores[slice][row].EnsureContainsKey(col, typeof(Dictionary<string, List<double>>));
+                            sliceRowColIncidentScores[slice][row][col].EnsureContainsKey(incident, typeof(List<double>));
+                            sliceRowColIncidentScores[slice][row][col][incident].Add(pointScore.Item2);
+                        }
+            }
+
+            Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, Color>>>> sliceRowColScoreColor = new Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, Color>>>>();
+            double minScore = double.MaxValue;
+            double maxScore = double.MinValue;
+            foreach (long slice in sliceRowColIncidentScores.Keys)
+            {
+                Dictionary<int, Dictionary<int, Tuple<double, Color>>> rowColScoreColor = new Dictionary<int, Dictionary<int, Tuple<double, Color>>>();
+
+                foreach (int row in sliceRowColIncidentScores[slice].Keys)
+                    foreach (int col in sliceRowColIncidentScores[slice][row].Keys)
+                    {
+                        string mostLikelyIncident = null;
+                        double max = -1;
+                        foreach (string incident in sliceRowColIncidentScores[slice][row][col].Keys)
+                        {
+                            double score = sliceRowColIncidentScores[slice][row][col][incident].Average();
+                            if (score > max)
+                            {
+                                mostLikelyIncident = incident;
+                                max = score;
+                            }
+                        }
+
+                        if (max < minScore) minScore = max;
+                        if (max > maxScore) maxScore = max;
+
+                        rowColScoreColor.EnsureContainsKey(row, typeof(Dictionary<int, Tuple<double, Color>>));
+                        rowColScoreColor[row].Add(col, new Tuple<double, Color>(max, _incidentColor[mostLikelyIncident]));
+                    }
+
+                sliceRowColScoreColor.Add(slice, rowColScoreColor);
+            }
+
+            double scoreRange = maxScore - minScore;
+            if (scoreRange == 0)
+                scoreRange = float.Epsilon;
+
+            foreach (long slice in sliceRowColScoreColor.Keys)
+            {
+                Graphics g = Graphics.FromImage(_sliceThreatSurface[slice]);
+
+                foreach (int row in sliceRowColScoreColor[slice].Keys)
+                    foreach (int col in sliceRowColScoreColor[slice][row].Keys)
+                    {
+                        Tuple<double, Color> scoreColor = sliceRowColScoreColor[slice][row][col];
+                        double scaledScore = (scoreColor.Item1 - minScore) / scoreRange;
+                        _brush.Color = Color.FromArgb((int)(255 * scaledScore), scoreColor.Item2);
+                        g.FillRectangle(_brush, col * threatRectanglePixelWidth, row * threatRectanglePixelWidth, threatRectanglePixelWidth, threatRectanglePixelWidth);
+                    }
+
+                foreach (Overlay overlay in Overlays)
+                    if (overlay.Displayed)
+                    {
+                        _pen.Color = overlay.Color;
+                        _brush.Color = overlay.Color;
+                        foreach (List<PointF> points in overlay.Points)
+                            if (points.Count == 1)
+                            {
+                                PointF drawingPoint = ConvertMetersPointToDrawingPixels(points[0], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                                RectangleF circle = GetCircleBoundingBox(drawingPoint, 5);
+                                g.FillEllipse(_brush, circle);
+                                g.DrawEllipse(_pen, circle);
+                            }
+                            else
+                                for (int i = 1; i < points.Count; ++i)
+                                    g.DrawLine(_pen, ConvertMetersPointToDrawingPixels(points[i - 1], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions), ConvertMetersPointToDrawingPixels(points[i], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions));
+                    }
+
+                Set<string> selectedTrueIncidentOverlays = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState == CheckState.Checked).Select(c => c.Text).ToArray());
+                DateTime sliceStart = DisplayedPrediction.PredictionStartTime;
+                DateTime sliceEnd = DisplayedPrediction.PredictionEndTime;
+                if (slice != -1)
+                {
+                    long sliceTicks = (DisplayedPrediction.Model as TimeSliceDCM).TimeSliceTicks;
+                    sliceStart = new DateTime(slice * sliceTicks);
+                    sliceEnd = sliceStart + new TimeSpan(sliceTicks);
+                }
+                foreach (string trueIncidentOverlay in selectedTrueIncidentOverlays)
+                {
+                    _brush.Color = _incidentColor[trueIncidentOverlay];
+                    _pen.Color = Color.Black;
+                    foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, trueIncidentOverlay))
+                    {
+                        PointF drawingPoint = ConvertMetersPointToDrawingPixels(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                        RectangleF circle = GetCircleBoundingBox(drawingPoint, 5);
+                        g.FillEllipse(_brush, circle);
+                        g.DrawEllipse(_pen, circle); 
+                    }
+                }
+            }
+
+            timeSlice.ValueChanged -= new EventHandler(timeSlice_ValueChanged);
+            timeSlice.Minimum = (int)_sliceThreatSurface.Keys.Min();
+            timeSlice.Maximum = (int)_sliceThreatSurface.Keys.Max();
+            if (displayFirstSlice)
+                timeSlice.Value = timeSlice.Minimum;
+            timeSlice.ValueChanged += new EventHandler(timeSlice_ValueChanged);
+
+            _zoomedImageWidth = CurrentThreatSurface.Width;
+
+            Invalidate();
+        }
+
+        private RectangleF GetCircleBoundingBox(PointF center, int diameter)
+        {
+            return new RectangleF(new PointF(center.X - diameter / 2f, center.Y - diameter / 2f), new SizeF(diameter, diameter));
+        }
+
+        private void GetDrawingParameters(Rectangle bitmapDimensions, out float pixelsPerMeter, out float threatRectanglePixelWidth)
+        {
+            pixelsPerMeter = Math.Min(bitmapDimensions.Width / _regionSizeInMeters.Width, bitmapDimensions.Height / _regionSizeInMeters.Height); // make sure entire threat map fits in the bitmap
+            threatRectanglePixelWidth = (float)threatResolution.Value * pixelsPerMeter;
+        }
+
+        private void GetThreatRectangleRowColumn(PointF threatMapPoint, float threatRectanglePixelWidth, out int row, out int col)
+        {
+            row = (int)(threatMapPoint.Y / threatRectanglePixelWidth);
+            col = (int)(threatMapPoint.X / threatRectanglePixelWidth);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            if (CurrentThreatSurface == null)
+                return;
+
+            float sourceWidth = e.ClipRectangle.Width / ZoomFactor;
+            float sourceHeight = e.ClipRectangle.Height / ZoomFactor;
+
+            PointF sourceUpperLeft = new PointF(e.ClipRectangle.Left + (e.ClipRectangle.Width - sourceWidth) / 2f + _panOffset.Width,
+                                                e.ClipRectangle.Top + (e.ClipRectangle.Height - sourceHeight) / 2f + _panOffset.Height);
+
+            RectangleF sourceRectangle = new RectangleF(sourceUpperLeft, new SizeF(sourceWidth, sourceHeight));
+
+            e.Graphics.DrawImage(CurrentThreatSurface, e.ClipRectangle, sourceRectangle, GraphicsUnit.Pixel);
+
+            if (_highlightedThreatRectangle != Rectangle.Empty && e.ClipRectangle.IntersectsWith(_highlightedThreatRectangle))
+            {
+                _pen.Color = Color.Yellow;
+                e.Graphics.DrawRectangle(_pen, _highlightedThreatRectangle);
+            }
+        }
+
+        #region mouse events
+        private void ThreatMap_MouseDown(object sender, MouseEventArgs e)
+        {
+            _dragging = true;
+            _draggingStart = new System.Drawing.Point(e.X, e.Y);
+
+            ChangeCursor(Resources.ClosedHand);
+        }
+
+        private void ThreatMap_MouseUp(object sender, MouseEventArgs e)
+        {
+            _dragging = false;
+            Cursor = Cursors.Default;
+        }
+
+        private void ThreatMap_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (CurrentThreatSurface == null)
+                return;
+
+            if (_dragging)
+            {
+                _panOffset.Width += (int)((_draggingStart.X - e.X) / ZoomFactor);
+                _panOffset.Height += (int)((_draggingStart.Y - e.Y) / ZoomFactor);
+
+                Invalidate();
+
+                _draggingStart = e.Location;
+            }
+
+            UpdateHighlightedThreatRectangle(e.Location);
+
+            topPanel.Visible = _topPanelRectangle.Contains(e.Location);
+        }
+
+        private void UpdateHighlightedThreatRectangle(System.Drawing.Point mouseLocation)
+        {
+            if (_highlightedThreatRectangle != Rectangle.Empty)
+            {
+                _highlightedThreatRectangle = Rectangle.Empty;
+                Invalidate(_highlightedThreatRectangle);
+            }
+
+            float pixelsPerMeter;
+            float threatRectanglePixelWidth;
+            GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);
+
+            int row, col;
+            int rowColX = (int)(mouseLocation.X + (_panOffset.Width % threatRectanglePixelWidth));
+            int rowColY = (int)(mouseLocation.Y + (_panOffset.Height % threatRectanglePixelWidth));
+            System.Drawing.Point threatMapPoint = new System.Drawing.Point(rowColX, rowColY);
+            GetThreatRectangleRowColumn(threatMapPoint, threatRectanglePixelWidth, out row, out col);
+
+            _highlightedThreatRectangle = new Rectangle((int)(col * threatRectanglePixelWidth - (_panOffset.Width % threatRectanglePixelWidth)),
+                                                        (int)(row * threatRectanglePixelWidth - (_panOffset.Height % threatRectanglePixelWidth)),
+                                                        (int)threatRectanglePixelWidth, (int)threatRectanglePixelWidth);
+            _highlightedThreatRectangleRow = row;
+            _highlightedThreatRectangleCol = col;
+
+            Invalidate(_highlightedThreatRectangle);
+        }
+
+        void ThreatMap_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (e.Delta > 0)
+                zoomInBtn_Click(sender, e);
+            else
+                zoomOutBtn_Click(sender, e);
+        }
+
+        private void ThreatMap_MouseLeave(object sender, EventArgs e)
+        {
+            Cursor = Cursors.Default;
+        }
+        #endregion
+
+        #region panning
+        private void panUpBtn_Click(object sender, EventArgs e)
+        {
+            _panOffset.Height -= _panIncrement;
+            Invalidate();
+        }
+
+        private void panDownBtn_Click(object sender, EventArgs e)
+        {
+            _panOffset.Height += _panIncrement;
+            Invalidate();
+        }
+
+        private void panLeftBtn_Click(object sender, EventArgs e)
+        {
+            _panOffset.Width -= _panIncrement;
+            Invalidate();
+        }
+
+        private void panRightBtn_Click(object sender, EventArgs e)
+        {
+            _panOffset.Width += _panIncrement;
+            Invalidate();
+        }
+
+        private void resetPan_Click(object sender, EventArgs e)
+        {
+            _panOffset = new System.Drawing.Size(0, 0);
+            Invalidate();
+        }
+        #endregion
+
+        #region zooming
+        private void zoomInBtn_Click(object sender, EventArgs e)
+        {
+            _zoomedImageWidth *= (1 + _zoomIncrement);
+            Invalidate();
+            StartClarifyZoomTimer();
+        }
+
+        private void zoomOutBtn_Click(object sender, EventArgs e)
+        {
+            _zoomedImageWidth *= (1 - _zoomIncrement);
+            Invalidate();
+            StartClarifyZoomTimer();
+        }
+
+        private void StartClarifyZoomTimer()
+        {
+            if (_clarifyZoomTimer.Enabled)
+                _clarifyZoomTimer.Stop();
+
+            _clarifyZoomTimer.Start();
+        }
+
+        private void ClarifyZoom(object sender, EventArgs args)
+        {
+            _clarifyZoomTimer.Stop();
+
+            if (DisplayedPrediction == null)
+                return;
+
+            Rectangle threatSurfaceBoundingBox = new Rectangle(0, 0, (int)_zoomedImageWidth, (int)ZoomedImageHeight);
+
+            float x = ((ClientSize.Width - (ClientSize.Width / ZoomFactor)) / 2f) * ZoomFactor;
+            float y = ((ClientSize.Height - (ClientSize.Height / ZoomFactor)) / 2f) * ZoomFactor;
+
+            _panOffset = new Size((int)(_panOffset.Width * ZoomFactor + x), (int)(_panOffset.Height * ZoomFactor + y));
+
+            GetThreatSurfaces(threatSurfaceBoundingBox);
+
+            UpdateHighlightedThreatRectangle(PointToClient(Cursor.Position));
+        }
+
+        private void resetZoom_Click(object sender, EventArgs e)
+        {
+            _panOffset = new System.Drawing.Size(0, 0);
+            GetThreatSurfaces(ClientRectangle);
+        }
+        #endregion
+
+        private void ThreatMap_Resize(object sender, EventArgs e)
+        {
+            Invalidate();
+        }
+
+        private void IncidentCheckBox_CheckStateChanged(object sender, EventArgs e)
+        {
+            GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+        }
+
+        private void IncidentCheckBox_LabelClicked(object sender, EventArgs e)
+        {
+            ColoredCheckBox cb = sender as ColoredCheckBox;
+            ColorDialog cd = new ColorDialog();
+            if (cd.ShowDialog() == DialogResult.OK)
+            {
+                ColorPalette.ReturnColor(cb.Label.BackColor);
+                cb.Label.BackColor = _incidentColor[cb.Text] = cd.Color;
+                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+            }
+        }
+
+        private void OverlayCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            ColoredCheckBox cb = sender as ColoredCheckBox;
+            Overlays.Where(o => o.Name == cb.Text).First().Displayed = cb.Checked;
+            GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+        }
+
+        private void OverlayCheckBox_LabelClicked(object sender, EventArgs e)
+        {
+            ColoredCheckBox cb = sender as ColoredCheckBox;
+            ColorDialog cd = new ColorDialog();
+            if (cd.ShowDialog() == DialogResult.OK)
+            {
+                ColorPalette.ReturnColor(cb.Label.BackColor);
+
+                cb.Label.BackColor = Overlays.Where(o => o.Name == cb.Text).First().Color = cd.Color;
+                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+            }
+        }
+
+        public override void Clear()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(Clear));
+                return;
+            }
+
+            base.Clear();
+
+            _incidentColor = null;
+            _sliceThreatSurface = null;
+            _sliceIncidentPointScores = null;
+            _regionBottomLeftInMeters = PointF.Empty;
+            _regionSizeInMeters = SizeF.Empty;
+
+            foreach (ColoredCheckBox cb in incidentTypeCheckBoxes.Controls)
+                ColorPalette.ReturnColor(cb.Label.BackColor);
+
+            incidentTypeCheckBoxes.Controls.Clear();
+
+            foreach (ColoredCheckBox cb in overlayCheckBoxes.Controls)
+                ColorPalette.ReturnColor(cb.Label.BackColor);
+
+            overlayCheckBoxes.Controls.Clear();
+
+            sliceTime.Text = "";
+
+            Invalidate();
+        }
+
+        private void ChangeCursor(byte[] cursor)
+        {
+            MemoryStream ms = new MemoryStream(cursor);
+            Cursor = new Cursor(ms);
+            ms.Close();
+        }
+
+        private void threatResolution_ValueChanged(object sender, EventArgs e)
+        {
+            if (CurrentThreatSurface == null)
+                GetThreatSurfaces(ClientRectangle);
+            else
+                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+
+            panUpBtn.Focus();
+        }
+
+        private void timeSlice_ValueChanged(object sender, EventArgs e)
+        {
+            Invalidate();
+
+            GetSliceTimeText();
+        }
+
+        private void GetSliceTimeText()
+        {
+            DiscreteChoiceModel model = DisplayedPrediction.Model;
+            if (model is TimeSliceDCM)
+            {
+                TimeSliceDCM ts = model as TimeSliceDCM;
+                DateTime start = new DateTime((((long)timeSlice.Value) * ts.TimeSliceTicks));
+                DateTime end = start + new TimeSpan(ts.TimeSliceTicks);
+                sliceTime.Text = start.ToShortDateString() + " " + start.ToShortTimeString() + " - " + end.ToShortDateString() + " " + end.ToShortTimeString();
+            }
+        }
+
+        private void topPanel_MouseLeave(object sender, EventArgs e)
+        {
+            topPanel.Visible = false;
+        }
+
+        private void checkBoxes_Scroll(object sender, ScrollEventArgs e)
+        {
+            (sender as FlowLayoutPanel).Invalidate();
+        }
+
+        private void exportThreatSurfaceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (CurrentThreatSurface == null)
+                MessageBox.Show("No threat surface displayed. Nothing to export.");
+            else
+            {
+                StringBuilder filter = new StringBuilder();
+                Dictionary<string, ImageFormat> nameFormat = new Dictionary<string, ImageFormat>();
+                foreach (ImageFormat format in new ImageFormat[] { ImageFormat.Bmp, ImageFormat.Emf, ImageFormat.Exif, ImageFormat.Gif, ImageFormat.Icon, ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Tiff, ImageFormat.Wmf })
+                {
+                    filter.Append((filter.Length == 0 ? "" : "|") + format + " image files (*." + format + ")|*." + format);
+                    nameFormat.Add(format.ToString().ToLower(), format);
+                }
+
+                string path = LAIR.IO.File.PromptForSavePath("Select export location...", filter.ToString());
+                ImageFormat selectedFormat;
+                try { selectedFormat = nameFormat[Path.GetExtension(path).Trim('.').ToLower()]; }
+                catch (Exception)
+                {
+                    MessageBox.Show("Invalid file extension. Must be one of:  " + nameFormat.Keys.Concatenate(","));
+                    return;
+                }
+
+                if (path != null)
+                {
+                    if (File.Exists(path))
+                        File.Delete(path);
+
+                    CurrentThreatSurface.Save(path, selectedFormat);
+                }
+            }
+        }
+
+        private void examinePredictionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (DisplayedPrediction == null)
+                MessageBox.Show("No prediction displayed. Cannot examine.");
+            else if (!File.Exists(DisplayedPrediction.PointPredictionLogPath))
+                MessageBox.Show("No information available for this prediction.");
+            else
+            {
+                float pixelsPerMeter;
+                float threatRectanglePixelWidth;
+                GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);
+
+                int rowAbsoluteThreatRectangle = _highlightedThreatRectangleRow + (int)(_panOffset.Height / threatRectanglePixelWidth);
+                int colAbsoluteThreatRectangle = _highlightedThreatRectangleCol + (int)(_panOffset.Width / threatRectanglePixelWidth);
+
+                if (rowAbsoluteThreatRectangle < 0 || colAbsoluteThreatRectangle < 0)
+                    MessageBox.Show("No information at that location.");
+                else
+                {
+                    float widthMeters = threatRectanglePixelWidth / pixelsPerMeter;
+                    float bottomMeters = _regionBottomLeftInMeters.Y + _regionSizeInMeters.Height - (rowAbsoluteThreatRectangle + 1) * widthMeters;
+                    float leftMeters = _regionBottomLeftInMeters.X + colAbsoluteThreatRectangle * widthMeters;
+
+                    PostGIS.Polygon threatRectangle = new PostGIS.Polygon(new PostGIS.Point[]{
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters + widthMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters + widthMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, ATT.Configuration.PostgisSRID)}, ATT.Configuration.PostgisSRID);
+
+                    PointPrediction[] pointPredictions = PointPrediction.GetWithin(threatRectangle, DisplayedPrediction.Id).ToArray();
+                    if (pointPredictions.Length > 0)
+                    {
+                        DataGridView dataView = new DataGridView();
+                        dataView.ReadOnly = true;
+                        dataView.AllowUserToAddRows = false;
+
+                        int predictionIdCol = dataView.Columns.Add("prediction_id", "Prediction ID");
+
+                        Dictionary<string, int> incidentProbCol = new Dictionary<string, int>();
+                        Set<int> incidentCols = new Set<int>();
+                        foreach (string incident in pointPredictions[0].IncidentScore.Keys)
+                        {
+                            string colName = "Threat:  " + incident;
+                            int incidentCol = dataView.Columns.Add(colName, colName);
+                            incidentProbCol.Add(incident, incidentCol);
+                            incidentCols.Add(incidentCol);
+                        }
+
+                        Dictionary<int, int> featureIdCol = new Dictionary<int, int>();
+                        Set<int> featureCols = new Set<int>();
+                        foreach (Feature feature in DisplayedPrediction.SelectedFeatures.OrderBy(f => f.ToString()))
+                        {
+                            string colName = "Feature:  " + feature.ToString();
+                            int featureCol = dataView.Columns.Add(colName, colName);
+                            featureIdCol.Add(feature.Id, featureCol);
+                            featureCols.Add(featureCol);
+                        }
+
+                        dataView.Rows.Add(pointPredictions.Length);
+
+                        Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointPredictionLog = DisplayedPrediction.ReadPointPredictionLog(new Set<int>(pointPredictions.Select(p => p.PointId).ToArray()));
+                        for (int i = 0; i < pointPredictions.Length; ++i)
+                        {
+                            PointPrediction pointPrediction = pointPredictions[i];
+
+                            dataView[predictionIdCol, i].Value = pointPrediction.PointId;
+
+                            foreach (Tuple<string, double> labelConfidence in pointPredictionLog[pointPrediction.PointId].Item1)
+                                if (labelConfidence.Item1 != PointPrediction.NullLabel)
+                                    dataView[incidentProbCol[labelConfidence.Item1], i].Value = Math.Round(labelConfidence.Item2, 3);
+
+                            foreach (Tuple<int, double> featureIdValue in pointPredictionLog[pointPrediction.PointId].Item2)
+                                dataView[featureIdCol[featureIdValue.Item1], i].Value = Math.Round(featureIdValue.Item2, 3);
+                        }
+
+                        dataView.SortCompare += new DataGridViewSortCompareEventHandler(delegate(object o, DataGridViewSortCompareEventArgs args)
+                            {
+                                int sortedColumn = args.Column.DisplayIndex;
+
+                                if (args.CellValue1 == null && args.CellValue2 == null)
+                                    args.SortResult = args.RowIndex1.CompareTo(args.RowIndex2);
+                                else if (args.CellValue1 == null || args.CellValue2 == null)
+                                    args.SortResult = args.CellValue1 == null ? -1 : 1;
+                                else if (sortedColumn == predictionIdCol)
+                                    args.SortResult = ((int)args.CellValue1).CompareTo((int)args.CellValue2);
+                                else if (incidentCols.Contains(sortedColumn))
+                                    args.SortResult = ((double)args.CellValue1).CompareTo((double)args.CellValue2);
+                                else if (featureCols.Contains(sortedColumn))
+                                    args.SortResult = Math.Abs((double)args.CellValue1).CompareTo(Math.Abs((double)args.CellValue2));
+                                else
+                                    throw new Exception("Unknown column type");
+
+                                args.Handled = true;
+                            });
+
+                        PredictionDataGridViewForm form = new PredictionDataGridViewForm();
+                        form.MaximumSize = Screen.FromControl(this).Bounds.Size;
+                        form.Controls.Add(dataView);
+                        form.Show();
+                        dataView.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+                        form.ClientSize = dataView.Size = dataView.PreferredSize;
+                        form.Location = new System.Drawing.Point(0, 0);
+                    }
+                    else
+                        MessageBox.Show("No predictions were made at that location");
+                }
+            }
+        }
+    }
+}

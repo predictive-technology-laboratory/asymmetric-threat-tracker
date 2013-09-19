@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+
+  <postgis>
+    <shapefile_directory></shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., the ShapeFiles sub-directory of the ATT installation directory). -->
+  </postgis>
+
+  <logging>
+    <path>log.txt</path>         <!-- Path to log file. Will be created if it doesn't exist, and will be appended to if it does exist. -->
+    <editor>notepad.exe</editor> <!-- Path to editor executable for viewing the log file. -->
+  </logging>
+
+  <incidents>
+    <data_directory></data_directory> <!-- The default directory that should be opened when browsing for incidents to import (e.g., the Data sub-directory of the ATT installation directory). -->
+  </incidents>
+
+  <plugins>
+    <!-- Each element within <plugins> should have the form <plugin>typename</plugin>, where typename is the type of the plugin.  -->
+  </plugins>
+
+  <notifications>                              <!-- Setup for email notification of prediction completion / errors. Requires an SMTP account on a server. -->
+    <setup>
+      <host></host>                            <!-- Host name for SMTP server. -->
+      <port>587</port>                         <!-- Host port for SMTP server. -->
+      <enable_ssl>true</enable_ssl>            <!-- Whether or not to use SSL encryption (true/false). -->
+      <username></username>                    <!-- Username on SMTP server. -->
+      <password></password>                    <!-- Password for username, in encrypted format. To obtain an encrypted password, run ATT and select File -> Generate encrypted password. Then insert the resulting value here. -->
+      <from>                    
+        <email></email>                        <!-- Source email address from which messages originate. -->
+        <name>Asymmetric Threat Tracker</name> <!-- Source name from which messages originate. -->
+      </from>        
+    </setup>
+    <to>                                       <!-- The <to> element may contain one or more <address> elements. Each message will be sent to all addresses. -->
+      <address>
+        <email></email>                        <!-- Destination email address. -->
+        <name></name>                          <!-- Destination name. -->
+      </address>      
+    </to>
+  </notifications>
+
+  <mono_hacks>                                         <!-- Hacks used to make ATT run via Mono.-->
+    <add_incident_refresh>false</add_incident_refresh> <!-- Whether or not to add a "Refresh" menu item to the incident types menu. Mono does not yet handle the CloseUp event for DateTimePickers, which is where we automatically fire the incident refresh. This only needs to be set to true when using Mono. -->
+  </mono_hacks>
+
+  <system>
+    <processor_count>-1</processor_count> <!-- Number of processor cores to use within the GUI, or -1 to use all processor cores. -->
+  </system>    
+
+</configuration>

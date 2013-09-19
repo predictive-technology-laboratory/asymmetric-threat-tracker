@@ -1,0 +1,23 @@
+﻿Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
+Use density of other crimes as features
+Add raster shapefile ingest
+Incident collapsing
+Decouple models from predictions
+Different threat surface export types
+Add Sam's gang model
+Different assessment plot export types
+Forecast counts
+Ingest new data
+Create advertisement brochure
+Intelligently handle spacing around positive points
+Analysis for KDE models
+View incident distributions
+Indent log messages per task
+Collect feature data (stopped at 189. Hospitals)
+SVM rank feature selection
+GUI configuration editor
+Store threat surfaces
+Save coloring
+Name shape files on import
+Make UI robust to user interaction
+Memory usage in time slice FEX
