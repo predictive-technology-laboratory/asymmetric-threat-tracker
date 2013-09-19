@@ -341,7 +341,7 @@
 		<col def="S0">ISDotNetInstallerArgsCommit</col>
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
-		<row><td>GUI.Primary_output</td><td>{428DEAF6-76CD-4D43-9142-12E6C5FBE916}</td><td>INSTALLDIR</td><td>2</td><td/><td>gui.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>GUI.Primary_output</td><td>{4FE2E5CC-24BF-4A0B-A0DF-6D9B4103B5A5}</td><td>INSTALLDIR</td><td>2</td><td/><td>gui.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{093198B7-5572-4F7B-BC9B-8BAAC55A501D}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{621C1244-77C4-45DA-9D49-1E4D3CB83D12}</td><td>CONFIG</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{75018BDC-C73F-4F9D-BB33-FEBC94F88533}</td><td>CHICAGO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -2204,7 +2204,7 @@
 		<col def="S0">FTPLocation</col>
 		<col def="S0">HTTPLocation</col>
 		<col def="S0">Miscellaneous</col>
-		<row><td>GUI.Primary_output</td><td/><td/><td>_B2467286_5920_4E21_9059_96353707FE79_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>GUI.Primary_output</td><td/><td/><td>_CD33A148_1297_4369_BC36_EE388C10BBD4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_1FA71BFF_AE48_4930_A995_B5F959D9BD51_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_C5EAF500_69AA_4731_9C59_A0BEDF026F43_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_3BA10B3C_ED59_4C96_9D3E_D8628C40BFBD_FILTER</td><td/><td/><td/><td/></row>
@@ -2847,7 +2847,7 @@
 		<col def="I2">Encoded</col>
 		<col def="S0">Comment</col>
 		<col def="I4">TimeStamp</col>
-		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667114228</td></row>
+		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667152435</td></row>
 		<row><td>DN_AlwaysInstall</td><td>1033</td><td>Always Install</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_COLOR</td><td>1033</td><td>The color settings of your system are not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_DOTNETVERSION40FULL</td><td>1033</td><td>Microsoft .NET Framework 4.0 Full package or greater needs to be installed for this installation to continue.</td><td>0</td><td/><td>983655669</td></row>
@@ -3959,8 +3959,8 @@
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>983641490</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td/><td>0</td><td/><td>983639474</td></row>
-		<row><td>ID_STRING3</td><td>1033</td><td>http://ptl.sys.virginia.edu/ptl</td><td>0</td><td/><td>-1667122675</td></row>
-		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667114228</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>http://www.PredictiveTechnologyLaboratory.com</td><td>0</td><td/><td>-1667152435</td></row>
+		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667152435</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>Matthew Gerber (msg8u@virginia.edu)</td><td>0</td><td/><td>1654734700</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>983639442</td></row>
 	</table>
