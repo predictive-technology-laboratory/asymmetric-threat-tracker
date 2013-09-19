@@ -52,36 +52,36 @@
   <ItemGroup>
     <Reference Include="LAIR.Collections, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\NLP\Libraries\LAIR.Collections.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.Collections.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\NLP\Libraries\LAIR.Extensions.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.IO, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\NLP\Libraries\LAIR.IO.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.IO.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.MachineLearning, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\NLP\Libraries\LAIR.MachineLearning.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.MachineLearning.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.Misc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\NLP\Libraries\LAIR.Misc.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.Misc.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.ResourceAPIs.PostGIS">
-      <HintPath>..\..\NLP\Libraries\LAIR.ResourceAPIs.PostGIS.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.ResourceAPIs.PostGIS.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.ResourceAPIs.PostgreSQL">
-      <HintPath>..\..\NLP\Libraries\LAIR.ResourceAPIs.PostgreSQL.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.ResourceAPIs.PostgreSQL.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.XML, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\NLP\Libraries\LAIR.XML.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\LAIR.XML.dll</HintPath>
     </Reference>
     <Reference Include="Npgsql">
-      <HintPath>..\..\NLP\Libraries\Npgsql.dll</HintPath>
+      <HintPath>..\..\..\NLP\Libraries\Npgsql.dll</HintPath>
     </Reference>
     <Reference Include="PTL.ATT, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

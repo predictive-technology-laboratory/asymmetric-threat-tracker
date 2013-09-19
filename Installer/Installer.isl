@@ -341,17 +341,17 @@
 		<col def="S0">ISDotNetInstallerArgsCommit</col>
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
-		<row><td>GuiDemo.Primary_output</td><td>{660651FF-6338-434E-90AC-6259BDFB6BBF}</td><td>INSTALLDIR</td><td>2</td><td/><td>guidemo.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>GUI.Primary_output</td><td>{428DEAF6-76CD-4D43-9142-12E6C5FBE916}</td><td>INSTALLDIR</td><td>2</td><td/><td>gui.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{093198B7-5572-4F7B-BC9B-8BAAC55A501D}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{621C1244-77C4-45DA-9D49-1E4D3CB83D12}</td><td>CONFIG</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{75018BDC-C73F-4F9D-BB33-FEBC94F88533}</td><td>CHICAGO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT11</td><td>{9EA59DD5-2F17-4F5B-8CA9-067803DC74E4}</td><td>AO1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT12</td><td>{00FCA099-78A0-4529-8FB4-9930359DB7CE}</td><td>FEATURES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT13</td><td>{AE360A3F-AD33-4A2F-ABDA-B473E5877CB8}</td><td>DISTANCE1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT14</td><td>{BA1F05F5-0432-4221-AAF8-B099CFD1C091}</td><td>RASTER1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{1AED4745-DE60-4134-9E6E-A0C9BE80F748}</td><td>DATA</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{9B5E0F4E-6289-41C4-8334-B75F8FBC293B}</td><td>SHAPEFILES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{B40DE153-43FB-4F92-9159-7F3DFFA14009}</td><td>SHAPEFILES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{636A7059-4253-4B77-A7EC-F859A6799B9D}</td><td>MODELS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{DF523468-E48D-4668-B966-5EA009B91A1A}</td><td>CHICAGO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{7F5CD026-BB18-4785-9F48-9122D326A69B}</td><td>AO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT7</td><td>{D7FD6548-D446-458F-B82B-18DFE4C93D6D}</td><td>FEATURES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT8</td><td>{F0B461B2-DF92-4F96-B3D3-0F97B82C2F24}</td><td>DISTANCE</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT9</td><td>{9D3FDBA6-E747-4354-88D1-09B9ACBCA50B}</td><td>RASTER</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>NewComponent1</td><td>{EBAB4955-8443-435F-AEC9-8B1FE096DB7B}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
@@ -563,7 +563,7 @@
 		<row><td>LicenseAgreement</td><td>DlgLine</td><td>Line</td><td>48</td><td>234</td><td>326</td><td>0</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>DlgTitle</td><td>Text</td><td>13</td><td>6</td><td>292</td><td>25</td><td>65539</td><td/><td>##IDS__IsLicenseDlg_LicenseAgreement##</td><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>ISPrintButton</td><td>PushButton</td><td>301</td><td>188</td><td>65</td><td>17</td><td>3</td><td/><td>##IDS_PRINT_BUTTON##</td><td>Agree</td><td/><td>0</td><td/><td/><td/></row>
-		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>C:\ATT\ATT\eula.rtf</td><td/></row>
+		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>C:\ATT\trunk\ATT\eula.rtf</td><td/></row>
 		<row><td>LicenseAgreement</td><td>Next</td><td>PushButton</td><td>230</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_NEXT##</td><td>Cancel</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Back</td><td>PushButton</td><td>164</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_BACK##</td><td>Next</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Banner</td><td>Bitmap</td><td>0</td><td>0</td><td>374</td><td>44</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td>NewBinary1</td></row>
@@ -1062,12 +1062,12 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
-		<row><td>CHICAGO</td><td>ISX_DEFAULTCOMPONENT5</td></row>
-		<row><td>FEATURES</td><td>ISX_DEFAULTCOMPONENT7</td></row>
+		<row><td>CHICAGO</td><td>ISX_DEFAULTCOMPONENT10</td></row>
+		<row><td>FEATURES1</td><td>ISX_DEFAULTCOMPONENT12</td></row>
 		<row><td>INSTALLDIR</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>INSTALLDIR</td><td>NewComponent1</td></row>
 		<row><td>MODELS</td><td>ISX_DEFAULTCOMPONENT4</td></row>
-		<row><td>RASTER</td><td>ISX_DEFAULTCOMPONENT9</td></row>
+		<row><td>RASTER1</td><td>ISX_DEFAULTCOMPONENT14</td></row>
 		<row><td>SHAPEFILES</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 	</table>
 
@@ -1149,7 +1149,7 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S255">ISFolderName</col>
 		<row><td>ALLUSERSPROFILE</td><td>TARGETDIR</td><td>.:ALLUSE~1|All Users</td><td/><td>0</td><td/></row>
-		<row><td>AO</td><td>CHICAGO</td><td>AO</td><td/><td>0</td><td/></row>
+		<row><td>AO1</td><td>CHICAGO</td><td>AO</td><td/><td>0</td><td/></row>
 		<row><td>ASYMMETRIC_THREAT_TRACKER</td><td>PREDICTIVE_TECHNOLOGY_LABORATORY</td><td>ASYMME~1|Asymmetric Threat Tracker</td><td/><td>0</td><td/></row>
 		<row><td>AdminToolsFolder</td><td>TARGETDIR</td><td>.:Admint~1|AdminTools</td><td/><td>0</td><td/></row>
 		<row><td>AppDataFolder</td><td>TARGETDIR</td><td>.:APPLIC~1|Application Data</td><td/><td>0</td><td/></row>
@@ -1159,9 +1159,9 @@
 		<row><td>CommonFilesFolder</td><td>TARGETDIR</td><td>.:Common</td><td/><td>0</td><td/></row>
 		<row><td>DATA</td><td>INSTALLDIR</td><td>Data</td><td/><td>0</td><td/></row>
 		<row><td>DATABASEDIR</td><td>ISYourDataBaseDir</td><td>.</td><td/><td>0</td><td/></row>
-		<row><td>DISTANCE</td><td>FEATURES</td><td>Distance</td><td/><td>0</td><td/></row>
+		<row><td>DISTANCE1</td><td>FEATURES1</td><td>Distance</td><td/><td>0</td><td/></row>
 		<row><td>DesktopFolder</td><td>TARGETDIR</td><td>.:Desktop</td><td/><td>3</td><td/></row>
-		<row><td>FEATURES</td><td>CHICAGO</td><td>Features</td><td/><td>0</td><td/></row>
+		<row><td>FEATURES1</td><td>CHICAGO</td><td>Features</td><td/><td>0</td><td/></row>
 		<row><td>FavoritesFolder</td><td>TARGETDIR</td><td>.:FAVORI~1|Favorites</td><td/><td>0</td><td/></row>
 		<row><td>FontsFolder</td><td>TARGETDIR</td><td>.:Fonts</td><td/><td>0</td><td/></row>
 		<row><td>GlobalAssemblyCache</td><td>TARGETDIR</td><td>.:Global~1|GlobalAssemblyCache</td><td/><td>0</td><td/></row>
@@ -1181,7 +1181,7 @@
 		<row><td>PrintHoodFolder</td><td>TARGETDIR</td><td>.:PRINTH~1|PrintHood</td><td/><td>0</td><td/></row>
 		<row><td>ProgramFilesFolder</td><td>TARGETDIR</td><td>.:PROGRA~1|program files</td><td/><td>0</td><td/></row>
 		<row><td>ProgramMenuFolder</td><td>TARGETDIR</td><td>.:Programs</td><td/><td>3</td><td/></row>
-		<row><td>RASTER</td><td>FEATURES</td><td>Raster</td><td/><td>0</td><td/></row>
+		<row><td>RASTER1</td><td>FEATURES1</td><td>Raster</td><td/><td>0</td><td/></row>
 		<row><td>RecentFolder</td><td>TARGETDIR</td><td>.:Recent</td><td/><td>0</td><td/></row>
 		<row><td>SHAPEFILES</td><td>INSTALLDIR</td><td>SHAPEF~1|ShapeFiles</td><td/><td>0</td><td/></row>
 		<row><td>SendToFolder</td><td>TARGETDIR</td><td>.:SendTo</td><td/><td>3</td><td/></row>
@@ -1888,17 +1888,17 @@
 	<table name="FeatureComponents">
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s72">Component_</col>
-		<row><td>AlwaysInstall</td><td>GuiDemo.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>GUI.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT10</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT11</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT12</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT13</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT14</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT5</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT6</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT7</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT8</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT9</td></row>
 		<row><td>AlwaysInstall</td><td>NewComponent1</td></row>
 	</table>
 
@@ -1914,39 +1914,38 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
-		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT1</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ATT\att_config.xml</td><td>1</td><td/></row>
-		<row><td>bike_racks.dbf</td><td>ISX_DEFAULTCOMPONENT8</td><td>BIKE_R~1.DBF|Bike_Racks.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Bike_Racks.dbf</td><td>1</td><td/></row>
-		<row><td>bike_racks.prj</td><td>ISX_DEFAULTCOMPONENT8</td><td>BIKE_R~1.PRJ|Bike_Racks.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Bike_Racks.prj</td><td>1</td><td/></row>
-		<row><td>bike_racks.sbn</td><td>ISX_DEFAULTCOMPONENT8</td><td>BIKE_R~1.SBN|Bike_Racks.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Bike_Racks.sbn</td><td>1</td><td/></row>
-		<row><td>bike_racks.sbx</td><td>ISX_DEFAULTCOMPONENT8</td><td>BIKE_R~1.SBX|Bike_Racks.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Bike_Racks.sbx</td><td>1</td><td/></row>
-		<row><td>bike_racks.shp</td><td>ISX_DEFAULTCOMPONENT8</td><td>BIKE_R~1.SHP|Bike_Racks.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Bike_Racks.shp</td><td>1</td><td/></row>
-		<row><td>bike_racks.shx</td><td>ISX_DEFAULTCOMPONENT8</td><td>BIKE_R~1.SHX|Bike_Racks.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Bike_Racks.shx</td><td>1</td><td/></row>
-		<row><td>bike_racks.srid</td><td>ISX_DEFAULTCOMPONENT8</td><td>BIKE_R~1.SRI|Bike_Racks.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Bike_Racks.srid</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_since_decembe</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.ZIP|chicago_crimes_since_december.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\Data\chicago_crimes_since_december.zip</td><td>1</td><td/></row>
-		<row><td>city_boundary.dbf</td><td>ISX_DEFAULTCOMPONENT6</td><td>CITY_B~1.DBF|City_Boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\AO\City_Boundary.dbf</td><td>1</td><td/></row>
-		<row><td>city_boundary.prj</td><td>ISX_DEFAULTCOMPONENT6</td><td>CITY_B~1.PRJ|City_Boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\AO\City_Boundary.prj</td><td>1</td><td/></row>
-		<row><td>city_boundary.sbn</td><td>ISX_DEFAULTCOMPONENT6</td><td>CITY_B~1.SBN|City_Boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\AO\City_Boundary.sbn</td><td>1</td><td/></row>
-		<row><td>city_boundary.sbx</td><td>ISX_DEFAULTCOMPONENT6</td><td>CITY_B~1.SBX|City_Boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\AO\City_Boundary.sbx</td><td>1</td><td/></row>
-		<row><td>city_boundary.shp</td><td>ISX_DEFAULTCOMPONENT6</td><td>CITY_B~1.SHP|City_Boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\AO\City_Boundary.shp</td><td>1</td><td/></row>
-		<row><td>city_boundary.shx</td><td>ISX_DEFAULTCOMPONENT6</td><td>CITY_B~1.SHX|City_Boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\AO\City_Boundary.shx</td><td>1</td><td/></row>
-		<row><td>city_boundary.srid</td><td>ISX_DEFAULTCOMPONENT6</td><td>CITY_B~1.SRI|City_Boundary.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\AO\City_Boundary.srid</td><td>1</td><td/></row>
-		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT1</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\GuiDemo\gui_config.xml</td><td>1</td><td/></row>
-		<row><td>guidemo.primary_output</td><td>GuiDemo.Primary_output</td><td>GuiDemo.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;GuiDemo&gt;|Built</td><td>3</td><td/></row>
-		<row><td>major_streets.dbf</td><td>ISX_DEFAULTCOMPONENT8</td><td>MAJOR_~1.DBF|Major_Streets.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Major_Streets.dbf</td><td>1</td><td/></row>
-		<row><td>major_streets.prj</td><td>ISX_DEFAULTCOMPONENT8</td><td>MAJOR_~1.PRJ|Major_Streets.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Major_Streets.prj</td><td>1</td><td/></row>
-		<row><td>major_streets.sbn</td><td>ISX_DEFAULTCOMPONENT8</td><td>MAJOR_~1.SBN|Major_Streets.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Major_Streets.sbn</td><td>1</td><td/></row>
-		<row><td>major_streets.sbx</td><td>ISX_DEFAULTCOMPONENT8</td><td>MAJOR_~1.SBX|Major_Streets.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Major_Streets.sbx</td><td>1</td><td/></row>
-		<row><td>major_streets.shp</td><td>ISX_DEFAULTCOMPONENT8</td><td>MAJOR_~1.SHP|Major_Streets.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Major_Streets.shp</td><td>1</td><td/></row>
-		<row><td>major_streets.shx</td><td>ISX_DEFAULTCOMPONENT8</td><td>MAJOR_~1.SHX|Major_Streets.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Major_Streets.shx</td><td>1</td><td/></row>
-		<row><td>major_streets.srid</td><td>ISX_DEFAULTCOMPONENT8</td><td>MAJOR_~1.SRI|Major_Streets.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\Major_Streets.srid</td><td>1</td><td/></row>
-		<row><td>police_stations.dbf</td><td>ISX_DEFAULTCOMPONENT8</td><td>POLICE~1.DBF|police_stations.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\police_stations.dbf</td><td>1</td><td/></row>
-		<row><td>police_stations.prj</td><td>ISX_DEFAULTCOMPONENT8</td><td>POLICE~1.PRJ|police_stations.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\police_stations.prj</td><td>1</td><td/></row>
-		<row><td>police_stations.sbn</td><td>ISX_DEFAULTCOMPONENT8</td><td>POLICE~1.SBN|police_stations.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\police_stations.sbn</td><td>1</td><td/></row>
-		<row><td>police_stations.sbx</td><td>ISX_DEFAULTCOMPONENT8</td><td>POLICE~1.SBX|police_stations.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\police_stations.sbx</td><td>1</td><td/></row>
-		<row><td>police_stations.shp</td><td>ISX_DEFAULTCOMPONENT8</td><td>POLICE~1.SHP|police_stations.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\police_stations.shp</td><td>1</td><td/></row>
-		<row><td>police_stations.shx</td><td>ISX_DEFAULTCOMPONENT8</td><td>POLICE~1.SHX|police_stations.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\police_stations.shx</td><td>1</td><td/></row>
-		<row><td>police_stations.srid</td><td>ISX_DEFAULTCOMPONENT8</td><td>POLICE~1.SRI|police_stations.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\ShapeFiles\Chicago\Features\Distance\police_stations.srid</td><td>1</td><td/></row>
-		<row><td>readme.txt</td><td>ISX_DEFAULTCOMPONENT1</td><td>readme.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\GuiDemo\readme.txt</td><td>1</td><td/></row>
+		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT1</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ATT\att_config.xml</td><td>1</td><td/></row>
+		<row><td>bike_racks.dbf</td><td>ISX_DEFAULTCOMPONENT13</td><td>BIKE_R~1.DBF|Bike_Racks.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Bike_Racks.dbf</td><td>1</td><td/></row>
+		<row><td>bike_racks.prj</td><td>ISX_DEFAULTCOMPONENT13</td><td>BIKE_R~1.PRJ|Bike_Racks.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Bike_Racks.prj</td><td>1</td><td/></row>
+		<row><td>bike_racks.sbn</td><td>ISX_DEFAULTCOMPONENT13</td><td>BIKE_R~1.SBN|Bike_Racks.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Bike_Racks.sbn</td><td>1</td><td/></row>
+		<row><td>bike_racks.sbx</td><td>ISX_DEFAULTCOMPONENT13</td><td>BIKE_R~1.SBX|Bike_Racks.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Bike_Racks.sbx</td><td>1</td><td/></row>
+		<row><td>bike_racks.shp</td><td>ISX_DEFAULTCOMPONENT13</td><td>BIKE_R~1.SHP|Bike_Racks.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Bike_Racks.shp</td><td>1</td><td/></row>
+		<row><td>bike_racks.shx</td><td>ISX_DEFAULTCOMPONENT13</td><td>BIKE_R~1.SHX|Bike_Racks.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Bike_Racks.shx</td><td>1</td><td/></row>
+		<row><td>bike_racks.srid</td><td>ISX_DEFAULTCOMPONENT13</td><td>BIKE_R~1.SRI|Bike_Racks.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Bike_Racks.srid</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_january_febru</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.ZIP|chicago_crimes_january_february_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\chicago_crimes_january_february_2013.zip</td><td>1</td><td/></row>
+		<row><td>city_boundary.dbf</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.DBF|City_Boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.dbf</td><td>1</td><td/></row>
+		<row><td>city_boundary.prj</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.PRJ|City_Boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.prj</td><td>1</td><td/></row>
+		<row><td>city_boundary.sbn</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SBN|City_Boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.sbn</td><td>1</td><td/></row>
+		<row><td>city_boundary.sbx</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SBX|City_Boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.sbx</td><td>1</td><td/></row>
+		<row><td>city_boundary.shp</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SHP|City_Boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.shp</td><td>1</td><td/></row>
+		<row><td>city_boundary.shx</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SHX|City_Boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.shx</td><td>1</td><td/></row>
+		<row><td>city_boundary.srid</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SRI|City_Boundary.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.srid</td><td>1</td><td/></row>
+		<row><td>gui.primary_output</td><td>GUI.Primary_output</td><td>GUI.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;GUI&gt;|Built</td><td>3</td><td/></row>
+		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT1</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\GUI\gui_config.xml</td><td>1</td><td/></row>
+		<row><td>major_streets.dbf</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.DBF|Major_Streets.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.dbf</td><td>1</td><td/></row>
+		<row><td>major_streets.prj</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.PRJ|Major_Streets.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.prj</td><td>1</td><td/></row>
+		<row><td>major_streets.sbn</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.SBN|Major_Streets.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.sbn</td><td>1</td><td/></row>
+		<row><td>major_streets.sbx</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.SBX|Major_Streets.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.sbx</td><td>1</td><td/></row>
+		<row><td>major_streets.shp</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.SHP|Major_Streets.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.shp</td><td>1</td><td/></row>
+		<row><td>major_streets.shx</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.SHX|Major_Streets.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.shx</td><td>1</td><td/></row>
+		<row><td>major_streets.srid</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.SRI|Major_Streets.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.srid</td><td>1</td><td/></row>
+		<row><td>police_stations.dbf</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.DBF|police_stations.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.dbf</td><td>1</td><td/></row>
+		<row><td>police_stations.prj</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.PRJ|police_stations.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.prj</td><td>1</td><td/></row>
+		<row><td>police_stations.sbn</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SBN|police_stations.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.sbn</td><td>1</td><td/></row>
+		<row><td>police_stations.sbx</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SBX|police_stations.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.sbx</td><td>1</td><td/></row>
+		<row><td>police_stations.shp</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SHP|police_stations.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.shp</td><td>1</td><td/></row>
+		<row><td>police_stations.shx</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SHX|police_stations.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.shx</td><td>1</td><td/></row>
+		<row><td>police_stations.srid</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SRI|police_stations.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.srid</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -2205,17 +2204,17 @@
 		<col def="S0">FTPLocation</col>
 		<col def="S0">HTTPLocation</col>
 		<col def="S0">Miscellaneous</col>
-		<row><td>GuiDemo.Primary_output</td><td/><td/><td>_310D8BD4_4253_47F5_BCE0_D033BE802EE9_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>GUI.Primary_output</td><td/><td/><td>_B2467286_5920_4E21_9059_96353707FE79_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_1FA71BFF_AE48_4930_A995_B5F959D9BD51_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_C5EAF500_69AA_4731_9C59_A0BEDF026F43_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_3BA10B3C_ED59_4C96_9D3E_D8628C40BFBD_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT11</td><td/><td/><td>_6F7361F4_E18F_47D5_B814_D91ECAB8571D_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT12</td><td/><td/><td>_94552AED_DFF8_4955_99E1_F84BBDC2ACEF_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT13</td><td/><td/><td>_F352F948_D25B_409B_8358_23C0DE1EE8EB_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT14</td><td/><td/><td>_BB2AE2AF_C732_420F_BB7C_1198A9BF134B_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_3C607B27_B644_4B4A_A31B_482872D2A863_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_15E89777_866C_4D04_8C15_9A216DB40D78_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_1B949196_85D4_46DC_9C1D_7DEF821A7E99_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_07BF8642_BD60_4808_9F10_0505A28171C9_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_99E83D1B_D783_4F08_916A_AE1DF61C5606_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT6</td><td/><td/><td>_8E6DA64F_F6DF_44B4_B8EB_2626A0B1EB90_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT7</td><td/><td/><td>_300CF8CB_FDD8_43B1_9B07_44340722A4C4_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT8</td><td/><td/><td>_A2D16E60_3052_4A69_8E0B_BFE1DEC345B2_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT9</td><td/><td/><td>_C9CF2305_C060_4776_B988_176030B21CEA_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>NewComponent1</td><td/><td/><td>_F994639D_6F98_406B_8A53_0A3B550F67DE_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
@@ -2530,6 +2529,7 @@
 		<col def="i4">Type</col>
 		<row><td>ATT</td><td>ATT\ATT.csproj</td><td/><td>2</td></row>
 		<row><td>CommonFilesFolder</td><td/><td/><td>1</td></row>
+		<row><td>GUI</td><td>GUI\GUI.csproj</td><td/><td>2</td></row>
 		<row><td>GuiDemo</td><td>GuiDemo\GuiDemo.csproj</td><td/><td>2</td></row>
 		<row><td>ISPROJECTDIR</td><td/><td/><td>1</td></row>
 		<row><td>ISProductFolder</td><td/><td/><td>1</td></row>
@@ -2847,7 +2847,7 @@
 		<col def="I2">Encoded</col>
 		<col def="S0">Comment</col>
 		<col def="I4">TimeStamp</col>
-		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>983659828</td></row>
+		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667114228</td></row>
 		<row><td>DN_AlwaysInstall</td><td>1033</td><td>Always Install</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_COLOR</td><td>1033</td><td>The color settings of your system are not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_DOTNETVERSION40FULL</td><td>1033</td><td>Microsoft .NET Framework 4.0 Full package or greater needs to be installed for this installation to continue.</td><td>0</td><td/><td>983655669</td></row>
@@ -3959,8 +3959,8 @@
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>983641490</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td/><td>0</td><td/><td>983639474</td></row>
-		<row><td>ID_STRING3</td><td>1033</td><td>http://ptl.sys.virginia.edu/ptl</td><td>0</td><td/><td>1654769484</td></row>
-		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>983659828</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>http://www.PredictiveTechnologyLaboratory.com</td><td>0</td><td/><td>-1667114228</td></row>
+		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667114228</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>Matthew Gerber (msg8u@virginia.edu)</td><td>0</td><td/><td>1654734700</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>983639442</td></row>
 	</table>
@@ -4071,7 +4071,7 @@
 		<col def="I2">ISIconIndex</col>
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>&lt;ISProductFolder&gt;\redist\Language Independent\OS Independent\setupicon.ico</td><td>0</td></row>
 		<row><td>UNINST_Uninstall_A_961E7B2D9FAA4F3BB896BC1DF7AE4FA1.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2012SpringLE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
-		<row><td>_Built1_97BEF66BB1AA4D85A75CD9A0A05FF08C.exe</td><td/><td>C:\ATT\GuiDemo\bullseye.ico</td><td>0</td></row>
+		<row><td>_Built1_36DF8E6C42BB422EA97110AC37CC38F7.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
 	</table>
 
 	<table name="IniFile">
@@ -4204,7 +4204,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{38F4D529-CB6A-4E21-A8D0-F95D9A6AC921}</td></row>
 		<row><td>ISUSSignature</td><td>{F0C05E1F-F5BD-4831-A34F-451E3EC501F6}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewAppV,viewProject,viewUI,viewRealSetupDesign,viewUpgradePaths,viewObjects,viewSetupDesign,viewSetupTypes,viewDependencies,viewCE,viewEnvironmentVariables,viewSystemSearch,viewInstallScriptStd,viewCustomActions,viewSupportFiles,viewRelease,viewFeatureFiles,viewShortcuts,viewAppFiles</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewAppV,viewProject,viewUI,viewRealSetupDesign,viewUpgradePaths,viewObjects,viewSetupDesign,viewSetupTypes,viewDependencies,viewCE,viewEnvironmentVariables,viewSystemSearch,viewInstallScriptStd,viewCustomActions,viewSupportFiles,viewRelease,viewFeatureFiles,viewShortcuts,viewAppFiles,viewXMLConfig</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
@@ -4660,10 +4660,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
-		<row><td>FileKey1</td><td>GuiDemo.Primary_output</td><td/><td>predic_1_predictive_technology_laboratory</td><td>2</td></row>
-		<row><td>FileKey2</td><td>GuiDemo.Primary_output</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
 		<row><td>UNINST_Uninstall_Asymmetric_Threat_Tracker</td><td>NewComponent1</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
-		<row><td>_Built1</td><td>GuiDemo.Primary_output</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4750,7 +4747,6 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>UNINST_Uninstall_Asymmetric_Threat_Tracker</td><td>asymme_1_asymmetric_threat_tracker</td><td>UNINST|Uninstall Asymmetric Threat Tracker</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {6EFB03DA-3DD1-4E74-B281-5F796FAA1B83}</td><td/><td/><td>UNINST_Uninstall_A_961E7B2D9FAA4F3BB896BC1DF7AE4FA1.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>_Built1</td><td>asymme_1_asymmetric_threat_tracker</td><td>##IDS_SHORTCUT_DISPLAY_NAME3##</td><td>GuiDemo.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td>_Built1_97BEF66BB1AA4D85A75CD9A0A05FF08C.exe</td><td>0</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">
