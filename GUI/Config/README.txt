@@ -1,0 +1,1 @@
+﻿Edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine.

@@ -1087,6 +1087,7 @@
 		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
 		<row><td>LaunchReadmeFileFromSetupCompleteSuccess</td><td>1</td><td>NewBinary19</td><td>LaunchReadMe</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
+		<row><td>SetARPReadme</td><td>51</td><td>ARPREADME</td><td>[INSTALLDIR]Config\README.txt</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%SystemRoot]\Profiles\All Users</td><td/><td/></row>
 		<row><td>ShowMsiLog</td><td>226</td><td>SystemFolder</td><td>[SystemFolder]notepad.exe "[MsiLogFileLocation]"</td><td/><td>Shows Property-driven MSI Log</td></row>
 		<row><td>setAllUsersProfile2K</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%ALLUSERSPROFILE]</td><td/><td/></row>
@@ -1946,6 +1947,7 @@
 		<row><td>police_stations.shp</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SHP|police_stations.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.shp</td><td>1</td><td/></row>
 		<row><td>police_stations.shx</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SHX|police_stations.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.shx</td><td>1</td><td/></row>
 		<row><td>police_stations.srid</td><td>ISX_DEFAULTCOMPONENT13</td><td>POLICE~1.SRI|police_stations.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\police_stations.srid</td><td>1</td><td/></row>
+		<row><td>readme.txt</td><td>ISX_DEFAULTCOMPONENT1</td><td>README.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\GUI\Config\README.txt</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -2847,7 +2849,7 @@
 		<col def="I2">Encoded</col>
 		<col def="S0">Comment</col>
 		<col def="I4">TimeStamp</col>
-		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667152435</td></row>
+		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667110674</td></row>
 		<row><td>DN_AlwaysInstall</td><td>1033</td><td>Always Install</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_COLOR</td><td>1033</td><td>The color settings of your system are not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_DOTNETVERSION40FULL</td><td>1033</td><td>Microsoft .NET Framework 4.0 Full package or greater needs to be installed for this installation to continue.</td><td>0</td><td/><td>983655669</td></row>
@@ -3662,6 +3664,7 @@
 		<row><td>IDS_PROGMSG_XML_UPDATE_FILE</td><td>1033</td><td>Updating XML file %s...</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDS_SETUPEXE_EXPIRE_MSG</td><td>1033</td><td>This setup works until %s. The setup will now exit.</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME1</td><td>1033</td><td>Launch |Built</td><td>0</td><td/><td>983665365</td></row>
+		<row><td>IDS_SHORTCUT_DISPLAY_NAME2</td><td>1033</td><td>Run Asymmetric Threat Tracker</td><td>0</td><td/><td>-1667120914</td></row>
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME3</td><td>1033</td><td>RUNASY~1|Run Asymmetric Threat Tracker</td><td>0</td><td/><td>983658678</td></row>
 		<row><td>IDS_SOFTWARE_REQUIREMENT_MESSAGE1</td><td>1033</td><td>CLICK HERE to enter the message to display to your end user when this item does not exist on the target machine.</td><td>0</td><td/><td>983656661</td></row>
 		<row><td>IDS_SOFTWARE_REQUIREMENT_MESSAGE2</td><td>1033</td><td>CLICK HERE to enter the message to display to your end user when this item does not exist on the target machine.</td><td>0</td><td/><td>983668949</td></row>
@@ -3959,9 +3962,9 @@
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>983641490</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td/><td>0</td><td/><td>983639474</td></row>
-		<row><td>ID_STRING3</td><td>1033</td><td>http://www.PredictiveTechnologyLaboratory.com</td><td>0</td><td/><td>-1667152435</td></row>
-		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667152435</td></row>
-		<row><td>ID_STRING5</td><td>1033</td><td>Matthew Gerber (msg8u@virginia.edu)</td><td>0</td><td/><td>1654734700</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>http://ptl.sys.virginia.edu/ptl</td><td>0</td><td/><td>-1667124946</td></row>
+		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667110674</td></row>
+		<row><td>ID_STRING5</td><td>1033</td><td>Predictive Technology Laboratory (predictivetech@virginia.edu)</td><td>0</td><td/><td>-1667167922</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>983639442</td></row>
 	</table>
 
@@ -4072,6 +4075,7 @@
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
 		<row><td>UNINST_Uninstall_A_961E7B2D9FAA4F3BB896BC1DF7AE4FA1.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2012SpringLE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
 		<row><td>_Built1_36DF8E6C42BB422EA97110AC37CC38F7.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
+		<row><td>_Built_962AA0E378CD41EEBF713CE67706FCA3.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
 	</table>
 
 	<table name="IniFile">
@@ -4160,6 +4164,7 @@
 		<row><td>SelfRegModules</td><td/><td>5600</td><td>SelfRegModules</td><td/></row>
 		<row><td>SelfUnregModules</td><td/><td>2200</td><td>SelfUnregModules</td><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td/><td>1100</td><td>SetARPINSTALLLOCATION</td><td/></row>
+		<row><td>SetARPReadme</td><td/><td>1001</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>VersionNT = 400</td><td>970</td><td/><td/></row>
 		<row><td>SetODBCFolders</td><td/><td>1200</td><td>SetODBCFolders</td><td/></row>
 		<row><td>StartServices</td><td>VersionNT</td><td>5900</td><td>StartServices</td><td/></row>
@@ -4204,7 +4209,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{38F4D529-CB6A-4E21-A8D0-F95D9A6AC921}</td></row>
 		<row><td>ISUSSignature</td><td>{F0C05E1F-F5BD-4831-A34F-451E3EC501F6}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewAppV,viewProject,viewUI,viewRealSetupDesign,viewUpgradePaths,viewObjects,viewSetupDesign,viewSetupTypes,viewDependencies,viewCE,viewEnvironmentVariables,viewSystemSearch,viewInstallScriptStd,viewCustomActions,viewSupportFiles,viewRelease,viewFeatureFiles,viewShortcuts,viewAppFiles,viewXMLConfig</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewAppV,viewProject,viewUI,viewRealSetupDesign,viewUpgradePaths,viewObjects,viewSetupDesign,viewSetupTypes,viewDependencies,viewCE,viewEnvironmentVariables,viewSystemSearch,viewInstallScriptStd,viewCustomActions,viewSupportFiles,viewRelease,viewFeatureFiles,viewShortcuts,viewAppFiles,viewXMLConfig,viewUpdateService,viewTextFiles</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
@@ -4242,6 +4247,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PatchWelcome</td><td>Installed And PATCH And Not IS_MAJOR_UPGRADE</td><td>1205</td><td>Patch Panel</td><td/></row>
 		<row><td>RMCCPSearch</td><td>Not CCP_SUCCESS And CCP_TEST</td><td>600</td><td>RMCCPSearch</td><td/></row>
 		<row><td>ResolveSource</td><td>Not Installed</td><td>990</td><td>ResolveSource</td><td/></row>
+		<row><td>SetARPReadme</td><td/><td>1001</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>VersionNT = 400</td><td>970</td><td/><td/></row>
 		<row><td>SetupCompleteError</td><td/><td>-3</td><td>SetupCompleteError</td><td/></row>
 		<row><td>SetupCompleteSuccess</td><td/><td>-1</td><td>SetupCompleteSuccess</td><td/></row>
@@ -4513,6 +4519,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ARPCONTACT</td><td>##ID_STRING5##</td><td/></row>
 		<row><td>ARPINSTALLLOCATION</td><td/><td/></row>
 		<row><td>ARPPRODUCTICON</td><td>ARPPRODUCTICON.exe</td><td/></row>
+		<row><td>ARPREADME</td><td>[INSTALLDIR]Config\README.txt</td><td/></row>
 		<row><td>ARPSIZE</td><td/><td/></row>
 		<row><td>ARPURLINFOABOUT</td><td>##ID_STRING3##</td><td/></row>
 		<row><td>AgreeToLicense</td><td>No</td><td/></row>
@@ -4661,6 +4668,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
 		<row><td>UNINST_Uninstall_Asymmetric_Threat_Tracker</td><td>NewComponent1</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
+		<row><td>_Built</td><td>GUI.Primary_output</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4747,6 +4755,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>UNINST_Uninstall_Asymmetric_Threat_Tracker</td><td>asymme_1_asymmetric_threat_tracker</td><td>UNINST|Uninstall Asymmetric Threat Tracker</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {6EFB03DA-3DD1-4E74-B281-5F796FAA1B83}</td><td/><td/><td>UNINST_Uninstall_A_961E7B2D9FAA4F3BB896BC1DF7AE4FA1.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>_Built</td><td>asymme_1_asymmetric_threat_tracker</td><td>##IDS_SHORTCUT_DISPLAY_NAME2##</td><td>GUI.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td>_Built_962AA0E378CD41EEBF713CE67706FCA3.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">
