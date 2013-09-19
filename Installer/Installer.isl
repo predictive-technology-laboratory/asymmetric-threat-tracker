@@ -3959,7 +3959,7 @@
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>983641490</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td/><td>0</td><td/><td>983639474</td></row>
-		<row><td>ID_STRING3</td><td>1033</td><td>http://www.PredictiveTechnologyLaboratory.com</td><td>0</td><td/><td>-1667114228</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>http://ptl.sys.virginia.edu/ptl</td><td>0</td><td/><td>-1667122675</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667114228</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>Matthew Gerber (msg8u@virginia.edu)</td><td>0</td><td/><td>1654734700</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>983639442</td></row>
@@ -4069,7 +4069,7 @@
 		<col def="V0">Data</col>
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
-		<row><td>ARPPRODUCTICON.exe</td><td/><td>&lt;ISProductFolder&gt;\redist\Language Independent\OS Independent\setupicon.ico</td><td>0</td></row>
+		<row><td>ARPPRODUCTICON.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
 		<row><td>UNINST_Uninstall_A_961E7B2D9FAA4F3BB896BC1DF7AE4FA1.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2012SpringLE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
 		<row><td>_Built1_36DF8E6C42BB422EA97110AC37CC38F7.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
 	</table>
