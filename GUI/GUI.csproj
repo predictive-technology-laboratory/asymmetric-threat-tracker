@@ -307,6 +307,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\ATT\ATT.licenseheader">
+      <Link>ATT.licenseheader</Link>
+    </None>
     <None Include="Resources\zoom_out.jpg" />
   </ItemGroup>
   <ItemGroup>
