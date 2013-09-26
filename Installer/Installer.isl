@@ -563,7 +563,7 @@
 		<row><td>LicenseAgreement</td><td>DlgLine</td><td>Line</td><td>48</td><td>234</td><td>326</td><td>0</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>DlgTitle</td><td>Text</td><td>13</td><td>6</td><td>292</td><td>25</td><td>65539</td><td/><td>##IDS__IsLicenseDlg_LicenseAgreement##</td><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>ISPrintButton</td><td>PushButton</td><td>301</td><td>188</td><td>65</td><td>17</td><td>3</td><td/><td>##IDS_PRINT_BUTTON##</td><td>Agree</td><td/><td>0</td><td/><td/><td/></row>
-		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>C:\ATT\trunk\ATT\eula.rtf</td><td/></row>
+		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>C:\ATT\trunk\eula.rtf</td><td/></row>
 		<row><td>LicenseAgreement</td><td>Next</td><td>PushButton</td><td>230</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_NEXT##</td><td>Cancel</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Back</td><td>PushButton</td><td>164</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_BACK##</td><td>Next</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Banner</td><td>Bitmap</td><td>0</td><td>0</td><td>374</td><td>44</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td>NewBinary1</td></row>
@@ -921,7 +921,7 @@
 		<row><td>CustomSetup</td><td>Next</td><td>NewDialog</td><td>ReadyToInstall</td><td>OutOfNoRbDiskSpace &lt;&gt; 1</td><td>0</td></row>
 		<row><td>CustomSetup</td><td>Next</td><td>[_IsSetupTypeMin]</td><td>Custom</td><td>1</td><td>0</td></row>
 		<row><td>CustomSetupTips</td><td>OK</td><td>EndDialog</td><td>Return</td><td>1</td><td>1</td></row>
-		<row><td>CustomerInformation</td><td>Back</td><td>NewDialog</td><td>LicenseAgreement</td><td>1</td><td>1</td></row>
+		<row><td>CustomerInformation</td><td>Back</td><td>NewDialog</td><td>LicenseAgreement</td><td>NOT Installed</td><td>1</td></row>
 		<row><td>CustomerInformation</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>CustomerInformation</td><td>Next</td><td>EndDialog</td><td>Exit</td><td>(SERIALNUMVALRETRYLIMIT) And (SERIALNUMVALRETRYLIMIT&lt;0) And (SERIALNUMVALRETURN&lt;&gt;SERIALNUMVALSUCCESSRETVAL)</td><td>2</td></row>
 		<row><td>CustomerInformation</td><td>Next</td><td>NewDialog</td><td>ReadyToInstall</td><td>(Not SERIALNUMVALRETURN) OR (SERIALNUMVALRETURN=SERIALNUMVALSUCCESSRETVAL)</td><td>3</td></row>
@@ -1064,7 +1064,6 @@
 		<col key="yes" def="s72">Component_</col>
 		<row><td>CHICAGO</td><td>ISX_DEFAULTCOMPONENT10</td></row>
 		<row><td>FEATURES1</td><td>ISX_DEFAULTCOMPONENT12</td></row>
-		<row><td>INSTALLDIR</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>INSTALLDIR</td><td>NewComponent1</td></row>
 		<row><td>MODELS</td><td>ISX_DEFAULTCOMPONENT4</td></row>
 		<row><td>RASTER1</td><td>ISX_DEFAULTCOMPONENT14</td></row>
@@ -1931,6 +1930,7 @@
 		<row><td>city_boundary.shp</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SHP|City_Boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.shp</td><td>1</td><td/></row>
 		<row><td>city_boundary.shx</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SHX|City_Boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.shx</td><td>1</td><td/></row>
 		<row><td>city_boundary.srid</td><td>ISX_DEFAULTCOMPONENT11</td><td>CITY_B~1.SRI|City_Boundary.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\City_Boundary.srid</td><td>1</td><td/></row>
+		<row><td>gpl.txt</td><td>ISX_DEFAULTCOMPONENT</td><td>gpl.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\gpl.txt</td><td>1</td><td/></row>
 		<row><td>gui.primary_output</td><td>GUI.Primary_output</td><td>GUI.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;GUI&gt;|Built</td><td>3</td><td/></row>
 		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT1</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\GUI\gui_config.xml</td><td>1</td><td/></row>
 		<row><td>major_streets.dbf</td><td>ISX_DEFAULTCOMPONENT13</td><td>MAJOR_~1.DBF|Major_Streets.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\Distance\Major_Streets.dbf</td><td>1</td><td/></row>
@@ -1963,10 +1963,12 @@
 	<table name="ISAssistantTag">
 		<col key="yes" def="s72">Tag</col>
 		<col def="S255">Data</col>
+		<row><td>NewShortcut1</td><td/></row>
 		<row><td>PROJECT_ASSISTANT_DEFAULT_FEATURE</td><td>AlwaysInstall</td></row>
 		<row><td>PROJECT_ASSISTANT_FEATURES</td><td>NonSelectable</td></row>
 		<row><td>_Built</td><td/></row>
 		<row><td>_Built1</td><td/></row>
+		<row><td>gpl.txt</td><td/></row>
 	</table>
 
 	<table name="ISBillBoard">
@@ -2849,7 +2851,7 @@
 		<col def="I2">Encoded</col>
 		<col def="S0">Comment</col>
 		<col def="I4">TimeStamp</col>
-		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667110674</td></row>
+		<row><td>COMPANY_NAME</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-727631469</td></row>
 		<row><td>DN_AlwaysInstall</td><td>1033</td><td>Always Install</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_COLOR</td><td>1033</td><td>The color settings of your system are not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_DOTNETVERSION40FULL</td><td>1033</td><td>Microsoft .NET Framework 4.0 Full package or greater needs to be installed for this installation to continue.</td><td>0</td><td/><td>983655669</td></row>
@@ -3666,6 +3668,8 @@
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME1</td><td>1033</td><td>Launch |Built</td><td>0</td><td/><td>983665365</td></row>
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME2</td><td>1033</td><td>Run Asymmetric Threat Tracker</td><td>0</td><td/><td>-1667120914</td></row>
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME3</td><td>1033</td><td>RUNASY~1|Run Asymmetric Threat Tracker</td><td>0</td><td/><td>983658678</td></row>
+		<row><td>IDS_SHORTCUT_DISPLAY_NAME4</td><td>1033</td><td>View License</td><td>0</td><td/><td>-727645712</td></row>
+		<row><td>IDS_SHORTCUT_DISPLAY_NAME5</td><td>1033</td><td>Launch |Built</td><td>0</td><td/><td>-727635309</td></row>
 		<row><td>IDS_SOFTWARE_REQUIREMENT_MESSAGE1</td><td>1033</td><td>CLICK HERE to enter the message to display to your end user when this item does not exist on the target machine.</td><td>0</td><td/><td>983656661</td></row>
 		<row><td>IDS_SOFTWARE_REQUIREMENT_MESSAGE2</td><td>1033</td><td>CLICK HERE to enter the message to display to your end user when this item does not exist on the target machine.</td><td>0</td><td/><td>983668949</td></row>
 		<row><td>IDS_SOFTWARE_REQUIREMENT_MESSAGE3</td><td>1033</td><td>CLICK HERE to enter the message to display to your end user when this item does not exist on the target machine.</td><td>0</td><td/><td>983671029</td></row>
@@ -3962,9 +3966,10 @@
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>983639442</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>983641490</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td/><td>0</td><td/><td>983639474</td></row>
-		<row><td>ID_STRING3</td><td>1033</td><td>http://ptl.sys.virginia.edu/ptl</td><td>0</td><td/><td>-1667124946</td></row>
-		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-1667110674</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>http://www.PredictiveTechnologyLaboratory.com</td><td>0</td><td/><td>-727631469</td></row>
+		<row><td>ID_STRING4</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>-727631469</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>Predictive Technology Laboratory (predictivetech@virginia.edu)</td><td>0</td><td/><td>-1667167922</td></row>
+		<row><td>ID_STRING6</td><td>1033</td><td>RUNASY~1|Run Asymmetric Threat Tracker</td><td>0</td><td/><td>-727592269</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>983639442</td></row>
 	</table>
 
@@ -4073,9 +4078,10 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
+		<row><td>NewShortcut1_37E4566ED6B7483D9299FE76401F3DEE.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
 		<row><td>UNINST_Uninstall_A_961E7B2D9FAA4F3BB896BC1DF7AE4FA1.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2012SpringLE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
 		<row><td>_Built1_36DF8E6C42BB422EA97110AC37CC38F7.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
-		<row><td>_Built_962AA0E378CD41EEBF713CE67706FCA3.exe</td><td/><td>C:\ATT\trunk\GUI\bullseye.ico</td><td>0</td></row>
+		<row><td>gpl.txt_AA4E396F50DD47B987ABD4944843CBD2.exe</td><td/><td>C:\ATT\trunk\gpl_logo.ico</td><td>0</td></row>
 	</table>
 
 	<table name="IniFile">
@@ -4667,8 +4673,9 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
+		<row><td>NewShortcut1</td><td>GUI.Primary_output</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
 		<row><td>UNINST_Uninstall_Asymmetric_Threat_Tracker</td><td>NewComponent1</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
-		<row><td>_Built</td><td>GUI.Primary_output</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
+		<row><td>gpl.txt</td><td>ISX_DEFAULTCOMPONENT</td><td/><td>asymme_1_asymmetric_threat_tracker</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4754,8 +4761,9 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
+		<row><td>NewShortcut1</td><td>asymme_1_asymmetric_threat_tracker</td><td>##ID_STRING6##</td><td>GUI.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td>NewShortcut1_37E4566ED6B7483D9299FE76401F3DEE.exe</td><td>0</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>UNINST_Uninstall_Asymmetric_Threat_Tracker</td><td>asymme_1_asymmetric_threat_tracker</td><td>UNINST|Uninstall Asymmetric Threat Tracker</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {6EFB03DA-3DD1-4E74-B281-5F796FAA1B83}</td><td/><td/><td>UNINST_Uninstall_A_961E7B2D9FAA4F3BB896BC1DF7AE4FA1.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>_Built</td><td>asymme_1_asymmetric_threat_tracker</td><td>##IDS_SHORTCUT_DISPLAY_NAME2##</td><td>GUI.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td>_Built_962AA0E378CD41EEBF713CE67706FCA3.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>gpl.txt</td><td>asymme_1_asymmetric_threat_tracker</td><td>##IDS_SHORTCUT_DISPLAY_NAME4##</td><td>ISX_DEFAULTCOMPONENT</td><td>[INSTALLDIR]gpl.txt</td><td/><td/><td/><td>gpl.txt_AA4E396F50DD47B987ABD4944843CBD2.exe</td><td>0</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">

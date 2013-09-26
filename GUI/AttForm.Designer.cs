@@ -1,7 +1,5 @@
 ﻿#region copyright
-// Copyright 2013 
-// Predictive Technology Laboratory 
-// predictivetech@virginia.edu
+// Copyright 2013 Matthew S. Gerber (gerber.matthew@gmail.com)
 // 
 // This file is part of the Asymmetric Threat Tracker (ATT).
 // 
@@ -71,6 +69,8 @@ namespace PTL.ATT.GUI
             this.shapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.status = new System.Windows.Forms.StatusStrip();
             this.trainingAreas = new System.Windows.Forms.ComboBox();
             this.trainingAreaMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -191,7 +191,8 @@ namespace PTL.ATT.GUI
             this.fileToolStripMenuItem,
             this.incidentsToolStripMenuItem,
             this.shapefilesToolStripMenuItem,
-            this.pluginsToolStripMenuItem});
+            this.pluginsToolStripMenuItem,
+            this.helpToolStripMenuItem});
             this.mainMenu.Location = new System.Drawing.Point(0, 0);
             this.mainMenu.Name = "mainMenu";
             this.mainMenu.Size = new System.Drawing.Size(1126, 24);
@@ -335,6 +336,21 @@ namespace PTL.ATT.GUI
             this.pluginsToolStripMenuItem.Name = "pluginsToolStripMenuItem";
             this.pluginsToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
             this.pluginsToolStripMenuItem.Text = "Plugins";
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(40, 20);
+            this.helpToolStripMenuItem.Text = "Help";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.aboutToolStripMenuItem.Text = "About...";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // status
             // 
@@ -1170,6 +1186,7 @@ namespace PTL.ATT.GUI
             this.Name = "AttForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Asymmetric Threat Tracker";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AttForm_FormClosing);
             this.Load += new System.EventHandler(this.AttForm_Load);
             this.mainMenu.ResumeLayout(false);
             this.mainMenu.PerformLayout();
@@ -1303,6 +1320,8 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem resetEncryptionKeyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sendTestNotificationToolStripMenuItem;
         public Visualization.ThreatMap threatMap;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
     }
 }
 

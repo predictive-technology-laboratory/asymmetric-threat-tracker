@@ -134,6 +134,12 @@
       <DependentUpon>ClassifierList.cs</DependentUpon>
     </Compile>
     <Compile Include="LogWriter.cs" />
+    <Compile Include="Splash.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Splash.Designer.cs">
+      <DependentUpon>Splash.cs</DependentUpon>
+    </Compile>
     <Compile Include="Visualization\SmootherChooser.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -249,6 +255,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ClassifierList.resx">
       <DependentUpon>ClassifierList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Splash.resx">
+      <DependentUpon>Splash.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Visualization\SmootherChooser.resx">
       <DependentUpon>SmootherChooser.cs</DependentUpon>

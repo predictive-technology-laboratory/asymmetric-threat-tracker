@@ -1,8 +1,6 @@
 extensions:  .cs
 #region copyright
-// Copyright 2013 
-// Predictive Technology Laboratory 
-// predictivetech@virginia.edu
+// Copyright 2013 Matthew S. Gerber (gerber.matthew@gmail.com)
 // 
 // This file is part of the Asymmetric Threat Tracker (ATT).
 // 

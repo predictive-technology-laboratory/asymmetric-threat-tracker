@@ -19,7 +19,7 @@
  
 namespace PTL.ATT.GUI
 {
-    partial class AddAreaForm
+    partial class Splash
     {
         /// <summary>
         /// Required designer variable.
@@ -47,61 +47,51 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
-            this.cancel = new System.Windows.Forms.Button();
-            this.ok = new System.Windows.Forms.Button();
-            this.areas = new System.Windows.Forms.ListBox();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Splash));
+            this.progress = new System.Windows.Forms.ProgressBar();
+            this.progressLbl = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
-            // cancel
+            // progress
             // 
-            this.cancel.Location = new System.Drawing.Point(153, 154);
-            this.cancel.Name = "cancel";
-            this.cancel.Size = new System.Drawing.Size(75, 23);
-            this.cancel.TabIndex = 5;
-            this.cancel.Text = "Cancel";
-            this.cancel.UseVisualStyleBackColor = true;
-            this.cancel.Click += new System.EventHandler(this.cancel_Click);
+            this.progress.Location = new System.Drawing.Point(12, 12);
+            this.progress.Name = "progress";
+            this.progress.Size = new System.Drawing.Size(529, 23);
+            this.progress.TabIndex = 0;
             // 
-            // ok
+            // progressLbl
             // 
-            this.ok.Location = new System.Drawing.Point(72, 154);
-            this.ok.Name = "ok";
-            this.ok.Size = new System.Drawing.Size(75, 23);
-            this.ok.TabIndex = 4;
-            this.ok.Text = "OK";
-            this.ok.UseVisualStyleBackColor = true;
-            this.ok.Click += new System.EventHandler(this.ok_Click);
+            this.progressLbl.AutoSize = true;
+            this.progressLbl.Location = new System.Drawing.Point(12, 38);
+            this.progressLbl.Name = "progressLbl";
+            this.progressLbl.Size = new System.Drawing.Size(57, 13);
+            this.progressLbl.TabIndex = 1;
+            this.progressLbl.Text = "Progress...";
             // 
-            // areas
-            // 
-            this.areas.FormattingEnabled = true;
-            this.areas.Location = new System.Drawing.Point(23, 12);
-            this.areas.Name = "areas";
-            this.areas.Size = new System.Drawing.Size(249, 134);
-            this.areas.Sorted = true;
-            this.areas.TabIndex = 6;
-            // 
-            // AddAreaForm
+            // Splash
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(298, 189);
-            this.Controls.Add(this.areas);
-            this.Controls.Add(this.cancel);
-            this.Controls.Add(this.ok);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "AddAreaForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Select shapefile to base area on...";
-            this.Load += new System.EventHandler(this.AddAreaForm_Load);
+            this.ClientSize = new System.Drawing.Size(553, 61);
+            this.Controls.Add(this.progressLbl);
+            this.Controls.Add(this.progress);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "Splash";
+            this.ShowInTaskbar = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Loading Asymmetric Threat Tracker...";
+            this.TopMost = true;
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Button cancel;
-        private System.Windows.Forms.Button ok;
-        private System.Windows.Forms.ListBox areas;
+        private System.Windows.Forms.ProgressBar progress;
+        private System.Windows.Forms.Label progressLbl;
     }
 }

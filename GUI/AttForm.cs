@@ -1,7 +1,5 @@
 ﻿#region copyright
-// Copyright 2013 
-// Predictive Technology Laboratory 
-// predictivetech@virginia.edu
+// Copyright 2013 Matthew S. Gerber (gerber.matthew@gmail.com)
 // 
 // This file is part of the Asymmetric Threat Tracker (ATT).
 // 
@@ -172,13 +170,33 @@ namespace PTL.ATT.GUI
 
         private void AttForm_Load(object sender, EventArgs e)
         {
+            Splash splash = new Splash(7);
+            bool done = false;
+            Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                {
+                    Splash s = o as Splash;
+                    s.Show();
+                    while (!done)
+                    {
+                        Application.DoEvents();
+                    }
+                    s.Close();
+                    s.Dispose();
+                }));
+
+            t.Start(splash);
+
             try
             {
+                splash.UpdateProgress("Loading ATT configuration...");
+
                 string attConfigPath = Path.Combine("Config", "att_config.xml");
                 if (!File.Exists(attConfigPath))
                     throw new Exception("Failed to find att_config.xml file");
 
                 ATT.Configuration.Initialize(attConfigPath, true);
+
+                splash.UpdateProgress("Loading GUI configuration...");
 
                 string guiConfigPath = Path.Combine("Config", "gui_config.xml");
                 if (!File.Exists(guiConfigPath))
@@ -186,6 +204,7 @@ namespace PTL.ATT.GUI
 
                 GUI.Configuration.Initialize(guiConfigPath);
 
+                splash.UpdateProgress("Loading plugins...");
                 foreach (Plugin plugin in GUI.Configuration.PluginTypes)
                 {
                     ToolStripMenuItem pluginMenuItem = new ToolStripMenuItem(plugin.MenuItemName);
@@ -200,6 +219,8 @@ namespace PTL.ATT.GUI
             }
             catch (Exception ex)
             {
+                done = true;
+
                 MessageBox.Show("Failed to initialize:  " + ex.Message + Environment.NewLine +
                                 "Stack trace:  " + ex.StackTrace + Environment.NewLine + Environment.NewLine +
                                 "Check the XML configuration files located in the Config sub-directory of the ATT executable directory.");
@@ -214,9 +235,13 @@ namespace PTL.ATT.GUI
             PredictionStartDateTime = DateTime.Today;
             PredictionEndDateTime = DateTime.Today + new TimeSpan(23, 59, 59);
 
+            splash.UpdateProgress("Importing data from database...");
+
             try { RefreshAvailable(true); }
             catch (Exception ex)
             {
+                done = true;
+
                 MessageBox.Show("Failed to load the ATT database:  " + ex.Message + Environment.NewLine +
                                 "Stack trace:  " + ex.StackTrace + Environment.NewLine + Environment.NewLine +
                                 "If you think this error is caused by an outdated database schema, one solution is to delete all existing tables and then restart ATT. This will, however, destroy all of your data.");
@@ -238,6 +263,9 @@ namespace PTL.ATT.GUI
                 refresh.Click += new EventHandler((o, args) => RefreshIncidentTypes());
                 incidentTypesMenu.Items.Add(refresh);
             }
+
+            splash.UpdateProgress("ATT started.");
+            done = true;
 
             Console.Out.WriteLine("ATT started.");
         }
@@ -265,6 +293,11 @@ namespace PTL.ATT.GUI
         public void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void AttForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Console.Out.WriteLine("ATT exited.");
         }
 
         public void importShapeFilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1619,6 +1652,13 @@ namespace PTL.ATT.GUI
                     showEncrypted.ShowDialog();
                 }
                 catch (Exception ex) { MessageBox.Show("Error getting encrypted password:  " + ex.Message); }
+        }
+        #endregion
+
+        #region about
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(ATT.Configuration.LicenseText, "About the Asymmetric Threat Tracker");
         }
         #endregion
     }

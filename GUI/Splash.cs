@@ -25,43 +25,42 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Reflection;
-using PTL.ATT.Models;
 
 namespace PTL.ATT.GUI
 {
-    public partial class SelectModelForm : Form
+    public partial class Splash : Form
     {
-        public Type Type
+        private int _numSteps;
+        private int _step;
+
+        public Splash(int numSteps)
         {
-            get
+            InitializeComponent();
+
+            _numSteps = numSteps;
+            _step = 0;
+        }
+
+        public void UpdateProgress(string message)
+        {
+            if (InvokeRequired)
+                Invoke(new Action<string>(UpdateProgress), message);
+            else
             {
-                if (spatialDistanceDCM.Checked)
-                    return typeof(SpatialDistanceDCM);
-                else if (timeSliceDCM.Checked)
-                    return typeof(TimeSliceDCM);
-                else if (kdeDCM.Checked)
-                    return typeof(KernelDensityDCM);
-                else
-                    throw new Exception("Unknown model selection");
+                progressLbl.Text = message;
+                progress.Value = (int)(100 * (++_step / (float)_numSteps));
             }
         }
 
-        public SelectModelForm()
+        private const int CP_NOCLOSE_BUTTON = 0x200;
+        protected override CreateParams CreateParams
         {
-            InitializeComponent();
-        }
-
-        private void ok_Click(object sender, EventArgs e)
-        {
-            DialogResult = System.Windows.Forms.DialogResult.OK;
-            Close();
-        }
-
-        private void cancel_Click(object sender, EventArgs e)
-        {
-            DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            Close();
+            get
+            {
+                CreateParams myCp = base.CreateParams;
+                myCp.ClassStyle = myCp.ClassStyle | CP_NOCLOSE_BUTTON;
+                return myCp;
+            }
         }
     }
 }
