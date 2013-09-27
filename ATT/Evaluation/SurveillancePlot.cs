@@ -193,20 +193,25 @@ namespace PTL.ATT.Evaluation
         #endregion
 
         private Dictionary<string, float> _seriesAUC;
+        private int _aucDigits;
 
         public Dictionary<string, float> SeriesAUC
         {
             get { return _seriesAUC; }
         }
 
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format)
+        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format, int aucDigits)
             : base(title, seriesPoints, height, width, format)
         {
+            _aucDigits = aucDigits;
+
+            Render(height, width, true, false, false, false);
         }
 
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format)
+        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
             : base(title, seriesPoints, image, format)
         {
+            _aucDigits = aucDigits;
         }
 
         /// <summary>
@@ -315,7 +320,7 @@ y = points[,2]
 " + (seriesNum == 0 ? @"plot(x,y,type=""o"",col=" + plotColor + ",pch=" + plotCharacterVector + @",xlim=c(0,1),xlab=""% area surveilled"",ylim=c(" + minY + @",1),ylab=""% incidents captured""" + (includeTitle ? ",main=main.title" : "") + (args == null ? "" : "," + args[1]) + @")
 abline(0,1,lty=""dashed"")" : @"lines(x,y,type=""o"",col=" + plotColor + ",pch=" + plotCharacterVector + (args == null ? "" : "," + args[1]) + ")") + @"
 idx = order(x)
-auc = round(sum(diff(x[idx])*rollmean(y[idx],2)),digits=2)
+auc = round(sum(diff(x[idx])*rollmean(y[idx],2)),digits=" + _aucDigits + @")
 legend_labels=c(legend_labels,paste(""" + seriesTitle + @" (AUC="",auc,"")"",sep=""""))" + @"
 cat(as.character(auc),file=""" + aucOutputPath.Replace(@"\", @"\\") + @""",sep=""\n"",append=TRUE)");
 

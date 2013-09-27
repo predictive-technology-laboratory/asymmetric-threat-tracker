@@ -1230,7 +1230,7 @@ namespace PTL.ATT.GUI
                         }
                     }
 
-                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), seriesPoints, 500, 500, Plot.Format.JPEG);
+                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), seriesPoints, 500, 500, Plot.Format.JPEG, 2);
                     List<TitledImage> comparisonPlotImages = new List<TitledImage>(new TitledImage[] { new TitledImage(comparisonPlot.Image, null) });
                     new ImageViewer(comparisonPlotImages, 0).ShowDialog();
                 }

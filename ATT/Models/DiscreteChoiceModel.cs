@@ -242,7 +242,7 @@ namespace PTL.ATT.Models
                 Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
                 seriesPoints.Add("Slice " + sliceNum++, SurveillancePlot.GetSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
                 seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
-                prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG));
+                prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
             }
 
             if (sliceLocationTrueCount.Count > 1)
@@ -252,7 +252,7 @@ namespace PTL.ATT.Models
                 Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
                 seriesPoints.Add("Overall", SurveillancePlot.GetSurveillancePlotPoints(overallLocationTrueCount, overallLocationThreats, true, true));
                 seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(overallLocationTrueCount, overallLocationThreats, true, true));
-                prediction.AssessmentPlots.Add(new SurveillancePlot(prediction.Name, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG));
+                prediction.AssessmentPlots.Add(new SurveillancePlot(prediction.Name, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
             }
 
             prediction.MostRecentlyEvaluatedIncidentTime = incidents.Max(i => i.Time);
@@ -282,7 +282,7 @@ namespace PTL.ATT.Models
             seriesPoints.Add(seriesName, SurveillancePlot.GetSurveillancePlotPoints(aggregateLocationTrueCount, aggregateLocationThreats, true, true));
             seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(aggregateLocationTrueCount, aggregateLocationThreats, true, true));
 
-            return new SurveillancePlot(plotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG);
+            return new SurveillancePlot(plotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2);
         }
 
         protected static IEnumerable<Incident> GetIncidentsToEvaluate(Prediction prediction)

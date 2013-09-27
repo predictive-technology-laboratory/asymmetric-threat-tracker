@@ -88,8 +88,6 @@ namespace PTL.ATT.Evaluation
             _title = title;
             _seriesPoints = seriesPoints;
             _imageFormat = format;
-
-            Render(height, width, true, false, false, false);
         }
 
         protected Plot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format)
