@@ -267,7 +267,7 @@ namespace PTL.ATT.GUI
             splash.UpdateProgress("ATT started.");
             done = true;
 
-            Console.Out.WriteLine("ATT started.");
+            Console.Out.WriteLine("ATT started.");            
         }
         #endregion
 
