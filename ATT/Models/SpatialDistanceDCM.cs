@@ -500,6 +500,8 @@ namespace PTL.ATT.Models
 
             try
             {
+                _classifier.Initialize(prediction);
+
                 #region training
                 if (train)
                 {

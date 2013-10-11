@@ -82,29 +82,15 @@ namespace PTL.ATT.Classifiers
             _runFeatureSelection = runFeatureSelection;
         }
 
-        public void Train(FeatureVectorList featureVectors, Prediction prediction)
-        {
-            Initialize(prediction);
-            Consume(featureVectors, prediction);
-            BuildModel();
-
-            LAIR.IO.File.Compress(TrainingInstanceLocationsPath, CompressedTrainingInstanceLocationsPath, true);
-            System.IO.File.Delete(TrainingInstanceLocationsPath);
-        }
-
-        public void Train(Prediction prediction)
-        {
-            Train(null, prediction);
-        }
-
-        protected virtual void Initialize(Prediction prediction)
+        public virtual void Initialize(Prediction prediction)
         {
             _modelDirectory = prediction.ModelDirectory;
         }
 
         public virtual void Consume(FeatureVectorList featureVectors, Prediction prediction)
         {
-            Initialize(prediction);
+            if (_modelDirectory != prediction.ModelDirectory)
+                throw new Exception("Classifier has not been initialized");
 
             if (featureVectors != null)
             {
@@ -124,12 +110,31 @@ namespace PTL.ATT.Classifiers
             }
         }
 
+        public void Train(FeatureVectorList featureVectors, Prediction prediction)
+        {
+            if (_modelDirectory != prediction.ModelDirectory)
+                throw new Exception("Classifier has not been initialized");
+
+            Consume(featureVectors, prediction);
+            BuildModel();
+
+            LAIR.IO.File.Compress(TrainingInstanceLocationsPath, CompressedTrainingInstanceLocationsPath, true);
+            System.IO.File.Delete(TrainingInstanceLocationsPath);
+        }
+
+        public void Train(Prediction prediction)
+        {
+            if (_modelDirectory != prediction.ModelDirectory)
+                throw new Exception("Classifier has not been initialized");
+
+            Train(null, prediction);
+        }
+
         protected abstract void BuildModel();
 
-        public virtual void Classify(FeatureVectorList featureVectors, Prediction prediction)
-        {
-            Initialize(prediction);
-        }
+        public abstract IEnumerable<int> SelectFeatures(Prediction prediction);
+
+        public abstract void Classify(FeatureVectorList featureVectors, Prediction prediction);
 
         public virtual string GetDetails(int indentLevel)
         {
@@ -139,12 +144,6 @@ namespace PTL.ATT.Classifiers
 
             return (indentLevel > 0 ? Environment.NewLine : "") + indent + "Type:  " + GetType() + Environment.NewLine +
                    indent + "Run feature selection:  " + _runFeatureSelection;
-        }
-
-        public virtual IEnumerable<int> SelectFeatures(Prediction prediction)
-        {
-            Initialize(prediction);
-            return null;
         }
 
         public abstract Classifier Copy();

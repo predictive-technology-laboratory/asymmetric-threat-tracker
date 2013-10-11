@@ -76,21 +76,16 @@ namespace PTL.ATT.Classifiers
             _positiveClassWeighting = positiveClassWeighting;
         }
 
-        protected override void Initialize(Prediction prediction)
+        public override void Initialize(Prediction prediction)
         {
             base.Initialize(prediction);
 
-            if (_libLinear == null)
-            {
-                LibLinearClassifier.Solver solver = (LibLinearClassifier.Solver)Enum.Parse(typeof(LibLinearClassifier.Solver), Configuration.ClassifierTypeOptions[GetType()]["solver"]);
-                string trainPath = Configuration.ClassifierTypeOptions[GetType()]["train"];
-                string predictPath = Configuration.ClassifierTypeOptions[GetType()]["predict"];
+            LibLinearClassifier.Solver solver = (LibLinearClassifier.Solver)Enum.Parse(typeof(LibLinearClassifier.Solver), Configuration.ClassifierTypeOptions[GetType()]["solver"]);
+            string trainPath = Configuration.ClassifierTypeOptions[GetType()]["train"];
+            string predictPath = Configuration.ClassifierTypeOptions[GetType()]["predict"];
 
-                _libLinear = new LibLinearClassifier(solver, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, null, trainPath, predictPath, null, float.MinValue);
-                _libLinear.OutputProbabilities = true;
-            }
-
-            _libLinear.ModelDirectory = prediction.ModelDirectory;
+            _libLinear = new LibLinearClassifier(solver, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, prediction.ModelDirectory, trainPath, predictPath, null, float.MinValue);
+            _libLinear.OutputProbabilities = true;
         }
 
         public override void Consume(FeatureVectorList featureVectors, Prediction prediction)
@@ -140,8 +135,6 @@ namespace PTL.ATT.Classifiers
 
         public override IEnumerable<int> SelectFeatures(Prediction prediction)
         {
-            base.SelectFeatures(prediction);
-
             _libLinear.LoadClassificationModelFiles();
 
             string logPath = Path.Combine(prediction.ModelDirectory, "feature_selection_log.txt");
@@ -239,8 +232,6 @@ namespace PTL.ATT.Classifiers
 
         public override void Classify(FeatureVectorList featureVectors, Prediction prediction)
         {
-            base.Classify(featureVectors, prediction);
-
             _libLinear.Classify(featureVectors);
         }
 

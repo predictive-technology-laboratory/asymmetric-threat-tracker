@@ -61,19 +61,13 @@ namespace PTL.ATT.Classifiers
             _c = c;
         }
 
-        protected override void Initialize(Prediction prediction)
+        public override void Initialize(Prediction prediction)
         {
             base.Initialize(prediction);
 
-            if (_svmRank == null)
-            {
-                string learnPath = Configuration.ClassifierTypeOptions[GetType()]["learn"];
-                string classifyPath = Configuration.ClassifierTypeOptions[GetType()]["classify"];
-
-                _svmRank = new SvmRankClassifier(_c, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, null, learnPath, classifyPath, null);
-            }
-
-            _svmRank.ModelDirectory = prediction.ModelDirectory;
+            string learnPath = Configuration.ClassifierTypeOptions[GetType()]["learn"];
+            string classifyPath = Configuration.ClassifierTypeOptions[GetType()]["classify"];
+            _svmRank = new SvmRankClassifier(_c, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, prediction.ModelDirectory, learnPath, classifyPath, null);
         }
 
         public override void Consume(FeatureVectorList featureVectors, Prediction prediction)
@@ -124,8 +118,6 @@ namespace PTL.ATT.Classifiers
 
         public override void Classify(FeatureVectorList featureVectors, Prediction prediction)
         {
-            base.Classify(featureVectors, prediction);
-
             if (prediction.IncidentTypes.Count != 1)
                 throw new Exception("SvmRank cannot be used for multi-incident predictions. Select a single incident type.");
 
