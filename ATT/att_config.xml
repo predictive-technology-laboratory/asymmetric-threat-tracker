@@ -2,21 +2,21 @@
 <configuration>
 
   <postgres>                                          <!-- Install PostgreSQL 9.2 or higher, either from your Linux package repository or the following URL:  http://www.enterprisedb.com/products-services-training/pgdownload -->
-    <host>localhost</host>
-    <port>5432</port>
-    <ssl>True</ssl>
+    <host>localhost</host>                             <!-- Name of host running the PostgreSQL server. -->
+    <port>5432</port>                                  <!-- Port on host running the PostgreSQL server. -->
+    <ssl>True</ssl>                                    <!-- Whether or not SSL should be enabled on the connection. -->
     <database></database>                              <!-- Name of the database to use. Database must already be created and it must have the PostGIS extension (2.0 or later) installed. -->
     <user></user>                                      <!-- This user must have full privileges on the database indicated above. -->
     <password></password>                              <!-- Password for database user. -->
-    <connection_timeout>1024</connection_timeout>      <!-- Timeout (in seconds) when opening a connection to the database. -->
+    <connection_timeout>10</connection_timeout>        <!-- Timeout (in seconds) when opening a connection to the database. -->
     <connection_retry_limit>5</connection_retry_limit> <!-- Number of times to try to connect to the database before throwing an exception. -->
     <command_timeout>4096</command_timeout>            <!-- Timeout (in seconds) when executing a command at the PostgreSQL server. -->
-    <max_pool_size>50</max_pool_size>                  <!-- Maximum number of open connections to maintain. -->
+    <max_pool_size>50</max_pool_size>                  <!-- Maximum number of open connections to maintain. The upper limit is system dependent, and even the default value may cause problems for you. If it does, decrease this value. -->
   </postgres>
 
   <postgis>                                               <!-- Requires PostGIS 2.0 or higher. Install using the PostgreSQL Application Stack Builder. -->
     <shp2pgsql></shp2pgsql>                               <!-- Path to shp2pgsql executable, which will appear after installing PostGIS via the PostgreSQL Application Stack Builder. -->
-    <srid></srid>                                         <!-- The meters-based SRID for the area that will be modeled. -->
+    <srid>26971</srid>                                    <!-- The meters-based SRID for the area that will be modeled. The value provided (26971) is appropriate for the example Chicago data distributed with the ATT. For other geographic areas, consult the relevant documentation. -->
     <area_bounding_box_size>1000</area_bounding_box_size> <!-- Size of bounding boxes to place in area geometries for computation of point containment. If the creation of training or prediction grids is very slow, try reducing this value. -->
   </postgis>
 
