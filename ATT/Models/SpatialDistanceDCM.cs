@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -573,7 +573,10 @@ namespace PTL.ATT.Models
                             #region log feature values
                             pointPredictionLog.Write((vector.DerivedFrom as Point).Id + " <p><ls>");
                             foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.SortKeysByValues(true))
-                                pointPredictionLog.Write("<l c=\"" + Math.Round(vector.DerivedFrom.PredictionConfidenceScores[label], 3) + "\"><![CDATA[" + label + "]]></l>");
+                                if (label == PointPrediction.NullLabel || prediction.IncidentTypes.Contains(label))
+                                    pointPredictionLog.Write("<l c=\"" + Math.Round(vector.DerivedFrom.PredictionConfidenceScores[label], 3) + "\"><![CDATA[" + label + "]]></l>");
+                                else
+                                    throw new Exception("Invalid prediction label on point:  " + label);
 
                             pointPredictionLog.Write("</ls><fvs>");
                             foreach (LAIR.MachineLearning.Feature feature in vector)
