@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?> 
 <configuration>
 
-  <postgres>                                          <!-- Install PostgreSQL 9.2 or higher, either from your Linux package repository or the following URL:  http://www.enterprisedb.com/products-services-training/pgdownload -->
+  <postgres>                                           <!-- Install PostgreSQL 9.2 or higher, either from your Linux package repository or the following URL:  http://www.enterprisedb.com/products-services-training/pgdownload -->
     <host>localhost</host>                             <!-- Name of host running the PostgreSQL server. -->
     <port>5432</port>                                  <!-- Port on host running the PostgreSQL server. -->
     <ssl>True</ssl>                                    <!-- Whether or not SSL should be enabled on the connection. -->
@@ -48,7 +48,7 @@
   </incidents>
 
   <modeling>
-    <model_directory></model_directory> <!-- Path to directory in which to store data related to the models that are built when running predictions. This can be any empty or non-existent directory (e.g., the existing "Models" sub-directory in the installation directory). -->
+    <model_directory></model_directory> <!-- Path to directory in which to store data related to the models that are built when running predictions. This can be any empty or non-existent directory. -->
     <feature_extractors>                <!-- Externally defined feature extractors. Each element within feature_extractors should have the following form, where the model_type attribute indicates the type of the model the feature extractor is used with, and feature_extractor_type is the type name of the feature extractor to load. The "option=value" pairs are passed to the feature extractor's Initialize method. -->
       <!--
       <feature_extractor model_type="PTL.ATT.Models.SpatialDistanceDCM" [option="value" ... ]>feature_extractor_type</feature_extractor>
