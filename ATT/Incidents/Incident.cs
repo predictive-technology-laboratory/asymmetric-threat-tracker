@@ -179,8 +179,11 @@ namespace PTL.ATT.Incidents
         {
             string typesCondition = null;
             if (types != null)
+            {
                 foreach (string type in types)
-                    typesCondition = (typesCondition == null ? "" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
+                    typesCondition = (typesCondition == null ? "(" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
+                typesCondition += ")";
+            }
 
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
                                                          "FROM " + Table + " " +
