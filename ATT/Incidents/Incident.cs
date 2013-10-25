@@ -178,10 +178,11 @@ namespace PTL.ATT.Incidents
         public static IEnumerable<Incident> Get(DateTime start, DateTime end, params string[] types)
         {
             string typesCondition = null;
-            if (types != null)
+            if (types != null && types.Length > 0)
             {
                 foreach (string type in types)
                     typesCondition = (typesCondition == null ? "(" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
+
                 typesCondition += ")";
             }
 
