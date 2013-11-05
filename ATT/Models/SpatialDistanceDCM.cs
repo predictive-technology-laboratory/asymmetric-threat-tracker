@@ -99,7 +99,7 @@ namespace PTL.ATT.Models
 
                 foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
                     if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
-                        foreach (string incidentType in IncidentTypes)
+                        foreach (string incidentType in Incident.GetUniqueTypes(TrainingStart, TrainingEnd))
                             yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, "KDE \"" + incidentType + "\"");
                     else if (f != SpatialDistanceFeature.DistanceShapeFile)
                         yield return new Feature(typeof(SpatialDistanceFeature), f, null, f.ToString());
