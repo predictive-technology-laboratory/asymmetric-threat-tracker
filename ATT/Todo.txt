@@ -1,16 +1,14 @@
 ﻿Allow user to generate a simple density estimate/map for one or more crime types without having to go through the entire prediction pipeline.
 Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
-Use density of other crimes as features
-Add raster shapefile ingest
+Allow the use of density of any other crimes as features
+Add raster feature ingest
 Incident collapsing
-Decouple models from predictions
+Decouple models from predictions (mostly done)
 Different threat surface export types
 Add Sam's gang model
 Different assessment plot export types
 Forecast counts
-Ingest new data
-Create advertisement brochure
-Intelligently handle spacing around positive points
+Intelligently handle spacing around positive points when selecting negative points
 Analysis for KDE models
 View incident distributions
 Indent log messages per task
@@ -18,7 +16,8 @@ Collect feature data (stopped at 189. Hospitals)
 SVM rank feature selection
 GUI configuration editor
 Store threat surfaces
-Save coloring
+Improve color handling
+Save coloring scheme
 Name shape files on import
 Make UI robust to user interaction
-Memory usage in time slice FEX
+Improve memory usage in time slice FEX
