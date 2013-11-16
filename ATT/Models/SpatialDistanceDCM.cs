@@ -368,7 +368,11 @@ namespace PTL.ATT.Models
 
                                           "FROM " + tableName + " LEFT JOIN " + ShapeFileGeometry.Table + " sfg ON " + tableName + ".shapefile_id=sfg." + ShapeFileGeometry.Columns.ShapeFileId + " AND sfg." + ShapeFileGeometry.Columns.Geometry + " && " + tableName + ".point_bounding_box " +
 
-                                          "GROUP BY " + tableName + ".point_id," + tableName + ".point_time," + tableName + ".point_incident_type," + tableName + ".point_location," + tableName + ".feature_id";
+                                          "GROUP BY " + tableName + ".point_id," + 
+                                                        tableName + ".point_time," + 
+                                                        tableName + ".point_incident_type," + 
+                                                        tableName + ".point_location," + 
+                                                        tableName + ".feature_id";
 
                         NpgsqlDataReader reader = cmd.ExecuteReader();
                         Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>();
