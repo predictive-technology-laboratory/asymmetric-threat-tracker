@@ -330,60 +330,58 @@ namespace PTL.ATT.Models
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
                         int core = (int)o;
-                        string tableName = "temp_" + core;
-                        NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT p." + Point.Columns.Id + " as point_id," +
-                                                                            "p." + Point.Columns.Location + " as point_location," +
-                                                                            "p." + Point.Columns.Time + " as point_time," +
-                                                                            "st_expand(p." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as point_bounding_box," +
-                                                                            "p." + Point.Columns.IncidentType + " as point_incident_type," +
+                        string pointFeatureTable = "temp_" + core;
+                        NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT p." + Point.Columns.Id + " as point_id," +                       
+                                                                            "p." + Point.Columns.IncidentType + " as point_incident_type," +  
+                                                                            "p." + Point.Columns.Location + " as point_location," +           
+                                                                            "p." + Point.Columns.Time + " as point_time," +                   
+                                                                            "st_expand(p." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as point_bounding_box," +  // get a bounding box around the point to limit the minimum distance calculation time. any distance beyond the threshold will receive a fixed distance value.
                                                                             "f." + Feature.Columns.Id + " as feature_id," +
                                                                             "f." + Feature.Columns.ResourceId + "::integer as shapefile_id " +
-                                                                     "INTO " + tableName + " " +
-                                                                     "FROM " + Point.GetTable(prediction.Id, false) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +
-                                                                                                                                                              "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +
-                                                                                                                                                              "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +
+                                                                     "INTO " + pointFeatureTable + " " +
+                                                                     "FROM " + Point.GetTable(prediction.Id, false) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                        // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
+                                                                                                                                                              "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
+                                                                                                                                                              "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
-                                                                     "CREATE INDEX ON " + tableName + " (point_id);" +
-                                                                     "CREATE INDEX ON " + tableName + " (point_time);" +
-                                                                     "CREATE INDEX ON " + tableName + " USING GIST (point_location);" +
-                                                                     "CREATE INDEX ON " + tableName + " USING GIST (point_bounding_box);" +
-                                                                     "CREATE INDEX ON " + tableName + " (point_incident_type);" +
-                                                                     "CREATE INDEX ON " + tableName + " (feature_id);" +
-                                                                     "CREATE INDEX ON " + tableName + " (shapefile_id);");
+                                                                     "ALTER TABLE " + pointFeatureTable + " ADD PRIMARY KEY (point_id,feature_id);" + // this is required in order to write a clean grouping statement below. if we don't have this, then we need to also group by the selected columns below.
+
+                                                                     "CREATE INDEX ON " + pointFeatureTable + " (point_id);" +
+                                                                     "CREATE INDEX ON " + pointFeatureTable + " USING GIST (point_bounding_box);" +
+                                                                     "CREATE INDEX ON " + pointFeatureTable + " (feature_id);" +
+                                                                     "CREATE INDEX ON " + pointFeatureTable + " (shapefile_id);");
+
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = "VACUUM ANALYZE " + tableName;
+                        cmd.CommandText = "VACUUM ANALYZE " + pointFeatureTable;
                         cmd.ExecuteNonQuery();
 
-                        cmd.CommandText = "SELECT " + tableName + ".point_id as " + tableName + "_" + Point.Columns.Id + "," +
-                                                      tableName + ".point_time as " + tableName + "_" + Point.Columns.Time + "," +
-                                                      tableName + ".point_incident_type as " + tableName + "_" + Point.Columns.IncidentType + "," +
-                                                      "st_x(" + tableName + ".point_location) as " + Point.Columns.X(tableName) + "," +
-                                                      "st_y(" + tableName + ".point_location) as " + Point.Columns.Y(tableName) + "," +
-                                                      "st_srid(" + tableName + ".point_location) as " + Point.Columns.SRID(tableName) + "," +
-                                                      tableName + ".feature_id," +
+                        cmd.CommandText = "SELECT " + pointFeatureTable + ".point_id as " + pointFeatureTable + "_" + Point.Columns.Id + "," +
+                                                      pointFeatureTable + ".point_incident_type as " + pointFeatureTable + "_" + Point.Columns.IncidentType + "," +
+                                                      "st_x(" + pointFeatureTable + ".point_location) as " + Point.Columns.X(pointFeatureTable) + "," +
+                                                      "st_y(" + pointFeatureTable + ".point_location) as " + Point.Columns.Y(pointFeatureTable) + "," +
+                                                      "st_srid(" + pointFeatureTable + ".point_location) as " + Point.Columns.SRID(pointFeatureTable) + "," +
+                                                      pointFeatureTable + ".point_time as " + pointFeatureTable + "_" + Point.Columns.Time + "," +
+                                                      pointFeatureTable + ".feature_id," +
                                                      "CASE WHEN COUNT(sfg." + ShapeFileGeometry.Columns.Geometry + ")=0 THEN sqrt(2.0 * " + FeatureDistanceThreshold + "^2) " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box.
-                                                     "ELSE min(st_distance(st_closestpoint(sfg." + ShapeFileGeometry.Columns.Geometry + "," + tableName + ".point_location)," + tableName + ".point_location)) " +
+                                                     "ELSE min(st_distance(st_closestpoint(sfg." + ShapeFileGeometry.Columns.Geometry + "," + pointFeatureTable + ".point_location)," + pointFeatureTable + ".point_location)) " +
                                                      "END as feature_value " +
 
-                                          "FROM " + tableName + " LEFT JOIN " + ShapeFileGeometry.Table + " sfg ON " + tableName + ".shapefile_id=sfg." + ShapeFileGeometry.Columns.ShapeFileId + " AND sfg." + ShapeFileGeometry.Columns.Geometry + " && " + tableName + ".point_bounding_box " +
+                                          "FROM " + pointFeatureTable + " LEFT JOIN " + ShapeFileGeometry.Table + " sfg ON " + pointFeatureTable + ".shapefile_id=sfg." + ShapeFileGeometry.Columns.ShapeFileId + " AND sfg." + ShapeFileGeometry.Columns.Geometry + " && " + pointFeatureTable + ".point_bounding_box " + // only calculate distance for spatial objects that are within the point's bounding box
 
-                                          "GROUP BY " + tableName + ".point_id," + 
-                                                        tableName + ".point_time," + 
-                                                        tableName + ".point_incident_type," + 
-                                                        tableName + ".point_location," + 
-                                                        tableName + ".feature_id";
+                                          // group all distance calculations by point and feature -- we're going to then find the minimum value
+                                          "GROUP BY " + pointFeatureTable + ".point_id," + 
+                                                        pointFeatureTable + ".feature_id;";
 
                         NpgsqlDataReader reader = cmd.ExecuteReader();
                         Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>();
                         while (reader.Read())
                         {
-                            int pointId = Convert.ToInt32(reader[tableName + "_" + Point.Columns.Id]);
+                            int pointId = Convert.ToInt32(reader[pointFeatureTable + "_" + Point.Columns.Id]);
 
                             FeatureVector vector;
                             if (!pointIdFeatureVector.TryGetValue(pointId, out vector))
                             {
-                                Point p = new Point(reader, tableName);
+                                Point p = new Point(reader, pointFeatureTable);
                                 p.TrueClass = p.IncidentType;
                                 vector = new FeatureVector(p, numFeatures);
                                 pointIdFeatureVector.Add(pointId, vector);
@@ -401,7 +399,7 @@ namespace PTL.ATT.Models
 
                         lock (corePointIdFeatureVector) { corePointIdFeatureVector.Add(pointIdFeatureVector); }
 
-                        cmd.CommandText = "DROP TABLE " + tableName;
+                        cmd.CommandText = "DROP TABLE " + pointFeatureTable;
                         cmd.ExecuteNonQuery();
 
                         DB.Connection.Return(cmd.Connection);
