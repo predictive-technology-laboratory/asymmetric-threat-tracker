@@ -339,13 +339,17 @@ namespace PTL.ATT.Models
                                                                             "f." + Feature.Columns.Id + " as feature_id," +
                                                                             "f." + Feature.Columns.ResourceId + "::integer as shapefile_id " +
                                                                      "INTO " + pointFeatureTable + " " +
+
+                                                                     // cross points with features
                                                                      "FROM " + Point.GetTable(prediction.Id, false) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                        // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
                                                                                                                                                               "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
                                                                                                                                                               "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
+                                                                     // only process points associated with the current core                                                                                         
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
                                                                      "ALTER TABLE " + pointFeatureTable + " ADD PRIMARY KEY (point_id,feature_id);" + // this is required in order to write a clean grouping statement below. if we don't have this, then we need to also group by the selected columns below.
 
+                                                                     // create some indexes
                                                                      "CREATE INDEX ON " + pointFeatureTable + " (point_id);" +
                                                                      "CREATE INDEX ON " + pointFeatureTable + " USING GIST (point_bounding_box);" +
                                                                      "CREATE INDEX ON " + pointFeatureTable + " (feature_id);" +
@@ -362,6 +366,8 @@ namespace PTL.ATT.Models
                                                       "st_srid(" + pointFeatureTable + ".point_location) as " + Point.Columns.SRID(pointFeatureTable) + "," +
                                                       pointFeatureTable + ".point_time as " + pointFeatureTable + "_" + Point.Columns.Time + "," +
                                                       pointFeatureTable + ".feature_id," +
+
+                                                      // the feature value for a point is the minimum distance from the point to an object associated with the feature
                                                      "CASE WHEN COUNT(sfg." + ShapeFileGeometry.Columns.Geometry + ")=0 THEN sqrt(2.0 * " + FeatureDistanceThreshold + "^2) " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box.
                                                      "ELSE min(st_distance(st_closestpoint(sfg." + ShapeFileGeometry.Columns.Geometry + "," + pointFeatureTable + ".point_location)," + pointFeatureTable + ".point_location)) " +
                                                      "END as feature_value " +
@@ -388,7 +394,7 @@ namespace PTL.ATT.Models
                             }
 
                             object featureIdObject = reader["feature_id"];
-                            if (!(featureIdObject is DBNull))
+                            if (!(featureIdObject is DBNull)) // we can get DBNulls back if no objects for a feature were within the point's bounding box (we did a left-join with the feature)
                             {
                                 int featureId = Convert.ToInt32(featureIdObject);
                                 double featureValue = Convert.ToDouble(reader["feature_value"]);
