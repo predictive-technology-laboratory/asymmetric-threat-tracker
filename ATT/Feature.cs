@@ -45,7 +45,9 @@ namespace PTL.ATT
             [Reflector.Insert, Reflector.Select(true)]
             public const string PredictionId = "prediction_id";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string ResourceId = "resource_id";
+            public const string PredictionResourceId = "prediction_resource_id";
+            [Reflector.Insert, Reflector.Select(true)]
+            public const string TrainingResourceId = "training_resource_id";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
@@ -60,17 +62,19 @@ namespace PTL.ATT
                     Columns.EnumValue + " VARCHAR," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
                     Columns.PredictionId + " INT REFERENCES " + Prediction.Table + " ON DELETE CASCADE," +
-                    Columns.ResourceId + " VARCHAR);" +
+                    Columns.PredictionResourceId + " VARCHAR," + 
+                    Columns.TrainingResourceId + " VARCHAR);" + 
                     (connection.TableExists(Table) ? "" :
                     "CREATE INDEX ON " + Table + " (" + Columns.EnumType + ");" +
                     "CREATE INDEX ON " + Table + " (" + Columns.EnumValue + ");" +
                     "CREATE INDEX ON " + Table + " (" + Columns.PredictionId + ");" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.ResourceId + ");");
+                    "CREATE INDEX ON " + Table + " (" + Columns.PredictionResourceId + ");" +
+                    "CREATE INDEX ON " + Table + " (" + Columns.TrainingResourceId + ");");
         }
 
-        public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, int predictionId, string resourceId, bool vacuum)
+        public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, int predictionId, string trainingResourceId, string predictionResourceId, bool vacuum)
         {
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + predictionId + "," + (resourceId == null ? "NULL" : "'" + resourceId + "'") + ") RETURNING " + Columns.Id, connection);
+            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + predictionId + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + "," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + ") RETURNING " + Columns.Id, connection);
             int id = Convert.ToInt32(cmd.ExecuteScalar());
 
             if (vacuum)
@@ -89,7 +93,8 @@ namespace PTL.ATT
         private Enum _enumValue;
         private string _description;
         private int _predictionId;
-        private string _resourceId;
+        private string _trainingResourceId;
+        private string _predictionResourceId;
 
         public int Id
         {
@@ -121,9 +126,25 @@ namespace PTL.ATT
             get { return new Prediction(_predictionId); }
         }
 
-        public string ResourceId
+        public string TrainingResourceId
         {
-            get { return _resourceId; }
+            get { return _trainingResourceId; }
+        }
+
+        public string PredictionResourceId
+        {
+            get { return _predictionResourceId; }
+            set
+            {
+                _predictionResourceId = value;
+
+                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.PredictionResourceId + "='" + value + "' WHERE " + Columns.Id + "=" + _id);
+            }
+        }
+
+        public string RemapKey
+        {
+            get { return _enumType + "-" + _enumValue + "-" + _trainingResourceId; }
         }
 
         internal Feature(NpgsqlDataReader reader)
@@ -131,38 +152,40 @@ namespace PTL.ATT
             Construct(reader);
         }
 
-        public Feature(Type enumType, Enum enumValue, string resourceId, string description)
+        public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description)
         {
-            Construct(-1, -1, enumType, enumValue, resourceId, description);
+            Construct(-1, -1, enumType, enumValue, trainingResourceId, predictionResourceId, description);
         }
 
         private void Construct(NpgsqlDataReader reader)
         {
             Type enumType = Reflection.GetType(Convert.ToString(reader[Table + "_" + Columns.EnumType]));
 
-            Construct(Convert.ToInt32(reader[Table + "_" + Columns.Id]), 
-                      Convert.ToInt32(reader[Table + "_" + Columns.PredictionId]), 
+            Construct(Convert.ToInt32(reader[Table + "_" + Columns.Id]),
+                      Convert.ToInt32(reader[Table + "_" + Columns.PredictionId]),
                       enumType,
                       (Enum)Enum.Parse(enumType, Convert.ToString(reader[Table + "_" + Columns.EnumValue])),
-                      Convert.ToString(reader[Table + "_" + Columns.ResourceId]),
+                      Convert.ToString(reader[Table + "_" + Columns.TrainingResourceId]),
+                      Convert.ToString(reader[Table + "_" + Columns.PredictionResourceId]),
                       Convert.ToString(reader[Table + "_" + Columns.Description]));
         }
 
-        private void Construct(int id, int predictionId, Type enumType, Enum enumValue, string resourceId, string description)
+        private void Construct(int id, int predictionId, Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description)
         {
             _id = id;
             _predictionId = predictionId;
             _enumType = enumType;
             _enumValue = enumValue;
             _description = description;
-            _resourceId = resourceId == null ? "" : resourceId;
+            _trainingResourceId = trainingResourceId == null ? "" : trainingResourceId;
+            _predictionResourceId = predictionResourceId == null ? "" : predictionResourceId;
         }
 
         public override string ToString()
         {
             string enumStr = _enumType.ToString();
             enumStr = enumStr.Substring(enumStr.LastIndexOf("+") + 1);
-            return _description + " (" + enumStr + ")";
+            return _description + " (" + enumStr + ")" + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
         }
 
         public override bool Equals(object obj)
@@ -172,12 +195,12 @@ namespace PTL.ATT
 
             Feature f = obj as Feature;
 
-            return _enumType == f.EnumType && _enumValue.ToString() == f.EnumValue.ToString() && _resourceId == f.ResourceId;
+            return _enumType == f.EnumType && _enumValue.ToString() == f.EnumValue.ToString() && _trainingResourceId == f.TrainingResourceId && _predictionResourceId == f.PredictionResourceId;
         }
 
         public override int GetHashCode()
         {
-            return (_enumType + "-" + _enumValue + "-" + _resourceId).GetHashCode();
+            return (_enumType + "-" + _enumValue + "-" + _trainingResourceId + "-" + _predictionResourceId).GetHashCode();
         }
 
         public int CompareTo(Feature other)
@@ -187,13 +210,22 @@ namespace PTL.ATT
             if (cmp == 0)
                 cmp = _enumValue.ToString().CompareTo(other.EnumValue.ToString());
 
-            if (cmp == 0 && _resourceId != null && other.ResourceId != null)
+            if (cmp == 0 && _trainingResourceId != null && other.TrainingResourceId != null)
             {
                 int r1, r2;
-                if (int.TryParse(_resourceId, out r1) && int.TryParse(other.ResourceId, out r2))
+                if (int.TryParse(_trainingResourceId, out r1) && int.TryParse(other.TrainingResourceId, out r2))
                     cmp = r1.CompareTo(r2);
                 else
-                    cmp = _resourceId.CompareTo(other.ResourceId);
+                    cmp = _trainingResourceId.CompareTo(other.TrainingResourceId);
+            }
+
+            if (cmp == 0 && _predictionResourceId != null && other.PredictionResourceId != null)
+            {
+                int r1, r2;
+                if (int.TryParse(_predictionResourceId, out r1) && int.TryParse(other.PredictionResourceId, out r2))
+                    cmp = r1.CompareTo(r2);
+                else
+                    cmp = _predictionResourceId.CompareTo(other.PredictionResourceId);
             }
 
             return cmp;

@@ -133,6 +133,12 @@
     <Compile Include="ClassifierList.Designer.cs">
       <DependentUpon>ClassifierList.cs</DependentUpon>
     </Compile>
+    <Compile Include="FeatureRemappingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FeatureRemappingForm.Designer.cs">
+      <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="LogWriter.cs" />
     <Compile Include="Splash.cs">
       <SubType>Form</SubType>
@@ -255,6 +261,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ClassifierList.resx">
       <DependentUpon>ClassifierList.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FeatureRemappingForm.resx">
+      <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>

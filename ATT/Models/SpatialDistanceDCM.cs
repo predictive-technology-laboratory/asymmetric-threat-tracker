@@ -92,7 +92,7 @@ namespace PTL.ATT.Models
                 foreach (FeatureShapeFile featureShapefile in FeatureShapeFile.GetAvailable())
                 {
                     if (featureShapefile.Type == FeatureShapeFile.ShapefileType.Distance)
-                        yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapeFile, featureShapefile.Id.ToString(), featureShapefile.Name);
+                        yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapeFile, featureShapefile.Id.ToString(), featureShapefile.Id.ToString(), featureShapefile.Name);
                     else
                         throw new Exception("Unimplemented shapefile type:  " + featureShapefile.Type);
                 }
@@ -100,9 +100,9 @@ namespace PTL.ATT.Models
                 foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
                     if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
                         foreach (string incidentType in Incident.GetUniqueTypes(TrainingStart, TrainingEnd))
-                            yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, "KDE \"" + incidentType + "\"");
+                            yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, incidentType, "KDE \"" + incidentType + "\"");
                     else if (f != SpatialDistanceFeature.DistanceShapeFile)
-                        yield return new Feature(typeof(SpatialDistanceFeature), f, null, f.ToString());
+                        yield return new Feature(typeof(SpatialDistanceFeature), f, null, null, f.ToString());
 
                 if (_externalFeatureExtractor != null)
                     foreach (Feature f in _externalFeatureExtractor.AvailableFeatures)
@@ -337,7 +337,7 @@ namespace PTL.ATT.Models
                                                                             "p." + Point.Columns.Time + " as point_time," +                   
                                                                             "st_expand(p." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as point_bounding_box," +  // get a bounding box around the point to limit the minimum distance calculation time. any distance beyond the threshold will receive a fixed distance value.
                                                                             "f." + Feature.Columns.Id + " as feature_id," +
-                                                                            "f." + Feature.Columns.ResourceId + "::integer as shapefile_id " +
+                                                                            "f." + (training ? Feature.Columns.TrainingResourceId : Feature.Columns.PredictionResourceId) + "::integer as shapefile_id " +
                                                                      "INTO " + pointFeatureTable + " " +
 
                                                                      // cross points with features
@@ -439,9 +439,11 @@ namespace PTL.ATT.Models
                             foreach (Feature kdeFeature in kdeFeatures)
                                 if (skip-- <= 0)
                                 {
-                                    Console.Out.WriteLine("Computing spatial density of \"" + kdeFeature.ResourceId + "\"");
+                                    string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;
 
-                                    IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(TrainingStart, TrainingEnd, kdeFeature.ResourceId).Select(incident => incident.Location);
+                                    Console.Out.WriteLine("Computing spatial density of \"" + incident + "\"");
+
+                                    IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(TrainingStart, TrainingEnd, incident).Select(inc => inc.Location);
                                     List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 500, false, 0, 0, kdeEvalPoints, true, true);
                                     lock (kdeFeatureDensityEstimates)
                                     {

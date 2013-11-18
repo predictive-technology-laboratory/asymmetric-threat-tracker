@@ -184,7 +184,7 @@ namespace PTL.ATT.Models
                     yield return f;
 
                 foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
-                    yield return new Feature(typeof(TimeSliceFeature), f, null, f.ToString());
+                    yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString());
             }
         }
 

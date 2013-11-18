@@ -447,7 +447,7 @@ namespace PTL.ATT
                     cmd.ExecuteNonQuery();
 
                     foreach (Feature feature in value.OrderBy(f => f.Id))
-                        Feature.Create(cmd.Connection, feature.Description, feature.EnumType, feature.EnumValue, _id, feature.ResourceId, false);
+                        Feature.Create(cmd.Connection, feature.Description, feature.EnumType, feature.EnumValue, _id, feature.TrainingResourceId, feature.PredictionResourceId, false);
 
                     Feature.VacuumTable();
                 }

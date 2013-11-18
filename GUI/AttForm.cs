@@ -63,6 +63,7 @@ namespace PTL.ATT.GUI
         private bool _setPredictionsToolTip;
         private List<string> _groups;
         private LogWriter _logWriter;
+        private Dictionary<string, string> _featureRemapKeyRemappedPredictionResource;
 
         public List<string> Groups
         {
@@ -130,6 +131,16 @@ namespace PTL.ATT.GUI
             get { return incidentTypes.SelectedItems.Cast<string>(); }
         }
 
+        public DiscreteChoiceModel SelectedModel
+        {
+            get { return models.SelectedItem as DiscreteChoiceModel; }
+        }
+
+        public IEnumerable<Feature> SelectedFeatures
+        {
+            get { return features.SelectedItems.Cast<Feature>(); }
+        }
+        
         public List<Prediction> SelectedPredictions
         {
             get
@@ -166,6 +177,7 @@ namespace PTL.ATT.GUI
 
             _setTrainingStartEndToolTip = true;
             _groups = new List<string>();
+            _featureRemapKeyRemappedPredictionResource = new Dictionary<string, string>();
         }
 
         private void AttForm_Load(object sender, EventArgs e)
@@ -468,9 +480,10 @@ namespace PTL.ATT.GUI
         {
             perIncident.Enabled = incidentTypes.SelectedItems.Count > 1;
 
-            if (models.SelectedItem != null)
+            DiscreteChoiceModel m = SelectedModel;
+
+            if (m != null)
             {
-                DiscreteChoiceModel m = models.SelectedItem as DiscreteChoiceModel;
                 m.Update(m.Name, m.PointSpacing, m.TrainingArea, m.TrainingStart, m.TrainingEnd, m.TrainingSampleSize, m.PredictionSampleSize, SelectedIncidentTypes, m.Smoothers);
                 toolTip.SetToolTip(models, m.GetDetails(0));
                 RefreshFeatures();
@@ -521,7 +534,7 @@ namespace PTL.ATT.GUI
 
         public void updateModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (models.SelectedItem == null)
+            if (SelectedModel == null)
                 MessageBox.Show("Must select model.");
             else if (trainingAreas.SelectedItem == null)
                 MessageBox.Show("Must select a training area.");
@@ -529,7 +542,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must select incident types.");
             else
             {
-                DiscreteChoiceModel m = models.SelectedItem as DiscreteChoiceModel;
+                DiscreteChoiceModel m = SelectedModel;
 
                 if (m.HasMadePredictions)
                     if (MessageBox.Show("You cannot update a model that has been used to make predictions. Would you like to copy the current model instead?", "Copy model?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
@@ -565,9 +578,9 @@ namespace PTL.ATT.GUI
 
         public void deleteModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (models.SelectedItem != null)
+            DiscreteChoiceModel m = SelectedModel;
+            if (m != null)
             {
-                DiscreteChoiceModel m = models.SelectedItem as DiscreteChoiceModel;
                 if (m.HasMadePredictions)
                     if (MessageBox.Show("Cannot delete model until all of its associated predictions have been deleted. Delete them now?", "Delete predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                         m.DeletePredictions();
@@ -581,10 +594,10 @@ namespace PTL.ATT.GUI
 
         private void models_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (models.SelectedItem != null)
-            {
-                DiscreteChoiceModel m = models.SelectedItem as DiscreteChoiceModel;
+            DiscreteChoiceModel m = SelectedModel;
 
+            if (m != null)
+            {
                 trainingAreas.SelectedItem = trainingAreas.Items.Cast<Area>().Where(a => a.Id == m.TrainingAreaId).First();
 
                 trainingStart.Value = m.TrainingStart;
@@ -603,6 +616,31 @@ namespace PTL.ATT.GUI
         {
             for (int i = 0; i < features.Items.Count; ++i)
                 features.SetSelected(i, true);
+        }
+
+        private void remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (SelectedModel == null)
+                MessageBox.Show("Must select model before remapping.");
+            else if (SelectedFeatures.Count() == 0)
+                MessageBox.Show("Must select features before remapping.");
+            else
+            {
+                FeatureRemappingForm f = new FeatureRemappingForm(SelectedFeatures, SelectedModel.AvailableFeatures);
+                f.ShowDialog();
+
+                _featureRemapKeyRemappedPredictionResource.Clear();
+                foreach (Feature feature in features.Items)
+                    _featureRemapKeyRemappedPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
+
+                RefreshFeatures();
+            }
+        }
+
+        private void clearFeatureRemappingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _featureRemapKeyRemappedPredictionResource.Clear();
+            RefreshFeatures();
         }
         #endregion
 
@@ -667,11 +705,12 @@ namespace PTL.ATT.GUI
 
         private void run_Click(object sender, EventArgs e)
         {
-            if (models.SelectedItem == null)
+            DiscreteChoiceModel m = SelectedModel;
+
+            if (m == null)
                 MessageBox.Show("Must select a model.");
             else
             {
-                DiscreteChoiceModel m = models.SelectedItem as DiscreteChoiceModel;
                 string defaultPredictionName = m.Name + " (" + m.GetType().Name + ")" + (!perIncident.Checked ? " " + m.IncidentTypes.Concatenate("+") : "");
                 string predictionName = GetValue.Show("Enter name for prediction" + (perIncident.Checked ? " (per-incident names will be added)" : "") + "...", defaultPredictionName);
                 if (predictionName == null)
@@ -683,9 +722,11 @@ namespace PTL.ATT.GUI
 
         public void Run(bool newRun, string predictionName, int idOfSpatiotemporallyIdenticalPrediction, Action<int> runFinishedCallback)
         {
+            DiscreteChoiceModel m = SelectedModel;
+
             predictionName = predictionName.Trim();
 
-            if (models.SelectedItem == null)
+            if (m == null)
                 MessageBox.Show("Must select a model.");
             else if (!(models.SelectedItem is KernelDensityDCM) && features.SelectedItems.Count == 0)
                 MessageBox.Show("Must select one or more features.");
@@ -695,9 +736,8 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must provide a non-empty prediction name.");
             else
             {
-                DiscreteChoiceModel m = models.SelectedItem as DiscreteChoiceModel;
                 Area predictionArea = predictionAreas.SelectedItem as Area;
-                IEnumerable<Feature> selectedFeatures = features.SelectedItems.Cast<Feature>().ToArray();
+                IEnumerable<Feature> selectedFeatures = SelectedFeatures.ToArray();
                 IEnumerable<string> incidentTypes = m.IncidentTypes.ToArray();
 
                 Thread t = new Thread(new ThreadStart(delegate()
@@ -979,7 +1019,7 @@ namespace PTL.ATT.GUI
                                         if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.DistanceShapeFile))
                                         {
                                             Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                            constraints.Add(ShapeFileGeometry.Columns.ShapeFileId, feature.ResourceId.ToString());
+                                            constraints.Add(ShapeFileGeometry.Columns.ShapeFileId, feature.PredictionResourceId.ToString());
                                             NpgsqlConnection connection = DB.Connection.OpenConnection;
                                             List<List<PointF>> points = Geometry.GetPoints(connection, ShapeFileGeometry.Table, ShapeFileGeometry.Columns.Geometry, ShapeFileGeometry.Columns.Id, constraints, pointDistanceThreshold);
                                             DB.Connection.Return(connection);
@@ -1440,8 +1480,8 @@ namespace PTL.ATT.GUI
             foreach (string incidentType in Incident.GetUniqueTypes(trainingStart.Value, trainingEnd.Value))
                 incidentTypes.Items.Add(incidentType);
 
-            if (models.SelectedItem != null)
-                foreach (string incidentType in (models.SelectedItem as DiscreteChoiceModel).IncidentTypes)
+            if (SelectedModel != null)
+                foreach (string incidentType in SelectedModel.IncidentTypes)
                 {
                     int index = incidentTypes.Items.IndexOf(incidentType);
                     if (index >= 0)
@@ -1487,11 +1527,17 @@ namespace PTL.ATT.GUI
 
             features.Items.Clear();
 
-            if (models.SelectedItem != null)
+            DiscreteChoiceModel model = SelectedModel;
+
+            if (model != null)
             {
-                DiscreteChoiceModel model = models.SelectedItem as DiscreteChoiceModel;
                 List<Feature> sortedFeatures = new List<Feature>(model.AvailableFeatures);
                 sortedFeatures.Sort();
+
+                foreach (Feature f in sortedFeatures)
+                    if (_featureRemapKeyRemappedPredictionResource.ContainsKey(f.RemapKey))
+                        f.PredictionResourceId = _featureRemapKeyRemappedPredictionResource[f.RemapKey];
+
                 features.Items.AddRange(sortedFeatures.ToArray());
             }
         }

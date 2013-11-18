@@ -90,12 +90,19 @@ namespace PTL.ATT.GUI
 
                     Thread t = new Thread(new ThreadStart(delegate()
                         {
-                            if (areaShp.Checked)
-                                ShapeFile.ImportShapeFiles(shapeFilePaths, AreaShapeFile.Table, AreaShapeFile.Columns.Insert, typeof(AreaShapeFile), new object[] { });
-                            else
-                                ShapeFile.ImportShapeFiles(shapeFilePaths, FeatureShapeFile.Table, FeatureShapeFile.Columns.Insert, typeof(FeatureShapeFile), new object[] { selectedShapefileType });
+                            try
+                            {
+                                if (areaShp.Checked)
+                                    ShapeFile.ImportShapeFiles(shapeFilePaths, AreaShapeFile.Table, AreaShapeFile.Columns.Insert, typeof(AreaShapeFile), new object[] { });
+                                else
+                                    ShapeFile.ImportShapeFiles(shapeFilePaths, FeatureShapeFile.Table, FeatureShapeFile.Columns.Insert, typeof(FeatureShapeFile), new object[] { selectedShapefileType });
 
-                            Console.Out.WriteLine("Shapefile import succeeded.");
+                                Console.Out.WriteLine("Shapefile import succeeded.");
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show("There was an error while importing one or more shapefiles:  " + ex.Message);
+                            }
                         }));
 
                     t.Start();
