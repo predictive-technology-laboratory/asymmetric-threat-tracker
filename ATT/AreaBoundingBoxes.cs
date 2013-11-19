@@ -36,56 +36,58 @@ namespace PTL.ATT
             Within
         }
             
-        public const string Table = "area_bounding_boxes";
-
         public class Columns
         {
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string AreaId = "area_id";
             [Reflector.Insert]
             public const string BoundingBox = "bounding_box";
             public const string Id = "id";
             public const string Relationship = "relationship";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
         }
 
-        [ConnectionPool.CreateTable(typeof(Area))]
-        private static string CreateTable(ConnectionPool connection)
+        internal static string GetTableName(int areaId)
         {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                Columns.AreaId + " INT REFERENCES " + Area.Table + " ON DELETE CASCADE," +
-                Columns.BoundingBox + " GEOMETRY(POLYGON," + Configuration.PostgisSRID + ")," +
+            return "area_bounding_boxes_" + areaId;
+        }
+
+        private static string CreateTable(NpgsqlConnection connection, int areaId, int srid)
+        {
+            string tableName = GetTableName(areaId);
+
+            DB.Connection.ExecuteNonQuery(
+                "CREATE TABLE " + tableName + " (" +
+                Columns.BoundingBox + " GEOMETRY(POLYGON," + srid + ")," +
                 Columns.Id + " SERIAL PRIMARY KEY," +
                 Columns.Relationship + " VARCHAR);" +
-                (connection.TableExists(Table) ? "" :
-                "CREATE INDEX ON " + Table + " (" + Columns.AreaId + ");" +
-                "CREATE INDEX ON " + Table + " USING GIST (" + Columns.BoundingBox + ");" +
-                "CREATE INDEX ON " + Table + " (" + Columns.Relationship + ");");
+                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.BoundingBox + ");" +
+                "CREATE INDEX ON " + tableName + " (" + Columns.Relationship + ");");
+
+            return tableName;
         }
 
-        private static IEnumerable<PostGIS.Geometry> GetCandidateBoundingBoxes(double minX, double maxX, double minY, double maxY, double boxSize)
+        private static IEnumerable<PostGIS.Geometry> GetCandidateBoundingBoxes(double minX, double maxX, double minY, double maxY, double boxSize, int srid)
         {
             for (double x = minX; x <= maxX; x += boxSize)
                 for (double y = minY; y <= maxY; y += boxSize)
                     yield return new PostGIS.Polygon(new PostGIS.Point[]{
-                        new PostGIS.Point(x, y, Configuration.PostgisSRID),
-                        new PostGIS.Point(x, y + boxSize, Configuration.PostgisSRID),
-                        new PostGIS.Point(x + boxSize, y + boxSize, Configuration.PostgisSRID),
-                        new PostGIS.Point(x + boxSize, y, Configuration.PostgisSRID),
-                        new PostGIS.Point(x, y, Configuration.PostgisSRID)}, Configuration.PostgisSRID);
+                        new PostGIS.Point(x, y, srid),
+                        new PostGIS.Point(x, y + boxSize, srid),
+                        new PostGIS.Point(x + boxSize, y + boxSize, srid),
+                        new PostGIS.Point(x + boxSize, y, srid),
+                        new PostGIS.Point(x, y, srid)}, srid);
         }
 
         internal static void Create(NpgsqlConnection connection, int areaId, ShapeFile shapeFile, double boxSize)
         {
+            string tableName = CreateTable(connection, areaId, shapeFile.SRID);
+
             NpgsqlCommand cmd = new NpgsqlCommand("SELECT min(st_xmin(" + ShapeFileGeometry.Columns.Geometry + "))," +
                                                          "max(st_xmax(" + ShapeFileGeometry.Columns.Geometry + "))," +
                                                          "min(st_ymin(" + ShapeFileGeometry.Columns.Geometry + "))," +
                                                          "max(st_ymax(" + ShapeFileGeometry.Columns.Geometry + ")) " +
-                                                  "FROM " + ShapeFileGeometry.Columns.JoinShapeFile + " " +
-                                                  "WHERE " + ShapeFile.Table + "." + ShapeFile.Columns.Id + "=" + shapeFile.Id + " " +
-                                                  "GROUP BY " + ShapeFile.Table + "." + ShapeFile.Columns.Id, connection);
+                                                  "FROM " + ShapeFileGeometry.GetTableName(shapeFile.Id));
+
             cmd.CommandTimeout = Configuration.PostgresCommandTimeout;
 
             NpgsqlDataReader reader = cmd.ExecuteReader();
@@ -98,9 +100,9 @@ namespace PTL.ATT
 
             StringBuilder cmdText = new StringBuilder();
             int batchNum = 0;
-            foreach (PostGIS.Geometry geometry in GetCandidateBoundingBoxes(minX, maxX, minY, maxY, boxSize))
+            foreach (PostGIS.Geometry geometry in GetCandidateBoundingBoxes(minX, maxX, minY, maxY, boxSize, shapeFile.SRID))
             {
-                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES " : ",") + "(" + areaId + "," + geometry.StGeometryFromText + ")");
+                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + geometry.StGeometryFromText + ")");
                 if (++batchNum >= 1000)
                 {
                     cmd.CommandText = cmdText.ToString();
@@ -118,11 +120,10 @@ namespace PTL.ATT
                 batchNum = 0;
             }
 
-            cmd.CommandText = "UPDATE " + Table + " " +
+            cmd.CommandText = "UPDATE " + tableName + " " +
                               "SET " + Columns.Relationship + "='" + Relationship.Overlaps + "' " +
-                              "FROM " + AreaGeometry.Table + " " +
                               "WHERE " + AreaGeometry.Table + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " +
-                                        "st_overlaps(" + Table + "." + Columns.BoundingBox + "," + AreaGeometry.Table + "." + AreaGeometry.Columns.Geometry + ")";
+                                        "st_overlaps(" + tableName + "." + Columns.BoundingBox + "," +  AreaGeometry.Table + "." + AreaGeometry.Columns.Geometry + ")";
             cmd.ExecuteNonQuery();
 
             cmd.CommandText = "UPDATE " + Table + " " +

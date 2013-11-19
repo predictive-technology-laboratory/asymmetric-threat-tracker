@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,44 +24,42 @@ using System.Text;
 
 using LAIR.ResourceAPIs.PostgreSQL;
 using Npgsql;
+using LAIR.Collections.Generic;
 
 namespace PTL.ATT.ShapeFiles
 {
     public class ShapeFileGeometry
     {
-        public const string Table = "shape_file_geometry";
-
         public class Columns
         {
             [Reflector.Insert, Reflector.Select(true)]
             public const string Geometry = "geom";
             [Reflector.Select(true)]
             public const string Id = "id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string ShapeFileId = "shape_file_id";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string JoinShapeFile { get { return ShapeFile.Table + " JOIN " + Table + " ON " + ShapeFile.Table + "." + ShapeFile.Columns.Id + "=" + Table + "." + Columns.ShapeFileId; } }
         }
 
-        [ConnectionPool.CreateTable(typeof(ShapeFile))]
-        private static string CreateTable(ConnectionPool connection)
+        internal static string GetTableName(int shapefileId)
         {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                   Columns.Geometry + " GEOMETRY(GEOMETRY," + Configuration.PostgisSRID + ")," +
-                   Columns.Id + " SERIAL PRIMARY KEY," +
-                   Columns.ShapeFileId + " INT REFERENCES " + ShapeFile.Table + " ON DELETE CASCADE);" +
-                   (connection.TableExists(Table) ? "" :
-                   "CREATE INDEX ON " + Table + " USING GIST (" + Columns.Geometry + ");" +
-                   "CREATE INDEX ON " + Table + " (" + Columns.ShapeFileId + ");");
-        }
+            return "shapefile_geometry_" + shapefileId;
+        }        
 
-        internal static List<int> Create(NpgsqlConnection connection, int shapeFileId, string geometryTable, string geometryColumn)
+        internal static List<int> Create(NpgsqlConnection connection, int shapefileId, string geometryTable, string geometryColumn, int srid)
         {
+            string tableName = GetTableName(shapefileId);
+
+            DB.Connection.ExecuteNonQuery(
+                "CREATE TABLE " + tableName + " (" +
+                Columns.Geometry + " GEOMETRY(GEOMETRY," + srid + ")," +
+                Columns.Id + " SERIAL PRIMARY KEY," +
+                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");");
+
             List<int> ids = new List<int>();
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") " + 
-                                                  "SELECT " + geometryColumn + "," + shapeFileId + " " + 
+            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + tableName + " (" + Columns.Insert + ") " +
+                                                  "SELECT " + geometryColumn + " " +
                                                   "FROM " + geometryTable + " RETURNING " + Columns.Id, connection);
+
             cmd.CommandTimeout = Configuration.PostgresCommandTimeout;
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())

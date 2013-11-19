@@ -32,7 +32,7 @@ namespace PTL.ATT.ShapeFiles
 {
     public abstract class ShapeFile
     {
-        public const string Table = "shape_file";
+        public const string Table = "shapefile";
 
         public class Columns
         {
@@ -40,6 +40,8 @@ namespace PTL.ATT.ShapeFiles
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Name = "name";
+            [Reflector.Insert, Reflector.Select(true)]
+            public const string SRID = "srid";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Type = "type";
 
@@ -53,12 +55,13 @@ namespace PTL.ATT.ShapeFiles
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.Name + " VARCHAR," +
+                   Columns.SRID + " INTEGER," +
                    Columns.Type + " VARCHAR);";
         }
 
-        protected static int Create(NpgsqlConnection connection, string name, Type type)
+        protected static int Create(NpgsqlConnection connection, string name, int srid, Type type)
         {
-            return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "','" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
+            return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
 
         public static void ImportShapeFiles(string[] shapeFilePaths, string table, string columns, Type objectType, object[] additionalColumnValues)
@@ -133,6 +136,7 @@ namespace PTL.ATT.ShapeFiles
 
         private int _id;
         private string _name;
+        private int _srid;
 
         #region properties
         public int Id
@@ -144,6 +148,11 @@ namespace PTL.ATT.ShapeFiles
         {
             get { return _name; }
         }
+
+        public int SRID
+        {
+            get { return _srid; }
+        }
         #endregion
 
         protected ShapeFile()
@@ -154,12 +163,14 @@ namespace PTL.ATT.ShapeFiles
         {
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
             _name = Convert.ToString(reader[Table + "_" + Columns.Name]);
+            _srid = Convert.ToInt32(reader[Table + "_" + Columns.SRID]);
         }
 
         public virtual string Details()
         {
             return "ID:  " + _id + Environment.NewLine +
                    "Name:  " + _name + Environment.NewLine +
+                   "SRID:  " + _srid + Environment.NewLine + 
                    "Type:  " + GetType().Name;
         }
 
@@ -170,7 +181,8 @@ namespace PTL.ATT.ShapeFiles
 
         public void Delete()
         {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
+            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id + ";" +
+                                          "DROP TABLE " + ShapeFileGeometry.GetTableName(_id) + ";");
         }
     }
 }

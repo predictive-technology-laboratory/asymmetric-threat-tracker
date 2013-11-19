@@ -97,7 +97,7 @@ namespace PTL.ATT
         private static void CreateTable(string name)
         {
             DB.Connection.ExecuteNonQuery(
-                   "CREATE TABLE IF NOT EXISTS " + name + " (" +
+                   "CREATE TABLE " + name + " (" +
                    Columns.Core + " INTEGER," +
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.IncidentType + " VARCHAR," +

@@ -43,6 +43,8 @@ namespace PTL.ATT
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Name = "name";
+            [Reflector.Insert, Reflector.Select(true)]
+            public const string SRID = "srid";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
@@ -53,7 +55,8 @@ namespace PTL.ATT
         {
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Id + " SERIAL PRIMARY KEY," +
-                   Columns.Name + " VARCHAR);";
+                   Columns.Name + " VARCHAR," +
+                   Columns.SRID + " INTEGER);";
         }
 
         public static int Create(ShapeFile shapeFile, string name)
@@ -61,14 +64,12 @@ namespace PTL.ATT
             NpgsqlCommand cmd = DB.Connection.NewCommand("BEGIN");
             cmd.ExecuteNonQuery();
 
-            int id = Create(cmd.Connection, name);
+            int id = Create(cmd.Connection, name, shapeFile.SRID);
 
             Console.Out.WriteLine("Creating area geometry");
-
             AreaGeometry.Create(cmd.Connection, shapeFile, id);
 
             Console.Out.WriteLine("Creating area bounding boxes");
-
             AreaBoundingBoxes.Create(cmd.Connection, id, shapeFile, Configuration.AreaBoundingBoxSize);
 
             cmd.CommandText = "COMMIT";
@@ -79,9 +80,9 @@ namespace PTL.ATT
             return id;
         }
 
-        private static int Create(NpgsqlConnection connection, string name)
+        private static int Create(NpgsqlConnection connection, string name, int srid)
         {
-            return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Area.Table + " (" + Columns.Insert + ") VALUES ('" + name + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
+            return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Area.Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ") RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
 
         public static IEnumerable<Area> GetAvailable()
@@ -250,7 +251,13 @@ namespace PTL.ATT
                 if (model.HasMadePredictions)
                     throw new Exception("Predictions have been made based on the given area. Cannot delete it.");
 
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
+            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
+            try
+            {
+                cmd.CommandText = "DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id + ";" +
+                                  "DROP TABLE " + AreaGeometry.CreateTable(cmd.Connection, _id, false, -1) + ";" + 
+                                  "DROP TABLE " + AreaBoundingBoxes.CreateTable(cmd.Connection, _id,   
+            DB.Connection.ExecuteNonQuery(;
         }
 
         public override string ToString()

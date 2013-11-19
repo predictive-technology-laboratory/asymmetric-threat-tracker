@@ -30,44 +30,44 @@ namespace PTL.ATT
 {
     public class AreaGeometry
     {
-        public const string Table = "area_geometry";
-
         public class Columns
         {
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string AreaId = "area_id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Geometry = "geom";
             [Reflector.Select(true)]
             public const string Id = "id";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
         }
 
-        [ConnectionPool.CreateTable(typeof(Area))]
-        private static string CreateTable(ConnectionPool connection)
+        internal static string GetTableName(int areaId)
         {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                Columns.AreaId + " INT REFERENCES " + Area.Table + " ON DELETE CASCADE," +
-                Columns.Geometry + " GEOMETRY(GEOMETRY," + Configuration.PostgisSRID + ")," +
+            return "area_geometry_" + areaId;
+        }
+
+        private static string CreateTable(NpgsqlConnection connection, int areaId, int srid)
+        {
+            string tableName = GetTableName(areaId);
+
+            DB.Connection.ExecuteNonQuery(
+                "CREATE TABLE " + tableName + " (" +
+                Columns.Geometry + " GEOMETRY(GEOMETRY," + srid + ")," +
                 Columns.Id + " SERIAL PRIMARY KEY);" +
-                (connection.TableExists(Table) ? "" :
-                "CREATE INDEX ON " + Table + " (" + Columns.AreaId + ");" +
-                "CREATE INDEX ON " + Table + " USING GIST (" + Columns.Geometry + ");");
+                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");");
+
+            return tableName;
         }
 
         internal static int Create(NpgsqlConnection connection, Geometry geometry, int areaId)
         {
-            return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + AreaGeometry.Table + " (" + AreaGeometry.Columns.Insert + ") VALUES (" + areaId + "," + geometry.StGeometryFromText + ") RETURNING " + Columns.Id, connection).ExecuteScalar());
+            return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + CreateTable(connection, areaId, geometry.SRID) + " (" + AreaGeometry.Columns.Insert + ") VALUES (" + geometry.StGeometryFromText + ") RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
 
         internal static void Create(NpgsqlConnection connection, ShapeFile shapeFile, int areaId)
         {
-            new NpgsqlCommand("INSERT INTO " + AreaGeometry.Table + " (" + Columns.Insert + ") " +
-                              "SELECT " + areaId + "," + ShapeFileGeometry.Columns.Geometry + " " +
-                              "FROM " + ShapeFileGeometry.Columns.JoinShapeFile + " " +
-                              "WHERE " + ShapeFile.Table + "." + ShapeFile.Columns.Id + "=" + shapeFile.Id + " ", connection).ExecuteNonQuery();
+            new NpgsqlCommand("INSERT INTO " + CreateTable(connection, areaId, shapeFile.SRID) + " (" + Columns.Insert + ") " +
+                              "SELECT " + ShapeFileGeometry.Columns.Geometry + " " +
+                              "FROM " + ShapeFileGeometry.GetTableName(shapeFile.Id), connection).ExecuteNonQuery();
         }
     }
 }
