@@ -27,26 +27,34 @@ using LAIR.ResourceAPIs.PostgreSQL;
 
 using Npgsql;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace PTL.ATT.ShapeFiles
 {
-    public abstract class ShapeFile
+    public class ShapeFile
     {
-        public const string Table = "shapefile";
+        public enum ShapefileType
+        {
+            Area,
+            DistanceFeature,
+            RasterFeature
+        }
 
-        public class Columns
+        internal const string Table = "shapefile";
+
+        internal class Columns
         {
             [Reflector.Select(true)]
-            public const string Id = "id";
+            internal const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string Name = "name";
+            internal const string Name = "name";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string SRID = "srid";
+            internal const string SRID = "srid";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string Type = "type";
+            internal const string Type = "type";
 
-            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
+            internal static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
+            internal static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
         }
 
         [ConnectionPool.CreateTable]
@@ -56,48 +64,58 @@ namespace PTL.ATT.ShapeFiles
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.Name + " VARCHAR," +
                    Columns.SRID + " INTEGER," +
-                   Columns.Type + " VARCHAR);";
+                   Columns.Type + " VARCHAR);" +
+                   (connection.TableExists(Table) ? "" :
+                   "CREATE INDEX ON " + Table + " (" + Columns.Type + ");");
         }
 
-        protected static int Create(NpgsqlConnection connection, string name, int srid, Type type)
+        private static int Create(NpgsqlConnection connection, string name, int srid, ShapefileType type)
         {
             return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
 
-        public static void ImportShapeFiles(string[] shapeFilePaths, string table, string columns, Type objectType, object[] additionalColumnValues)
+        public static void ImportShapeFiles(string[] shapefilePaths, ShapefileType type)
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("BEGIN");
+            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
             try
             {
+                cmd.CommandText = "BEGIN";
                 cmd.ExecuteNonQuery();
 
-                foreach (string shapeFilePath in shapeFilePaths)
+                Regex reprojectionRE = new Regex("(?<from>[0-9]+):(?<to>[0-9]+)");
+
+                foreach (string shapefilePath in shapefilePaths)
                 {
-                    string sridPath = Path.Combine(Path.GetDirectoryName(shapeFilePath), Path.GetFileNameWithoutExtension(shapeFilePath) + ".srid");
-                    int fromSrid;
-                    if (!File.Exists(sridPath) || !int.TryParse(File.ReadAllText(sridPath), out fromSrid))
-                        throw new Exception("Could not find SRID file at \"" + sridPath + "\". Check that the file exists and contains the SRID for \"" + shapeFilePath + "\".");
+                    string shapefileName = Path.GetFileNameWithoutExtension(shapefilePath);
 
-                    string reprojection = Configuration.PostgisSRID.ToString();
-                    if (fromSrid != Configuration.PostgisSRID)
-                        reprojection = fromSrid + ":" + Configuration.PostgisSRID;
+                    string reprojectionPath = Path.Combine(Path.GetDirectoryName(shapefilePath), shapefileName + ".srid");
+                    if (!File.Exists(reprojectionPath))
+                        throw new Exception("Could not find SRID file at \"" + reprojectionPath + "\"");
 
-                    string shapeFileName = Path.GetFileNameWithoutExtension(shapeFilePath);
+                    string reprojection = File.ReadAllText(reprojectionPath);
+                    Match reprojectionMatch = reprojectionRE.Match(reprojection);
+                    if (!reprojectionMatch.Success)
+                        throw new Exception("Invalid shapefile reprojection \"" + reprojection + "\". Must be in 1234:1234 format.");
+
+                    int fromSRID = int.Parse(reprojectionMatch.Groups["from"].Value);
+                    int toSRID = int.Parse(reprojectionMatch.Groups["to"].Value);
+                    if (fromSRID == toSRID)
+                        reprojection = fromSRID.ToString();
 
                     string sql;
                     string error;
                     using (Process process = new Process())
                     {
                         process.StartInfo.FileName = Configuration.Shp2PgsqlPath;
-                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapeFilePath + "\" temp";
+                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapefilePath + "\" temp";
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = false;
                         process.StartInfo.RedirectStandardError = true;
                         process.StartInfo.RedirectStandardOutput = true;
                         process.Start();
 
-                        Console.Out.WriteLine("Converting shapefile \"" + shapeFilePath + "\".");
+                        Console.Out.WriteLine("Converting shapefile \"" + shapefilePath + "\".");
 
                         sql = process.StandardOutput.ReadToEnd().Replace("BEGIN;", "").Replace("COMMIT;", "");
                         error = process.StandardError.ReadToEnd().Trim().Replace(Environment.NewLine, "; ").Replace("\n", "; ");
@@ -111,11 +129,8 @@ namespace PTL.ATT.ShapeFiles
                     cmd.ExecuteNonQuery();
 
                     Console.Out.WriteLine("Importing shapefile into database.");
-
-                    MethodInfo create = objectType.GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static);
-                    int shapeFileId = (int)create.Invoke(null, new object[] { cmd.Connection, shapeFileName }.Union(additionalColumnValues).ToArray());
-
-                    ShapeFileGeometry.Create(cmd.Connection, shapeFileId, "temp", "geom");
+                    int shapefileId = Create(cmd.Connection, shapefileName, toSRID, type);
+                    ShapeFileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
 
                     cmd.CommandText = "DROP TABLE temp";
                     cmd.ExecuteNonQuery();
@@ -126,7 +141,7 @@ namespace PTL.ATT.ShapeFiles
             }
             catch (Exception ex)
             {
-                throw new Exception("Failed to import shape files:  " + ex.Message);
+                throw new Exception("Failed to import shape file(s):  " + ex.Message);
             }
             finally
             {
@@ -134,9 +149,21 @@ namespace PTL.ATT.ShapeFiles
             }
         }
 
+        public static IEnumerable<ShapeFile> GetAvailable(int srid)
+        {
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.SRID + "=" + srid);
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+                yield return new ShapeFile(reader);
+
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
+        }
+
         private int _id;
         private string _name;
         private int _srid;
+        private ShapefileType _type;
 
         #region properties
         public int Id
@@ -153,25 +180,27 @@ namespace PTL.ATT.ShapeFiles
         {
             get { return _srid; }
         }
+
+        public ShapefileType Type
+        {
+            get { return _type; }
+        }
         #endregion
 
-        protected ShapeFile()
-        {
-        }
-
-        protected virtual void Construct(NpgsqlDataReader reader)
+        private ShapeFile(NpgsqlDataReader reader)
         {
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
             _name = Convert.ToString(reader[Table + "_" + Columns.Name]);
             _srid = Convert.ToInt32(reader[Table + "_" + Columns.SRID]);
+            _type = (ShapefileType)Enum.Parse(typeof(ShapefileType), Convert.ToString(reader[Table + "_" + Columns.Type]));
         }
 
         public virtual string Details()
         {
             return "ID:  " + _id + Environment.NewLine +
                    "Name:  " + _name + Environment.NewLine +
-                   "SRID:  " + _srid + Environment.NewLine + 
-                   "Type:  " + GetType().Name;
+                   "SRID:  " + _srid + Environment.NewLine +
+                   "Type:  " + _type;
         }
 
         public override string ToString()
@@ -181,8 +210,7 @@ namespace PTL.ATT.ShapeFiles
 
         public void Delete()
         {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id + ";" +
-                                          "DROP TABLE " + ShapeFileGeometry.GetTableName(_id) + ";");
+            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
         }
     }
 }

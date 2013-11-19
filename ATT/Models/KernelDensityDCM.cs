@@ -203,7 +203,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             get { return _normalize; }
         }
 
-        public override IEnumerable<Feature> AvailableFeatures
+        public override IEnumerable<Feature> AvailableTrainingFeatures
         {
             get { yield break; }
         }
@@ -252,7 +252,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             double areaMaxY = predictionArea.BoundingBox.MaxY;
             for (double x = areaMinX + PointSpacing / 2d; x <= areaMaxX; x += PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + PointSpacing / 2d; y <= areaMaxY; y += PointSpacing)
-                    (nullPoints as List<PostGIS.Point>).Add(new PostGIS.Point(x, y, Configuration.PostgisSRID));
+                    (nullPoints as List<PostGIS.Point>).Add(new PostGIS.Point(x, y, predictionArea.SRID));
 
             nullPoints = predictionArea.Contains(nullPoints).Select(i => ((List<PostGIS.Point>)nullPoints)[i]).ToArray();
 
@@ -264,7 +264,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
                 List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, null, false);
 
-                List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, IncidentTypes.ToArray()).Select(i => i.Location));
+                List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
                 List<float> density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize, false);
                 Dictionary<int, float> pointIdOverallDensity = new Dictionary<int, float>();
                 int pointNum = 0;
@@ -286,7 +286,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 else
                     foreach (string incidentType in IncidentTypes)
                     {
-                        incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, incidentType).Select(i => i.Location));
+                        incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, incidentType).Select(i => i.Location));
 
                         Console.Out.WriteLine("Running KDE for incident \"" + incidentType);
 
@@ -302,7 +302,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                         }
                     }
 
-                PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction.Id, false);
+                PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction.Id, prediction.PredictionArea.SRID, false);
 
                 Smooth(prediction);
 

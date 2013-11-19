@@ -378,7 +378,7 @@ namespace PTL.ATT
                 if (_points == null)
                 {
                     _points = new List<Point>();
-                    string pointTable = Point.GetTable(_id, false);
+                    string pointTable = Point.GetTable(_id, false, -1);
                     NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Point.Columns.Select(pointTable) + " FROM " + pointTable);
                     NpgsqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -399,7 +399,7 @@ namespace PTL.ATT
                 if (_pointPredictions == null)
                 {
                     _pointPredictions = new List<PointPrediction>();
-                    string pointPredictionTable = PointPrediction.GetTable(_id, false);
+                    string pointPredictionTable = PointPrediction.GetTable(_id, false, -1);
                     NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + PointPrediction.Columns.Select(pointPredictionTable) + " FROM " + pointPredictionTable);
                     NpgsqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -505,7 +505,7 @@ namespace PTL.ATT
         }
         internal void DeletePoints()
         {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Point.GetTable(_id, false));
+            DB.Connection.ExecuteNonQuery("DELETE FROM " + Point.GetTable(_id, false, -1));
             ReleaseLazyLoadedData();
         }
 
@@ -551,10 +551,10 @@ namespace PTL.ATT
             {
                 string selectColumns = Point.Columns.GetInsertWithout(new Set<string>(new string[] { Point.Columns.Id }));
 
-                string copiedPointTable = Point.GetTable(copyId, true);
+                string copiedPointTable = Point.GetTable(copyId, true, PredictionArea.SRID);
                 cmd.CommandText = "INSERT INTO " + copiedPointTable + "(" + selectColumns + ") " +
                                   "SELECT " + selectColumns + " " +
-                                  "FROM " + Point.GetTable(_id, false) + " " +
+                                  "FROM " + Point.GetTable(_id, false, -1) + " " +
                                   "ORDER BY " + Point.Columns.Id + " ASC " +
                                   "RETURNING " + Point.Columns.Id;
 
@@ -580,7 +580,7 @@ namespace PTL.ATT
                     copiedPointPredictionValues.Add(new Tuple<string, Parameter>("(" + labels + "," + oldPointIdNewPointId[pointPrediction.PointId] + "," + threats + "," + timeParameterName + "," + totalThreat + ")", timeParameter));
                 }
 
-                PointPrediction.Insert(copiedPointPredictionValues, copyId, true);
+                PointPrediction.Insert(copiedPointPredictionValues, copyId, PredictionArea.SRID, true);
 
                 Prediction copy = new Prediction(copyId);
                 copy.Smoothing = _smoothing;

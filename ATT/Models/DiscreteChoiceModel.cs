@@ -266,7 +266,7 @@ namespace PTL.ATT.Models
             Dictionary<string, List<double>> aggregateLocationThreats = new Dictionary<string, List<double>>();
             foreach (Prediction prediction in predictions)
             {
-                IEnumerable<Incident> incidents = Incident.Get(prediction.PredictionStartTime, prediction.PredictionEndTime, prediction.IncidentTypes.ToArray());
+                IEnumerable<Incident> incidents = Incident.Get(prediction.PredictionStartTime, prediction.PredictionEndTime, prediction.PredictionArea, prediction.IncidentTypes.ToArray());
                 Dictionary<string, int> locationTrueCount = SurveillancePlot.GetOverallLocationTrueCount(incidents, prediction);
                 foreach (string location in locationTrueCount.Keys)
                     aggregateLocationTrueCount.Add(prediction.Id + "-" + location, locationTrueCount[location]);
@@ -292,7 +292,7 @@ namespace PTL.ATT.Models
             if (prediction.MostRecentlyEvaluatedIncidentTime >= newIncidentsStart)
                 newIncidentsStart = prediction.MostRecentlyEvaluatedIncidentTime + new TimeSpan(0, 0, 0, 0, 1);
 
-            foreach (Incident i in Incident.Get(newIncidentsStart, prediction.PredictionEndTime, prediction.IncidentTypes.ToArray()))
+            foreach (Incident i in Incident.Get(newIncidentsStart, prediction.PredictionEndTime, prediction.PredictionArea, prediction.IncidentTypes.ToArray()))
                 newIncidents.Add(i);
 
             if (newIncidents.Count == 0)
@@ -301,12 +301,11 @@ namespace PTL.ATT.Models
             List<Incident> oldIncidents = new List<Incident>();
             DateTime oldIncidentsEnd = newIncidentsStart - new TimeSpan(0, 0, 0, 0, 1);
             if (oldIncidentsEnd >= prediction.PredictionStartTime)
-                foreach (Incident i in Incident.Get(prediction.PredictionStartTime, oldIncidentsEnd))
-                    if (prediction.IncidentTypes.Contains(i.Type))
-                        oldIncidents.Add(i);
+                foreach (Incident i in Incident.Get(prediction.PredictionStartTime, oldIncidentsEnd, prediction.PredictionArea, prediction.IncidentTypes.ToArray()))
+                    oldIncidents.Add(i);
 
             return oldIncidents.Union(newIncidents);
-        }        
+        }
         #endregion
         #endregion
 
@@ -390,13 +389,13 @@ namespace PTL.ATT.Models
             }
         }
 
-        public abstract IEnumerable<Feature> AvailableFeatures { get; }
-
         public bool HasMadePredictions
         {
             get { return Convert.ToBoolean(DB.Connection.ExecuteScalar("SELECT COUNT(*) > 0 FROM " + Prediction.Table + " WHERE " + Prediction.Table + "." + Prediction.Columns.ModelId + "=" + _id)); }
         }
         #endregion
+
+        public abstract IEnumerable<Feature> AvailableTrainingFeatures { get; }
 
         protected virtual void Construct(NpgsqlDataReader reader)
         {

@@ -4,16 +4,16 @@
 // This file is part of the Asymmetric Threat Tracker (ATT).
 // 
 // The ATT is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU General internal License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 // 
 // The ATT is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU General internal License for more details.
 // 
-// You should have received a copy of the GNU General Public License
+// You should have received a copy of the GNU General internal License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
  
@@ -30,38 +30,50 @@ namespace PTL.ATT
 {
     internal class AreaBoundingBoxes
     {
-        public enum Relationship
+        internal enum Relationship
         {
+            /// <summary>
+            /// Bounding box overlaps the area border
+            /// </summary>
             Overlaps,
+
+            /// <summary>
+            /// Bounding box is entirely within the area border
+            /// </summary>
             Within
         }
-            
-        public class Columns
+
+        internal class Columns
         {
             [Reflector.Insert]
-            public const string BoundingBox = "bounding_box";
-            public const string Id = "id";
-            public const string Relationship = "relationship";
+            internal const string AreaId = "area_id";
+            [Reflector.Insert]
+            internal const string BoundingBox = "bounding_box";
+            internal const string Id = "id";
+            internal const string Relationship = "relationship";
 
-            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
+            internal static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
         }
 
-        internal static string GetTableName(int areaId)
+        internal static string GetTableName(int srid)
         {
-            return "area_bounding_boxes_" + areaId;
+            return "area_bounding_boxes_" + srid;
         }
 
-        private static string CreateTable(NpgsqlConnection connection, int areaId, int srid)
+        private static string CreateTable(int srid)
         {
-            string tableName = GetTableName(areaId);
+            string tableName = GetTableName(srid);
 
-            DB.Connection.ExecuteNonQuery(
-                "CREATE TABLE " + tableName + " (" +
-                Columns.BoundingBox + " GEOMETRY(POLYGON," + srid + ")," +
-                Columns.Id + " SERIAL PRIMARY KEY," +
-                Columns.Relationship + " VARCHAR);" +
-                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.BoundingBox + ");" +
-                "CREATE INDEX ON " + tableName + " (" + Columns.Relationship + ");");
+            if (!DB.Connection.TableExists(tableName))
+                DB.Connection.ExecuteNonQuery(
+                    "CREATE TABLE " + tableName + " (" +
+                    Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," + 
+                    Columns.BoundingBox + " GEOMETRY(POLYGON," + srid + ")," +
+                    Columns.Id + " SERIAL PRIMARY KEY," +
+                    Columns.Relationship + " VARCHAR);" +
+                    "CREATE INDEX ON " + tableName + " (" + Columns.AreaId + ");" +
+                    "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.BoundingBox + ");" +
+                    "CREATE INDEX ON " + tableName + " (" + Columns.Relationship + ");");
 
             return tableName;
         }
@@ -78,17 +90,16 @@ namespace PTL.ATT
                         new PostGIS.Point(x, y, srid)}, srid);
         }
 
-        internal static void Create(NpgsqlConnection connection, int areaId, ShapeFile shapeFile, double boxSize)
+        internal static void Create(int areaId, int srid, double boxSize)
         {
-            string tableName = CreateTable(connection, areaId, shapeFile.SRID);
+            string tableName = CreateTable(srid);
 
-            NpgsqlCommand cmd = new NpgsqlCommand("SELECT min(st_xmin(" + ShapeFileGeometry.Columns.Geometry + "))," +
-                                                         "max(st_xmax(" + ShapeFileGeometry.Columns.Geometry + "))," +
-                                                         "min(st_ymin(" + ShapeFileGeometry.Columns.Geometry + "))," +
-                                                         "max(st_ymax(" + ShapeFileGeometry.Columns.Geometry + ")) " +
-                                                  "FROM " + ShapeFileGeometry.GetTableName(shapeFile.Id));
-
-            cmd.CommandTimeout = Configuration.PostgresCommandTimeout;
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT min(st_xmin(" + ShapeFileGeometry.Columns.Geometry + "))," +
+                                                                "max(st_xmax(" + ShapeFileGeometry.Columns.Geometry + "))," +
+                                                                "min(st_ymin(" + ShapeFileGeometry.Columns.Geometry + "))," +
+                                                                "max(st_ymax(" + ShapeFileGeometry.Columns.Geometry + ")) " +
+                                                         "FROM " + AreaGeometry.GetTableName(srid) + " " +
+                                                         "WHERE " + AreaGeometry.Columns.AreaId + "=" + areaId);
 
             NpgsqlDataReader reader = cmd.ExecuteReader();
             reader.Read();
@@ -100,9 +111,9 @@ namespace PTL.ATT
 
             StringBuilder cmdText = new StringBuilder();
             int batchNum = 0;
-            foreach (PostGIS.Geometry geometry in GetCandidateBoundingBoxes(minX, maxX, minY, maxY, boxSize, shapeFile.SRID))
+            foreach (PostGIS.Geometry geometry in GetCandidateBoundingBoxes(minX, maxX, minY, maxY, boxSize, srid))
             {
-                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + geometry.StGeometryFromText + ")");
+                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + areaId + "," + geometry.StGeometryFromText + ")");
                 if (++batchNum >= 1000)
                 {
                     cmd.CommandText = cmdText.ToString();
@@ -120,21 +131,30 @@ namespace PTL.ATT
                 batchNum = 0;
             }
 
+            string areaGeometryTable = AreaGeometry.GetTableName(areaId);
+
             cmd.CommandText = "UPDATE " + tableName + " " +
                               "SET " + Columns.Relationship + "='" + Relationship.Overlaps + "' " +
-                              "WHERE " + AreaGeometry.Table + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " +
-                                        "st_overlaps(" + tableName + "." + Columns.BoundingBox + "," +  AreaGeometry.Table + "." + AreaGeometry.Columns.Geometry + ")";
+                              "WHERE " + Columns.AreaId + "=" + areaId + " AND " + 
+                                     "EXISTS(SELECT 1 " +
+                                            "FROM " + areaGeometryTable + " " +
+                                            "WHERE st_overlaps(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
+                                            ")";
             cmd.ExecuteNonQuery();
 
-            cmd.CommandText = "UPDATE " + Table + " " +
+            cmd.CommandText = "UPDATE " + tableName + " " +
                               "SET " + Columns.Relationship + "='" + Relationship.Within + "' " +
-                              "FROM " + AreaGeometry.Table + " " +
-                              "WHERE " + AreaGeometry.Table + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " +
-                                        "st_within(" + Table + "." + Columns.BoundingBox + "," + AreaGeometry.Table + "." + AreaGeometry.Columns.Geometry + ")";
+                              "WHERE " + Columns.AreaId + "=" + areaId + " AND " + 
+                                     "EXISTS(SELECT 1 " +
+                                            "FROM " + areaGeometryTable + " " +
+                                            "WHERE st_overlaps(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
+                                            ")";
             cmd.ExecuteNonQuery();
 
-            cmd.CommandText = "DELETE FROM " + Table + " WHERE " + Columns.Relationship + " IS NULL";
+            cmd.CommandText = "DELETE FROM " + tableName + " WHERE " + Columns.AreaId + "=" + areaId + " AND " + Columns.Relationship + " IS NULL";
             cmd.ExecuteNonQuery();
+
+            DB.Connection.Return(cmd.Connection);
         }
     }
 }

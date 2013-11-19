@@ -176,11 +176,11 @@ namespace PTL.ATT.Models
             get { return _periodTimeSlices; }
         }
 
-        public override IEnumerable<Feature> AvailableFeatures
+        public override IEnumerable<Feature> AvailableTrainingFeatures
         {
             get
             {
-                foreach (Feature f in base.AvailableFeatures)
+                foreach (Feature f in base.AvailableTrainingFeatures)
                     yield return f;
 
                 foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))

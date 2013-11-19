@@ -39,7 +39,7 @@ namespace PTL.ATT.Incidents.Chicago
         {
         }
 
-        public override void Import(string path)
+        public override void Import(string path, Area area)
         {
             Console.Out.WriteLine("Importing incidents from \"" + path + "\"");
 
@@ -53,7 +53,7 @@ namespace PTL.ATT.Incidents.Chicago
             DB.Connection.Return(cmd.Connection);
 
             StringBuilder incidentInsert = new StringBuilder();
-            string incidentInsertBase = "INSERT INTO " + Incident.Table + " (" + Incident.Columns.Insert + ") VALUES ";
+            string incidentInsertBase = "INSERT INTO " + Incident.GetTableName(area.SRID) + " (" + Incident.Columns.Insert + ") VALUES ";
             List<Parameter> incidentParameters = new List<Parameter>();
 
             StringBuilder chicagoIncidentInsert = new StringBuilder();
@@ -108,7 +108,7 @@ namespace PTL.ATT.Incidents.Chicago
 
                         PostGIS.Point location = new PostGIS.Point(x, y, Configuration.IncidentNativeLocationSRID);
 
-                        incidentInsert.Append((batchCount == 0 ? incidentInsertBase : ",") + "(" + Incident.GetValue("st_transform(" + location.StGeometryFromText + "," + Configuration.PostgisSRID + ")", false, "@date_" + nativeId, primaryType) + ")");
+                        incidentInsert.Append((batchCount == 0 ? incidentInsertBase : ",") + "(" + Incident.GetValue(area.Id, "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")", false, "@date_" + nativeId, primaryType) + ")");
                         incidentParameters.Add(new Parameter("date_" + nativeId, NpgsqlDbType.Timestamp, date));
 
                         chicagoIncidentInsert.Append((batchCount == 0 ? chicagoIncidentInsertBase : ",") + "(" + ChicagoIncident.GetValue(arrest, beat, block, caseNumber, description, domestic, fbiCode, "@id_" + nativeId, iucr, locationDescription, nativeId, ward) + ")");
@@ -141,7 +141,7 @@ namespace PTL.ATT.Incidents.Chicago
                     totalImported += batchCount;
                 }
 
-                Incident.VacuumTable();
+                Incident.VacuumTable(area.SRID);
                 ChicagoIncident.VacuumTable();
 
                 Console.Out.WriteLine("Import from \"" + path + "\" was successful.  Imported " + totalImported + " incidents of " + totalRows + " total in the file (" + alreadyPresent + " incidents were already in the database)");

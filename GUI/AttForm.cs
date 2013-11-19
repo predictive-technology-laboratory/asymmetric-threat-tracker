@@ -1004,7 +1004,7 @@ namespace PTL.ATT.GUI
                                     Dictionary<string, string> constraints = new Dictionary<string, string>();
                                     constraints.Add(AreaGeometry.Columns.AreaId, "'" + area.Id + "'");
                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, AreaGeometry.Table, AreaGeometry.Columns.Geometry, AreaGeometry.Columns.Id, constraints, pointDistanceThreshold), Color.Black, true, 0)); }
+                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, AreaGeometry.GetTableName(p.PredictionArea.SRID), AreaGeometry.Columns.Geometry, AreaGeometry.Columns.Id, constraints, pointDistanceThreshold), Color.Black, true, 0)); }
                                     DB.Connection.Return(connection);
                                 }));
 

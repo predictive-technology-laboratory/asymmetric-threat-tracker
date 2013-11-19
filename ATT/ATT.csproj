@@ -113,8 +113,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ShapeFiles\AreaShapeFile.cs" />
-    <Compile Include="ShapeFiles\FeatureShapeFile.cs" />
     <Compile Include="ShapeFiles\ShapeFile.cs" />
     <Compile Include="Prediction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

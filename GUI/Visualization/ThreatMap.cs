@@ -733,11 +733,11 @@ namespace PTL.ATT.GUI.Visualization
                     float leftMeters = _regionBottomLeftInMeters.X + colAbsoluteThreatRectangle * widthMeters;
 
                     PostGIS.Polygon threatRectangle = new PostGIS.Polygon(new PostGIS.Point[]{
-                                                                          new PostGIS.Point(leftMeters, bottomMeters, ATT.Configuration.PostgisSRID),
-                                                                          new PostGIS.Point(leftMeters, bottomMeters + widthMeters, ATT.Configuration.PostgisSRID),
-                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters + widthMeters, ATT.Configuration.PostgisSRID),
-                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters, ATT.Configuration.PostgisSRID),
-                                                                          new PostGIS.Point(leftMeters, bottomMeters, ATT.Configuration.PostgisSRID)}, ATT.Configuration.PostgisSRID);
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.SRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.SRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID)}, DisplayedPrediction.PredictionArea.SRID);
 
                     PointPrediction[] pointPredictions = PointPrediction.GetWithin(threatRectangle, DisplayedPrediction.Id).ToArray();
                     if (pointPredictions.Length > 0)

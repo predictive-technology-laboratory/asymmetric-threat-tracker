@@ -60,29 +60,31 @@ namespace PTL.ATT.Incidents.Chicago
             public const string Ward = "ward";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return Incident.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
-            public static string JoinIncident { get { return Incident.Table + " JOIN " + Table + " ON " + Incident.Table + "." + Incident.Columns.Id + "=" + Table + "." + Columns.Id; } }
+            public static string Select(int srid) { return Incident.Columns.Select(srid) + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); }
+            public static string JoinIncident(int srid) { return Incident.GetTableName(srid) + " JOIN " + Table + " ON " + Incident.GetTableName(srid) + "." + Incident.Columns.Id + "=" + Table + "." + Columns.Id; }
         }
 
-        [ConnectionPool.CreateTable(typeof(Incident))]
-        private static string CreateTable(ConnectionPool connection)
+        private static void CreateTable(int srid)
         {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                   Columns.Arrest + " BOOLEAN," +
-                   Columns.Beat + " VARCHAR," +
-                   Columns.Block + " VARCHAR," +
-                   Columns.CaseNumber + " VARCHAR," +
-                   Columns.Description + " VARCHAR," +
-                   Columns.Domestic + " BOOLEAN," +
-                   Columns.FbiCode + " VARCHAR," +
-                   Columns.Id + " INT PRIMARY KEY REFERENCES " + Incident.Table + " ON DELETE CASCADE," +
-                   Columns.IUCR + " VARCHAR," +
-                   Columns.LocationDescription + " VARCHAR," +
-                   Columns.NativeId + " INT UNIQUE," +
-                   Columns.Ward + " VARCHAR);" +
-                   (connection.TableExists(Table) ? "" :
-                   "CREATE INDEX ON " + Table + " (" + Columns.CaseNumber + ");" +
-                   "CREATE INDEX ON " + Table + " (" + Columns.NativeId + ");");
+            Incident.CreateTable(srid);
+
+            if (!DB.Connection.TableExists(Table))
+                DB.Connection.ExecuteNonQuery(
+                    "CREATE TABLE " + Table + " (" +
+                    Columns.Arrest + " BOOLEAN," +
+                    Columns.Beat + " VARCHAR," +
+                    Columns.Block + " VARCHAR," +
+                    Columns.CaseNumber + " VARCHAR," +
+                    Columns.Description + " VARCHAR," +
+                    Columns.Domestic + " BOOLEAN," +
+                    Columns.FbiCode + " VARCHAR," +
+                    Columns.Id + " INT PRIMARY KEY REFERENCES " + Incident.GetTableName(srid) + " ON DELETE CASCADE," +
+                    Columns.IUCR + " VARCHAR," +
+                    Columns.LocationDescription + " VARCHAR," +
+                    Columns.NativeId + " INT UNIQUE," +
+                    Columns.Ward + " VARCHAR);" +
+                    "CREATE INDEX ON " + Table + " (" + Columns.CaseNumber + ");" +
+                    "CREATE INDEX ON " + Table + " (" + Columns.NativeId + ");");
         }
 
         internal new static void VacuumTable()
@@ -90,35 +92,9 @@ namespace PTL.ATT.Incidents.Chicago
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
         }
 
-        public static string GetValue(bool arrest, string beat, string block, string caseNumber, string description, bool domestic, string fbiCode, string id, string iucr, string locationDescription, int nativeId, string ward)
+        internal static string GetValue(bool arrest, string beat, string block, string caseNumber, string description, bool domestic, string fbiCode, string id, string iucr, string locationDescription, int nativeId, string ward)
         {
             return arrest + ",'" + Util.Escape(beat) + "','" + Util.Escape(block) + "','" + Util.Escape(caseNumber) + "','" + Util.Escape(description) + "'," + domestic + ",'" + Util.Escape(fbiCode) + "'," + id + ",'" + Util.Escape(iucr) + "','" + Util.Escape(locationDescription) + "'," + nativeId + ",'" + Util.Escape(ward) + "'";
-        }
-
-        public new static IEnumerable<ChicagoIncident> Get(DateTime start, DateTime end, params string[] types)
-        {
-            string typesCondition = null;
-            if (types != null)
-                foreach (string type in types)
-                    typesCondition = (typesCondition == null ? "" : " OR ") + Incident.Columns.Type + "=" + type;
-
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
-                                                         "FROM " + Columns.JoinIncident + " " +
-                                                         "WHERE " + (typesCondition == null ? "" : Incident.Columns.Type + "='" + typesCondition + "' AND ") +
-                                                                    Incident.Columns.Time + " >= @start AND " +
-                                                                    Incident.Columns.Time + " <= @end",
-                                                         new Parameter("start", NpgsqlDbType.Timestamp, start),
-                                                         new Parameter("end", NpgsqlDbType.Timestamp, end));
-
-            List<ChicagoIncident> incidents = new List<ChicagoIncident>();
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                incidents.Add(new ChicagoIncident(reader));
-
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
-
-            return incidents;
         }
 
         private bool _arrest;
@@ -133,8 +109,8 @@ namespace PTL.ATT.Incidents.Chicago
         private int _nativeId;
         private string _ward;
 
-        public ChicagoIncident(NpgsqlDataReader reader)
-            : base(reader)
+        public ChicagoIncident(NpgsqlDataReader reader, int srid)
+            : base(reader, srid)
         {
             _arrest = Convert.ToBoolean(reader[Table + "_" + Columns.Arrest]);
             _beat = Convert.ToString(reader[Table + "_" + Columns.Beat]);
