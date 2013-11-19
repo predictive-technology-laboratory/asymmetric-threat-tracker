@@ -74,7 +74,7 @@ namespace PTL.ATT
 
         public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, int predictionId, string trainingResourceId, string predictionResourceId, bool vacuum)
         {
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + predictionId + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + "," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + ") RETURNING " + Columns.Id, connection);
+            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + predictionId + "," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + ") RETURNING " + Columns.Id, connection);
             int id = Convert.ToInt32(cmd.ExecuteScalar());
 
             if (vacuum)

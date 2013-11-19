@@ -63,7 +63,7 @@ namespace PTL.ATT.GUI
         private bool _setPredictionsToolTip;
         private List<string> _groups;
         private LogWriter _logWriter;
-        private Dictionary<string, string> _featureRemapKeyRemappedPredictionResource;
+        private Dictionary<string, string> _featureRemapKeyTargetPredictionResource;
 
         public List<string> Groups
         {
@@ -177,7 +177,7 @@ namespace PTL.ATT.GUI
 
             _setTrainingStartEndToolTip = true;
             _groups = new List<string>();
-            _featureRemapKeyRemappedPredictionResource = new Dictionary<string, string>();
+            _featureRemapKeyTargetPredictionResource = new Dictionary<string, string>();
         }
 
         private void AttForm_Load(object sender, EventArgs e)
@@ -629,9 +629,9 @@ namespace PTL.ATT.GUI
                 FeatureRemappingForm f = new FeatureRemappingForm(SelectedFeatures, SelectedModel.AvailableFeatures);
                 f.ShowDialog();
 
-                _featureRemapKeyRemappedPredictionResource.Clear();
+                _featureRemapKeyTargetPredictionResource.Clear();
                 foreach (Feature feature in features.Items)
-                    _featureRemapKeyRemappedPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
+                    _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
 
                 RefreshFeatures();
             }
@@ -639,7 +639,7 @@ namespace PTL.ATT.GUI
 
         private void clearFeatureRemappingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _featureRemapKeyRemappedPredictionResource.Clear();
+            _featureRemapKeyTargetPredictionResource.Clear();
             RefreshFeatures();
         }
         #endregion
@@ -1535,8 +1535,8 @@ namespace PTL.ATT.GUI
                 sortedFeatures.Sort();
 
                 foreach (Feature f in sortedFeatures)
-                    if (_featureRemapKeyRemappedPredictionResource.ContainsKey(f.RemapKey))
-                        f.PredictionResourceId = _featureRemapKeyRemappedPredictionResource[f.RemapKey];
+                    if (_featureRemapKeyTargetPredictionResource.ContainsKey(f.RemapKey))
+                        f.PredictionResourceId = _featureRemapKeyTargetPredictionResource[f.RemapKey];
 
                 features.Items.AddRange(sortedFeatures.ToArray());
             }

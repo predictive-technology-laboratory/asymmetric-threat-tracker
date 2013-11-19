@@ -62,10 +62,16 @@ namespace PTL.ATT.GUI
         private void available_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             if (available.SelectedItem != null)
+            {
+                Feature target = available.SelectedItem as Feature;
                 foreach (Feature f in current.SelectedItems)
-                    f.PredictionResourceId = (available.SelectedItem as Feature).TrainingResourceId;
+                    if (f.EnumType == target.EnumType && f.EnumValue.ToString() == target.EnumValue.ToString())
+                        f.PredictionResourceId = target.TrainingResourceId;
+                    else
+                        MessageBox.Show("Cannot map incompatible features:  " + f + " --> " + target);
 
-            RefreshItems();
+                RefreshItems();
+            }
         }
 
         private void RefreshItems()
