@@ -1144,9 +1144,9 @@ namespace PTL.ATT.GUI
                                     int copyId = selectedPrediction.Copy("Copy " + copyNum + " of " + selectedPrediction.Name, predictionNum == 1 && copyNum == 1, false);
 
                                     try { Point.VacuumTable(copyId); }
-                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + Point.GetTable(copyId, false, -1) + ":  " + ex.Message); }
+                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum point table:  " + ex.Message); }
                                     try { PointPrediction.VacuumTable(copyId); }
-                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + PointPrediction.GetTable(copyId, false, -1) + ":  " + ex.Message); }
+                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum point table:  " + ex.Message); }
                                 }
                             }
 

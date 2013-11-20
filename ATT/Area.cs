@@ -145,7 +145,7 @@ namespace PTL.ATT
                                                          "st_xmax(" + AreaGeometry.Columns.Geometry + ") as right," +
                                                          "st_ymin(" + AreaGeometry.Columns.Geometry + ") as bottom," +
                                                          "st_ymax(" + AreaGeometry.Columns.Geometry + ") as top " +
-                                                         "FROM " + AreaGeometry.GetTableName(_id));
+                                                         "FROM " + AreaGeometry.GetTableName(_srid));
             reader = cmd.ExecuteReader();
 
             double left = double.MaxValue;
@@ -243,24 +243,28 @@ namespace PTL.ATT
                 cmdText.Clear();
             }
 
-            string areaGeometryTable = AreaGeometry.GetTableName(_id);
-            string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(_id);
+            string areaGeometryTable = AreaGeometry.GetTableName(_srid);
+            string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(_srid);
 
             cmd.CommandText = "SELECT num " +
                               "FROM temp " +
                               "WHERE EXISTS (SELECT 1 " +
-                                            "FROM " + areaGeometryTable + "," + areaBoundingBoxesTable + " " +
-                                            "WHERE (" +
-                                                    areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
-                                                    "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
-                                                  ") " +
-                                                  "OR " +
-                                                  "(" +
-                                                    areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
-                                                    "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
-                                                    "st_intersects(temp.point," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
-                                                   ")" +
-                                             ")";
+                                                "FROM " + areaGeometryTable + "," + areaBoundingBoxesTable + " " +
+                                                "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + _id + " AND " +
+                                                           areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.AreaId + "=" + _id + " AND " +
+                                                           "(" +
+                                                             "(" +
+                                                                areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
+                                                                "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
+                                                             ") " +
+                                                             "OR " +
+                                                             "(" +
+                                                                areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
+                                                                "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
+                                                                "st_intersects(temp.point," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
+                                                             ")" +
+                                                           ")" +
+                                            ")";
 
             List<int> containedPointIndices = new List<int>(pointNum);
             NpgsqlDataReader reader = cmd.ExecuteReader();

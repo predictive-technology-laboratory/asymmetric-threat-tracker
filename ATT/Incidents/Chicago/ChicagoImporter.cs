@@ -43,6 +43,8 @@ namespace PTL.ATT.Incidents.Chicago
         {
             Console.Out.WriteLine("Importing incidents from \"" + path + "\"");
 
+            ChicagoIncident.CreateTable(area.SRID);
+            
             Set<int> existingNativeIDs = new Set<int>(false);
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + ChicagoIncident.Columns.NativeId + " FROM " + ChicagoIncident.Table);
             NpgsqlDataReader reader = cmd.ExecuteReader();

@@ -283,7 +283,7 @@ namespace PTL.ATT.Models
                         nullPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue));
                 }
 
-            List<int> nullPointIds = Point.Insert(connection, nullPoints, prediction.Id, area, vacuum);
+            List<int> nullPointIds = Point.Insert(connection, nullPoints, prediction.Id, area, true, vacuum);
 
             Set<int> incidentPointIndexesInArea = new Set<int>(area.Contains(incidentPoints.Select(p => p.Item1).ToList()).ToArray());
             incidentPoints = incidentPoints.Where((p, i) => incidentPointIndexesInArea.Contains(i)).ToList();
@@ -302,7 +302,7 @@ namespace PTL.ATT.Models
             if (training && incidentPoints.Count == 0)
                 throw new ZeroPositivePointsException("Zero positive incident points inserted into point sample for \"" + prediction.IncidentTypes.Concatenate(", ") + "\"." + (numIncidentsToRemove > 0 ? " This is due to sample size restrictions. Either increase the training sample size to " + (maxSampleSize + numIncidentsToRemove) + " to include all incidents or increase the point spacing to reduce the number of null points." : ""));
 
-            Point.Insert(connection, incidentPoints, prediction.Id, null, vacuum);
+            Point.Insert(connection, incidentPoints, prediction.Id, area, false, vacuum);
         }
 
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, int idOfSpatiotemporallyIdenticalPrediction)
@@ -336,7 +336,7 @@ namespace PTL.ATT.Models
                                                                      "INTO " + pointFeatureTable + " " +
 
                                                                      // cross points with features
-                                                                     "FROM " + Point.GetTable(prediction.Id, false, -1) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                    // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
+                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                    // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
                                                                                                                                                               "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
                                                                                                                                                               "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
                                                                      // only process points associated with the current core                                                                                         
@@ -512,6 +512,7 @@ namespace PTL.ATT.Models
                 {
                     Console.Out.WriteLine("Creating training grid");
 
+                    Point.CreateTable(prediction.Id, prediction.TrainingArea.SRID);
                     InsertPointsIntoPrediction(cmd.Connection, prediction, true, true);
 
                     #region feature selection
@@ -537,6 +538,8 @@ namespace PTL.ATT.Models
                     Console.Out.WriteLine("Training model");
 
                     _classifier.Train(prediction);
+
+                    Point.DeleteTable(prediction.Id);
                 }
                 #endregion
 
@@ -545,11 +548,11 @@ namespace PTL.ATT.Models
                 {
                     Console.Out.WriteLine("Creating prediction grid");
 
-                    prediction.DeletePoints();
+                    Point.CreateTable(prediction.Id, prediction.PredictionArea.SRID);
                     InsertPointsIntoPrediction(cmd.Connection, prediction, false, true);
 
+                    PointPrediction.CreateTable(prediction.Id);
                     StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(prediction.PointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress));
-
                     foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, false, idOfSpatiotemporallyIdenticalPrediction))
                     {
                         Console.Out.WriteLine("Making predictions");
@@ -599,7 +602,7 @@ namespace PTL.ATT.Models
                             #endregion
                         }
 
-                        PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction.Id, prediction.PredictionArea.SRID, true);
+                        PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction.Id, true);
                     }
 
                     pointPredictionLog.Close();

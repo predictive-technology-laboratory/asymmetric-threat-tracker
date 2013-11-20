@@ -254,7 +254,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 for (double y = areaMinY + PointSpacing / 2d; y <= areaMaxY; y += PointSpacing)
                     (nullPoints as List<PostGIS.Point>).Add(new PostGIS.Point(x, y, predictionArea.SRID));
 
-            nullPoints = predictionArea.Contains(nullPoints).Select(i => ((List<PostGIS.Point>)nullPoints)[i]).ToArray();
+            nullPoints = predictionArea.Contains(nullPoints).Select(i => (nullPoints as List<PostGIS.Point>)[i]).ToArray();
 
             NpgsqlConnection connection = DB.Connection.OpenConnection;
 
@@ -262,7 +262,8 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             {
                 Console.Out.WriteLine("Running KDE for all incident types");
 
-                List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, null, false);
+                Point.CreateTable(prediction.Id, predictionArea.SRID);
+                List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, predictionArea, false, false);
 
                 List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
                 List<float> density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize, false);
@@ -302,7 +303,8 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                         }
                     }
 
-                PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction.Id, prediction.PredictionArea.SRID, false);
+                PointPrediction.CreateTable(prediction.Id);
+                PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction.Id, false);
 
                 Smooth(prediction);
 

@@ -54,60 +54,43 @@ namespace PTL.ATT
         }
 
         public const string NullLabel = "NULL";
-        private static Set<string> _tables;
-        private static object _staticLockObject = new object();
 
-        public static string GetTable(int predictionId, bool create, int srid)
+        internal static string GetTableName(int predictionId)
         {
-            lock (_staticLockObject)
-            {
-                if (_tables == null)
-                    _tables = new Set<string>(DB.Connection.GetTables().Where(t => t.StartsWith("point_prediction_")).ToArray());
+            return "point_prediction_" + predictionId;
+        }
 
-                string table = "point_prediction_" + predictionId;
-                if (!_tables.Contains(table))
-                {
-                    if (create)
-                    {
-                        DB.Connection.ExecuteNonQuery(
-                            "CREATE TABLE " + table + " (" +
-                             Columns.Id + " SERIAL PRIMARY KEY," +
-                             Columns.Labels + " VARCHAR []," +
-                             Columns.PointId + " INT REFERENCES " + Point.GetTable(predictionId, true, srid) + " ON DELETE CASCADE," +
-                             Columns.ThreatScores + " DOUBLE PRECISION []," +
-                             Columns.Time + " TIMESTAMP," +
-                             Columns.TotalThreat + " DOUBLE PRECISION);" +
-                             "CREATE INDEX ON " + table + " (" + Columns.Labels + ");" +
-                             "CREATE INDEX ON " + table + " (" + Columns.PointId + ");" +
-                             "CREATE INDEX ON " + table + " (" + Columns.ThreatScores + ");" +
-                             "CREATE INDEX ON " + table + " (" + Columns.Time + ");");
+        internal static string CreateTable(int predictionId)
+        {
+            string table = GetTableName(predictionId);
 
-                        _tables.Add(table);
-                    }
-                    else
-                        table = null;
-                }
+            DB.Connection.ExecuteNonQuery(
+                "CREATE TABLE " + table + " (" +
+                 Columns.Id + " SERIAL PRIMARY KEY," +
+                 Columns.Labels + " VARCHAR []," +
+                 Columns.PointId + " INT REFERENCES " + Point.GetTableName(predictionId) + " ON DELETE CASCADE," +
+                 Columns.ThreatScores + " DOUBLE PRECISION []," +
+                 Columns.Time + " TIMESTAMP," +
+                 Columns.TotalThreat + " DOUBLE PRECISION);" +
+                 "CREATE INDEX ON " + table + " (" + Columns.Labels + ");" +
+                 "CREATE INDEX ON " + table + " (" + Columns.PointId + ");" +
+                 "CREATE INDEX ON " + table + " (" + Columns.ThreatScores + ");" +
+                 "CREATE INDEX ON " + table + " (" + Columns.Time + ");");
 
-                return table;
-            }
+            return table;
         }
 
         internal static void DeleteTable(int predictionId)
         {
-            string table = GetTable(predictionId, false, -1);
-            if (table != null)
-            {
-                try { DB.Connection.ExecuteNonQuery("DROP TABLE " + table + " CASCADE"); }
-                finally { lock (_staticLockObject) { _tables.Remove(table); } }
-            }
+            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(predictionId) + " CASCADE");
         }
 
         public static void VacuumTable(int predictionId)
         {
-            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTable(predictionId, false, -1));
+            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
         }
 
-        internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, int predictionId, int srid, bool vacuum)
+        internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, int predictionId, bool vacuum)
         {
             Set<Thread> threads = new Set<Thread>();
             for (int start = 0; start < Configuration.ProcessorCount; ++start)
@@ -119,7 +102,7 @@ namespace PTL.ATT
                         int pointNum = 0;
                         int pointsPerBatch = 5000;
                         int skip = (int)o;
-                        string table = GetTable(predictionId, true, srid);
+                        string table = GetTableName(predictionId);
                         foreach (Tuple<string, Parameter> valueParameter in valueParameters)
                             if (skip-- <= 0)
                             {
@@ -161,8 +144,8 @@ namespace PTL.ATT
 
         public static IEnumerable<PointPrediction> GetWithin(Polygon polygon, int predictionId)
         {
-            string table = GetTable(predictionId, false, -1);
-            string pointTable = Point.GetTable(predictionId, false, -1);
+            string table = GetTableName(predictionId);
+            string pointTable = Point.GetTableName(predictionId);
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(table) + " " +
                                                          "FROM " + Columns.JoinPoint(table, pointTable) + " " +
                                                          "WHERE st_intersects(" + pointTable + "." + Point.Columns.Location + "," + polygon.StGeometryFromText + ")");
@@ -193,7 +176,7 @@ namespace PTL.ATT
                         StringBuilder cmdText = new StringBuilder();
                         StringBuilder labels = new StringBuilder();
                         StringBuilder scores = new StringBuilder();
-                        string table = GetTable(predictionId, false, -1);
+                        string table = GetTableName(predictionId);
                         foreach (PointPrediction pointPrediction in pointPredictions)
                             if (skip-- <= 0)
                             {

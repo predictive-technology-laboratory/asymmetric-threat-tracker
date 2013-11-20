@@ -131,7 +131,7 @@ namespace PTL.ATT
                 batchNum = 0;
             }
 
-            string areaGeometryTable = AreaGeometry.GetTableName(areaId);
+            string areaGeometryTable = AreaGeometry.GetTableName(srid);
 
             cmd.CommandText = "UPDATE " + tableName + " " +
                               "SET " + Columns.Relationship + "='" + Relationship.Overlaps + "' " +

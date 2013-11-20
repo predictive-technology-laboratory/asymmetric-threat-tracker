@@ -30,7 +30,7 @@ namespace PTL.ATT.Incidents.Chicago
 {
     public class ChicagoIncident : Incident
     {
-        public new const string Table = "chicago_incident";
+        public const string Table = "chicago_incident";
 
         public new class Columns
         {
@@ -64,7 +64,7 @@ namespace PTL.ATT.Incidents.Chicago
             public static string JoinIncident(int srid) { return Incident.GetTableName(srid) + " JOIN " + Table + " ON " + Incident.GetTableName(srid) + "." + Incident.Columns.Id + "=" + Table + "." + Columns.Id; }
         }
 
-        private static void CreateTable(int srid)
+        internal new static void CreateTable(int srid)
         {
             Incident.CreateTable(srid);
 
@@ -87,7 +87,7 @@ namespace PTL.ATT.Incidents.Chicago
                     "CREATE INDEX ON " + Table + " (" + Columns.NativeId + ");");
         }
 
-        internal new static void VacuumTable()
+        internal static void VacuumTable()
         {
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
         }
