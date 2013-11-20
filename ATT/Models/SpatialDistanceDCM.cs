@@ -181,27 +181,6 @@ namespace PTL.ATT.Models
             get { return _classifyNonZeroVectorsUniformly; }
         }
 
-        public override IEnumerable<Feature> AvailableTrainingFeatures
-        {
-            get
-            {
-                foreach (ShapeFile shapefile in ShapeFile.GetAvailable(TrainingArea.SRID))
-                    if (shapefile.Type == ShapeFile.ShapefileType.DistanceFeature)
-                        yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapeFile, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
-
-                foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
-                    if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
-                        foreach (string incidentType in Incident.GetUniqueTypes(TrainingStart, TrainingEnd, TrainingArea))
-                            yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, incidentType, "KDE \"" + incidentType + "\"");
-                    else if (f != SpatialDistanceFeature.DistanceShapeFile)
-                        yield return new Feature(typeof(SpatialDistanceFeature), f, null, null, f.ToString());
-
-                if (_externalFeatureExtractor != null)
-                    foreach (Feature f in _externalFeatureExtractor.AvailableFeatures)
-                        yield return f;
-            }
-        }
-
         protected SpatialDistanceDCM() { }
 
         internal SpatialDistanceDCM(int id)
@@ -235,6 +214,24 @@ namespace PTL.ATT.Models
             MemoryStream ms = new MemoryStream(reader[Table + "_" + Columns.Classifier] as byte[]);
             ms.Position = 0;
             _classifier = bf.Deserialize(ms) as PTL.ATT.Classifiers.Classifier;
+        }
+
+        public override IEnumerable<Feature> GetAvailableFeatures(Area area)
+        {
+            foreach (Shapefile shapefile in Shapefile.GetAvailable(area.SRID))
+                if (shapefile.Type == Shapefile.ShapefileType.DistanceFeature)
+                    yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapeFile, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
+
+            foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
+                if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
+                    foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area))
+                        yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, incidentType, "KDE \"" + incidentType + "\"");
+                else if (f != SpatialDistanceFeature.DistanceShapeFile)
+                    yield return new Feature(typeof(SpatialDistanceFeature), f, null, null, f.ToString());
+
+            if (_externalFeatureExtractor != null)
+                foreach (Feature f in _externalFeatureExtractor.GetAvailableFeatures(area))
+                    yield return f;
         }
 
         public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers)
@@ -366,11 +363,11 @@ namespace PTL.ATT.Models
                                                       pointFeatureTable + ".feature_id," +
 
                                                       // the feature value for a point is the minimum distance from the point to an object associated with the feature
-                                                     "CASE WHEN COUNT(sfg." + ShapeFileGeometry.Columns.Geometry + ")=0 THEN sqrt(2.0 * " + FeatureDistanceThreshold + "^2) " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box.
-                                                     "ELSE min(st_distance(st_closestpoint(sfg." + ShapeFileGeometry.Columns.Geometry + "," + pointFeatureTable + ".point_location)," + pointFeatureTable + ".point_location)) " +
+                                                     "CASE WHEN COUNT(sfg." + ShapefileGeometry.Columns.Geometry + ")=0 THEN sqrt(2.0 * " + FeatureDistanceThreshold + "^2) " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box.
+                                                     "ELSE min(st_distance(st_closestpoint(sfg." + ShapefileGeometry.Columns.Geometry + "," + pointFeatureTable + ".point_location)," + pointFeatureTable + ".point_location)) " +
                                                      "END as feature_value " +
 
-                                          "FROM " + pointFeatureTable + " LEFT JOIN " + ShapeFileGeometry.GetTableName(area.SRID) + " sfg ON " + pointFeatureTable + ".shapefile_id=sfg." + ShapeFileGeometry.Columns.ShapefileId + " AND sfg." + ShapeFileGeometry.Columns.Geometry + " && " + pointFeatureTable + ".point_bounding_box " + // only calculate distance for spatial objects that are within the point's bounding box
+                                          "FROM " + pointFeatureTable + " LEFT JOIN " + ShapefileGeometry.GetTableName(area.SRID) + " sfg ON " + pointFeatureTable + ".shapefile_id=sfg." + ShapefileGeometry.Columns.ShapefileId + " AND sfg." + ShapefileGeometry.Columns.Geometry + " && " + pointFeatureTable + ".point_bounding_box " + // only calculate distance for spatial objects that are within the point's bounding box
 
                                           // group all distance calculations by point and feature -- we're going to then find the minimum value
                                           "GROUP BY " + pointFeatureTable + ".point_id," + 

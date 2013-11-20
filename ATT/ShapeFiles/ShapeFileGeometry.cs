@@ -28,20 +28,20 @@ using LAIR.Collections.Generic;
 
 namespace PTL.ATT.ShapeFiles
 {
-    internal class ShapeFileGeometry
+    public class ShapefileGeometry
     {
-        internal class Columns
+        public class Columns
         {
             [Reflector.Insert]
-            internal const string Geometry = "geom";
-            internal const string Id = "id";
+            public const string Geometry = "geom";
+            public const string Id = "id";
             [Reflector.Insert]
-            internal const string ShapefileId = "shapefile_id";
+            public const string ShapefileId = "shapefile_id";
 
             internal static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
         }
 
-        internal static string GetTableName(int srid)
+        public static string GetTableName(int srid)
         {
             return "shapefile_geometry_" + srid;
         }        
@@ -55,7 +55,7 @@ namespace PTL.ATT.ShapeFiles
                     "CREATE TABLE " + tableName + " (" +
                     Columns.Geometry + " GEOMETRY(GEOMETRY," + srid + ")," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
-                    Columns.ShapefileId + " INTEGER REFERENCES " + ShapeFile.Table + " ON DELETE CASCADE);" +
+                    Columns.ShapefileId + " INTEGER REFERENCES " + Shapefile.Table + " ON DELETE CASCADE);" +
                     "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.ShapefileId + ");");
 

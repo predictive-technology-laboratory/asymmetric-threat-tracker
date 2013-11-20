@@ -395,8 +395,6 @@ namespace PTL.ATT.Models
         }
         #endregion
 
-        public abstract IEnumerable<Feature> AvailableTrainingFeatures { get; }
-
         protected virtual void Construct(NpgsqlDataReader reader)
         {
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
@@ -420,6 +418,8 @@ namespace PTL.ATT.Models
                 (_smoothers as List<Smoother>).Add(bf.Deserialize(ms) as Smoother);
             }
         }
+
+        public abstract IEnumerable<Feature> GetAvailableFeatures(Area area);
 
         public int Run(IEnumerable<Feature> features, int idOfSpatiotemporallyIdenticalPrediction, Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
         {

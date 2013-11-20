@@ -70,12 +70,12 @@ namespace PTL.ATT
             return Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + CreateTable(geometry.SRID) + " (" + AreaGeometry.Columns.Insert + ") VALUES (" + areaId + "," + geometry.StGeometryFromText + ") RETURNING " + Columns.Id));
         }
 
-        internal static void Create(ShapeFile shapefile, int areaId)
+        internal static void Create(Shapefile shapefile, int areaId)
         {
             DB.Connection.ExecuteNonQuery(
                 "INSERT INTO " + CreateTable(shapefile.SRID) + " (" + Columns.Insert + ") " +
-                "SELECT " + areaId + "," + ShapeFileGeometry.Columns.Geometry + " " +
-                "FROM " + ShapeFileGeometry.GetTableName(shapefile.SRID));
+                "SELECT " + areaId + "," + ShapefileGeometry.Columns.Geometry + " " +
+                "FROM " + ShapefileGeometry.GetTableName(shapefile.SRID));
         }
     }
 }

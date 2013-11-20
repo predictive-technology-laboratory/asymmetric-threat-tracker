@@ -40,7 +40,7 @@ namespace PTL.ATT.GUI
         {
             InitializeComponent();
 
-            foreach (FeatureShapeFile.ShapefileType type in Enum.GetValues(typeof(FeatureShapeFile.ShapefileType)))
+            foreach (Shapefile.ShapefileType type in Enum.GetValues(typeof(Shapefile.ShapefileType)))
                 shapefileType.Items.Add(type);
 
             shapefileType.SelectedIndex = 0;
@@ -86,13 +86,13 @@ namespace PTL.ATT.GUI
             {
                 try
                 {
-                    string selectedShapefileType = shapefileType.SelectedItem.ToString();
+                    Shapefile.ShapefileType selectedShapefileType = (Shapefile.ShapefileType)shapefileType.SelectedItem;
 
                     Thread t = new Thread(new ThreadStart(delegate()
                         {
                             try
                             {
-                                ShapeFile.ImportShapeFiles(shapefilePaths, selectedShapefileType); 
+                                Shapefile.ImportShapeFiles(shapeFilePaths, selectedShapefileType); 
                                 Console.Out.WriteLine("Shapefile import succeeded.");
                             }
                             catch (Exception ex)

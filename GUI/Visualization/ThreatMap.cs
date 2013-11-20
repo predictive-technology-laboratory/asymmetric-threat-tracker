@@ -333,11 +333,12 @@ namespace PTL.ATT.GUI.Visualization
                     sliceStart = new DateTime(slice * sliceTicks);
                     sliceEnd = sliceStart + new TimeSpan(sliceTicks);
                 }
+
                 foreach (string trueIncidentOverlay in selectedTrueIncidentOverlays)
                 {
                     _brush.Color = _incidentColor[trueIncidentOverlay];
                     _pen.Color = Color.Black;
-                    foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, trueIncidentOverlay))
+                    foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, DisplayedPrediction.PredictionArea, trueIncidentOverlay))
                     {
                         PointF drawingPoint = ConvertMetersPointToDrawingPixels(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
                         RectangleF circle = GetCircleBoundingBox(drawingPoint, 5);

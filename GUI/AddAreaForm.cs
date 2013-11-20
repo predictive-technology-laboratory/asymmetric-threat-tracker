@@ -31,22 +31,20 @@ namespace PTL.ATT.GUI
 {
     public partial class AddAreaForm : Form
     {
-        public ShapeFile AreaShapefile
+        public Shapefile AreaShapefile
         {
-            get { return areas.SelectedItem as ShapeFile; }
+            get { return areas.SelectedItem as Shapefile; }
         }
 
-        public AddAreaForm(int srid)
+        public AddAreaForm()
         {
             InitializeComponent();
-
-            _srid = srid;
         }
 
         private void AddAreaForm_Load(object sender, EventArgs e)
         {
-            foreach (ShapeFile asf in ShapeFile.GetAvailable())
-                if (asf.Type == ShapeFile.ShapefileType.Area)
+            foreach (Shapefile asf in Shapefile.GetAvailable())
+                if (asf.Type == Shapefile.ShapefileType.Area)
                     areas.Items.Add(asf);
 
             if (areas.Items.Count > 0)

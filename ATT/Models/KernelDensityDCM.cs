@@ -203,11 +203,6 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             get { return _normalize; }
         }
 
-        public override IEnumerable<Feature> AvailableTrainingFeatures
-        {
-            get { yield break; }
-        }
-
         internal KernelDensityDCM(int id)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
@@ -226,6 +221,11 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             base.Construct(reader);
 
             _normalize = Convert.ToBoolean(reader[Table + "_" + Columns.Normalize]);
+        }
+
+        public override IEnumerable<Feature> GetAvailableFeatures(Area area)
+        {
+            yield break;
         }
 
         public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, bool normalize, IEnumerable<Smoother> smoothers)

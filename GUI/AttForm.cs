@@ -126,6 +126,11 @@ namespace PTL.ATT.GUI
             }
         }
 
+        public Area SelectedTrainingArea
+        {
+            get { return trainingAreas.SelectedItem as Area; }
+        }
+
         public IEnumerable<string> SelectedIncidentTypes
         {
             get { return incidentTypes.SelectedItems.Cast<string>(); }
@@ -139,6 +144,11 @@ namespace PTL.ATT.GUI
         public IEnumerable<Feature> SelectedFeatures
         {
             get { return features.SelectedItems.Cast<Feature>(); }
+        }
+
+        public Area SelectedPredictionArea
+        {
+            get { return predictionAreas.SelectedItem as Area; }
         }
         
         public List<Prediction> SelectedPredictions
@@ -320,45 +330,54 @@ namespace PTL.ATT.GUI
 
         public void importIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string path = LAIR.IO.File.PromptForOpenPath("Select incident file...", Configuration.IncidentsDataDirectory);
-            if (path != null)
+            if (SelectedTrainingArea == null)
+                MessageBox.Show("Must select training area into which incidents will be imported.");
+            else
             {
-                Thread t = new Thread(new ThreadStart(delegate()
-                    {
-                        try { ATT.Configuration.IncidentImporter.Import(path); }
-                        catch (Exception ex) { MessageBox.Show("Errow while importing incidents:  " + ex.Message); }
-                    }));
+                string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + SelectedTrainingArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
+                if (path != null)
+                {
+                    Thread t = new Thread(new ThreadStart(delegate()
+                        {
+                            try { ATT.Configuration.IncidentImporter.Import(path, SelectedTrainingArea); }
+                            catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + SelectedTrainingArea + "\":  " + ex.Message); }
+                        }));
 
-                t.Start();
+                    t.Start();
+                }
             }
         }
 
         public void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to clear all incidents? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (SelectedTrainingArea == null)
+                MessageBox.Show("Must select training area from which to clear incidents.");
+            else if (MessageBox.Show("Are you sure you want to clear all incidents from \"" + SelectedTrainingArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                Incident.Clear();
+                Incident.Clear(SelectedTrainingArea);
                 RefreshIncidentTypes();
             }
         }
 
         public void simulateIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (trainingAreas.SelectedItem == null)
+            if (SelectedTrainingArea == null)
                 MessageBox.Show("Must select a training area for incident simulation.");
             else
             {
-                SimulateIncidentsForm sif = new SimulateIncidentsForm(trainingAreas.SelectedItem as Area);
-                sif.ShowDialog();
+                SimulateIncidentsForm f = new SimulateIncidentsForm(SelectedTrainingArea);
+                f.ShowDialog();
                 RefreshIncidentTypes();
             }
         }
 
         public void clearSimulatedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to clear all simulated incidents? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (SelectedTrainingArea == null)
+                MessageBox.Show("Must select training area from which to clear simulated incidents.");
+            else if (MessageBox.Show("Are you sure you want to clear all simulated incidents from \"" + SelectedTrainingArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                Incident.ClearSimulated();
+                Incident.ClearSimulated(SelectedTrainingArea);
                 RefreshIncidentTypes();
             }
         }
@@ -391,7 +410,7 @@ namespace PTL.ATT.GUI
             AddAreaForm aaf = new AddAreaForm();
             if (aaf.ShowDialog() == DialogResult.OK && aaf.AreaShapefile != null)
             {
-                ShapeFile shapeFile = aaf.AreaShapefile;
+                Shapefile shapeFile = aaf.AreaShapefile;
                 string name = shapeFile.Name;
                 Thread t = new Thread(new ThreadStart(delegate()
                     {
@@ -457,9 +476,12 @@ namespace PTL.ATT.GUI
 
         private void SetTrainingStartEndToolTip()
         {
-            string tip = Incident.Count(trainingStart.Value, trainingEnd.Value, SelectedIncidentTypes.ToArray()) + " total incidents";
-            toolTip.SetToolTip(trainingStart, tip);
-            toolTip.SetToolTip(trainingEnd, tip);
+            if (SelectedTrainingArea != null)
+            {
+                string tip = Incident.Count(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea, SelectedIncidentTypes.ToArray()) + " total incidents";
+                toolTip.SetToolTip(trainingStart, tip);
+                toolTip.SetToolTip(trainingEnd, tip);
+            }
         }
         #endregion
 
@@ -624,9 +646,11 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must select model before remapping.");
             else if (SelectedFeatures.Count() == 0)
                 MessageBox.Show("Must select features before remapping.");
+            else if (SelectedPredictionArea == null)
+                MessageBox.Show("Must select prediction area before remapping.");
             else
             {
-                FeatureRemappingForm f = new FeatureRemappingForm(SelectedFeatures, SelectedModel.AvailableFeatures);
+                FeatureRemappingForm f = new FeatureRemappingForm(SelectedFeatures, SelectedModel.GetAvailableFeatures(SelectedPredictionArea));
                 f.ShowDialog();
 
                 _featureRemapKeyTargetPredictionResource.Clear();
@@ -1019,9 +1043,9 @@ namespace PTL.ATT.GUI
                                         if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.DistanceShapeFile))
                                         {
                                             Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                            constraints.Add(ShapeFileGeometry.Columns.ShapeFileId, feature.PredictionResourceId.ToString());
+                                            constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());
                                             NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                            List<List<PointF>> points = Geometry.GetPoints(connection, ShapeFileGeometry.Table, ShapeFileGeometry.Columns.Geometry, ShapeFileGeometry.Columns.Id, constraints, pointDistanceThreshold);
+                                            List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(p.PredictionArea.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, pointDistanceThreshold);
                                             DB.Connection.Return(connection);
                                             lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, 1 + overlays.Count)); }
                                         }
@@ -1120,9 +1144,9 @@ namespace PTL.ATT.GUI
                                     int copyId = selectedPrediction.Copy("Copy " + copyNum + " of " + selectedPrediction.Name, predictionNum == 1 && copyNum == 1, false);
 
                                     try { Point.VacuumTable(copyId); }
-                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + Point.GetTable(copyId, false) + ":  " + ex.Message); }
+                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + Point.GetTable(copyId, false, -1) + ":  " + ex.Message); }
                                     try { PointPrediction.VacuumTable(copyId); }
-                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + PointPrediction.GetTable(copyId, false) + ":  " + ex.Message); }
+                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + PointPrediction.GetTable(copyId, false, -1) + ":  " + ex.Message); }
                                 }
                             }
 
@@ -1477,8 +1501,10 @@ namespace PTL.ATT.GUI
             _setTrainingStartEndToolTip = false;
 
             incidentTypes.Items.Clear();
-            foreach (string incidentType in Incident.GetUniqueTypes(trainingStart.Value, trainingEnd.Value))
-                incidentTypes.Items.Add(incidentType);
+
+            if (SelectedTrainingArea != null)
+                foreach (string incidentType in Incident.GetUniqueTypes(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea))
+                    incidentTypes.Items.Add(incidentType);
 
             if (SelectedModel != null)
                 foreach (string incidentType in SelectedModel.IncidentTypes)
@@ -1531,7 +1557,7 @@ namespace PTL.ATT.GUI
 
             if (model != null)
             {
-                List<Feature> sortedFeatures = new List<Feature>(model.AvailableFeatures);
+                List<Feature> sortedFeatures = new List<Feature>(model.GetAvailableFeatures(SelectedTrainingArea));
                 sortedFeatures.Sort();
 
                 foreach (Feature f in sortedFeatures)

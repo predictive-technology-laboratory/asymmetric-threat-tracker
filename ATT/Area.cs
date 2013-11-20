@@ -57,7 +57,7 @@ namespace PTL.ATT
                    Columns.SRID + " INTEGER);";
         }
 
-        public static int Create(ShapeFile shapefile, string name)
+        public static int Create(Shapefile shapefile, string name)
         {
             int areaId = -1;
             try

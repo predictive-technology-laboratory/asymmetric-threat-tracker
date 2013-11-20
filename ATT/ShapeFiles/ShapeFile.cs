@@ -31,7 +31,7 @@ using System.Text.RegularExpressions;
 
 namespace PTL.ATT.ShapeFiles
 {
-    public class ShapeFile
+    public class Shapefile
     {
         public enum ShapefileType
         {
@@ -130,7 +130,7 @@ namespace PTL.ATT.ShapeFiles
 
                     Console.Out.WriteLine("Importing shapefile into database.");
                     int shapefileId = Create(cmd.Connection, shapefileName, toSRID, type);
-                    ShapeFileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
+                    ShapefileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
 
                     cmd.CommandText = "DROP TABLE temp";
                     cmd.ExecuteNonQuery();
@@ -149,12 +149,12 @@ namespace PTL.ATT.ShapeFiles
             }
         }
 
-        public static IEnumerable<ShapeFile> GetAvailable(int srid)
+        public static IEnumerable<Shapefile> GetAvailable(int srid = -1)
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.SRID + "=" + srid);
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + (srid == -1 ? "" : " WHERE " + Columns.SRID + "=" + srid));
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
-                yield return new ShapeFile(reader);
+                yield return new Shapefile(reader);
 
             reader.Close();
             DB.Connection.Return(cmd.Connection);
@@ -187,7 +187,7 @@ namespace PTL.ATT.ShapeFiles
         }
         #endregion
 
-        private ShapeFile(NpgsqlDataReader reader)
+        private Shapefile(NpgsqlDataReader reader)
         {
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
             _name = Convert.ToString(reader[Table + "_" + Columns.Name]);

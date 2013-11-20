@@ -94,10 +94,10 @@ namespace PTL.ATT
         {
             string tableName = CreateTable(srid);
 
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT min(st_xmin(" + ShapeFileGeometry.Columns.Geometry + "))," +
-                                                                "max(st_xmax(" + ShapeFileGeometry.Columns.Geometry + "))," +
-                                                                "min(st_ymin(" + ShapeFileGeometry.Columns.Geometry + "))," +
-                                                                "max(st_ymax(" + ShapeFileGeometry.Columns.Geometry + ")) " +
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT min(st_xmin(" + ShapefileGeometry.Columns.Geometry + "))," +
+                                                                "max(st_xmax(" + ShapefileGeometry.Columns.Geometry + "))," +
+                                                                "min(st_ymin(" + ShapefileGeometry.Columns.Geometry + "))," +
+                                                                "max(st_ymax(" + ShapefileGeometry.Columns.Geometry + ")) " +
                                                          "FROM " + AreaGeometry.GetTableName(srid) + " " +
                                                          "WHERE " + AreaGeometry.Columns.AreaId + "=" + areaId);
 
