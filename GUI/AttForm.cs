@@ -307,11 +307,6 @@ namespace PTL.ATT.GUI
                 catch (Exception ex) { MessageBox.Show("Error while deleting log:  " + ex.Message); }
         }
 
-        public void editConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Sorry, this has not yet been implemented. Check the .xml configuration files in the Config sub-directory of the ATT executable.");
-        }
-
         public void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
@@ -334,13 +329,15 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must select training area into which incidents will be imported.");
             else
             {
-                string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + SelectedTrainingArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
+                Area trainingArea = SelectedTrainingArea;
+
+                string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + trainingArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
                 if (path != null)
                 {
                     Thread t = new Thread(new ThreadStart(delegate()
                         {
-                            try { ATT.Configuration.IncidentImporter.Import(path, SelectedTrainingArea); }
-                            catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + SelectedTrainingArea + "\":  " + ex.Message); }
+                            try { ATT.Configuration.IncidentImporter.Import(path, trainingArea); }
+                            catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + trainingArea + "\":  " + ex.Message); }
                         }));
 
                     t.Start();
@@ -760,7 +757,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must provide a non-empty prediction name.");
             else
             {
-                Area predictionArea = predictionAreas.SelectedItem as Area;
+                Area predictionArea = SelectedPredictionArea;
                 IEnumerable<Feature> selectedFeatures = SelectedFeatures.ToArray();
                 IEnumerable<string> incidentTypes = m.IncidentTypes.ToArray();
 

@@ -61,7 +61,7 @@ namespace PTL.ATT.ShapeFiles
 
             List<int> ids = new List<int>();
             NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + tableName + " (" + Columns.Insert + ") " +
-                                                  "SELECT " + geometryColumn + " " + shapefileId + " " + 
+                                                  "SELECT " + geometryColumn + "," + shapefileId + " " + 
                                                   "FROM " + geometryTable + " RETURNING " + Columns.Id, connection);
 
             NpgsqlDataReader reader = cmd.ExecuteReader();

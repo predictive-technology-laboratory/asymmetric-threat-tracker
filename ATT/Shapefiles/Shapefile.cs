@@ -77,12 +77,9 @@ namespace PTL.ATT.ShapeFiles
         public static void ImportShapeFiles(string[] shapefilePaths, ShapefileType type)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-
+            int shapefileId = -1;
             try
             {
-                cmd.CommandText = "BEGIN";
-                cmd.ExecuteNonQuery();
-
                 Regex reprojectionRE = new Regex("(?<from>[0-9]+):(?<to>[0-9]+)");
 
                 foreach (string shapefilePath in shapefilePaths)
@@ -129,18 +126,29 @@ namespace PTL.ATT.ShapeFiles
                     cmd.ExecuteNonQuery();
 
                     Console.Out.WriteLine("Importing shapefile into database.");
-                    int shapefileId = Create(cmd.Connection, shapefileName, toSRID, type);
+                    shapefileId = Create(cmd.Connection, shapefileName, toSRID, type);
                     ShapefileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
 
                     cmd.CommandText = "DROP TABLE temp";
                     cmd.ExecuteNonQuery();
                 }
-
-                cmd.CommandText = "COMMIT";
-                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
+                try 
+                { 
+                    cmd.CommandText = "DROP TABLE temp;"; 
+                    cmd.ExecuteNonQuery();
+                }
+                catch { }
+
+                try
+                {
+                    cmd.CommandText = "DELETE FROM " + Shapefile.Table + " WHERE " + Shapefile.Columns.Id + "=" + shapefileId;
+                    cmd.ExecuteNonQuery();
+                }
+                catch { }
+
                 throw new Exception("Failed to import shape file(s):  " + ex.Message);
             }
             finally

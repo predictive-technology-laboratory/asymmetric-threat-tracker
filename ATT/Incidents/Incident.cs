@@ -46,18 +46,16 @@ namespace PTL.ATT.Incidents
             internal const string Time = "time";
             [Reflector.Insert, Reflector.Select(true)]
             internal const string Type = "type";
-            [Reflector.Select(false)]
+
             internal static string StX(int srid) { return "st_x(" + GetTableName(srid) + "." + Location + ") as " + X(srid); }
             internal static string X(int srid) { return GetTableName(srid) + "_x"; }
-            [Reflector.Select(false)]
             internal static string StY(int srid) { return "st_y(" + GetTableName(srid) + "." + Location + ") as " + Y(srid); }
             internal static string Y(int srid) { return GetTableName(srid) + "_y"; }
-            [Reflector.Select(false)]
             internal static string StSRID(int srid) { return "st_srid(" + GetTableName(srid) + "." + Location + ") as " + SRID(srid); }
             internal static string SRID(int srid) { return GetTableName(srid) + "_srid"; }
 
             internal static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            internal static string Select(int srid) { return Reflector.GetSelectColumns(GetTableName(srid), typeof(Columns)); }
+            internal static string Select(int srid) { return Reflector.GetSelectColumns(GetTableName(srid), new string[] { StX(srid), StY(srid), StSRID(srid) }, typeof(Columns)); }
         }
 
         internal static string GetTableName(int srid)
@@ -176,69 +174,84 @@ namespace PTL.ATT.Incidents
 
         public static IEnumerable<string> GetUniqueTypes(DateTime start, DateTime end, Area area)
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT DISTINCT " + Columns.Type + " " +
-                                                         "FROM " + GetTableName(area.SRID) + " " +
-                                                         "WHERE " + Columns.Time + " >= @start AND " + Columns.Time + " <= @end AND " + Columns.AreaId + "=" + area.Id,
-                                                         new Parameter("start", NpgsqlDbType.Timestamp, start),
-                                                         new Parameter("end", NpgsqlDbType.Timestamp, end));
-
             List<string> types = new List<string>();
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                types.Add(Convert.ToString(reader[Columns.Type]));
 
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
+            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            {
+                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT DISTINCT " + Columns.Type + " " +
+                                                             "FROM " + GetTableName(area.SRID) + " " +
+                                                             "WHERE " + Columns.Time + " >= @start AND " + Columns.Time + " <= @end AND " + Columns.AreaId + "=" + area.Id,
+                                                             new Parameter("start", NpgsqlDbType.Timestamp, start),
+                                                             new Parameter("end", NpgsqlDbType.Timestamp, end));
+
+
+                NpgsqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                    types.Add(Convert.ToString(reader[Columns.Type]));
+
+                reader.Close();
+                DB.Connection.Return(cmd.Connection);
+            }
 
             return types;
         }
 
         public static IEnumerable<Incident> Get(DateTime start, DateTime end, Area area, params string[] types)
         {
-            string typesCondition = null;
-            if (types != null && types.Length > 0)
-            {
-                foreach (string type in types)
-                    typesCondition = (typesCondition == null ? "(" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
-
-                typesCondition += ")";
-            }
-
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(area.SRID) + " " +
-                                                         "FROM " + GetTableName(area.SRID) + " " +
-                                                         "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
-                                                                    Columns.AreaId + "=" + area.Id + " AND " +
-                                                                    Columns.Time + " >= @start AND " +
-                                                                    Columns.Time + " <= @end", new Parameter("start", NpgsqlDbType.Timestamp, start), new Parameter("end", NpgsqlDbType.Timestamp, end));
             List<Incident> incidents = new List<Incident>();
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                incidents.Add(new Incident(reader, area.SRID));
 
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
+            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            {
+                string typesCondition = null;
+                if (types != null && types.Length > 0)
+                {
+                    foreach (string type in types)
+                        typesCondition = (typesCondition == null ? "(" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
+
+                    typesCondition += ")";
+                }
+
+                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(area.SRID) + " " +
+                                                             "FROM " + GetTableName(area.SRID) + " " +
+                                                             "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
+                                                                        Columns.AreaId + "=" + area.Id + " AND " +
+                                                                        Columns.Time + " >= @start AND " +
+                                                                        Columns.Time + " <= @end", new Parameter("start", NpgsqlDbType.Timestamp, start), new Parameter("end", NpgsqlDbType.Timestamp, end));
+
+                NpgsqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                    incidents.Add(new Incident(reader, area.SRID));
+
+                reader.Close();
+                DB.Connection.Return(cmd.Connection);
+            }
 
             return incidents;
         }
 
         public static int Count(DateTime start, DateTime end, Area area, params string[] types)
         {
-            string typesCondition = null;
-            if (types != null)
-                foreach (string type in types)
-                    typesCondition = (typesCondition == null ? "" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
+            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            {
+                string typesCondition = null;
+                if (types != null)
+                    foreach (string type in types)
+                        typesCondition = (typesCondition == null ? "" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
 
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT COUNT(*) " + 
-                                                         "FROM " + GetTableName(area.SRID) + " " +
-                                                         "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
-                                                                    Columns.AreaId + "=" + area.Id + " AND " + 
-                                                                    Columns.Time + " >= @start AND " +
-                                                                    Columns.Time + " <= @end", new Parameter("start", NpgsqlDbType.Timestamp, start), new Parameter("end", NpgsqlDbType.Timestamp, end));
-            int count = Convert.ToInt32(cmd.ExecuteScalar());
+                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT COUNT(*) " +
+                                                             "FROM " + GetTableName(area.SRID) + " " +
+                                                             "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
+                                                                        Columns.AreaId + "=" + area.Id + " AND " +
+                                                                        Columns.Time + " >= @start AND " +
+                                                                        Columns.Time + " <= @end", new Parameter("start", NpgsqlDbType.Timestamp, start), new Parameter("end", NpgsqlDbType.Timestamp, end));
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
 
-            DB.Connection.Return(cmd.Connection);
+                DB.Connection.Return(cmd.Connection);
 
-            return count;
+                return count;
+            }
+            else
+                return 0;
         }
         #endregion
 

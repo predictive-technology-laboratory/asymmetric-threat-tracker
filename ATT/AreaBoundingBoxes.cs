@@ -138,7 +138,8 @@ namespace PTL.ATT
                               "WHERE " + Columns.AreaId + "=" + areaId + " AND " + 
                                      "EXISTS(SELECT 1 " +
                                             "FROM " + areaGeometryTable + " " +
-                                            "WHERE st_overlaps(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
+                                            "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " + 
+                                                      "st_overlaps(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
                                             ")";
             cmd.ExecuteNonQuery();
 
@@ -147,7 +148,8 @@ namespace PTL.ATT
                               "WHERE " + Columns.AreaId + "=" + areaId + " AND " + 
                                      "EXISTS(SELECT 1 " +
                                             "FROM " + areaGeometryTable + " " +
-                                            "WHERE st_overlaps(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
+                                            "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " + 
+                                                      "st_within(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
                                             ")";
             cmd.ExecuteNonQuery();
 

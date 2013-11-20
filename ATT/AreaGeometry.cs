@@ -75,7 +75,8 @@ namespace PTL.ATT
             DB.Connection.ExecuteNonQuery(
                 "INSERT INTO " + CreateTable(shapefile.SRID) + " (" + Columns.Insert + ") " +
                 "SELECT " + areaId + "," + ShapefileGeometry.Columns.Geometry + " " +
-                "FROM " + ShapefileGeometry.GetTableName(shapefile.SRID));
+                "FROM " + ShapefileGeometry.GetTableName(shapefile.SRID) + " " +
+                "WHERE " + ShapefileGeometry.GetTableName(shapefile.SRID) + "." + ShapefileGeometry.Columns.ShapefileId + "=" + shapefile.Id);
         }
     }
 }

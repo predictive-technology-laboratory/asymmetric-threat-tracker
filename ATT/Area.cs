@@ -145,7 +145,8 @@ namespace PTL.ATT
                                                          "st_xmax(" + AreaGeometry.Columns.Geometry + ") as right," +
                                                          "st_ymin(" + AreaGeometry.Columns.Geometry + ") as bottom," +
                                                          "st_ymax(" + AreaGeometry.Columns.Geometry + ") as top " +
-                                                         "FROM " + AreaGeometry.GetTableName(_srid));
+                                                         "FROM " + AreaGeometry.GetTableName(_srid) + " " +
+                                                         "WHERE " + AreaGeometry.Columns.AreaId + "=" + _id);
             reader = cmd.ExecuteReader();
 
             double left = double.MaxValue;
