@@ -52,7 +52,6 @@ namespace PTL.ATT.GUI
             this.label5 = new System.Windows.Forms.Label();
             this.mainMenu = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.generateEncryptedPasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetEncryptionKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendNotificationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -205,7 +204,6 @@ namespace PTL.ATT.GUI
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.editConfigurationToolStripMenuItem,
             this.generateEncryptedPasswordToolStripMenuItem,
             this.resetEncryptionKeyToolStripMenuItem,
             this.sendNotificationsToolStripMenuItem,
@@ -216,13 +214,6 @@ namespace PTL.ATT.GUI
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
             this.fileToolStripMenuItem.Text = "File";
-            // 
-            // editConfigurationToolStripMenuItem
-            // 
-            this.editConfigurationToolStripMenuItem.Name = "editConfigurationToolStripMenuItem";
-            this.editConfigurationToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
-            this.editConfigurationToolStripMenuItem.Text = "Edit configuration...";
-            this.editConfigurationToolStripMenuItem.Click += new System.EventHandler(this.editConfigurationToolStripMenuItem_Click);
             // 
             // generateEncryptedPasswordToolStripMenuItem
             // 
@@ -1297,7 +1288,6 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem groupByToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip predictionGroups;
         private System.Windows.Forms.ToolStripMenuItem deselectAllToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem editConfigurationToolStripMenuItem;
         private System.Windows.Forms.SplitContainer verticalSplitContainer;
         private System.Windows.Forms.SplitContainer horizontalSplitContainer;
         private System.Windows.Forms.SplitContainer threatSplitContainer;
