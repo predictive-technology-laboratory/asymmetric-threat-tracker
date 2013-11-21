@@ -289,15 +289,19 @@ namespace PTL.ATT.Models
             incidentPoints = incidentPoints.Where((p, i) => incidentPointIndexesInArea.Contains(i)).ToList();
             int maxSampleSize = training ? TrainingSampleSize : PredictionSampleSize;
             int numIncidentsToRemove = (nullPointIds.Count + incidentPoints.Count) - maxSampleSize;
+            string sample = training ? "training" : "prediction";
             if (numIncidentsToRemove > 0)
-            {
-                numIncidentsToRemove = Math.Min(incidentPoints.Count, numIncidentsToRemove);
+                if (incidentPoints.Count > 0)
+                {
+                    numIncidentsToRemove = Math.Min(incidentPoints.Count, numIncidentsToRemove);
 
-                Console.Out.WriteLine("WARNING:  removing " + numIncidentsToRemove + " random incident(s) to meet point count constraints. Increase the model's " + (training ? "training" : "prediction") + " sample size by this amount in order to use all available incident data.");
+                    Console.Out.WriteLine("WARNING:  the " + sample + " sample size is too small. We are forced to remove " + numIncidentsToRemove + " random incidents in order to meet the required sample size. In order to use all incidents, increase the sample size to " + (nullPointIds.Count + incidentPoints.Count));
 
-                incidentPoints.Randomize(new Random(1240894));
-                incidentPoints.RemoveRange(0, numIncidentsToRemove);
-            }
+                    incidentPoints.Randomize(new Random(1240894));
+                    incidentPoints.RemoveRange(0, numIncidentsToRemove);
+                }
+                else
+                    Console.Out.WriteLine("WARNING:  we are using " + nullPointIds.Count + " points, but the maximum " + sample + " sample size is " + maxSampleSize + ". Be aware that this could be going beyond the memory limits of your machine.");
 
             if (training && incidentPoints.Count == 0)
                 throw new ZeroPositivePointsException("Zero positive incident points inserted into point sample for \"" + prediction.IncidentTypes.Concatenate(", ") + "\"." + (numIncidentsToRemove > 0 ? " This is due to sample size restrictions. Either increase the training sample size to " + (maxSampleSize + numIncidentsToRemove) + " to include all incidents or increase the point spacing to reduce the number of null points." : ""));
@@ -342,10 +346,10 @@ namespace PTL.ATT.Models
                                                                      "INTO " + pointFeatureTable + " " +
 
                                                                      // cross points with features
-                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                    // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
+                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                        // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
                                                                                                                                                            "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
                                                                                                                                                            "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
-                            // only process points associated with the current core                                                                                         
+                                                                     // only process points associated with the current core                                                                                         
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
                                                                      "ALTER TABLE " + pointFeatureTable + " ADD PRIMARY KEY (point_id,feature_id);" + // this is required in order to write a clean grouping statement below. if we don't have this, then we need to also group by the selected columns below.
@@ -369,7 +373,7 @@ namespace PTL.ATT.Models
                                                       pointFeatureTable + ".feature_id," +
 
                                                       // the feature value for a point is the minimum distance from the point to an object associated with the feature
-                                                     "CASE WHEN COUNT(sfg." + ShapefileGeometry.Columns.Geometry + ")=0 THEN sqrt(2.0 * " + FeatureDistanceThreshold + "^2) " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box.
+                                                     "CASE WHEN COUNT(sfg." + ShapefileGeometry.Columns.Geometry + ")=0 THEN NULL " + 
                                                      "ELSE min(st_distance(st_closestpoint(sfg." + ShapefileGeometry.Columns.Geometry + "," + pointFeatureTable + ".point_location)," + pointFeatureTable + ".point_location)) " +
                                                      "END as feature_value " +
 
@@ -397,8 +401,13 @@ namespace PTL.ATT.Models
                             int featureId = Convert.ToInt32(reader["feature_id"]);
                             if (featureId != -1) // we can get -1 back if no objects for a feature were within the point's bounding box or if no features were defined (we did a left-join with the feature)
                             {
-                                double featureValue = Convert.ToDouble(reader["feature_value"]);
-                                vector.Add(idFeature[featureId], featureValue, false);
+                                object valueObj = reader["feature_value"];
+                                if (!(valueObj is DBNull)) // we can get back null values if there was no object within the distance threshold
+                                {
+                                    double value = Convert.ToDouble(valueObj);
+                                    if (value <= FeatureDistanceThreshold) // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again.
+                                        vector.Add(idFeature[featureId], value, false);
+                                }
                             }
                         }
                         reader.Close();
@@ -574,17 +583,13 @@ namespace PTL.ATT.Models
 
                         _classifier.Classify(featureVectors, prediction);
 
+                        // only use vectors with features
+                        foreach (int vectorNoFeatures in featureVectors.Select((v, i) => v.Count == 0 ? i : -1).Where(i => i != -1).OrderBy(i => i).Reverse())
+                            featureVectors.RemoveAt(vectorNoFeatures);
+
                         foreach (FeatureVector vector in featureVectors.OrderBy(v => (v.DerivedFrom as Point).Id))  // sort by point ID so prediction log is sorted
                         {
-                            if (vector.Count == 0)
-                            {
-                                foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.Keys.ToArray())
-                                    if (label != PointPrediction.NullLabel)
-                                        vector.DerivedFrom.PredictionConfidenceScores[label] = 0;
-
-                                vector.DerivedFrom.PredictionConfidenceScores[PointPrediction.NullLabel] = 1;
-                            }
-                            else if (_classifyNonZeroVectorsUniformly)
+                            if (_classifyNonZeroVectorsUniformly)
                             {
                                 foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.Keys.ToArray())
                                     if (label == PointPrediction.NullLabel)
