@@ -16,6 +16,7 @@
 
   <postgis>                                               <!-- Requires PostGIS 2.0 or higher. Install using the PostgreSQL Application Stack Builder. -->
     <shp2pgsql></shp2pgsql>                               <!-- Path to shp2pgsql executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
+    <srid>26971</srid>                                    <!-- The meters-based SRID for the area that will be modeled. The default value provided (26971) is appropriate for the example Chicago data distributed with the ATT. For other geographic areas, consult the relevant documentation. -->
     <area_bounding_box_size>1000</area_bounding_box_size> <!-- Size of bounding boxes to place in area geometries for computation of point containment. If the creation of training or prediction grids is very slow, try reducing this value. -->
   </postgis>
 

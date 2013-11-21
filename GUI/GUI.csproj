@@ -140,12 +140,6 @@
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
     </Compile>
     <Compile Include="LogWriter.cs" />
-    <Compile Include="SelectAreaForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SelectAreaForm.Designer.cs">
-      <DependentUpon>SelectAreaForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Splash.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -270,9 +264,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FeatureRemappingForm.resx">
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SelectAreaForm.resx">
-      <DependentUpon>SelectAreaForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>

@@ -32,6 +32,39 @@ namespace PTL.ATT
 {
     public class Point : ClassifiableEntity
     {
+        private static Set<string> _tables;
+        private static object _staticLockObject = new object();
+
+        public static string GetTable(int predictionId, bool create)
+        {
+            lock (_staticLockObject)
+            {
+                if (_tables == null)
+                    _tables = new Set<string>(DB.Connection.GetTables().Where(t => t.StartsWith("point_")).ToArray());
+
+                string table = "point_" + predictionId;
+                if (!_tables.Contains(table))
+                {
+                    if (!create)
+                        return null;
+
+                    CreateTable(table);
+                }
+
+                return table;
+            }
+        }
+
+        internal static void DeleteTable(int predictionId)
+        {
+            string table = GetTable(predictionId, false);
+            if (table != null)
+            {
+                try { DB.Connection.ExecuteNonQuery("DROP TABLE " + table + " CASCADE"); }
+                finally { lock (_staticLockObject) { _tables.Remove(table); } }
+            }
+        }
+
         public class Columns
         {
             [Reflector.Insert]
@@ -61,55 +94,38 @@ namespace PTL.ATT
             }
         }
 
-        internal static string GetTableName(int predictionId)
+        private static void CreateTable(string name)
         {
-            return "point_" + predictionId;
-        }
-
-        internal static string CreateTable(int predictionId, int srid)
-        {
-            string table = GetTableName(predictionId);
-
             DB.Connection.ExecuteNonQuery(
-                "CREATE TABLE " + table + " (" +
-                Columns.Core + " INTEGER," +
-                Columns.Id + " SERIAL PRIMARY KEY," +
-                Columns.IncidentType + " VARCHAR," +
-                Columns.Location + " GEOMETRY(GEOMETRY," + srid + ")," +
-                Columns.Time + " TIMESTAMP);" +
-                "CREATE INDEX ON " + table + " (" + Columns.Core + ");" +
-                "CREATE INDEX ON " + table + " (" + Columns.IncidentType + ");" +
-                "CREATE INDEX ON " + table + " USING GIST (" + Columns.Location + ");");
+                   "CREATE TABLE IF NOT EXISTS " + name + " (" +
+                   Columns.Core + " INTEGER," +
+                   Columns.Id + " SERIAL PRIMARY KEY," +
+                   Columns.IncidentType + " VARCHAR," +
+                   Columns.Location + " GEOMETRY(GEOMETRY," + Configuration.PostgisSRID + ")," +
+                   Columns.Time + " TIMESTAMP);" +
+                   "CREATE INDEX ON " + name + " (" + Columns.Core + ");" +
+                   "CREATE INDEX ON " + name + " (" + Columns.IncidentType + ");" +
+                   "CREATE INDEX ON " + name + " USING GIST (" + Columns.Location + ");");
 
-            return table;
-        }
-
-        internal static void DeleteTable(int predictionId)
-        {
-            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(predictionId) + " CASCADE");
+            lock (_tables) { _tables.Add(name); }
         }
 
         public static void VacuumTable(int predictionId)
         {
-            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
+            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTable(predictionId, false));
         }
 
-        internal static List<int> Insert(NpgsqlConnection connection, 
-                                         IEnumerable<Tuple<PostGIS.Point, string, DateTime>> points, 
-                                         int predictionId, 
-                                         Area area, 
-                                         bool onlyInsertPointsInArea,
-                                         bool vacuum)
+        internal static List<int> Insert(NpgsqlConnection connection, IEnumerable<Tuple<PostGIS.Point, string, DateTime>> points, int predictionId, Area area, bool vacuum)
         {
             NpgsqlCommand cmd = new NpgsqlCommand(null, connection);
             cmd.CommandTimeout = Configuration.PostgresCommandTimeout;
 
-            string insertIntoTable = GetTableName(predictionId);
+            string insertIntoTable = GetTable(predictionId, true);
 
-            if (onlyInsertPointsInArea)
+            if (area != null)
             {
                 cmd.CommandText = "CREATE TABLE temp AS SELECT * FROM " + insertIntoTable + " WHERE FALSE;" +
-                                  "ALTER TABLE temp ALTER COLUMN " + Columns.Id + " SET DEFAULT nextval('" + insertIntoTable + "_" + Columns.Id + "_seq');";
+                                  "ALTER TABLE temp ALTER COLUMN " + Columns.Id + " SET DEFAULT nextval('" + insertIntoTable + "_id_seq');";
                 cmd.ExecuteNonQuery();
 
                 insertIntoTable = "temp";
@@ -125,9 +141,6 @@ namespace PTL.ATT
                 string incidentType = pointIncidentTime.Item2;
                 DateTime time = pointIncidentTime.Item3;
 
-                if (point.SRID != area.SRID)
-                    throw new Exception("Area SRID (" + area.SRID + ") does not match point SRID (" + point.SRID);
-
                 pointValues.Append((pointValues.Length > 0 ? "," : "") + "(" + (pointNum % Configuration.ProcessorCount) + ",DEFAULT,'" + incidentType + "',st_geometryfromtext('POINT(" + point.X + " " + point.Y + ")'," + point.SRID + "),@time_" + pointNum + ")");
                 ConnectionPool.AddParameters(cmd, new Parameter("time_" + pointNum, NpgsqlDbType.Timestamp, time));
 
@@ -135,9 +148,7 @@ namespace PTL.ATT
                 {
                     cmd.CommandText = "INSERT INTO " + insertIntoTable + " (" + Columns.Insert + ") VALUES " + pointValues + " RETURNING " + Columns.Id;
 
-                    if (onlyInsertPointsInArea)
-                        cmd.ExecuteNonQuery();
-                    else
+                    if (area == null)
                     {
                         NpgsqlDataReader reader = cmd.ExecuteReader();
                         while (reader.Read())
@@ -145,6 +156,8 @@ namespace PTL.ATT
 
                         reader.Close();
                     }
+                    else
+                        cmd.ExecuteNonQuery();
 
                     pointValues.Clear();
                     cmd.Parameters.Clear();
@@ -155,9 +168,7 @@ namespace PTL.ATT
             {
                 cmd.CommandText = "INSERT INTO " + insertIntoTable + " (" + Columns.Insert + ") VALUES " + pointValues + " RETURNING " + Columns.Id;
 
-                if (onlyInsertPointsInArea)
-                    cmd.ExecuteNonQuery();
-                else
+                if (area == null)
                 {
                     NpgsqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -165,38 +176,37 @@ namespace PTL.ATT
 
                     reader.Close();
                 }
+                else
+                    cmd.ExecuteNonQuery();
 
                 cmd.Parameters.Clear();
             }
 
-            if (onlyInsertPointsInArea)
+            if (area != null)
             {
-                string areaGeometryTable = AreaGeometry.GetTableName(area.SRID);
-                string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(area.SRID);
-
                 cmd.CommandText = "CREATE INDEX ON temp USING GIST (" + Columns.Location + ")";
                 cmd.ExecuteNonQuery();
 
-                cmd.CommandText = "INSERT INTO " + GetTableName(predictionId) + " (" + Columns.Insert + ") " +
+                cmd.CommandText = "INSERT INTO " + GetTable(predictionId, false) + " (" + Columns.Insert + ") " +
                                   "SELECT * " +
                                   "FROM temp " +
                                   "WHERE EXISTS (SELECT 1 " +
-                                                "FROM " + areaGeometryTable + "," + areaBoundingBoxesTable + " " +
-                                                "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + area.Id + " AND " + 
-                                                           areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.AreaId + "=" + area.Id + " AND " + 
-                                                           "(" + 
-                                                             "(" +
-                                                                areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
-                                                                "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
-                                                             ") " +
-                                                             "OR " +
-                                                             "(" +
-                                                                areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
-                                                                "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
-                                                                "st_intersects(temp." + Columns.Location + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
-                                                             ")" +
-                                                           ")" + 
-                                                ") " + 
+                                                "FROM " + AreaGeometry.Table + "," + AreaBoundingBoxes.Table + " " +
+                                                "WHERE " + AreaGeometry.Table + "." + AreaGeometry.Columns.AreaId + "=" + area.Id + " AND " +
+                                                           AreaBoundingBoxes.Table + "." + AreaBoundingBoxes.Columns.AreaId + "=" + area.Id + " AND " +
+                                                       "(" +
+                                                         "(" +
+                                                               AreaBoundingBoxes.Table + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
+                                                              "st_intersects(temp." + Columns.Location + "," + AreaBoundingBoxes.Table + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" + 
+                                                         ") " +
+                                                         "OR " +
+                                                         "(" +
+                                                               AreaBoundingBoxes.Table + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
+                                                              "st_intersects(temp." + Columns.Location + "," + AreaBoundingBoxes.Table + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " + 
+                                                              "st_intersects(temp." + Columns.Location + "," + AreaGeometry.Table + "." + AreaGeometry.Columns.Geometry + ")" + 
+                                                         ")" +
+                                                       ")" +
+                                               ") " +
                                   "RETURNING " + Columns.Id + ";" +
                                   "DROP TABLE temp;";
 
@@ -236,6 +246,16 @@ namespace PTL.ATT
         public DateTime Time
         {
             get { return _time; }
+        }
+
+        internal Point(int id, string table)
+        {
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(table) + " FROM " + table + " WHERE " + Columns.Id + "=" + id);
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            reader.Read();
+            Construct(reader, table);
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
         }
 
         internal Point(NpgsqlDataReader reader, string table)

@@ -51,8 +51,6 @@ namespace PTL.ATT
             public const string Analysis = "analysis";
             [Reflector.Select(true)]
             public const string AssessmentPlots = "assessment_plots";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Done = "done";
             [Reflector.Select(true)]
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
@@ -94,7 +92,6 @@ namespace PTL.ATT
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Analysis + " VARCHAR," +
                    Columns.AssessmentPlots + " BYTEA," +
-                   Columns.Done + " BOOLEAN," + 
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.IncidentTypes + " VARCHAR[]," +
                    Columns.ModelDirectory + " VARCHAR," +
@@ -111,7 +108,6 @@ namespace PTL.ATT
                    Columns.TrainingEndTime + " TIMESTAMP," +
                    Columns.TrainingStartTime + " TIMESTAMP);" +
                    (connection.TableExists(Table) ? "" :
-                   "CREATE INDEX ON " + Table + " (" + Columns.Done + ");" + 
                    "CREATE INDEX ON " + Table + " (" + Columns.ModelId + ");" +
                    "CREATE INDEX ON " + Table + " (" + Columns.PredictionAreaId + ");" +
                    "CREATE INDEX ON " + Table + " (" + Columns.RunId + ");" +
@@ -123,8 +119,7 @@ namespace PTL.ATT
             int runId = Convert.ToInt32(DB.Connection.ExecuteScalar("SELECT CASE WHEN COUNT(*) > 0 THEN MAX(" + Columns.RunId + ") ELSE -1 END FROM " + Table));
             runId += newRun ? 1 : 0;
 
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (FALSE," + 
-                                                                                                              "'{" + incidentTypes.Select(i => "\"" + i + "\"").Concatenate(",") + "}'," +
+            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('{" + incidentTypes.Select(i => "\"" + i + "\"").Concatenate(",") + "}'," +
                                                                                                               modelId + "," +
                                                                                                               "@most_recently_evaluated_incident_time," +
                                                                                                               "'" + name + "'," +
@@ -147,7 +142,7 @@ namespace PTL.ATT
 
             string modelDirectory = Path.Combine(Configuration.ModelsDirectory, id.ToString());
             if (Directory.Exists(modelDirectory))
-                throw new Exception("Model directory \"" + modelDirectory + "\" for prediction already exists. This can happen for two reasons:  either you specified a \"model_directory\" in the ATT configuration that was not empty, or perhaps the database has been manually truncated without also deleting all model directories within \"" + Configuration.ModelsDirectory + "\". To fix this, delete all predictions and set \"model_directory\" to an empty directory.");
+                throw new Exception("Model directory \"" + modelDirectory + "\" for prediction already exists. This should not be possible unless the ATT database was manually truncated without also deleting all model directories within \"" + Configuration.ModelsDirectory + "\"...do this.");
             else
                 Directory.CreateDirectory(modelDirectory);
 
@@ -171,7 +166,7 @@ namespace PTL.ATT
         public static IEnumerable<Prediction> GetAvailable(int modelId = -1)
         {
             List<Prediction> predictions = new List<Prediction>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE" + (modelId == -1 ? "" : " AND " + Columns.ModelId + "=" + modelId));
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + (modelId == -1 ? "" : " WHERE " + Columns.ModelId + "=" + modelId));
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
                 predictions.Add(new Prediction(reader));
@@ -182,7 +177,6 @@ namespace PTL.ATT
             return predictions;
         }
 
-        private bool _done;
         private int _id;
         private int _runId;
         private string _modelDirectory;
@@ -217,17 +211,6 @@ namespace PTL.ATT
                 _smoothing = value;
                 
                 DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Smoothing + "='" + _smoothing + "' WHERE " + Columns.Id + "=" + _id);
-            }
-        }
-
-        public bool Done
-        {
-            get { return _done; }
-            set
-            {
-                _done = value;
-
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Done + "=" + _done + " WHERE " + Columns.Id + "=" + _id);
             }
         }
 
@@ -395,7 +378,7 @@ namespace PTL.ATT
                 if (_points == null)
                 {
                     _points = new List<Point>();
-                    string pointTable = Point.GetTableName(_id);
+                    string pointTable = Point.GetTable(_id, false);
                     NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Point.Columns.Select(pointTable) + " FROM " + pointTable);
                     NpgsqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -416,7 +399,7 @@ namespace PTL.ATT
                 if (_pointPredictions == null)
                 {
                     _pointPredictions = new List<PointPrediction>();
-                    string pointPredictionTable = PointPrediction.GetTableName(_id);
+                    string pointPredictionTable = PointPrediction.GetTable(_id, false);
                     NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + PointPrediction.Columns.Select(pointPredictionTable) + " FROM " + pointPredictionTable);
                     NpgsqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -489,7 +472,6 @@ namespace PTL.ATT
 
         private void Construct(NpgsqlDataReader reader)
         {
-            _done = Convert.ToBoolean(reader[Table + "_" + Columns.Done]);
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
             _runId = Convert.ToInt32(reader[Table + "_" + Columns.RunId]);
             _modelDirectory = Convert.ToString(reader[Table + "_" + Columns.ModelDirectory]);
@@ -520,6 +502,11 @@ namespace PTL.ATT
         public override string ToString()
         {
             return _name;
+        }
+        internal void DeletePoints()
+        {
+            DB.Connection.ExecuteNonQuery("DELETE FROM " + Point.GetTable(_id, false));
+            ReleaseLazyLoadedData();
         }
 
         public void Delete()
@@ -564,10 +551,10 @@ namespace PTL.ATT
             {
                 string selectColumns = Point.Columns.GetInsertWithout(new Set<string>(new string[] { Point.Columns.Id }));
 
-                string copiedPointTable = Point.CreateTable(copyId, PredictionArea.SRID);
+                string copiedPointTable = Point.GetTable(copyId, true);
                 cmd.CommandText = "INSERT INTO " + copiedPointTable + "(" + selectColumns + ") " +
                                   "SELECT " + selectColumns + " " +
-                                  "FROM " + Point.GetTableName(_id) + " " +
+                                  "FROM " + Point.GetTable(_id, false) + " " +
                                   "ORDER BY " + Point.Columns.Id + " ASC " +
                                   "RETURNING " + Point.Columns.Id;
 
@@ -593,7 +580,6 @@ namespace PTL.ATT
                     copiedPointPredictionValues.Add(new Tuple<string, Parameter>("(" + labels + "," + oldPointIdNewPointId[pointPrediction.PointId] + "," + threats + "," + timeParameterName + "," + totalThreat + ")", timeParameter));
                 }
 
-                PointPrediction.CreateTable(copyId);
                 PointPrediction.Insert(copiedPointPredictionValues, copyId, true);
 
                 Prediction copy = new Prediction(copyId);
@@ -624,7 +610,6 @@ namespace PTL.ATT
                         File.Copy(path, Path.Combine(copy.ModelDirectory, Path.GetFileName(path)));
 
                 Model.ChangeFeatureIds(copy, oldNewFeatureId);
-                copy.Done = true;
             }
             catch (Exception ex)
             {
@@ -663,7 +648,6 @@ namespace PTL.ATT
                    indent + "Model:  " + Model.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Model directory:  " + _modelDirectory + Environment.NewLine +
                    indent + "Incident types:  " + _incidentTypes.Concatenate(",") + Environment.NewLine +
-                   indent + "Features:  " + SelectedFeatures.Select(f => f.ToString()).Concatenate(",") + Environment.NewLine + 
                    indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
                    indent + "Training start:  " + _trainingStartTime.ToShortDateString() + " " + _trainingStartTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Training end:  " + _trainingEndTime.ToShortDateString() + " " + _trainingEndTime.ToShortTimeString() + Environment.NewLine +
@@ -761,7 +745,7 @@ namespace PTL.ATT
         /// <summary>
         /// Releases all data that was lazy-loaded into memory (e.g., points). Often this data can be large and needs to be cleaned up.
         /// </summary>
-        internal void ReleaseLazyLoadedData()
+        public void ReleaseLazyLoadedData()
         {
             _trainingArea = _predictionArea = null;
             _points = null;

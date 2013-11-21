@@ -276,9 +276,9 @@ namespace PTL.ATT.GUI
                 string passphrase = (pf.GetValue("passphrase") as string).Trim();
                 string confirmed = (pf.GetValue("confirmed") as string).Trim();
                 if (passphrase != confirmed)
-                    MessageBox.Show("Entries do not match.");
+                    MessageBox.Show("Entries do not match");
                 else if (passphrase.Length < 8)
-                    MessageBox.Show("Passphrase must be at least 8 characters.");
+                    MessageBox.Show("Passphrase must be at least 8 characters");
                 else
                 {
                     key = passphrase;

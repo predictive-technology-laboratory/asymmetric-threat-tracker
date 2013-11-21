@@ -68,8 +68,6 @@ namespace PTL.ATT.GUI
             }
             else
             {
-                value = value.Trim('.') + ".";
-
                 value = base.Write(value, newLine);
 
                 lock (_textBox)

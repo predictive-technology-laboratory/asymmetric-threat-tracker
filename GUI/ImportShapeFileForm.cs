@@ -40,10 +40,10 @@ namespace PTL.ATT.GUI
         {
             InitializeComponent();
 
-            foreach (Shapefile.ShapefileType type in Enum.GetValues(typeof(Shapefile.ShapefileType)))
-                shapefileType.Items.Add(type);
+            foreach (FeatureShapeFile.ShapefileType type in Enum.GetValues(typeof(FeatureShapeFile.ShapefileType)))
+                featureType.Items.Add(type);
 
-            shapefileType.SelectedIndex = 0;
+            featureType.SelectedIndex = 0;
 
             _attForm = attForm;
         }
@@ -55,45 +55,49 @@ namespace PTL.ATT.GUI
 
         private void shapefileFile_Click(object sender, EventArgs e)
         {
-            string file = LAIR.IO.File.PromptForOpenPath("Select shapefile...", Configuration.PostGisShapefileDirectory, "Shapefiles (*.shp)|*.shp");
+            string file = LAIR.IO.File.PromptForOpenPath("Select shape file...", Configuration.PostGisShapefileDirectory, "Shapefiles (*.shp)|*.shp");
             if (file != null)
-                shapefilePath.Text = file;
+                shapeFilePath.Text = file;
         }
 
         private void shapefileDir_Click(object sender, EventArgs e)
         {
-            string dir = LAIR.IO.Directory.PromptForDirectory("Select shapefile directory...", Configuration.PostGisShapefileDirectory);
+            string dir = LAIR.IO.Directory.PromptForDirectory("Select shape file directory...", Configuration.PostGisShapefileDirectory);
             if (dir != null)
-                shapefilePath.Text = dir;
+                shapeFilePath.Text = dir;
         }
 
         private void importShp_Click(object sender, EventArgs e)
         {
             string[] shapeFilePaths;
-            if (File.Exists(shapefilePath.Text))
-                shapeFilePaths = new string[] { shapefilePath.Text };
-            else if (Directory.Exists(shapefilePath.Text))
-                shapeFilePaths = Directory.GetFiles(shapefilePath.Text, "*.shp").ToArray();
+            if (File.Exists(shapeFilePath.Text))
+                shapeFilePaths = new string[] { shapeFilePath.Text };
+            else if (Directory.Exists(shapeFilePath.Text))
+                shapeFilePaths = Directory.GetFiles(shapeFilePath.Text, "*.shp").ToArray();
             else
             {
-                MessageBox.Show("Path \"" + shapefilePath.Text + "\" does not exist.");
+                MessageBox.Show("Path \"" + shapeFilePath.Text + "\" does not exist.");
                 return;
             }
 
             if (shapeFilePaths.Length == 0)
-                MessageBox.Show("No shapefile(s) found at \"" + shapefilePath.Text + "\".");
+                MessageBox.Show("No shapefile(s) found at \"" + shapeFilePath.Text + "\".");
             else
             {
                 try
                 {
-                    Shapefile.ShapefileType selectedShapefileType = (Shapefile.ShapefileType)shapefileType.SelectedItem;
+                    string selectedShapefileType = featureType.SelectedItem.ToString();
 
                     Thread t = new Thread(new ThreadStart(delegate()
                         {
                             try
                             {
-                                Shapefile.ImportShapeFiles(shapeFilePaths, selectedShapefileType); 
-                                Console.Out.WriteLine("Shapefile import succeeded");
+                                if (areaShp.Checked)
+                                    ShapeFile.ImportShapeFiles(shapeFilePaths, AreaShapeFile.Table, AreaShapeFile.Columns.Insert, typeof(AreaShapeFile), new object[] { });
+                                else
+                                    ShapeFile.ImportShapeFiles(shapeFilePaths, FeatureShapeFile.Table, FeatureShapeFile.Columns.Insert, typeof(FeatureShapeFile), new object[] { selectedShapefileType });
+
+                                Console.Out.WriteLine("Shapefile import succeeded.");
                             }
                             catch (Exception ex)
                             {

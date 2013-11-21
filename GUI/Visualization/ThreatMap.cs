@@ -333,12 +333,11 @@ namespace PTL.ATT.GUI.Visualization
                     sliceStart = new DateTime(slice * sliceTicks);
                     sliceEnd = sliceStart + new TimeSpan(sliceTicks);
                 }
-
                 foreach (string trueIncidentOverlay in selectedTrueIncidentOverlays)
                 {
                     _brush.Color = _incidentColor[trueIncidentOverlay];
                     _pen.Color = Color.Black;
-                    foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, DisplayedPrediction.PredictionArea, trueIncidentOverlay))
+                    foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, trueIncidentOverlay))
                     {
                         PointF drawingPoint = ConvertMetersPointToDrawingPixels(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
                         RectangleF circle = GetCircleBoundingBox(drawingPoint, 5);
@@ -696,7 +695,7 @@ namespace PTL.ATT.GUI.Visualization
                 try { selectedFormat = nameFormat[Path.GetExtension(path).Trim('.').ToLower()]; }
                 catch (Exception)
                 {
-                    MessageBox.Show("Invalid file extension. Must be one of:  " + nameFormat.Keys.Concatenate(",") + ".");
+                    MessageBox.Show("Invalid file extension. Must be one of:  " + nameFormat.Keys.Concatenate(","));
                     return;
                 }
 
@@ -734,11 +733,11 @@ namespace PTL.ATT.GUI.Visualization
                     float leftMeters = _regionBottomLeftInMeters.X + colAbsoluteThreatRectangle * widthMeters;
 
                     PostGIS.Polygon threatRectangle = new PostGIS.Polygon(new PostGIS.Point[]{
-                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID)}, DisplayedPrediction.PredictionArea.SRID);
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters + widthMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters + widthMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters, ATT.Configuration.PostgisSRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, ATT.Configuration.PostgisSRID)}, ATT.Configuration.PostgisSRID);
 
                     PointPrediction[] pointPredictions = PointPrediction.GetWithin(threatRectangle, DisplayedPrediction.Id).ToArray();
                     if (pointPredictions.Length > 0)
@@ -815,7 +814,7 @@ namespace PTL.ATT.GUI.Visualization
                         form.Location = new System.Drawing.Point(0, 0);
                     }
                     else
-                        MessageBox.Show("No predictions were made at that location.");
+                        MessageBox.Show("No predictions were made at that location");
                 }
             }
         }

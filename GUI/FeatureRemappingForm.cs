@@ -36,20 +36,20 @@ namespace PTL.ATT.GUI
             InitializeComponent();
         }
 
-        public FeatureRemappingForm(IEnumerable<Feature> trainingFeatures, IEnumerable<Feature> predictionFeatures)
+        public FeatureRemappingForm(IEnumerable<Feature> currentFeatures, IEnumerable<Feature> availableFeatures)
             : this()
         {
-            foreach (Feature trainingFeature in trainingFeatures)
-                training.Items.Add(trainingFeature);
+            foreach (Feature f in currentFeatures)
+                current.Items.Add(f);
 
-            foreach (Feature predictionFeature in predictionFeatures)
-                prediction.Items.Add(predictionFeature);
+            foreach (Feature f in availableFeatures)
+                available.Items.Add(f);
         }
 
         private void reset_Click(object sender, EventArgs e)
         {
-            foreach (Feature trainingFeature in training.Items)
-                trainingFeature.PredictionResourceId = trainingFeature.TrainingResourceId;
+            foreach (Feature f in current.Items)
+                f.PredictionResourceId = f.TrainingResourceId;
 
             RefreshItems();
         }
@@ -61,14 +61,14 @@ namespace PTL.ATT.GUI
 
         private void available_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (prediction.SelectedItem != null)
+            if (available.SelectedItem != null)
             {
-                Feature target = prediction.SelectedItem as Feature;
-                foreach (Feature trainingFeature in training.SelectedItems)
-                    if (trainingFeature.EnumType == target.EnumType && trainingFeature.EnumValue.ToString() == target.EnumValue.ToString())
-                        trainingFeature.PredictionResourceId = target.TrainingResourceId;
+                Feature target = available.SelectedItem as Feature;
+                foreach (Feature f in current.SelectedItems)
+                    if (f.EnumType == target.EnumType && f.EnumValue.ToString() == target.EnumValue.ToString())
+                        f.PredictionResourceId = target.TrainingResourceId;
                     else
-                        MessageBox.Show("Cannot map incompatible features:  " + trainingFeature + " --> " + target);
+                        MessageBox.Show("Cannot map incompatible features:  " + f + " --> " + target);
 
                 RefreshItems();
             }
@@ -76,7 +76,7 @@ namespace PTL.ATT.GUI
 
         private void RefreshItems()
         {
-            typeof(ListBox).InvokeMember("RefreshItems", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod, null, training, new object[] { });
+            typeof(ListBox).InvokeMember("RefreshItems", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod, null, current, new object[] { });
         }
     }
 }

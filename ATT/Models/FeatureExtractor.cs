@@ -27,7 +27,7 @@ namespace PTL.ATT.Models
 {
     public abstract class FeatureExtractor
     {
-        public abstract IEnumerable<Feature> GetAvailableFeatures(Area area);
+        public abstract IEnumerable<Feature> AvailableFeatures { get; }
 
         public abstract void Initialize(DiscreteChoiceModel model, Dictionary<string, string> configurationOptions);
 

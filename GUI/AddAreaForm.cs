@@ -31,9 +31,9 @@ namespace PTL.ATT.GUI
 {
     public partial class AddAreaForm : Form
     {
-        public Shapefile AreaShapefile
+        public AreaShapeFile AreaShapefile
         {
-            get { return areas.SelectedItem as Shapefile; }
+            get { return areas.SelectedItem as AreaShapeFile; }
         }
 
         public AddAreaForm()
@@ -43,9 +43,8 @@ namespace PTL.ATT.GUI
 
         private void AddAreaForm_Load(object sender, EventArgs e)
         {
-            foreach (Shapefile asf in Shapefile.GetAvailable())
-                if (asf.Type == Shapefile.ShapefileType.Area)
-                    areas.Items.Add(asf);
+            foreach (AreaShapeFile asf in AreaShapeFile.GetAvailable())
+                areas.Items.Add(asf);
 
             if (areas.Items.Count > 0)
                 areas.SelectedIndex = 0;
@@ -54,8 +53,6 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No shape files available from which to create area. Import shape files first.");
                 cancel_Click(sender, e);
             }
-
-            Size = PreferredSize;
         }
 
         private void ok_Click(object sender, EventArgs e)
