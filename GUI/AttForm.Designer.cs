@@ -80,6 +80,9 @@ namespace PTL.ATT.GUI
             this.features = new System.Windows.Forms.ListBox();
             this.featuresMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.selectAllFeaturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearFeatureRemappingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.trainingEnd = new System.Windows.Forms.DateTimePicker();
             this.trainingStart = new System.Windows.Forms.DateTimePicker();
             this.label4 = new System.Windows.Forms.Label();
@@ -147,13 +150,10 @@ namespace PTL.ATT.GUI
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.verticalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.threatSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.log = new System.Windows.Forms.RichTextBox();
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
-            this.clearFeatureRemappingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.log = new System.Windows.Forms.RichTextBox();
             this.mainMenu.SuspendLayout();
             this.trainingAreaMenu.SuspendLayout();
             this.featuresMenu.SuspendLayout();
@@ -432,6 +432,25 @@ namespace PTL.ATT.GUI
             this.selectAllFeaturesToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
             this.selectAllFeaturesToolStripMenuItem.Text = "Select all";
             this.selectAllFeaturesToolStripMenuItem.Click += new System.EventHandler(this.selectAllFeaturesToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(297, 6);
+            // 
+            // remapSelectedFeaturesDuringPredictionToolStripMenuItem
+            // 
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Name = "remapSelectedFeaturesDuringPredictionToolStripMenuItem";
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Text = "Remap selected features during prediction...";
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Click += new System.EventHandler(this.remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click);
+            // 
+            // clearFeatureRemappingToolStripMenuItem
+            // 
+            this.clearFeatureRemappingToolStripMenuItem.Name = "clearFeatureRemappingToolStripMenuItem";
+            this.clearFeatureRemappingToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
+            this.clearFeatureRemappingToolStripMenuItem.Text = "Clear feature remapping";
+            this.clearFeatureRemappingToolStripMenuItem.Click += new System.EventHandler(this.clearFeatureRemappingToolStripMenuItem_Click);
             // 
             // trainingEnd
             // 
@@ -1130,6 +1149,24 @@ namespace PTL.ATT.GUI
             this.threatSplitContainer.SplitterDistance = 435;
             this.threatSplitContainer.TabIndex = 0;
             // 
+            // threatMap
+            // 
+            this.threatMap.BackColor = System.Drawing.Color.White;
+            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.threatMap.Location = new System.Drawing.Point(0, 0);
+            this.threatMap.Name = "threatMap";
+            this.threatMap.Size = new System.Drawing.Size(718, 431);
+            this.threatMap.TabIndex = 0;
+            // 
+            // assessments
+            // 
+            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.assessments.Location = new System.Drawing.Point(0, 0);
+            this.assessments.Name = "assessments";
+            this.assessments.Size = new System.Drawing.Size(718, 247);
+            this.assessments.TabIndex = 0;
+            // 
             // horizontalSplitContainer
             // 
             this.horizontalSplitContainer.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
@@ -1160,43 +1197,6 @@ namespace PTL.ATT.GUI
             this.log.Size = new System.Drawing.Size(1122, 91);
             this.log.TabIndex = 0;
             this.log.Text = "";
-            // 
-            // remapSelectedFeaturesDuringPredictionToolStripMenuItem
-            // 
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Name = "remapSelectedFeaturesDuringPredictionToolStripMenuItem";
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Text = "Remap selected features during prediction...";
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Click += new System.EventHandler(this.remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click);
-            // 
-            // threatMap
-            // 
-            this.threatMap.BackColor = System.Drawing.Color.White;
-            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.threatMap.Location = new System.Drawing.Point(0, 0);
-            this.threatMap.Name = "threatMap";
-            this.threatMap.Size = new System.Drawing.Size(718, 431);
-            this.threatMap.TabIndex = 0;
-            // 
-            // assessments
-            // 
-            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.assessments.Location = new System.Drawing.Point(0, 0);
-            this.assessments.Name = "assessments";
-            this.assessments.Size = new System.Drawing.Size(718, 247);
-            this.assessments.TabIndex = 0;
-            // 
-            // clearFeatureRemappingToolStripMenuItem
-            // 
-            this.clearFeatureRemappingToolStripMenuItem.Name = "clearFeatureRemappingToolStripMenuItem";
-            this.clearFeatureRemappingToolStripMenuItem.Size = new System.Drawing.Size(300, 22);
-            this.clearFeatureRemappingToolStripMenuItem.Text = "Clear feature remapping";
-            this.clearFeatureRemappingToolStripMenuItem.Click += new System.EventHandler(this.clearFeatureRemappingToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator5
-            // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(297, 6);
             // 
             // AttForm
             // 
