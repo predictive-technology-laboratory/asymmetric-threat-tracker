@@ -286,10 +286,10 @@ namespace PTL.ATT.GUI
                 incidentTypesMenu.Items.Add(refresh);
             }
 
-            splash.UpdateProgress("ATT started.");
+            splash.UpdateProgress("ATT started");
             done = true;
 
-            Console.Out.WriteLine("ATT started.");            
+            Console.Out.WriteLine("ATT started");
         }
         #endregion
 
@@ -325,48 +325,39 @@ namespace PTL.ATT.GUI
 
         public void importIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SelectedTrainingArea == null)
-                MessageBox.Show("Must select training area into which incidents will be imported.");
-            else
+            Area importArea = PromptForArea("Select area to import incidents into...");
+            if (importArea != null)
             {
-                SelectAreaForm f = new SelectAreaForm();
-                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
+                if (path != null)
                 {
-                    Area importArea = f.SelectedArea;
+                    Thread t = new Thread(new ThreadStart(delegate()
+                        {
+                            try { ATT.Configuration.IncidentImporter.Import(path, importArea); }
+                            catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
+                        }));
 
-                    string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
-                    if (path != null)
-                    {
-                        Thread t = new Thread(new ThreadStart(delegate()
-                            {
-                                try { ATT.Configuration.IncidentImporter.Import(path, importArea); }
-                                catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
-                            }));
-
-                        t.Start();
-                    }
+                    t.Start();
                 }
             }
         }
 
         public void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SelectedTrainingArea == null)
-                MessageBox.Show("Must select training area from which to clear incidents.");
-            else if (MessageBox.Show("Are you sure you want to clear all incidents from \"" + SelectedTrainingArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            Area clearArea = PromptForArea("Select area to clear incidents from...");
+            if (clearArea != null && MessageBox.Show("Are you sure you want to clear all incidents from \"" + clearArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                Incident.Clear(SelectedTrainingArea);
+                Incident.Clear(clearArea);
                 RefreshIncidentTypes();
             }
         }
 
         public void simulateIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SelectedTrainingArea == null)
-                MessageBox.Show("Must select a training area for incident simulation.");
-            else
+            Area simulateArea = PromptForArea("Select area in which to simulate incidents...");
+            if(simulateArea != null)
             {
-                SimulateIncidentsForm f = new SimulateIncidentsForm(SelectedTrainingArea);
+                SimulateIncidentsForm f = new SimulateIncidentsForm(simulateArea);
                 f.ShowDialog();
                 RefreshIncidentTypes();
             }
@@ -374,11 +365,10 @@ namespace PTL.ATT.GUI
 
         public void clearSimulatedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SelectedTrainingArea == null)
-                MessageBox.Show("Must select training area from which to clear simulated incidents.");
-            else if (MessageBox.Show("Are you sure you want to clear all simulated incidents from \"" + SelectedTrainingArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            Area clearSimulatedArea = PromptForArea("Select area to clear simulated incidents from...");
+            if (clearSimulatedArea != null && MessageBox.Show("Are you sure you want to clear all simulated incidents from \"" + clearSimulatedArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                Incident.ClearSimulated(SelectedTrainingArea);
+                Incident.ClearSimulated(clearSimulatedArea);
                 RefreshIncidentTypes();
             }
         }
@@ -402,8 +392,8 @@ namespace PTL.ATT.GUI
         #region training area
         private void trainingAreas_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (trainingAreas.SelectedItem != null)
-                toolTip.SetToolTip(trainingAreas, (trainingAreas.SelectedItem as Area).GetDetails(0));
+            if (SelectedTrainingArea != null)
+                toolTip.SetToolTip(trainingAreas, SelectedTrainingArea.GetDetails(0));
         }
 
         public void addTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -426,13 +416,11 @@ namespace PTL.ATT.GUI
 
         public void deleteTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (trainingAreas.SelectedItem != null)
+            if (SelectedTrainingArea != null)
             {
-                Area selectedArea = trainingAreas.SelectedItem as Area;
-
                 bool hasMadePredictions = false;
                 bool deletePredictions = false;
-                foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(selectedArea))
+                foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(SelectedTrainingArea))
                     if (m.HasMadePredictions)
                     {
                         hasMadePredictions = true;
@@ -445,7 +433,7 @@ namespace PTL.ATT.GUI
 
                 if (!hasMadePredictions || deletePredictions)
                 {
-                    selectedArea.Delete();
+                    SelectedTrainingArea.Delete();
                     RefreshAvailable();
                 }
             }
@@ -520,7 +508,7 @@ namespace PTL.ATT.GUI
         #region model
         public void addModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (trainingAreas.SelectedItem == null)
+            if (SelectedTrainingArea == null)
                 MessageBox.Show("Must select a training area.");
             else if (incidentTypes.SelectedItems.Count == 0)
                 MessageBox.Show("Must select incident types.");
@@ -534,19 +522,19 @@ namespace PTL.ATT.GUI
                     {
                         SpatialDistanceDcmForm f = new SpatialDistanceDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            newModelId = SpatialDistanceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, trainingAreas.SelectedItem as Area, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers);
+                            newModelId = SpatialDistanceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers);
                     }
                     else if (selectModel.Type == typeof(TimeSliceDCM))
                     {
                         TimeSliceDcmForm f = new TimeSliceDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            newModelId = TimeSliceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, trainingAreas.SelectedItem as Area, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers, f.TimeSliceHours, f.TimeSlicesPerPeriod);
+                            newModelId = TimeSliceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers, f.TimeSliceHours, f.TimeSlicesPerPeriod);
                     }
                     else if (selectModel.Type == typeof(KernelDensityDCM))
                     {
                         KernelDensityDcmForm f = new KernelDensityDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            newModelId = KernelDensityDCM.Create(f.ModelName, f.PointSpacing, trainingAreas.SelectedItem as Area, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Normalize, f.Smoothers);
+                            newModelId = KernelDensityDCM.Create(f.ModelName, f.PointSpacing, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Normalize, f.Smoothers);
                     }
 
                     if (newModelId >= 0)
@@ -559,7 +547,7 @@ namespace PTL.ATT.GUI
         {
             if (SelectedModel == null)
                 MessageBox.Show("Must select model.");
-            else if (trainingAreas.SelectedItem == null)
+            else if (SelectedTrainingArea == null)
                 MessageBox.Show("Must select a training area.");
             else if (incidentTypes.SelectedItems.Count == 0)
                 MessageBox.Show("Must select incident types.");
@@ -578,21 +566,21 @@ namespace PTL.ATT.GUI
                     TimeSliceDCM ts = m as TimeSliceDCM;
                     TimeSliceDcmForm f = new TimeSliceDcmForm(ts);
                     if (f.ShowDialog() == DialogResult.OK)
-                        ts.Update(f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, trainingAreas.SelectedItem as Area, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers, f.TimeSliceHours, f.TimeSlicesPerPeriod);
+                        ts.Update(f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers, f.TimeSliceHours, f.TimeSlicesPerPeriod);
                 }
                 else if (m is SpatialDistanceDCM)
                 {
                     SpatialDistanceDCM sd = m as SpatialDistanceDCM;
                     SpatialDistanceDcmForm f = new SpatialDistanceDcmForm(sd);
                     if (f.ShowDialog() == DialogResult.OK)
-                        sd.Update(f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, trainingAreas.SelectedItem as Area, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers);
+                        sd.Update(f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers);
                 }
                 else if (m is KernelDensityDCM)
                 {
                     KernelDensityDCM kde = m as KernelDensityDCM;
                     KernelDensityDcmForm f = new KernelDensityDcmForm(kde);
                     if (f.ShowDialog() == DialogResult.OK)
-                        kde.Update(f.ModelName, f.PointSpacing, trainingAreas.SelectedItem as Area, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Normalize, f.Smoothers);
+                        kde.Update(f.ModelName, f.PointSpacing, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Normalize, f.Smoothers);
                 }
 
                 RefreshModels(m.Id);
@@ -672,15 +660,15 @@ namespace PTL.ATT.GUI
         #region prediction area
         private void predictionAreas_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (predictionAreas.SelectedItem != null)
-                toolTip.SetToolTip(predictionAreas, (predictionAreas.SelectedItem as Area).GetDetails(0));
+            if (SelectedPredictionArea != null)
+                toolTip.SetToolTip(predictionAreas, SelectedPredictionArea.GetDetails(0));
         }
 
         public void deletePredictionAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (predictionAreas.SelectedItem != null)
+            if (SelectedPredictionArea != null)
             {
-                (predictionAreas.SelectedItem as Area).Delete();
+                SelectedPredictionArea.Delete();
                 RefreshAvailable();
             }
         }
@@ -723,7 +711,7 @@ namespace PTL.ATT.GUI
         {
             if (slideTrainingStart.Checked && !slideTrainingEnd.Checked)
             {
-                MessageBox.Show("You cannot slide the training start and not slide the training end");
+                MessageBox.Show("You cannot slide the training start and not slide the training end.");
                 slideTrainingEnd.Checked = true;
             }
         }
@@ -755,7 +743,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must select a model.");
             else if (!(models.SelectedItem is KernelDensityDCM) && features.SelectedItems.Count == 0)
                 MessageBox.Show("Must select one or more features.");
-            else if (predictionAreas.SelectedItem == null)
+            else if (SelectedPredictionArea == null)
                 MessageBox.Show("Must select a prediction area.");
             else if (predictionName == "")
                 MessageBox.Show("Must provide a non-empty prediction name.");
@@ -1071,7 +1059,7 @@ namespace PTL.ATT.GUI
                 }
             }
             else
-                MessageBox.Show("Must select a single prediction to display");
+                MessageBox.Show("Must select a single prediction to display.");
         }
 
         public void editPredictionNameToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1465,6 +1453,22 @@ namespace PTL.ATT.GUI
             }
         }
 
+        private Area PromptForArea(string prompt)
+        {
+            SelectAreaForm f = new SelectAreaForm(prompt);
+            if (f.AreaCount == 0)
+            {
+                MessageBox.Show("No areas available. Please create one first.");
+                return null;
+            }
+
+            Area importArea = null;
+            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK && f.SelectedArea != null)
+                importArea = f.SelectedArea;
+
+            return importArea;
+        }
+
         public void RefreshAreas()
         {
             if (InvokeRequired)
@@ -1709,7 +1713,7 @@ namespace PTL.ATT.GUI
                 string pass = (pf.GetValue("password") as string).Trim();
                 string confirmed = (pf.GetValue("confirmed") as string).Trim();
                 if (pass != confirmed)
-                    MessageBox.Show("Entries do not match");
+                    MessageBox.Show("Entries do not match.");
                 else
                 {
                     password = pass;

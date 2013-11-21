@@ -187,13 +187,13 @@ namespace PTL.ATT
                                                            "(" + 
                                                              "(" +
                                                                 areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
-                                                                "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
+                                                                "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
                                                              ") " +
                                                              "OR " +
                                                              "(" +
                                                                 areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
-                                                                "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
-                                                                "st_intersects(temp.point," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
+                                                                "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
+                                                                "st_intersects(temp." + Columns.Location + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
                                                              ")" +
                                                            ")" + 
                                                 ") " + 
@@ -236,16 +236,6 @@ namespace PTL.ATT
         public DateTime Time
         {
             get { return _time; }
-        }
-
-        internal Point(int id, string table)
-        {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(table) + " FROM " + table + " WHERE " + Columns.Id + "=" + id);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            Construct(reader, table);
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
         }
 
         internal Point(NpgsqlDataReader reader, string table)

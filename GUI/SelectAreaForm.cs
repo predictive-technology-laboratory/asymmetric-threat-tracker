@@ -16,14 +16,23 @@ namespace PTL.ATT.GUI
             get { return areas.SelectedItem as Area; }
         }
 
-        public SelectAreaForm()
+        public int AreaCount
+        {
+            get { return areas.Items.Count; }
+        }
+
+        public SelectAreaForm(string prompt)
         {
             InitializeComponent();
 
+            Text = prompt;
+
             foreach (Area area in Area.GetAvailable())
-                areas.Items.Add(area);
+                areas.Items.Add(area);                       
 
             DialogResult = System.Windows.Forms.DialogResult.Cancel;
+
+            Size = PreferredSize;
         }
 
         private void ok_Click(object sender, EventArgs e)

@@ -125,7 +125,7 @@ namespace PTL.ATT.ShapeFiles
                     cmd.CommandText = sql;
                     cmd.ExecuteNonQuery();
 
-                    Console.Out.WriteLine("Importing shapefile into database.");
+                    Console.Out.WriteLine("Importing shapefile into database");
                     shapefileId = Create(cmd.Connection, shapefileName, toSRID, type);
                     ShapefileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
 

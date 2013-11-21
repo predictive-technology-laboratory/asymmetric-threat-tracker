@@ -260,16 +260,6 @@ namespace PTL.ATT
             set { _totalThreat = value; }
         }
 
-        internal PointPrediction(int id, string table)
-        {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(table) + " FROM " + table + " WHERE " + Columns.Id + "=" + id);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            Construct(reader, table);
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
-        }
-
         internal PointPrediction(NpgsqlDataReader reader, string table)
         {
             Construct(reader, table);

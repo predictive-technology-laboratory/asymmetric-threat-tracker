@@ -239,7 +239,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                                           "WHERE " + Columns.Id + "=" + Id);
         }
 
-        public override int Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction)
+        internal override void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction)
         {
             if (prediction.SelectedFeatures.Count() > 0)
                 throw new Exception("KDE models don't use features");
@@ -310,9 +310,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
                 LastRun = DateTime.Now;
 
-                Console.Out.WriteLine(GetType().FullName + " prediction complete.");
-
-                return prediction.Id;
+                Console.Out.WriteLine(GetType().FullName + " prediction complete");
             }
             finally
             {

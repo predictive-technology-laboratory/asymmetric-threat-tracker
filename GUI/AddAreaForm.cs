@@ -54,6 +54,8 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No shape files available from which to create area. Import shape files first.");
                 cancel_Click(sender, e);
             }
+
+            Size = PreferredSize;
         }
 
         private void ok_Click(object sender, EventArgs e)

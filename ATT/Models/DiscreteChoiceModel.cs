@@ -446,10 +446,14 @@ namespace PTL.ATT.Models
                 DB.Connection.Return(cmd.Connection);
             }
 
-            return Run(prediction, idOfSpatiotemporallyIdenticalPrediction);
+            Run(prediction, idOfSpatiotemporallyIdenticalPrediction);
+
+            prediction.Done = true;
+
+            return prediction.Id;
         }
 
-        public abstract int Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction);
+        internal abstract void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction);
 
         public abstract string GetDetails(Prediction prediction);
 

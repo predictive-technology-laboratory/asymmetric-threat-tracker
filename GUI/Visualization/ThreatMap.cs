@@ -696,7 +696,7 @@ namespace PTL.ATT.GUI.Visualization
                 try { selectedFormat = nameFormat[Path.GetExtension(path).Trim('.').ToLower()]; }
                 catch (Exception)
                 {
-                    MessageBox.Show("Invalid file extension. Must be one of:  " + nameFormat.Keys.Concatenate(","));
+                    MessageBox.Show("Invalid file extension. Must be one of:  " + nameFormat.Keys.Concatenate(",") + ".");
                     return;
                 }
 
@@ -815,7 +815,7 @@ namespace PTL.ATT.GUI.Visualization
                         form.Location = new System.Drawing.Point(0, 0);
                     }
                     else
-                        MessageBox.Show("No predictions were made at that location");
+                        MessageBox.Show("No predictions were made at that location.");
                 }
             }
         }
