@@ -1641,7 +1641,7 @@ namespace PTL.ATT.GUI
                 try { images.Add(new TitledImage(plot.Image, null)); }
                 catch (Exception ex) { MessageBox.Show("Error rendering plot:  " + ex.Message); }
 
-            ImageViewer v = new ImageViewer(images, assessments.Controls.IndexOf(sender as Control));
+            ImageViewer v = new ImageViewer(images, assessments.GetIndexOf(sender as Control));
             v.ShowDialog();
         }
         #endregion
