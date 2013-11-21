@@ -33,39 +33,6 @@ namespace PTL.ATT
 {
     public class PointPrediction
     {
-        private static Set<string> _tables;
-        private static object _staticLockObject = new object();
-
-        public static string GetTable(int predictionId, bool create)
-        {
-            lock (_staticLockObject)
-            {
-                if (_tables == null)
-                    _tables = new Set<string>(DB.Connection.GetTables().Where(t => t.StartsWith("point_prediction_")).ToArray());
-
-                string table = "point_prediction_" + predictionId;
-                if (!_tables.Contains(table))
-                {
-                    if (!create)
-                        return null;
-
-                    CreateTable(table, predictionId);
-                }
-
-                return table;
-            }
-        }
-
-        internal static void DeleteTable(int predictionId)
-        {
-            string table = GetTable(predictionId, false);
-            if (table != null)
-            {
-                try { DB.Connection.ExecuteNonQuery("DROP TABLE " + table + " CASCADE"); }
-                finally { lock (_staticLockObject) { _tables.Remove(table); } }
-            }
-        }
-
         public class Columns
         {
             [Reflector.Select(true)]
@@ -86,30 +53,42 @@ namespace PTL.ATT
             public static string JoinPoint(string predictionPointTable, string pointTable) { return pointTable + " JOIN " + predictionPointTable + " ON " + pointTable + "." + Point.Columns.Id + "=" + predictionPointTable + "." + PointId; }
         }
 
-        private static void CreateTable(string name, int predictionId)
-        {
-            DB.Connection.ExecuteNonQuery(
-                   "CREATE TABLE IF NOT EXISTS " + name + " (" +
-                   Columns.Id + " SERIAL PRIMARY KEY," +
-                   Columns.Labels + " VARCHAR []," +
-                   Columns.PointId + " INT REFERENCES " + Point.GetTable(predictionId, true) + " ON DELETE CASCADE," +
-                   Columns.ThreatScores + " DOUBLE PRECISION []," +
-                   Columns.Time + " TIMESTAMP," +
-                   Columns.TotalThreat + " DOUBLE PRECISION);" +
-                   "CREATE INDEX ON " + name + " (" + Columns.Labels + ");" +
-                   "CREATE INDEX ON " + name + " (" + Columns.PointId + ");" +
-                   "CREATE INDEX ON " + name + " (" + Columns.ThreatScores + ");" +
-                   "CREATE INDEX ON " + name + " (" + Columns.Time + ");");
+        public const string NullLabel = "NULL";
 
-            lock (_tables) { _tables.Add(name); }
+        internal static string GetTableName(int predictionId)
+        {
+            return "point_prediction_" + predictionId;
+        }
+
+        internal static string CreateTable(int predictionId)
+        {
+            string table = GetTableName(predictionId);
+
+            DB.Connection.ExecuteNonQuery(
+                "CREATE TABLE " + table + " (" +
+                 Columns.Id + " SERIAL PRIMARY KEY," +
+                 Columns.Labels + " VARCHAR []," +
+                 Columns.PointId + " INT REFERENCES " + Point.GetTableName(predictionId) + " ON DELETE CASCADE," +
+                 Columns.ThreatScores + " DOUBLE PRECISION []," +
+                 Columns.Time + " TIMESTAMP," +
+                 Columns.TotalThreat + " DOUBLE PRECISION);" +
+                 "CREATE INDEX ON " + table + " (" + Columns.Labels + ");" +
+                 "CREATE INDEX ON " + table + " (" + Columns.PointId + ");" +
+                 "CREATE INDEX ON " + table + " (" + Columns.ThreatScores + ");" +
+                 "CREATE INDEX ON " + table + " (" + Columns.Time + ");");
+
+            return table;
+        }
+
+        internal static void DeleteTable(int predictionId)
+        {
+            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(predictionId) + " CASCADE");
         }
 
         public static void VacuumTable(int predictionId)
         {
-            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTable(predictionId, false));
+            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
         }
-
-        public const string NullLabel = "NULL";
 
         internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, int predictionId, bool vacuum)
         {
@@ -123,7 +102,7 @@ namespace PTL.ATT
                         int pointNum = 0;
                         int pointsPerBatch = 5000;
                         int skip = (int)o;
-                        string table = GetTable(predictionId, true);
+                        string table = GetTableName(predictionId);
                         foreach (Tuple<string, Parameter> valueParameter in valueParameters)
                             if (skip-- <= 0)
                             {
@@ -165,8 +144,8 @@ namespace PTL.ATT
 
         public static IEnumerable<PointPrediction> GetWithin(Polygon polygon, int predictionId)
         {
-            string table = GetTable(predictionId, false);
-            string pointTable = Point.GetTable(predictionId, false);
+            string table = GetTableName(predictionId);
+            string pointTable = Point.GetTableName(predictionId);
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(table) + " " +
                                                          "FROM " + Columns.JoinPoint(table, pointTable) + " " +
                                                          "WHERE st_intersects(" + pointTable + "." + Point.Columns.Location + "," + polygon.StGeometryFromText + ")");
@@ -197,7 +176,7 @@ namespace PTL.ATT
                         StringBuilder cmdText = new StringBuilder();
                         StringBuilder labels = new StringBuilder();
                         StringBuilder scores = new StringBuilder();
-                        string table = GetTable(predictionId, false);
+                        string table = GetTableName(predictionId);
                         foreach (PointPrediction pointPrediction in pointPredictions)
                             if (skip-- <= 0)
                             {
@@ -279,16 +258,6 @@ namespace PTL.ATT
         {
             get { return _totalThreat; }
             set { _totalThreat = value; }
-        }
-
-        internal PointPrediction(int id, string table)
-        {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(table) + " FROM " + table + " WHERE " + Columns.Id + "=" + id);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            Construct(reader, table);
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
         }
 
         internal PointPrediction(NpgsqlDataReader reader, string table)

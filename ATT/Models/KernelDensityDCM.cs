@@ -203,11 +203,6 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             get { return _normalize; }
         }
 
-        public override IEnumerable<Feature> AvailableFeatures
-        {
-            get { yield break; }
-        }
-
         internal KernelDensityDCM(int id)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
@@ -228,6 +223,11 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             _normalize = Convert.ToBoolean(reader[Table + "_" + Columns.Normalize]);
         }
 
+        public override IEnumerable<Feature> GetAvailableFeatures(Area area)
+        {
+            yield break;
+        }
+
         public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, bool normalize, IEnumerable<Smoother> smoothers)
         {
             base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
@@ -239,7 +239,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                                           "WHERE " + Columns.Id + "=" + Id);
         }
 
-        public override int Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction)
+        internal override void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction)
         {
             if (prediction.SelectedFeatures.Count() > 0)
                 throw new Exception("KDE models don't use features");
@@ -252,9 +252,9 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             double areaMaxY = predictionArea.BoundingBox.MaxY;
             for (double x = areaMinX + PointSpacing / 2d; x <= areaMaxX; x += PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + PointSpacing / 2d; y <= areaMaxY; y += PointSpacing)
-                    (nullPoints as List<PostGIS.Point>).Add(new PostGIS.Point(x, y, Configuration.PostgisSRID));
+                    (nullPoints as List<PostGIS.Point>).Add(new PostGIS.Point(x, y, predictionArea.SRID));
 
-            nullPoints = predictionArea.Contains(nullPoints).Select(i => ((List<PostGIS.Point>)nullPoints)[i]).ToArray();
+            nullPoints = predictionArea.Contains(nullPoints).Select(i => (nullPoints as List<PostGIS.Point>)[i]).ToArray();
 
             NpgsqlConnection connection = DB.Connection.OpenConnection;
 
@@ -262,9 +262,10 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             {
                 Console.Out.WriteLine("Running KDE for all incident types");
 
-                List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, null, false);
+                Point.CreateTable(prediction.Id, predictionArea.SRID);
+                List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, predictionArea, false, false);
 
-                List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, IncidentTypes.ToArray()).Select(i => i.Location));
+                List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
                 List<float> density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize, false);
                 Dictionary<int, float> pointIdOverallDensity = new Dictionary<int, float>();
                 int pointNum = 0;
@@ -286,7 +287,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 else
                     foreach (string incidentType in IncidentTypes)
                     {
-                        incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, incidentType).Select(i => i.Location));
+                        incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, incidentType).Select(i => i.Location));
 
                         Console.Out.WriteLine("Running KDE for incident \"" + incidentType);
 
@@ -302,15 +303,14 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                         }
                     }
 
+                PointPrediction.CreateTable(prediction.Id);
                 PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction.Id, false);
 
                 Smooth(prediction);
 
                 LastRun = DateTime.Now;
 
-                Console.Out.WriteLine(GetType().FullName + " prediction complete.");
-
-                return prediction.Id;
+                Console.Out.WriteLine(GetType().FullName + " prediction complete");
             }
             finally
             {
