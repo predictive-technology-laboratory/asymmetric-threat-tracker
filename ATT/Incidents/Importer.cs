@@ -30,6 +30,6 @@ namespace PTL.ATT.Incidents
     {
         public Importer() { }
 
-        public abstract void Import(string path);
+        public abstract void Import(string path, Area area);
     }
 }

@@ -45,5 +45,10 @@ namespace PTL.ATT.GUI.Visualization
         {
             plots.Controls.Add(plot);
         }
+
+        public int GetIndexOf(Control plot)
+        {
+            return plots.Controls.IndexOf(plot);
+        }
     }
 }

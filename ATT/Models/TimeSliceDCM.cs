@@ -176,18 +176,6 @@ namespace PTL.ATT.Models
             get { return _periodTimeSlices; }
         }
 
-        public override IEnumerable<Feature> AvailableFeatures
-        {
-            get
-            {
-                foreach (Feature f in base.AvailableFeatures)
-                    yield return f;
-
-                foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
-                    yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString());
-            }
-        }
-
         public long TimeSliceTicks
         {
             get { return new TimeSpan(_timeSliceHours, 0, 0).Ticks; }
@@ -212,6 +200,15 @@ namespace PTL.ATT.Models
 
             _timeSliceHours = Convert.ToInt32(reader[Table + "_" + Columns.TimeSliceHours]);
             _periodTimeSlices = Convert.ToInt32(reader[Table + "_" + Columns.PeriodTimeSlices]);
+        }
+
+        public override IEnumerable<Feature> GetAvailableFeatures(Area area)
+        {
+            foreach (Feature f in base.GetAvailableFeatures(area))
+                yield return f;
+
+            foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
+                yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString());
         }
 
         public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, int timeSliceHours, int periodTimeSlices)
