@@ -318,6 +318,11 @@ namespace PTL.ATT.Models
             #region spatial distance features
             Console.Out.WriteLine("Extracting spatial distance feature values");
 
+            // all features must reference a shapefile that is present in the area's SRID
+            Set<int> featuresInSRID = new Set<int>(Shapefile.GetAvailable(area.SRID).Select(s => s.Id).ToArray());
+            if (prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.DistanceShapeFile)).Any(f => !featuresInSRID.Contains(training ? int.Parse(f.TrainingResourceId) : int.Parse(f.PredictionResourceId))))
+                Console.Out.WriteLine("WARNING:  One or more features used in the prediction were not valid for the \"" + area.Name + "\" area. This can happen when predicting on an area that is different from the training area. In such cases, the features can be remapped during prediction.");
+
             List<Dictionary<int, FeatureVector>> corePointIdFeatureVector = new List<Dictionary<int, FeatureVector>>(Configuration.ProcessorCount);
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
@@ -337,8 +342,8 @@ namespace PTL.ATT.Models
 
                                                                      // cross points with features
                                                                      "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                    // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
-                                                                                                                                                              "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
-                                                                                                                                                              "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
+                                                                                                                                                           "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
+                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
                                                                      // only process points associated with the current core                                                                                         
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
@@ -420,6 +425,10 @@ namespace PTL.ATT.Models
             #endregion
 
             #region kde
+            // all density features should have events in the area
+            if (prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.IncidentKernelDensityEstimate)).Any(f => Incident.Count(TrainingStart, TrainingEnd, area, training ? f.TrainingResourceId : f.PredictionResourceId) == 0))
+                Console.Out.WriteLine("WARNING:  One or more density features reference incident types that are not present in the area \"" + area.Name + "\". This can happen when predicting on an area that is different from the training area. In such cases, the features can be remapped during prediction.");
+            
             List<Feature> kdeFeatures = prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.IncidentKernelDensityEstimate)).ToList();
             if (kdeFeatures.Count > 0)
             {

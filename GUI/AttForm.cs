@@ -329,18 +329,22 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must select training area into which incidents will be imported.");
             else
             {
-                Area trainingArea = SelectedTrainingArea;
-
-                string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + trainingArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
-                if (path != null)
+                SelectAreaForm f = new SelectAreaForm();
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    Thread t = new Thread(new ThreadStart(delegate()
-                        {
-                            try { ATT.Configuration.IncidentImporter.Import(path, trainingArea); }
-                            catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + trainingArea + "\":  " + ex.Message); }
-                        }));
+                    Area importArea = f.SelectedArea;
 
-                    t.Start();
+                    string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
+                    if (path != null)
+                    {
+                        Thread t = new Thread(new ThreadStart(delegate()
+                            {
+                                try { ATT.Configuration.IncidentImporter.Import(path, importArea); }
+                                catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
+                            }));
+
+                        t.Start();
+                    }
                 }
             }
         }

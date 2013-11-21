@@ -47,31 +47,31 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
-            this.current = new System.Windows.Forms.ListBox();
-            this.available = new System.Windows.Forms.ListBox();
+            this.training = new System.Windows.Forms.ListBox();
+            this.prediction = new System.Windows.Forms.ListBox();
             this.ok = new System.Windows.Forms.Button();
             this.reset = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // current
+            // training
             // 
-            this.current.FormattingEnabled = true;
-            this.current.HorizontalScrollbar = true;
-            this.current.Location = new System.Drawing.Point(12, 12);
-            this.current.Name = "current";
-            this.current.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.current.Size = new System.Drawing.Size(266, 290);
-            this.current.TabIndex = 0;
+            this.training.FormattingEnabled = true;
+            this.training.HorizontalScrollbar = true;
+            this.training.Location = new System.Drawing.Point(12, 12);
+            this.training.Name = "training";
+            this.training.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.training.Size = new System.Drawing.Size(266, 290);
+            this.training.TabIndex = 0;
             // 
-            // available
+            // prediction
             // 
-            this.available.FormattingEnabled = true;
-            this.available.HorizontalScrollbar = true;
-            this.available.Location = new System.Drawing.Point(284, 12);
-            this.available.Name = "available";
-            this.available.Size = new System.Drawing.Size(266, 290);
-            this.available.TabIndex = 1;
-            this.available.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.available_MouseDoubleClick);
+            this.prediction.FormattingEnabled = true;
+            this.prediction.HorizontalScrollbar = true;
+            this.prediction.Location = new System.Drawing.Point(284, 12);
+            this.prediction.Name = "prediction";
+            this.prediction.Size = new System.Drawing.Size(266, 290);
+            this.prediction.TabIndex = 1;
+            this.prediction.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.available_MouseDoubleClick);
             // 
             // ok
             // 
@@ -100,8 +100,8 @@ namespace PTL.ATT.GUI
             this.ClientSize = new System.Drawing.Size(560, 341);
             this.Controls.Add(this.reset);
             this.Controls.Add(this.ok);
-            this.Controls.Add(this.available);
-            this.Controls.Add(this.current);
+            this.Controls.Add(this.prediction);
+            this.Controls.Add(this.training);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "FeatureRemappingForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -112,8 +112,8 @@ namespace PTL.ATT.GUI
 
         #endregion
 
-        private System.Windows.Forms.ListBox current;
-        private System.Windows.Forms.ListBox available;
+        private System.Windows.Forms.ListBox training;
+        private System.Windows.Forms.ListBox prediction;
         private System.Windows.Forms.Button ok;
         private System.Windows.Forms.Button reset;
     }
