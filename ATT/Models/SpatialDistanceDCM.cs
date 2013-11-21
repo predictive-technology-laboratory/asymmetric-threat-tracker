@@ -328,6 +328,7 @@ namespace PTL.ATT.Models
                 Console.Out.WriteLine("WARNING:  One or more features used in the prediction were not valid for the \"" + area.Name + "\" area. This can happen when predicting on an area that is different from the training area. In such cases, the features can be remapped during prediction.");
 
             List<Dictionary<int, FeatureVector>> corePointIdFeatureVector = new List<Dictionary<int, FeatureVector>>(Configuration.ProcessorCount);
+            float featureValueWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2));
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
@@ -373,7 +374,7 @@ namespace PTL.ATT.Models
                                                       pointFeatureTable + ".feature_id," +
 
                                                       // the feature value for a point is the minimum distance from the point to an object associated with the feature
-                                                     "CASE WHEN COUNT(sfg." + ShapefileGeometry.Columns.Geometry + ")=0 THEN NULL " + 
+                                                     "CASE WHEN COUNT(sfg." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + featureValueWhenBeyondThreshold + " " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box. 
                                                      "ELSE min(st_distance(st_closestpoint(sfg." + ShapefileGeometry.Columns.Geometry + "," + pointFeatureTable + ".point_location)," + pointFeatureTable + ".point_location)) " +
                                                      "END as feature_value " +
 
@@ -401,13 +402,13 @@ namespace PTL.ATT.Models
                             int featureId = Convert.ToInt32(reader["feature_id"]);
                             if (featureId != -1) // we can get -1 back if no objects for a feature were within the point's bounding box or if no features were defined (we did a left-join with the feature)
                             {
-                                object valueObj = reader["feature_value"];
-                                if (!(valueObj is DBNull)) // we can get back null values if there was no object within the distance threshold
-                                {
-                                    double value = Convert.ToDouble(valueObj);
-                                    if (value <= FeatureDistanceThreshold) // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again.
-                                        vector.Add(idFeature[featureId], value, false);
-                                }
+                                double value = Convert.ToDouble(reader["feature_value"]);
+
+                                // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again and reset appropriately
+                                if (value > featureValueWhenBeyondThreshold)
+                                    value = featureValueWhenBeyondThreshold;
+
+                                vector.Add(idFeature[featureId], value, false);
                             }
                         }
                         reader.Close();
@@ -582,10 +583,6 @@ namespace PTL.ATT.Models
                         Console.Out.WriteLine("Making predictions");
 
                         _classifier.Classify(featureVectors, prediction);
-
-                        // only use vectors with features
-                        foreach (int vectorNoFeatures in featureVectors.Select((v, i) => v.Count == 0 ? i : -1).Where(i => i != -1).OrderBy(i => i).Reverse())
-                            featureVectors.RemoveAt(vectorNoFeatures);
 
                         foreach (FeatureVector vector in featureVectors.OrderBy(v => (v.DerivedFrom as Point).Id))  // sort by point ID so prediction log is sorted
                         {

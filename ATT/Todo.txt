@@ -2,6 +2,7 @@
 Allow user to generate a simple density estimate/map for one or more crime types without having to go through the entire prediction pipeline.
 Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
 Add raster feature ingest
+Improve remapping of features for prediction - currently clumsy.
 Incident collapsing
 Make sure buttons in all forms are consistently named / ordered
 Decouple models from predictions (mostly done)
