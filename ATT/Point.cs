@@ -61,7 +61,7 @@ namespace PTL.ATT
             }
         }
 
-        internal static string GetTableName(int predictionId)
+        public static string GetTableName(int predictionId)
         {
             return "point_" + predictionId;
         }

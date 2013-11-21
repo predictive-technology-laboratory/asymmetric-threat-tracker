@@ -761,7 +761,7 @@ namespace PTL.ATT
         /// <summary>
         /// Releases all data that was lazy-loaded into memory (e.g., points). Often this data can be large and needs to be cleaned up.
         /// </summary>
-        internal void ReleaseLazyLoadedData()
+        public void ReleaseLazyLoadedData()
         {
             _trainingArea = _predictionArea = null;
             _points = null;
