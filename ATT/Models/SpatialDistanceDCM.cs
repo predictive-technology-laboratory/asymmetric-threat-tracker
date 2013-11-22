@@ -322,11 +322,6 @@ namespace PTL.ATT.Models
             #region spatial distance features
             Console.Out.WriteLine("Extracting spatial distance feature values");
 
-            // all features must reference a shapefile that is present in the area's SRID
-            Set<int> featuresInSRID = new Set<int>(Shapefile.GetAvailable(area.SRID).Select(s => s.Id).ToArray());
-            if (prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.DistanceShapeFile)).Any(f => !featuresInSRID.Contains(training ? int.Parse(f.TrainingResourceId) : int.Parse(f.PredictionResourceId))))
-                Console.Out.WriteLine("WARNING:  One or more features used in the prediction were not valid for the \"" + area.Name + "\" area. This can happen when predicting on an area that is different from the training area. In such cases, the features can be remapped during prediction.");
-
             List<Dictionary<int, FeatureVector>> corePointIdFeatureVector = new List<Dictionary<int, FeatureVector>>(Configuration.ProcessorCount);
             float featureValueWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2));
             Set<Thread> threads = new Set<Thread>();
@@ -525,6 +520,12 @@ namespace PTL.ATT.Models
         {
             if (prediction.SelectedFeatures.Count() == 0)
                 throw new Exception("Must select one or more features.");
+
+            // all features must reference a shapefile that is valid for the prediction area's SRID
+            Set<int> shapefilesInPredictionSRID = new Set<int>(Shapefile.GetAvailable(prediction.PredictionArea.SRID).Select(s => s.Id).ToArray());
+            string badFeatures = prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.DistanceShapeFile) && !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
+            if (badFeatures.Length > 0)
+                throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction.");
 
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 

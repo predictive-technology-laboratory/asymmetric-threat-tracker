@@ -95,6 +95,15 @@ namespace PTL.ATT.Incidents
             return areaId + "," + location + "," + simulated + "," + time + ",'" + type + "'";
         }
 
+        public static void Clear(Area area)
+        {
+            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            {
+                DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area.SRID) + " WHERE " + Columns.AreaId + "=" + area.Id);
+                VacuumTable(area.SRID);
+            }
+        }
+
         public static void Simulate(Area area, string[] incidentTypes, DateTime startDate, DateTime endDate, int n)
         {
             double minX = area.BoundingBox.MinX;
@@ -160,16 +169,13 @@ namespace PTL.ATT.Incidents
             VacuumTable(area.SRID);
         }
 
-        public static void Clear(Area area)
-        {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area.SRID) + " WHERE " + Columns.AreaId + "=" + area.Id);
-            VacuumTable(area.SRID);
-        }
-
         public static void ClearSimulated(Area area)
         {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area.SRID) + " WHERE " + Columns.AreaId + "=" + area.Id + " AND " + Columns.Simulated + "=" + true);
-            VacuumTable(area.SRID);
+            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            {
+                DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area.SRID) + " WHERE " + Columns.AreaId + "=" + area.Id + " AND " + Columns.Simulated + "=" + true);
+                VacuumTable(area.SRID);
+            }
         }
 
         public static IEnumerable<string> GetUniqueTypes(DateTime start, DateTime end, Area area)

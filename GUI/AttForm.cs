@@ -259,7 +259,7 @@ namespace PTL.ATT.GUI
 
             splash.UpdateProgress("Importing data from database...");
 
-            try { RefreshAvailable(true); }
+            try { RefreshAvailable(); }
             catch (Exception ex)
             {
                 done = true;
@@ -333,7 +333,11 @@ namespace PTL.ATT.GUI
                 {
                     Thread t = new Thread(new ThreadStart(delegate()
                         {
-                            try { ATT.Configuration.IncidentImporter.Import(path, importArea); }
+                            try
+                            {
+                                ATT.Configuration.IncidentImporter.Import(path, importArea);
+                                RefreshIncidentTypes();
+                            }
                             catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
                         }));
 
@@ -349,6 +353,7 @@ namespace PTL.ATT.GUI
             {
                 Incident.Clear(clearArea);
                 RefreshIncidentTypes();
+                RefreshFeatures();
             }
         }
 
@@ -370,6 +375,7 @@ namespace PTL.ATT.GUI
             {
                 Incident.ClearSimulated(clearSimulatedArea);
                 RefreshIncidentTypes();
+                RefreshFeatures();
             }
         }
 
@@ -387,6 +393,22 @@ namespace PTL.ATT.GUI
 
             t.Start();
         }
+
+        private Area PromptForArea(string prompt)
+        {
+            SelectAreaForm f = new SelectAreaForm(prompt);
+            if (f.AreaCount == 0)
+            {
+                MessageBox.Show("No areas available. Please create one first.");
+                return null;
+            }
+
+            Area importArea = null;
+            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK && f.SelectedArea != null)
+                importArea = f.SelectedArea;
+
+            return importArea;
+        }
         #endregion
 
         #region training area
@@ -394,6 +416,9 @@ namespace PTL.ATT.GUI
         {
             if (SelectedTrainingArea != null)
                 toolTip.SetToolTip(trainingAreas, SelectedTrainingArea.GetDetails(0));
+
+            RefreshIncidentTypes();
+            RefreshModels(-1, true);
         }
 
         public void addTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
@@ -417,25 +442,27 @@ namespace PTL.ATT.GUI
         public void deleteTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (SelectedTrainingArea != null)
+                DeleteArea(SelectedTrainingArea);
+        }
+
+        private void DeleteArea(Area area)
+        {
+            bool hasMadePredictions = false;
+            bool deletePredictions = false;
+            foreach (Prediction prediction in Prediction.GetForArea(area))
             {
-                bool hasMadePredictions = false;
-                bool deletePredictions = false;
-                foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(SelectedTrainingArea))
-                    if (m.HasMadePredictions)
-                    {
-                        hasMadePredictions = true;
+                hasMadePredictions = true;
 
-                        if (!deletePredictions && !(deletePredictions = MessageBox.Show("The selected area is associated with models and predictions, which must be deleted before the area can be deleted. Delete them now?", "Delete predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes))
-                            break;
+                if (!deletePredictions && !(deletePredictions = MessageBox.Show("The area \"" + area.Name + "\" is associated with models and predictions, which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes))
+                    break;
 
-                        m.DeletePredictions();
-                    }
+                prediction.Delete();
+            }
 
-                if (!hasMadePredictions || deletePredictions)
-                {
-                    SelectedTrainingArea.Delete();
-                    RefreshAvailable();
-                }
+            if (!hasMadePredictions || deletePredictions)
+            {
+                area.Delete();
+                RefreshAvailable();
             }
         }
         #endregion
@@ -538,7 +565,7 @@ namespace PTL.ATT.GUI
                     }
 
                     if (newModelId >= 0)
-                        RefreshModels(newModelId);
+                        RefreshModels(newModelId, true);
                 }
             }
         }
@@ -583,7 +610,7 @@ namespace PTL.ATT.GUI
                         kde.Update(f.ModelName, f.PointSpacing, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Normalize, f.Smoothers);
                 }
 
-                RefreshModels(m.Id);
+                RefreshModels(m.Id, true);
             }
         }
 
@@ -667,10 +694,7 @@ namespace PTL.ATT.GUI
         public void deletePredictionAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (SelectedPredictionArea != null)
-            {
-                SelectedPredictionArea.Delete();
-                RefreshAvailable();
-            }
+                DeleteArea(SelectedPredictionArea);
         }
         #endregion
 
@@ -1425,11 +1449,11 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region refreshing
-        public void RefreshAvailable(bool throwExceptionIfRaised = false)
+        public void RefreshAvailable()
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<bool>(RefreshAvailable));
+                Invoke(new Action(RefreshAvailable));
                 return;
             }
 
@@ -1439,7 +1463,7 @@ namespace PTL.ATT.GUI
             try
             {
                 RefreshAreas();
-                RefreshModels(-1);  // must be before incident types and features so that events triggered by refreshing incident types and features go through okay
+                RefreshModels(-1, false);  // must be before incident types and features so that events triggered by refreshing incident types and features go through okay
                 RefreshIncidentTypes();
                 RefreshFeatures();
                 RefreshPredictions(-1);
@@ -1447,26 +1471,7 @@ namespace PTL.ATT.GUI
             catch (Exception ex)
             {
                 Console.Out.WriteLine("Failed to get current information from ATT database:  " + ex.Message + Environment.NewLine + ex.StackTrace);
-
-                if (throwExceptionIfRaised)
-                    throw ex;
             }
-        }
-
-        private Area PromptForArea(string prompt)
-        {
-            SelectAreaForm f = new SelectAreaForm(prompt);
-            if (f.AreaCount == 0)
-            {
-                MessageBox.Show("No areas available. Please create one first.");
-                return null;
-            }
-
-            Area importArea = null;
-            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK && f.SelectedArea != null)
-                importArea = f.SelectedArea;
-
-            return importArea;
         }
 
         public void RefreshAreas()
@@ -1506,7 +1511,6 @@ namespace PTL.ATT.GUI
             _setTrainingStartEndToolTip = false;
 
             incidentTypes.Items.Clear();
-
             if (SelectedTrainingArea != null)
                 foreach (string incidentType in Incident.GetUniqueTypes(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea))
                     incidentTypes.Items.Add(incidentType);
@@ -1524,27 +1528,34 @@ namespace PTL.ATT.GUI
             SetTrainingStartEndToolTip();
         }
 
-        public void RefreshModels(int modelIdToSelect)
+        public void RefreshModels(int modelIdToSelect, bool refreshFeatures)
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<int>(RefreshModels), modelIdToSelect);
+                Invoke(new Action<int, bool>(RefreshModels), modelIdToSelect, refreshFeatures);
                 return;
             }
 
             toolTip.SetToolTip(models, null);
 
             models.Items.Clear();
-            DiscreteChoiceModel.ClearCache();
-            foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetAvailable())
-                models.Items.Add(m);
 
-            if (models.Items.Count > 0)
+            if (SelectedTrainingArea != null)
             {
-                if (modelIdToSelect < 0)
-                    modelIdToSelect = (models.Items[0] as DiscreteChoiceModel).Id;
+                DiscreteChoiceModel.ClearCache();
+                foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(SelectedTrainingArea))
+                    models.Items.Add(m);
 
-                models.SelectedIndex = models.Items.IndexOf(models.Items.Cast<DiscreteChoiceModel>().Where(m => m.Id == modelIdToSelect).First());
+                if (models.Items.Count > 0)
+                {
+                    if (modelIdToSelect < 0)
+                        modelIdToSelect = (models.Items[0] as DiscreteChoiceModel).Id;
+
+                    models.SelectedIndex = models.Items.IndexOf(models.Items.Cast<DiscreteChoiceModel>().Where(m => m.Id == modelIdToSelect).First());
+                }
+
+                if (refreshFeatures)
+                    RefreshFeatures();
             }
         }
 

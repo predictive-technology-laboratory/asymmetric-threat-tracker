@@ -391,7 +391,13 @@ namespace PTL.ATT.Models
 
         public bool HasMadePredictions
         {
-            get { return Convert.ToBoolean(DB.Connection.ExecuteScalar("SELECT COUNT(*) > 0 FROM " + Prediction.Table + " WHERE " + Prediction.Table + "." + Prediction.Columns.ModelId + "=" + _id)); }
+            get
+            {
+                return Convert.ToBoolean(DB.Connection.ExecuteScalar("SELECT COUNT(*) > 0 " +
+                                                                     "FROM " + Prediction.Table + " " +
+                                                                     "WHERE " + Prediction.Table + "." + Prediction.Columns.ModelId + "=" + _id + " AND " +
+                                                                                Prediction.Table + "." + Prediction.Columns.Done + "=TRUE"));
+            }
         }
         #endregion
 
@@ -544,7 +550,7 @@ namespace PTL.ATT.Models
                 OnPredictionDeleted(prediction);
         }
 
-        public virtual void Delete()
+        public void Delete()
         {
             if (HasMadePredictions)
                 throw new Exception("Cannot delete model without first deleting predictions");

@@ -185,9 +185,8 @@ namespace PTL.ATT
 
         public void Delete()
         {
-            foreach (DiscreteChoiceModel model in DiscreteChoiceModel.GetForArea(this))
-                if (model.HasMadePredictions)
-                    throw new Exception("Predictions have been made based on the given area. Cannot delete it.");
+            if (Prediction.GetForArea(this).Count() > 0)
+                throw new Exception("Predictions have been made based on the given area. Cannot delete it.");
 
             DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
         }

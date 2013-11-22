@@ -182,6 +182,20 @@ namespace PTL.ATT
             return predictions;
         }
 
+        public static IEnumerable<Prediction> GetForArea(Area area)
+        {
+            List<Prediction> predictions = new List<Prediction>();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE AND (" + Columns.TrainingAreaId + "=" + area.Id + " OR " + Columns.PredictionAreaId + "=" + area.Id + ")");
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+                predictions.Add(new Prediction(reader));
+
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
+
+            return predictions;
+        }
+
         private bool _done;
         private int _id;
         private int _runId;
