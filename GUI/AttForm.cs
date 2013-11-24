@@ -259,7 +259,7 @@ namespace PTL.ATT.GUI
 
             splash.UpdateProgress("Importing data from database...");
 
-            try { RefreshAvailable(); }
+            try { RefreshAll(); }
             catch (Exception ex)
             {
                 done = true;
@@ -433,7 +433,7 @@ namespace PTL.ATT.GUI
                         Area.Create(aaf.AreaShapefile, aaf.AreaShapefile.Name);
                         RefreshAreas();
 
-                        Console.Out.WriteLine("Finished creating area definition");
+                        Console.Out.WriteLine("Finished creating area");
                     }));
                 t.Start();
             }
@@ -462,7 +462,7 @@ namespace PTL.ATT.GUI
             if (!hasMadePredictions || deletePredictions)
             {
                 area.Delete();
-                RefreshAvailable();
+                RefreshAll();
             }
         }
         #endregion
@@ -524,7 +524,6 @@ namespace PTL.ATT.GUI
             {
                 m.Update(m.Name, m.PointSpacing, m.TrainingArea, m.TrainingStart, m.TrainingEnd, m.TrainingSampleSize, m.PredictionSampleSize, SelectedIncidentTypes, m.Smoothers);
                 toolTip.SetToolTip(models, m.GetDetails(0));
-                RefreshFeatures();
             }
 
             if (_setTrainingStartEndToolTip)
@@ -626,7 +625,7 @@ namespace PTL.ATT.GUI
                 if (!m.HasMadePredictions)
                     m.Delete();
 
-                RefreshAvailable();
+                RefreshAll();
             }
         }
 
@@ -1449,11 +1448,11 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region refreshing
-        public void RefreshAvailable()
+        public void RefreshAll()
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(RefreshAvailable));
+                Invoke(new Action(RefreshAll));
                 return;
             }
 
@@ -1463,14 +1462,11 @@ namespace PTL.ATT.GUI
             try
             {
                 RefreshAreas();
-                RefreshModels(-1, false);  // must be before incident types and features so that events triggered by refreshing incident types and features go through okay
-                RefreshIncidentTypes();
-                RefreshFeatures();
                 RefreshPredictions(-1);
             }
             catch (Exception ex)
             {
-                Console.Out.WriteLine("Failed to get current information from ATT database:  " + ex.Message + Environment.NewLine + ex.StackTrace);
+                Console.Out.WriteLine("Failed to refresh information from database:  " + ex.Message + Environment.NewLine + ex.StackTrace);
             }
         }
 
@@ -1542,7 +1538,6 @@ namespace PTL.ATT.GUI
 
             if (SelectedTrainingArea != null)
             {
-                DiscreteChoiceModel.ClearCache();
                 foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(SelectedTrainingArea))
                     models.Items.Add(m);
 

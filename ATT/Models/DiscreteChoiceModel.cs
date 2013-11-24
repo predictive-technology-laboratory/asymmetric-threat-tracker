@@ -196,17 +196,11 @@ namespace PTL.ATT.Models
             {
                 Type type = Type.GetType(Convert.ToString(reader[Table + "_" + Columns.Type]));
                 ConstructorInfo constructor = type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { id.GetType() }, null);
-
                 m = constructor.Invoke(new object[] { id }) as DiscreteChoiceModel;
                 _modelCache.Add(m.Id, m);
             }
 
             return m;
-        }
-
-        public static void ClearCache()
-        {
-            _modelCache.Clear();
         }
 
         #region evaluation    
@@ -308,8 +302,6 @@ namespace PTL.ATT.Models
         }
         #endregion
         #endregion
-
-        public event Action<Prediction> OnPredictionDeleted;
 
         private int _id;
         private string _name;
@@ -522,6 +514,8 @@ namespace PTL.ATT.Models
                                         Columns.PredictionSampleSize + "=" + predictionSampleSize + "," +
                                         Columns.Smoothers + "=ARRAY[" + smoothers.Select((s, i) => "@smoother_" + i).Concatenate(",") + "]::bytea[] " +
                                         "WHERE " + Columns.Id + "=" + _id, parameters.ToArray());
+
+            _modelCache.Remove(_id);
         }
 
         public abstract int Copy();
@@ -542,12 +536,6 @@ namespace PTL.ATT.Models
         {
             foreach (Prediction prediction in Prediction.GetAvailable(_id))
                 prediction.Delete();
-        }
-
-        internal void RaisePredictionDeleted(Prediction prediction)
-        {
-            if (OnPredictionDeleted != null)
-                OnPredictionDeleted(prediction);
         }
 
         public void Delete()

@@ -43,6 +43,8 @@ namespace PTL.ATT
 {
     public class Prediction : IComparable<Prediction>
     {
+        public static event Action<Prediction> OnPredictionDeleted;
+
         public const string Table = "prediction";
 
         public class Columns
@@ -551,7 +553,8 @@ namespace PTL.ATT
             if (Directory.Exists(_modelDirectory))
                 Directory.Delete(_modelDirectory, true);
 
-            Model.RaisePredictionDeleted(this);
+            if (OnPredictionDeleted != null)
+                OnPredictionDeleted(this);
         }
 
         public void UpdateEvaluation()
