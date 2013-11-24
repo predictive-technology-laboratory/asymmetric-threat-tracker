@@ -415,7 +415,7 @@ namespace PTL.ATT.GUI
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem,
             this.clearFeatureRemappingToolStripMenuItem});
             this.featuresMenu.Name = "featuresMenu";
-            this.featuresMenu.Size = new System.Drawing.Size(301, 98);
+            this.featuresMenu.Size = new System.Drawing.Size(301, 76);
             // 
             // selectAllFeaturesToolStripMenuItem
             // 
