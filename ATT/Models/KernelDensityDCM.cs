@@ -147,9 +147,9 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             finally
             {
                 try { File.Delete(inputPointsPath); }
-                catch (Exception) { }
+                catch (Exception ex) { Console.Out.WriteLine("Failed to delete file \"" + inputPointsPath + "\":  " + ex.Message); }
                 try { File.Delete(evalPointsPath); }
-                catch (Exception) { }
+                catch (Exception ex) { Console.Out.WriteLine("Failed to delete file \"" + evalPointsPath + "\":  " + ex.Message); }
             }
 
             try
@@ -168,7 +168,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             finally
             {
                 try { File.Delete(outputPath); }
-                catch (Exception) { }
+                catch (Exception ex) { Console.Out.WriteLine("Failed to delete file \"" + outputPath + "\":  " + ex.Message); }
             }
         }
 
@@ -228,7 +228,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             yield break;
         }
 
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, bool normalize, IEnumerable<Smoother> smoothers)
+        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, bool normalize, List<Smoother> smoothers)
         {
             base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
 
@@ -244,7 +244,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             if (prediction.SelectedFeatures.Count() > 0)
                 throw new Exception("KDE models don't use features");
 
-            IEnumerable<PostGIS.Point> nullPoints = new List<PostGIS.Point>();
+            List<PostGIS.Point> nullPoints = new List<PostGIS.Point>();
             Area predictionArea = prediction.PredictionArea;
             double areaMinX = predictionArea.BoundingBox.MinX;
             double areaMaxX = predictionArea.BoundingBox.MaxX;
@@ -252,9 +252,9 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             double areaMaxY = predictionArea.BoundingBox.MaxY;
             for (double x = areaMinX + PointSpacing / 2d; x <= areaMaxX; x += PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + PointSpacing / 2d; y <= areaMaxY; y += PointSpacing)
-                    (nullPoints as List<PostGIS.Point>).Add(new PostGIS.Point(x, y, predictionArea.SRID));
+                    nullPoints.Add(new PostGIS.Point(x, y, predictionArea.SRID));
 
-            nullPoints = predictionArea.Contains(nullPoints).Select(i => (nullPoints as List<PostGIS.Point>)[i]).ToArray();
+            nullPoints = predictionArea.Contains(nullPoints).Select(i => nullPoints[i]).ToList();
 
             NpgsqlConnection connection = DB.Connection.OpenConnection;
 

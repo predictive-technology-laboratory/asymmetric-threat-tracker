@@ -193,7 +193,7 @@ namespace PTL.ATT.GUI
             else
             {
                 _encryptionInitialization = new byte[16];
-                new Random().NextBytes(_encryptionInitialization);
+                RandomNumberGenerator.Create().GetBytes(_encryptionInitialization);
                 File.WriteAllText(encryptionInitPath, string.Join("-", _encryptionInitialization));
             }
 

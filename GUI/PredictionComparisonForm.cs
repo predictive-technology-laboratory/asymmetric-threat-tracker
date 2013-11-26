@@ -94,6 +94,9 @@ namespace PTL.ATT.GUI
             if (ModifierKeys == Keys.Control)
             {
                 FlowLayoutPanel scrolledPanel = sender as FlowLayoutPanel;
+                if (scrolledPanel == null)
+                    throw new ArgumentException("Expected FlowLayoutPanel");
+
                 float percentScrolled = scrolledPanel.HorizontalScroll.Value / (float)(scrolledPanel.HorizontalScroll.Maximum - scrolledPanel.HorizontalScroll.Minimum);
                 foreach (FlowLayoutPanel panel in predictionImageRows.Controls)
                     if (panel != sender)

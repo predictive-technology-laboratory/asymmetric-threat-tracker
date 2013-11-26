@@ -211,7 +211,7 @@ namespace PTL.ATT.Models
                 yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString());
         }
 
-        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, int timeSliceHours, int periodTimeSlices)
+        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, List<Smoother> smoothers, int timeSliceHours, int periodTimeSlices)
         {
             base.Update(name, pointSpacing, featureDistanceThreshold, classifyNonZeroVectorsUniformly, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers);
 

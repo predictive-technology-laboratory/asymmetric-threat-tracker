@@ -30,9 +30,9 @@ namespace PTL.ATT
     {
         class ProxyDomain : MarshalByRefObject
         {
-            public Assembly LoadFrom(string AssemblyPath)
+            public Assembly LoadFrom(string assemblyPath)
             {
-                try { return Assembly.LoadFrom(AssemblyPath); }
+                try { return Assembly.LoadFrom(assemblyPath); }
                 catch (Exception ex) { throw ex; }
             }
         }

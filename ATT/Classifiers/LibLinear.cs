@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,7 +123,8 @@ namespace PTL.ATT.Classifiers
         protected override void BuildModel()
         {
             if (_positiveClassWeighting == PositiveClassWeighting.NegativePositiveRatio)
-                _libLinear.PerClassWeights = GetPerClassWeights(new StreamReader(_libLinear.TrainingInstancesPath));
+                using (StreamReader trainingInstancesFile = new StreamReader(_libLinear.TrainingInstancesPath))
+                    _libLinear.PerClassWeights = GetPerClassWeights(trainingInstancesFile);
             else if (_positiveClassWeighting != PositiveClassWeighting.None)
                 throw new NotImplementedException("Unknown LibLinear weighting scheme:  " + _positiveClassWeighting);
 
@@ -151,26 +152,40 @@ namespace PTL.ATT.Classifiers
             if (nullClass == -1)
                 throw new Exception("Failed to find null class");
 
-            StreamReader trainingInstancesFile = new StreamReader(new GZipStream(new FileStream(CompressedTrainingInstancesPath, FileMode.Open, FileAccess.Read), CompressionMode.Decompress));
-            StreamReader trainingInstanceLocationsFile = new StreamReader(new GZipStream(new FileStream(CompressedTrainingInstanceLocationsPath, FileMode.Open, FileAccess.Read), CompressionMode.Decompress));
             string featureSelectionTrainingPath = Path.GetTempFileName();
-            StreamWriter featureSelectionTrainingFile = new StreamWriter(featureSelectionTrainingPath);
-            string instance;
-            while ((instance = trainingInstancesFile.ReadLine()) != null)
+
+            using (FileStream compressedTrainingInstancesFile = new FileStream(CompressedTrainingInstancesPath, FileMode.Open, FileAccess.Read))
+            using (GZipStream compressedTrainingInstancesGzip = new GZipStream(compressedTrainingInstancesFile, CompressionMode.Decompress))
+            using (StreamReader trainingInstancesFile = new StreamReader(compressedTrainingInstancesGzip))
+            using (FileStream compressedTrainingInstanceLocationsFile = new FileStream(CompressedTrainingInstanceLocationsPath, FileMode.Open, FileAccess.Read))
+            using (GZipStream compressedTrainingInstanceLocationsGzip = new GZipStream(compressedTrainingInstanceLocationsFile, CompressionMode.Decompress))
+            using (StreamReader trainingInstanceLocationsFile = new StreamReader(compressedTrainingInstanceLocationsGzip))
+            using (StreamWriter featureSelectionTrainingFile = new StreamWriter(featureSelectionTrainingPath))
             {
-                string location = trainingInstanceLocationsFile.ReadLine();
-                if (location == null)
-                    throw new Exception("Missing location for training instance");
+                try
+                {
+                    string instance;
+                    while ((instance = trainingInstancesFile.ReadLine()) != null)
+                    {
+                        string location = trainingInstanceLocationsFile.ReadLine();
+                        if (location == null)
+                            throw new Exception("Missing location for training instance");
 
-                featureSelectionTrainingFile.WriteLine(instance + " # " + location);
+                        featureSelectionTrainingFile.WriteLine(instance + " # " + location);
+                    }
+
+                    if ((instance = trainingInstanceLocationsFile.ReadToEnd()) != null && (instance = instance.Trim()) != "")
+                        throw new Exception("Extra training instance locations:  " + instance);
+
+                    trainingInstancesFile.Close();
+                    trainingInstanceLocationsFile.Close();
+                    featureSelectionTrainingFile.Close();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Failed to read training instances:  " + ex.Message);
+                }
             }
-
-            if ((instance = trainingInstanceLocationsFile.ReadToEnd()) != null && (instance = instance.Trim()) != "")
-                throw new Exception("Extra training instance locations:  " + instance);
-
-            trainingInstancesFile.Close();
-            trainingInstanceLocationsFile.Close();
-            featureSelectionTrainingFile.Close();
 
             string groupNamePath = Path.GetTempFileName();
             StreamWriter groupNameFile = new StreamWriter(groupNamePath);
@@ -211,9 +226,14 @@ namespace PTL.ATT.Classifiers
 
             if (_positiveClassWeighting == PositiveClassWeighting.NegativePositiveRatio)
             {
-                Dictionary<int, float> classWeight = GetPerClassWeights(new StreamReader(new GZipStream(new FileStream(CompressedTrainingInstancesPath, FileMode.Open, FileAccess.Read), CompressionMode.Decompress)));
-                foreach (int classNum in classWeight.Keys)
-                    featureSelectionOptions.Add((LibLinearWrapper.Option)Enum.Parse(typeof(LibLinearWrapper.Option), "W" + classNum), classWeight[classNum].ToString());
+                using (FileStream compressedTrainingInstancesFile = new FileStream(CompressedTrainingInstancesPath, FileMode.Open, FileAccess.Read))
+                using (GZipStream compressedTrainingInstancesGzip = new GZipStream(compressedTrainingInstancesFile, CompressionMode.Decompress))
+                using (StreamReader compressedTrainingInstancesReader = new StreamReader(compressedTrainingInstancesGzip))
+                {
+                    Dictionary<int, float> classWeight = GetPerClassWeights(compressedTrainingInstancesReader);
+                    foreach (int classNum in classWeight.Keys)
+                        featureSelectionOptions.Add((LibLinearWrapper.Option)Enum.Parse(typeof(LibLinearWrapper.Option), "W" + classNum), classWeight[classNum].ToString());
+                }
             }
             else if (_positiveClassWeighting != PositiveClassWeighting.None)
                 throw new Exception("Unrecognized positive class weighting scheme:  " + _positiveClassWeighting);

@@ -575,7 +575,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Must select model.");
             else if (SelectedTrainingArea == null)
                 MessageBox.Show("Must select a training area.");
-            else if (incidentTypes.SelectedItems.Count == 0)
+            else if (SelectedIncidentTypes.Count() == 0)
                 MessageBox.Show("Must select incident types.");
             else
             {
@@ -1282,8 +1282,10 @@ namespace PTL.ATT.GUI
                     if (node.Checked)
                         if (node.Tag is PredictionGroup)
                             plotRows.Add(new List<Plot>(new Plot[] { (node.Tag as PredictionGroup).AggregatePlot }));
-                        else
+                        else if (node.Tag is Prediction)
                             plotRows.Add((node.Tag as Prediction).AssessmentPlots);
+                        else
+                            throw new Exception("Unexpected node tag:  " + node.Tag);
 
                 PredictionComparisonForm comparisonForm = new PredictionComparisonForm(plotRows, Size);
                 if (comparisonForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -1431,8 +1433,10 @@ namespace PTL.ATT.GUI
                                     if (group.AggregatePlot == null)
                                         group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
                                 }
-                                else
+                                else if (node.Tag is Prediction)
                                     DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
+                                else
+                                    throw new Exception("Unexpected node tag:  " + node.Tag);
 
                                 skip = PTL.ATT.GUI.Configuration.ProcessorCount - 1;
                             }

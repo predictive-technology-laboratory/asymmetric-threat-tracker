@@ -62,95 +62,98 @@ namespace PTL.ATT.Incidents.Chicago
             string chicagoIncidentInsertBase = "INSERT INTO " + ChicagoIncident.Table + " (" + ChicagoIncident.Columns.Insert + ") VALUES ";
             List<Parameter> chicagoIncidentParameters = new List<Parameter>();
 
-            XmlParser p = new XmlParser(new FileStream(path, FileMode.Open));
-            p.SkipToElement("row");
-            p.MoveToElementNode(false);
-            int totalRows = 0;
-            int totalImported = 0;
-            int alreadyPresent = 0;
-            int batchCount = 0;
-            string rowXML;
-            try
+            using (FileStream file = new FileStream(path, FileMode.Open))
             {
-                while ((rowXML = p.OuterXML("row")) != null)
+                XmlParser p = new XmlParser(file);
+                p.SkipToElement("row");
+                p.MoveToElementNode(false);
+                int totalRows = 0;
+                int totalImported = 0;
+                int alreadyPresent = 0;
+                int batchCount = 0;
+                string rowXML;
+                try
                 {
-                    ++totalRows;
-
-                    XmlParser rowP = new XmlParser(rowXML);
-                    int nativeId = int.Parse(rowP.ElementText("id")); rowP.Reset();
-
-                    // avoid previously imported records and duplicate records in current import
-                    if (existingNativeIDs.Add(nativeId))
+                    while ((rowXML = p.OuterXML("row")) != null)
                     {
-                        string caseNumber = rowP.ElementText("case_number"); rowP.Reset();
-                        DateTime date = DateTime.Parse(rowP.ElementText("date")) + new TimeSpan(Configuration.IncidentHourOffset, 0, 0); rowP.Reset();
-                        string block = rowP.ElementText("block"); rowP.Reset();
-                        string iucr = rowP.ElementText("iucr"); rowP.Reset();
-                        string primaryType = rowP.ElementText("primary_type"); rowP.Reset();
-                        string description = rowP.ElementText("description"); rowP.Reset();
-                        string locationDescription = rowP.ElementText("location_description"); rowP.Reset();
-                        bool arrest = bool.Parse(rowP.ElementText("arrest")); rowP.Reset();
-                        bool domestic = bool.Parse(rowP.ElementText("domestic")); rowP.Reset();
-                        string beat = rowP.ElementText("beat"); rowP.Reset();
-                        string ward = rowP.ElementText("ward"); rowP.Reset();
-                        string fbiCode = rowP.ElementText("fbi_code"); rowP.Reset();
+                        ++totalRows;
 
-                        // only use incidents that have coordinates
-                        double x;
-                        if (!double.TryParse(rowP.ElementText("longitude"), out x))
-                            continue;
+                        XmlParser rowP = new XmlParser(rowXML);
+                        int nativeId = int.Parse(rowP.ElementText("id")); rowP.Reset();
 
-                        rowP.Reset();
-
-                        double y;
-                        if (!double.TryParse(rowP.ElementText("latitude"), out y))
-                            continue;
-
-                        rowP.Reset();
-
-                        PostGIS.Point location = new PostGIS.Point(x, y, Configuration.IncidentNativeLocationSRID);
-
-                        incidentInsert.Append((batchCount == 0 ? incidentInsertBase : ",") + "(" + Incident.GetValue(area.Id, "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")", false, "@date_" + nativeId, primaryType) + ")");
-                        incidentParameters.Add(new Parameter("date_" + nativeId, NpgsqlDbType.Timestamp, date));
-
-                        chicagoIncidentInsert.Append((batchCount == 0 ? chicagoIncidentInsertBase : ",") + "(" + ChicagoIncident.GetValue(arrest, beat, block, caseNumber, description, domestic, fbiCode, "@id_" + nativeId, iucr, locationDescription, nativeId, ward) + ")");
-                        chicagoIncidentParameters.Add(new Parameter("id_" + nativeId, NpgsqlDbType.Integer, null));
-
-                        if (++batchCount >= 5000)
+                        // avoid previously imported records and duplicate records in current import
+                        if (existingNativeIDs.Add(nativeId))
                         {
-                            Insert(incidentInsert, incidentParameters, chicagoIncidentInsert, chicagoIncidentParameters);
+                            string caseNumber = rowP.ElementText("case_number"); rowP.Reset();
+                            DateTime date = DateTime.Parse(rowP.ElementText("date")) + new TimeSpan(Configuration.IncidentHourOffset, 0, 0); rowP.Reset();
+                            string block = rowP.ElementText("block"); rowP.Reset();
+                            string iucr = rowP.ElementText("iucr"); rowP.Reset();
+                            string primaryType = rowP.ElementText("primary_type"); rowP.Reset();
+                            string description = rowP.ElementText("description"); rowP.Reset();
+                            string locationDescription = rowP.ElementText("location_description"); rowP.Reset();
+                            bool arrest = bool.Parse(rowP.ElementText("arrest")); rowP.Reset();
+                            bool domestic = bool.Parse(rowP.ElementText("domestic")); rowP.Reset();
+                            string beat = rowP.ElementText("beat"); rowP.Reset();
+                            string ward = rowP.ElementText("ward"); rowP.Reset();
+                            string fbiCode = rowP.ElementText("fbi_code"); rowP.Reset();
 
-                            incidentInsert.Clear();
-                            incidentParameters.Clear();
+                            // only use incidents that have coordinates
+                            double x;
+                            if (!double.TryParse(rowP.ElementText("longitude"), out x))
+                                continue;
 
-                            chicagoIncidentInsert.Clear();
-                            chicagoIncidentParameters.Clear();
+                            rowP.Reset();
 
-                            totalImported += batchCount;
-                            batchCount = 0;
+                            double y;
+                            if (!double.TryParse(rowP.ElementText("latitude"), out y))
+                                continue;
 
-                            Console.Out.WriteLine("Imported " + totalImported + " incidents of " + totalRows + " total in the file (" + alreadyPresent + " incidents were already in the database)");
+                            rowP.Reset();
+
+                            PostGIS.Point location = new PostGIS.Point(x, y, Configuration.IncidentNativeLocationSRID);
+
+                            incidentInsert.Append((batchCount == 0 ? incidentInsertBase : ",") + "(" + Incident.GetValue(area.Id, "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")", false, "@date_" + nativeId, primaryType) + ")");
+                            incidentParameters.Add(new Parameter("date_" + nativeId, NpgsqlDbType.Timestamp, date));
+
+                            chicagoIncidentInsert.Append((batchCount == 0 ? chicagoIncidentInsertBase : ",") + "(" + ChicagoIncident.GetValue(arrest, beat, block, caseNumber, description, domestic, fbiCode, "@id_" + nativeId, iucr, locationDescription, nativeId, ward) + ")");
+                            chicagoIncidentParameters.Add(new Parameter("id_" + nativeId, NpgsqlDbType.Integer, null));
+
+                            if (++batchCount >= 5000)
+                            {
+                                Insert(incidentInsert, incidentParameters, chicagoIncidentInsert, chicagoIncidentParameters);
+
+                                incidentInsert.Clear();
+                                incidentParameters.Clear();
+
+                                chicagoIncidentInsert.Clear();
+                                chicagoIncidentParameters.Clear();
+
+                                totalImported += batchCount;
+                                batchCount = 0;
+
+                                Console.Out.WriteLine("Imported " + totalImported + " incidents of " + totalRows + " total in the file (" + alreadyPresent + " incidents were already in the database)");
+                            }
                         }
+                        else
+                            ++alreadyPresent;
                     }
-                    else
-                        ++alreadyPresent;
-                }
-                p.Close();
+                    p.Close();
 
-                if (batchCount > 0)
+                    if (batchCount > 0)
+                    {
+                        Insert(incidentInsert, incidentParameters, chicagoIncidentInsert, chicagoIncidentParameters);
+                        totalImported += batchCount;
+                    }
+
+                    Incident.VacuumTable(area.SRID);
+                    ChicagoIncident.VacuumTable();
+
+                    Console.Out.WriteLine("Import from \"" + path + "\" was successful.  Imported " + totalImported + " incidents of " + totalRows + " total in the file (" + alreadyPresent + " incidents were already in the database)");
+                }
+                catch (Exception ex)
                 {
-                    Insert(incidentInsert, incidentParameters, chicagoIncidentInsert, chicagoIncidentParameters);
-                    totalImported += batchCount;
+                    throw new Exception("An import error occurred. You can safely restart the import from the same file. Message:  " + ex.Message);
                 }
-
-                Incident.VacuumTable(area.SRID);
-                ChicagoIncident.VacuumTable();
-
-                Console.Out.WriteLine("Import from \"" + path + "\" was successful.  Imported " + totalImported + " incidents of " + totalRows + " total in the file (" + alreadyPresent + " incidents were already in the database)");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("An import error occurred. You can safely restart the import from the same file. Message:  " + ex.Message);
             }
         }
 
@@ -176,17 +179,19 @@ namespace PTL.ATT.Incidents.Chicago
                 incidentInsert.Append(" RETURNING " + Incident.Columns.Id);
                 cmd.CommandText = incidentInsert.ToString();
                 ConnectionPool.AddParameters(cmd, incidentParameters);
-                NpgsqlDataReader reader = cmd.ExecuteReader();
 
-                foreach (Parameter p in chicagoInsertParameters)
+                using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
-                    if (!reader.Read())
-                        throw new Exception("Failed to get ID for Chicago incident");
+                    foreach (Parameter p in chicagoInsertParameters)
+                    {
+                        if (!reader.Read())
+                            throw new Exception("Failed to get ID for Chicago incident");
 
-                    p.Value = Convert.ToInt32(reader[0]);
+                        p.Value = Convert.ToInt32(reader[0]);
+                    }
+
+                    reader.Close();
                 }
-
-                reader.Close();
 
                 cmd.CommandText = chicagoIncidentInsert.ToString();
                 cmd.Parameters.Clear();

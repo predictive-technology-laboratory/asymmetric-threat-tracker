@@ -64,6 +64,9 @@ namespace PTL.ATT.GUI
                 if (clickedIndex >= 0)
                 {
                     Classifier classifier = Items[clickedIndex] as Classifier;
+                    if (classifier == null)
+                        throw new NullReferenceException("Failed to cast classifier item from list");
+
                     string updateWindowTitle = "Updating " + classifier.GetType().Name + "...";
 
                     if (classifier is LibLinear)

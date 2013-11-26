@@ -75,7 +75,8 @@ namespace PTL.ATT
             catch (Exception ex)
             {
                 try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + areaId); }
-                catch { }
+                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete area from table:  " + ex2.Message); }
+
                 throw ex;
             }
         }

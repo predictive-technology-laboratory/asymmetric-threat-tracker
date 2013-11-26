@@ -169,7 +169,11 @@ namespace PTL.ATT.GUI
 
         public object GetValue(string valueId)
         {
-            return _valueIdReturn[valueId]();
+            object value = _valueIdReturn[valueId]();
+            if(value == null)
+                throw new NullReferenceException("Parameterize return value function returned null");
+
+            return value;
         }
     }
 }

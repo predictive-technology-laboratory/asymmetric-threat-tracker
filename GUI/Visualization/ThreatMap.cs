@@ -571,6 +571,9 @@ namespace PTL.ATT.GUI.Visualization
         private void IncidentCheckBox_LabelClicked(object sender, EventArgs e)
         {
             ColoredCheckBox cb = sender as ColoredCheckBox;
+            if (cb == null)
+                throw new ArgumentException("Must pass ColoredCheckBox");
+
             ColorDialog cd = new ColorDialog();
             if (cd.ShowDialog() == DialogResult.OK)
             {
@@ -583,6 +586,9 @@ namespace PTL.ATT.GUI.Visualization
         private void OverlayCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             ColoredCheckBox cb = sender as ColoredCheckBox;
+            if (cb == null)
+                throw new ArgumentException("Must pass ColoredCheckBox");
+
             Overlays.Where(o => o.Name == cb.Text).First().Displayed = cb.Checked;
             GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
         }
@@ -590,6 +596,9 @@ namespace PTL.ATT.GUI.Visualization
         private void OverlayCheckBox_LabelClicked(object sender, EventArgs e)
         {
             ColoredCheckBox cb = sender as ColoredCheckBox;
+            if (cb == null)
+                throw new ArgumentException("Must pass ColoredCheckBox");
+
             ColorDialog cd = new ColorDialog();
             if (cd.ShowDialog() == DialogResult.OK)
             {
@@ -674,7 +683,11 @@ namespace PTL.ATT.GUI.Visualization
 
         private void checkBoxes_Scroll(object sender, ScrollEventArgs e)
         {
-            (sender as FlowLayoutPanel).Invalidate();
+            FlowLayoutPanel p = sender as FlowLayoutPanel;
+            if (p == null)
+                throw new ArgumentException("Must pass FlowLayoutPanel to checkBoxes_Scroll");
+
+            p.Invalidate();
         }
 
         private void exportThreatSurfaceToolStripMenuItem_Click(object sender, EventArgs e)

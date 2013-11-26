@@ -135,19 +135,19 @@ namespace PTL.ATT.ShapeFiles
             }
             catch (Exception ex)
             {
-                try 
-                { 
-                    cmd.CommandText = "DROP TABLE temp;"; 
+                try
+                {
+                    cmd.CommandText = "DROP TABLE temp;";
                     cmd.ExecuteNonQuery();
                 }
-                catch { }
+                catch (Exception ex2) { Console.Out.WriteLine("Falied to drop table \"temp\":  " + ex2.Message); }
 
                 try
                 {
                     cmd.CommandText = "DELETE FROM " + Shapefile.Table + " WHERE " + Shapefile.Columns.Id + "=" + shapefileId;
                     cmd.ExecuteNonQuery();
                 }
-                catch { }
+                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete shapefile:  " + ex2.Message); }
 
                 throw new Exception("Failed to import shape file(s):  " + ex.Message);
             }

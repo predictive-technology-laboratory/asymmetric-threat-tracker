@@ -274,6 +274,10 @@ namespace PTL.ATT
 
             string[] labels = reader[table + "_" + Columns.Labels] as string[];
             double[] threatScores = reader[table + "_" + Columns.ThreatScores] as double[];
+
+            if (labels == null || threatScores == null)
+                throw new NullReferenceException("Failed to get labels / threat scores from database");
+
             _incidentScore = new Dictionary<string, double>();
             for (int i = 0; i < labels.Length; ++i)
                 _incidentScore.Add(labels[i], threatScores[i]);

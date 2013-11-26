@@ -61,6 +61,9 @@ namespace PTL.ATT.GUI
                 if (clickedIndex >= 0)
                 {
                     Smoother smoother = Items[clickedIndex] as Smoother;
+                    if (smoother == null)
+                        throw new NullReferenceException("Expected Smoother objects in Items");
+
                     string updateWindowTitle = "Updating " + smoother.GetType().Name + "...";
 
                     if (smoother is KdeSmoother)

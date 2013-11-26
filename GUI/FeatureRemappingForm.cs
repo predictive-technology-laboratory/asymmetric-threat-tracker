@@ -64,6 +64,9 @@ namespace PTL.ATT.GUI
             if (prediction.SelectedItem != null)
             {
                 Feature target = prediction.SelectedItem as Feature;
+                if (target == null)
+                    throw new NullReferenceException("Expected SelectedItem to be a Feature");
+
                 foreach (Feature trainingFeature in training.SelectedItems)
                     if (trainingFeature.EnumType == target.EnumType && trainingFeature.EnumValue.ToString() == target.EnumValue.ToString())
                         trainingFeature.PredictionResourceId = target.TrainingResourceId;

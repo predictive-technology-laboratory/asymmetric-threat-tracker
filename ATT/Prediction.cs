@@ -38,6 +38,7 @@ using LAIR.XML;
 using System.IO.Compression;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
+using PTL.ATT.Exceptions;
 
 namespace PTL.ATT
 {
@@ -531,6 +532,9 @@ namespace PTL.ATT
                 plotsBytes.Position = 0;
                 _assessmentPlots = bf.Deserialize(plotsBytes) as List<Plot>;
             }
+
+            if (!_modelDirectory.StartsWith(Configuration.ModelsDirectory))
+                throw new ConfigurationException("Prediction model directory \"" + _modelDirectory + "\" is not a child of the configuration model directory \"" + Configuration.ModelsDirectory + "\".");
         }
 
         public override string ToString()
@@ -545,10 +549,10 @@ namespace PTL.ATT
             DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
 
             try { Point.DeleteTable(_id); }
-            catch (Exception) { }
+            catch (Exception ex) { Console.Out.WriteLine("Failed to delete point table:  " + ex.Message); }
 
             try { PointPrediction.DeleteTable(_id); }
-            catch (Exception) { }
+            catch (Exception ex) { Console.Out.WriteLine("Failed to delete point prediction table:  " + ex.Message); }
 
             if (Directory.Exists(_modelDirectory))
                 Directory.Delete(_modelDirectory, true);
@@ -646,7 +650,7 @@ namespace PTL.ATT
             catch (Exception ex)
             {
                 try { new Prediction(copyId).Delete(); }
-                catch (Exception) { }
+                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete copied prediction:  " + ex2.Message); }
 
                 throw ex;
             }
@@ -657,11 +661,11 @@ namespace PTL.ATT
                 if (vacuum)
                 {
                     try { VacuumTable(); }
-                    catch (Exception) { }
+                    catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum prediction table:  " + ex.Message); }
                     try { Point.VacuumTable(copyId); }
-                    catch (Exception) { }
+                    catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point table for prediction \"" + copyId + "\":  " + ex.Message); }
                     try { PointPrediction.VacuumTable(copyId); }
-                    catch (Exception) { }
+                    catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point prediction table for prediction \"" + copyId + "\":  " + ex.Message); }
                 }
             }
 
@@ -705,48 +709,52 @@ namespace PTL.ATT
         {
             Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> log = new Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>();
 
-            StreamReader pointPredictionLog = new StreamReader(new GZipStream(new FileStream(PointPredictionLogPath, FileMode.Open, FileAccess.Read), CompressionMode.Decompress));
-            string line;
-            while ((line = pointPredictionLog.ReadLine()) != null)
+            using (FileStream pointPredictionLogFile = new FileStream(PointPredictionLogPath, FileMode.Open, FileAccess.Read))
+            using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Decompress))
+            using (StreamReader pointPredictionLog = new StreamReader(pointPredictionLogGzip))
             {
-                int pointId = int.Parse(line.Substring(0, line.IndexOf(' ')));
-
-                if (pointIds == null || pointIds.Contains(pointId))
+                string line;
+                while ((line = pointPredictionLog.ReadLine()) != null)
                 {
-                    XmlParser pointP = new XmlParser(line.Substring(line.IndexOf(' ') + 1));
+                    int pointId = int.Parse(line.Substring(0, line.IndexOf(' ')));
 
-                    List<Tuple<string, double>> labelConfidences = new List<Tuple<string, double>>();
-                    XmlParser labelsP = new XmlParser(pointP.OuterXML("ls"));
-                    string labelXML;
-                    while ((labelXML = labelsP.OuterXML("l")) != null)
+                    if (pointIds == null || pointIds.Contains(pointId))
                     {
-                        XmlParser labelP = new XmlParser(labelXML);
-                        double confidence = double.Parse(labelP.AttributeValue("l", "c"));
-                        string label = labelP.ElementText("l");
-                        labelConfidences.Add(new Tuple<string, double>(label, confidence));
-                    }
+                        XmlParser pointP = new XmlParser(line.Substring(line.IndexOf(' ') + 1));
 
-                    List<Tuple<int, double>> featureValues = new List<Tuple<int, double>>();
-                    XmlParser featureValuesP = new XmlParser(pointP.OuterXML("fvs"));
-                    string featureValueXML;
-                    while ((featureValueXML = featureValuesP.OuterXML("fv")) != null)
-                    {
-                        XmlParser featureValueP = new XmlParser(featureValueXML);
-                        featureValues.Add(new Tuple<int, double>(int.Parse(featureValueP.AttributeValue("fv", "id")), double.Parse(featureValueP.ElementText("fv"))));
-                    }
+                        List<Tuple<string, double>> labelConfidences = new List<Tuple<string, double>>();
+                        XmlParser labelsP = new XmlParser(pointP.OuterXML("ls"));
+                        string labelXML;
+                        while ((labelXML = labelsP.OuterXML("l")) != null)
+                        {
+                            XmlParser labelP = new XmlParser(labelXML);
+                            double confidence = double.Parse(labelP.AttributeValue("l", "c"));
+                            string label = labelP.ElementText("l");
+                            labelConfidences.Add(new Tuple<string, double>(label, confidence));
+                        }
 
-                    log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(labelConfidences, featureValues));
+                        List<Tuple<int, double>> featureValues = new List<Tuple<int, double>>();
+                        XmlParser featureValuesP = new XmlParser(pointP.OuterXML("fvs"));
+                        string featureValueXML;
+                        while ((featureValueXML = featureValuesP.OuterXML("fv")) != null)
+                        {
+                            XmlParser featureValueP = new XmlParser(featureValueXML);
+                            featureValues.Add(new Tuple<int, double>(int.Parse(featureValueP.AttributeValue("fv", "id")), double.Parse(featureValueP.ElementText("fv"))));
+                        }
 
-                    if (pointIds != null)
-                    {
-                        pointIds.Remove(pointId);
-                        if (pointIds.Count == 0)
-                            break;
+                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(labelConfidences, featureValues));
+
+                        if (pointIds != null)
+                        {
+                            pointIds.Remove(pointId);
+                            if (pointIds.Count == 0)
+                                break;
+                        }
                     }
                 }
-            }
 
-            pointPredictionLog.Close();
+                pointPredictionLog.Close();
+            }
 
             return log;
         }

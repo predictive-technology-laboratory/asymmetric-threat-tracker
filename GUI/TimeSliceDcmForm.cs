@@ -68,9 +68,9 @@ namespace PTL.ATT.GUI
             get { return classifiers.SelectedItem as Classifier; }
         }
 
-        public IEnumerable<Smoother> Smoothers
+        public List<Smoother> Smoothers
         {
-            get { return smoothers.SelectedItems.Cast<Smoother>(); }
+            get { return smoothers.SelectedItems.Cast<Smoother>().ToList(); }
         }
 
         public int TimeSliceHours

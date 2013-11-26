@@ -57,9 +57,9 @@ namespace PTL.ATT.GUI
             get { return normalize.Checked; }
         }
 
-        public IEnumerable<Smoother> Smoothers
+        public List<Smoother> Smoothers
         {
-            get { return smoothers.SelectedItems.Cast<Smoother>().ToArray(); }
+            get { return smoothers.SelectedItems.Cast<Smoother>().ToList(); }
         }
 
         public KernelDensityDcmForm()

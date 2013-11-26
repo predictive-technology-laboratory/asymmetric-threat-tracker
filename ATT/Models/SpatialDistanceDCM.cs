@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -207,6 +207,9 @@ namespace PTL.ATT.Models
             if (Configuration.TryGetFeatureExtractorType(GetType(), out featureExtractorType))
             {
                 _externalFeatureExtractor = Activator.CreateInstance(featureExtractorType) as FeatureExtractor;
+                if (_externalFeatureExtractor == null)
+                    throw new Exception("Failed to create external feature extractor of type \"" + featureExtractorType + "\"");
+
                 _externalFeatureExtractor.Initialize(this, Configuration.GetFeatureExtractorConfigOptions(GetType()));
             }
 
@@ -234,7 +237,7 @@ namespace PTL.ATT.Models
                     yield return f;
         }
 
-        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers)
+        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, List<Smoother> smoothers)
         {
             base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
 
@@ -345,7 +348,7 @@ namespace PTL.ATT.Models
                                                                      "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                        // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
                                                                                                                                                            "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
                                                                                                                                                            "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
-                                                                     // only process points associated with the current core                                                                                         
+                            // only process points associated with the current core                                                                                         
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
                                                                      "ALTER TABLE " + pointFeatureTable + " ADD PRIMARY KEY (point_id,feature_id);" + // this is required in order to write a clean grouping statement below. if we don't have this, then we need to also group by the selected columns below.
@@ -437,7 +440,16 @@ namespace PTL.ATT.Models
             List<Feature> kdeFeatures = prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.IncidentKernelDensityEstimate)).ToList();
             if (kdeFeatures.Count > 0)
             {
-                IEnumerable<PostGIS.Point> kdeEvalPoints = mergedVectors.Select(v => (v.DerivedFrom as Point).Location);
+                List<PostGIS.Point> kdeEvalPoints = new List<PostGIS.Point>(mergedVectors.Count);
+                foreach (FeatureVector mergedVector in mergedVectors)
+                {
+                    Point p = mergedVector.DerivedFrom as Point;
+                    if (p == null)
+                        throw new NullReferenceException("Expected Point object");
+                    else
+                        kdeEvalPoints.Add(p.Location);
+                }
+
                 Dictionary<Feature, List<float>> kdeFeatureDensityEstimates = new Dictionary<Feature, List<float>>(kdeFeatures.Count);
                 threads = new Set<Thread>(Configuration.ProcessorCount);
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
@@ -578,52 +590,55 @@ namespace PTL.ATT.Models
                     InsertPointsIntoPrediction(cmd.Connection, prediction, false, true);
 
                     PointPrediction.CreateTable(prediction.Id);
-                    StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(prediction.PointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress));
-                    foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, false, idOfSpatiotemporallyIdenticalPrediction))
+                    using (FileStream pointPredictionLogFile = new FileStream(prediction.PointPredictionLogPath, FileMode.Create, FileAccess.Write))
+                    using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Compress))
+                    using (StreamWriter pointPredictionLog = new StreamWriter(pointPredictionLogGzip))
                     {
-                        Console.Out.WriteLine("Making predictions");
-
-                        _classifier.Classify(featureVectors, prediction);
-
-                        foreach (FeatureVector vector in featureVectors.OrderBy(v => (v.DerivedFrom as Point).Id))  // sort by point ID so prediction log is sorted
+                        foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, false, idOfSpatiotemporallyIdenticalPrediction))
                         {
-                            if (_classifyNonZeroVectorsUniformly)
+                            Console.Out.WriteLine("Making predictions");
+
+                            _classifier.Classify(featureVectors, prediction);
+
+                            foreach (FeatureVector vector in featureVectors.OrderBy(v => (v.DerivedFrom as Point).Id))  // sort by point ID so prediction log is sorted
                             {
-                                foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.Keys.ToArray())
-                                    if (label == PointPrediction.NullLabel)
-                                        vector.DerivedFrom.PredictionConfidenceScores[PointPrediction.NullLabel] = 0;
+                                if (_classifyNonZeroVectorsUniformly)
+                                {
+                                    foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.Keys.ToArray())
+                                        if (label == PointPrediction.NullLabel)
+                                            vector.DerivedFrom.PredictionConfidenceScores[PointPrediction.NullLabel] = 0;
+                                        else
+                                            vector.DerivedFrom.PredictionConfidenceScores[label] = 1 / (float)(vector.DerivedFrom.PredictionConfidenceScores.Count - 1);
+                                }
+
+                                #region log feature values
+                                pointPredictionLog.Write((vector.DerivedFrom as Point).Id + " <p><ls>");
+                                foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.SortKeysByValues(true))
+                                    if (label == PointPrediction.NullLabel || prediction.IncidentTypes.Contains(label))
+                                        pointPredictionLog.Write("<l c=\"" + Math.Round(vector.DerivedFrom.PredictionConfidenceScores[label], 3) + "\"><![CDATA[" + label + "]]></l>");
                                     else
-                                        vector.DerivedFrom.PredictionConfidenceScores[label] = 1 / (float)(vector.DerivedFrom.PredictionConfidenceScores.Count - 1);
+                                        throw new Exception("Invalid prediction label on point:  " + label);
+
+                                pointPredictionLog.Write("</ls><fvs>");
+                                foreach (LAIR.MachineLearning.Feature feature in vector)
+                                {
+                                    object value;
+                                    if (feature is NumericFeature)
+                                        value = Math.Round(Convert.ToSingle(vector[feature]), 3);
+                                    else
+                                        value = vector[feature].ToString();
+
+                                    pointPredictionLog.Write("<fv id=\"" + feature.Name + "\">" + value + "</fv>");
+                                }
+
+                                pointPredictionLog.WriteLine("</fvs></p>");
+                                #endregion
                             }
 
-                            #region log feature values
-                            pointPredictionLog.Write((vector.DerivedFrom as Point).Id + " <p><ls>");
-                            foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.SortKeysByValues(true))
-                                if (label == PointPrediction.NullLabel || prediction.IncidentTypes.Contains(label))
-                                    pointPredictionLog.Write("<l c=\"" + Math.Round(vector.DerivedFrom.PredictionConfidenceScores[label], 3) + "\"><![CDATA[" + label + "]]></l>");
-                                else
-                                    throw new Exception("Invalid prediction label on point:  " + label);
-
-                            pointPredictionLog.Write("</ls><fvs>");
-                            foreach (LAIR.MachineLearning.Feature feature in vector)
-                            {
-                                object value;
-                                if (feature is NumericFeature)
-                                    value = Math.Round(Convert.ToSingle(vector[feature]), 3);
-                                else
-                                    value = vector[feature].ToString();
-
-                                pointPredictionLog.Write("<fv id=\"" + feature.Name + "\">" + value + "</fv>");
-                            }
-
-                            pointPredictionLog.WriteLine("</fvs></p>");
-                            #endregion
+                            PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction.Id, true);
                         }
-
-                        PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction.Id, true);
+                        pointPredictionLog.Close();
                     }
-
-                    pointPredictionLog.Close();
 
                     Smooth(prediction);
                 }
@@ -638,7 +653,7 @@ namespace PTL.ATT.Models
             catch (Exception ex)
             {
                 try { prediction.Delete(); }
-                catch (Exception) { }
+                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete prediction:  " + ex2.Message); }
 
                 throw ex;
             }

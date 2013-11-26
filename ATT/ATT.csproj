@@ -88,6 +88,7 @@
     <Compile Include="AreaGeometry.cs" />
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\SvmRank.cs" />
+    <Compile Include="Exceptions\ConfigurationException.cs" />
     <Compile Include="Exceptions\ZeroPositivePointsException.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />

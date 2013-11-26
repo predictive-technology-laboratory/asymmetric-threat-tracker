@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,7 +85,11 @@ namespace PTL.ATT.Classifiers
 
                 foreach (FeatureVector vector in featureVectors)
                 {
-                    PostGIS.Point vectorLocation = (vector.DerivedFrom as Point).Location;
+                    Point point = vector.DerivedFrom as Point;
+                    if (point == null)
+                        throw new NullReferenceException("Expected Point object in DerivedFrom");
+
+                    PostGIS.Point vectorLocation = point.Location;
                     int count = idPoint.Values.Count(p => p.Location.DistanceTo(vectorLocation) <= prediction.PointSpacing / 2d && p.IncidentType != PointPrediction.NullLabel);
                     vector.DerivedFrom.TrueClass = count + " qid:1";
                 }

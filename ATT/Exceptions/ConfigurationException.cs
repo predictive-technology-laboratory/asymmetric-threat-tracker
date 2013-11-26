@@ -25,9 +25,9 @@ using System.Text;
 namespace PTL.ATT.Exceptions
 {
     [Serializable]
-    public class ZeroPositivePointsException : Exception
+    public class ConfigurationException : Exception
     {
-        public ZeroPositivePointsException(string message = "")
+        public ConfigurationException(string message) 
             : base(message)
         {
         }

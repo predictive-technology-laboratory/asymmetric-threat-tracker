@@ -147,11 +147,13 @@ namespace PTL.ATT.Models
         {
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.TrainingAreaId + "=" + trainingArea.Id);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                models.Add(Instantiate(reader));
+            using (NpgsqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                    models.Add(Instantiate(reader));
 
-            reader.Close();
+                reader.Close();
+            }
             DB.Connection.Return(cmd.Connection);
 
             return models;
@@ -196,7 +198,11 @@ namespace PTL.ATT.Models
             {
                 Type type = Type.GetType(Convert.ToString(reader[Table + "_" + Columns.Type]));
                 ConstructorInfo constructor = type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { id.GetType() }, null);
+
                 m = constructor.Invoke(new object[] { id }) as DiscreteChoiceModel;
+                if (m == null)
+                    throw new NullReferenceException("Failed to construct model");
+
                 _modelCache.Add(m.Id, m);
             }
 
@@ -312,7 +318,7 @@ namespace PTL.ATT.Models
         private DateTime _trainingEnd;
         private int _trainingSampleSize;
         private int _predictionSampleSize;
-        private IEnumerable<Smoother> _smoothers;
+        private List<Smoother> _smoothers;
         private DateTime _lastRun;
 
         #region properties
@@ -366,7 +372,7 @@ namespace PTL.ATT.Models
             get { return _predictionSampleSize; }
         }
 
-        public IEnumerable<Smoother> Smoothers
+        public List<Smoother> Smoothers
         {
             get { return _smoothers; }
         }
@@ -409,11 +415,16 @@ namespace PTL.ATT.Models
             BinaryFormatter bf = new BinaryFormatter();
 
             _smoothers = new List<Smoother>();
-            foreach (byte[] smootherBytes in reader[Table + "_" + Columns.Smoothers] as IEnumerable<byte[]>)
+
+            IEnumerable<byte[]> smootherByteArrays = reader[Table + "_" + Columns.Smoothers] as IEnumerable<byte[]>;
+            if (smootherByteArrays == null)
+                throw new NullReferenceException("Failed to get smoother byte arrays");
+
+            foreach (byte[] smootherBytes in smootherByteArrays)
             {
                 MemoryStream ms = new MemoryStream(smootherBytes);
                 ms.Position = 0;
-                (_smoothers as List<Smoother>).Add(bf.Deserialize(ms) as Smoother);
+                _smoothers.Add(bf.Deserialize(ms) as Smoother);
             }
         }
 
@@ -435,7 +446,7 @@ namespace PTL.ATT.Models
                                       ex.StackTrace);
 
                 try { prediction.Delete(); }
-                catch (Exception) { }
+                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete prediction:  " + ex2.Message); }
 
                 throw ex;
             }
@@ -475,7 +486,7 @@ namespace PTL.ATT.Models
                    indent + "Last run:  " + (_lastRun.Equals(DateTime.MinValue) ? "Never" : _lastRun.ToShortDateString() + " " + _lastRun.ToShortTimeString());
         }
 
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, IEnumerable<Smoother> smoothers)
+        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, List<Smoother> smoothers)
         {
             _incidentTypes = new Set<string>(incidentTypes.ToArray());
             _name = name;
