@@ -114,12 +114,14 @@ namespace PTL.ATT.GUI.Visualization
             _brush = new SolidBrush(BackColor);
             _zoomIncrement = 0.1f;
             _clarifyZoomTimer = new System.Windows.Forms.Timer();
-            _clarifyZoomTimer.Interval = 500;
+            _clarifyZoomTimer.Interval = 1000;
             _clarifyZoomTimer.Tick += new EventHandler(ClarifyZoom);
 
             MouseWheel += new MouseEventHandler(ThreatMap_MouseWheel);
 
             _highlightedThreatRectangle = Rectangle.Empty;
+            _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
+
             _topPanelRectangle = topPanel.Bounds;
         }
 
@@ -407,10 +409,13 @@ namespace PTL.ATT.GUI.Visualization
         #region mouse events
         private void ThreatMap_MouseDown(object sender, MouseEventArgs e)
         {
-            _dragging = true;
-            _draggingStart = new System.Drawing.Point(e.X, e.Y);
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                _dragging = true;
+                _draggingStart = new System.Drawing.Point(e.X, e.Y);
 
-            ChangeCursor(Resources.ClosedHand);
+                UpdateHighlightedThreatRectangle(e.Location);
+            }
         }
 
         private void ThreatMap_MouseUp(object sender, MouseEventArgs e)
@@ -426,27 +431,30 @@ namespace PTL.ATT.GUI.Visualization
 
             if (_dragging)
             {
+                ChangeCursor(Resources.ClosedHand);
+
                 _panOffset.Width += (int)((_draggingStart.X - e.X) / ZoomFactor);
                 _panOffset.Height += (int)((_draggingStart.Y - e.Y) / ZoomFactor);
 
                 Invalidate();
 
                 _draggingStart = e.Location;
-            }
 
-            UpdateHighlightedThreatRectangle(e.Location);
+                if (_highlightedThreatRectangle != Rectangle.Empty)
+                {
+                    Rectangle toInvalidate = _highlightedThreatRectangle;
+                    toInvalidate.Inflate(10, 10);
+                    _highlightedThreatRectangle = Rectangle.Empty;
+                    _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
+                    Invalidate(toInvalidate);
+                }
+            }
 
             topPanel.Visible = _topPanelRectangle.Contains(e.Location);
         }
 
         private void UpdateHighlightedThreatRectangle(System.Drawing.Point mouseLocation)
         {
-            if (_highlightedThreatRectangle != Rectangle.Empty)
-            {
-                _highlightedThreatRectangle = Rectangle.Empty;
-                Invalidate(_highlightedThreatRectangle);
-            }
-
             float pixelsPerMeter;
             float threatRectanglePixelWidth;
             GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);
@@ -457,13 +465,29 @@ namespace PTL.ATT.GUI.Visualization
             System.Drawing.Point threatMapPoint = new System.Drawing.Point(rowColX, rowColY);
             GetThreatRectangleRowColumn(threatMapPoint, threatRectanglePixelWidth, out row, out col);
 
-            _highlightedThreatRectangle = new Rectangle((int)(col * threatRectanglePixelWidth - (_panOffset.Width % threatRectanglePixelWidth)),
-                                                        (int)(row * threatRectanglePixelWidth - (_panOffset.Height % threatRectanglePixelWidth)),
-                                                        (int)threatRectanglePixelWidth, (int)threatRectanglePixelWidth);
-            _highlightedThreatRectangleRow = row;
-            _highlightedThreatRectangleCol = col;
+            if (row != _highlightedThreatRectangleRow || col != _highlightedThreatRectangleCol)
+            {
+                Rectangle toInvalidate;
 
-            Invalidate(_highlightedThreatRectangle);
+                if (_highlightedThreatRectangle != Rectangle.Empty)
+                {
+                    toInvalidate = _highlightedThreatRectangle;
+                    toInvalidate.Inflate(10, 10);
+                    _highlightedThreatRectangle = Rectangle.Empty;
+                    _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
+                    Invalidate(toInvalidate);
+                }
+
+                _highlightedThreatRectangle = new Rectangle((int)(col * threatRectanglePixelWidth - (_panOffset.Width % threatRectanglePixelWidth)),
+                                                            (int)(row * threatRectanglePixelWidth - (_panOffset.Height % threatRectanglePixelWidth)),
+                                                            (int)threatRectanglePixelWidth, (int)threatRectanglePixelWidth);
+                _highlightedThreatRectangleRow = row;
+                _highlightedThreatRectangleCol = col;
+
+                toInvalidate = _highlightedThreatRectangle;
+                toInvalidate.Inflate(10, 10);
+                Invalidate(toInvalidate);
+            }
         }
 
         void ThreatMap_MouseWheel(object sender, MouseEventArgs e)
@@ -515,6 +539,9 @@ namespace PTL.ATT.GUI.Visualization
         #region zooming
         private void zoomInBtn_Click(object sender, EventArgs e)
         {
+            _highlightedThreatRectangle = Rectangle.Empty;
+            _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
+
             _zoomedImageWidth *= (1 + _zoomIncrement);
             Invalidate();
             StartClarifyZoomTimer();
@@ -522,6 +549,9 @@ namespace PTL.ATT.GUI.Visualization
 
         private void zoomOutBtn_Click(object sender, EventArgs e)
         {
+            _highlightedThreatRectangle = Rectangle.Empty;
+            _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
+
             _zoomedImageWidth *= (1 - _zoomIncrement);
             Invalidate();
             StartClarifyZoomTimer();
@@ -549,9 +579,10 @@ namespace PTL.ATT.GUI.Visualization
 
             _panOffset = new Size((int)(_panOffset.Width * ZoomFactor + x), (int)(_panOffset.Height * ZoomFactor + y));
 
-            GetThreatSurfaces(threatSurfaceBoundingBox);
+            _highlightedThreatRectangle = Rectangle.Empty;
+            _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
 
-            UpdateHighlightedThreatRectangle(PointToClient(Cursor.Position));
+            GetThreatSurfaces(threatSurfaceBoundingBox);
         }
 
         private void resetZoom_Click(object sender, EventArgs e)
@@ -652,6 +683,9 @@ namespace PTL.ATT.GUI.Visualization
 
         private void threatResolution_ValueChanged(object sender, EventArgs e)
         {
+            _highlightedThreatRectangle = Rectangle.Empty;
+            _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
+
             if (CurrentThreatSurface == null)
                 GetThreatSurfaces(ClientRectangle);
             else
@@ -729,9 +763,11 @@ namespace PTL.ATT.GUI.Visualization
         private void examinePredictionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (DisplayedPrediction == null)
-                MessageBox.Show("No prediction displayed. Cannot examine.");
+                MessageBox.Show("No prediction displayed. Cannot examine regions.");
             else if (!File.Exists(DisplayedPrediction.PointPredictionLogPath))
                 MessageBox.Show("No information available for this prediction.");
+            else if (_highlightedThreatRectangle == Rectangle.Empty || _highlightedThreatRectangleCol == -1 || _highlightedThreatRectangleRow == -1)
+                MessageBox.Show("Must select a region to examine.");
             else
             {
                 float pixelsPerMeter;
