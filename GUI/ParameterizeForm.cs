@@ -40,7 +40,7 @@ namespace PTL.ATT.GUI
 
             Text = title;
             _buttons = buttons;
-            if(_buttons != MessageBoxButtons.OK && _buttons != MessageBoxButtons.OKCancel)
+            if (_buttons != MessageBoxButtons.OK && _buttons != MessageBoxButtons.OKCancel)
                 throw new NotImplementedException("Only OK and Cancel buttons are implemented");
 
             _valueIdReturn = new Dictionary<string, Func<object>>();
@@ -97,14 +97,14 @@ namespace PTL.ATT.GUI
         {
             Label l = new Label();
             l.Text = label;
-            l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+            l.TextAlign = ContentAlignment.MiddleRight;
+            l.Size = l.PreferredSize;
 
             TextBox tb = new TextBox();
             tb.Name = valueId;
             tb.Text = text;
             tb.PasswordChar = passwordChar;
-            tb.Size = new Size(tb.PreferredSize.Width, tb.PreferredSize.Height);
+            tb.Size = tb.PreferredSize;
             tb.KeyDown += new KeyEventHandler((o, args) =>
                 {
                     if (args.KeyCode == Keys.Enter)
@@ -126,6 +126,33 @@ namespace PTL.ATT.GUI
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<string>(() => tb.Text));
+        }
+
+        public void AddNumericUpdown(string label, decimal value, int decimalPlaces, decimal minimum, decimal maximum, decimal increment, string valueId)
+        {
+            Label l = new Label();
+            l.Text = label;
+            l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            NumericUpDown ud = new NumericUpDown();
+            ud.Name = valueId;
+            ud.Size = ud.PreferredSize;
+            ud.DecimalPlaces = decimalPlaces;
+            ud.Minimum = minimum;
+            ud.Maximum = maximum;
+            ud.Increment = increment;
+            ud.Value = value;
+            ud.Size = ud.PreferredSize;
+
+            FlowLayoutPanel p = new FlowLayoutPanel();
+            p.FlowDirection = FlowDirection.LeftToRight;
+            p.Controls.Add(l);
+            p.Controls.Add(ud);
+            p.Size = p.PreferredSize;
+
+            _mainPanel.Controls.Add(p);
+            _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
         }
 
         internal void AddCheckBox(string label, RightToLeft rightToLeft, bool isChecked, string valueId)
@@ -167,13 +194,16 @@ namespace PTL.ATT.GUI
                 lb.SetSelected(lb.Items.IndexOf(selected), true);
         }
 
-        public object GetValue(string valueId)
+        public T GetValue<T>(string valueId)
         {
-            object value = _valueIdReturn[valueId]();
-            if(value == null)
-                throw new NullReferenceException("Parameterize return value function returned null");
+            T castValue;
+            try { castValue = (T)_valueIdReturn[valueId](); }
+            catch (InvalidCastException ex) { throw new InvalidCastException("Invalid cast in Parameterize form:  " + ex.Message); }
 
-            return value;
+            if (castValue == null)
+                throw new NullReferenceException("ParameterizeForm value function returned null");
+
+            return castValue;
         }
     }
 }

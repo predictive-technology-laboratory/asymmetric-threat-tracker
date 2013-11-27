@@ -612,7 +612,11 @@ namespace PTL.ATT.Models
                                 }
 
                                 #region log feature values
-                                pointPredictionLog.Write((vector.DerivedFrom as Point).Id + " <p><ls>");
+                                Point p = vector.DerivedFrom as Point;
+                                if (p == null)
+                                    throw new NullReferenceException("Expected Point in vector.DerivedFrom");
+
+                                pointPredictionLog.Write(p.Id + " <p><ls>");
                                 foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.SortKeysByValues(true))
                                     if (label == PointPrediction.NullLabel || prediction.IncidentTypes.Contains(label))
                                         pointPredictionLog.Write("<l c=\"" + Math.Round(vector.DerivedFrom.PredictionConfidenceScores[label], 3) + "\"><![CDATA[" + label + "]]></l>");

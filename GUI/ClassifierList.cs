@@ -77,18 +77,19 @@ namespace PTL.ATT.GUI
                         form.AddDropDown("Positive weighting:", Enum.GetValues(typeof(LibLinear.PositiveClassWeighting)), liblinear.Weighting, "positive_weighting");
                         if (form.ShowDialog() == DialogResult.OK)
                         {
-                            liblinear.RunFeatureSelection = Convert.ToBoolean(form.GetValue("run_feature_selection"));
-                            liblinear.Weighting = (LibLinear.PositiveClassWeighting)form.GetValue("positive_weighting");
+                            liblinear.RunFeatureSelection = form.GetValue<bool>("run_feature_selection");
+                            liblinear.Weighting = form.GetValue<LibLinear.PositiveClassWeighting>("positive_weighting");
                         }
                     }
                     else if (classifier is SvmRank)
                     {
                         SvmRank svmRank = classifier as SvmRank;
                         ParameterizeForm form = new ParameterizeForm("Set SvmRank parameters");
-                        form.AddTextBox("c:  ", svmRank.C.ToString(), "c");
+                        form.AddNumericUpdown("c:  ", (decimal)svmRank.C, 3, decimal.MinValue, decimal.MaxValue, (decimal)0.01, "c");
                         if (form.ShowDialog() == DialogResult.OK)
                         {
-                            svmRank.C = Convert.ToSingle(form.GetValue("c"));
+                            try { svmRank.C = Convert.ToSingle(form.GetValue<decimal>("c")); }
+                            catch (Exception ex) { MessageBox.Show("Invalid value for C:  " + ex.Message); }
                         }
                     }
                 }

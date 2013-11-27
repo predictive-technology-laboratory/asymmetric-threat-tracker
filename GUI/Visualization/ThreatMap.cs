@@ -329,6 +329,9 @@ namespace PTL.ATT.GUI.Visualization
                 DateTime sliceEnd = DisplayedPrediction.PredictionEndTime;
                 if (slice != -1)
                 {
+                    if (!(DisplayedPrediction.Model is TimeSliceDCM))
+                        throw new Exception("Expected TimeSliceDCM since slice != 1");
+
                     long sliceTicks = (DisplayedPrediction.Model as TimeSliceDCM).TimeSliceTicks;
                     sliceStart = new DateTime(slice * sliceTicks);
                     sliceEnd = sliceStart + new TimeSpan(sliceTicks);

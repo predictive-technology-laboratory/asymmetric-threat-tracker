@@ -1138,10 +1138,12 @@ namespace PTL.ATT.GUI
             else if (selectedPredictions.Count == 1 || MessageBox.Show("Are you sure you want to copy " + selectedPredictions.Count + " prediction(s)?", "Confirm copy", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
                 ParameterizeForm pf = new ParameterizeForm("Set copy parameters");
-                pf.AddTextBox("Number of copies of each prediction:  ", "1", "copies");
+                pf.AddNumericUpdown("Number of copies of each prediction:  ", 1, 0, 1, 99999, 1, "copies");
                 if (pf.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    int numCopies = int.Parse(pf.GetValue("copies").ToString());
+                    int numCopies;
+                    try { numCopies = Convert.ToInt32(pf.GetValue<decimal>("copies")); }
+                    catch (Exception ex) { MessageBox.Show("Invalid number of copies:  " + ex.Message); return; }
 
                     Thread t = new Thread(new ThreadStart(delegate()
                         {
@@ -1720,8 +1722,8 @@ namespace PTL.ATT.GUI
                 if (pf.ShowDialog() == DialogResult.Cancel)
                     break;
 
-                string pass = (pf.GetValue("password") as string).Trim();
-                string confirmed = (pf.GetValue("confirmed") as string).Trim();
+                string pass = pf.GetValue<string>("password").Trim();
+                string confirmed = pf.GetValue<string>("confirmed").Trim();
                 if (pass != confirmed)
                     MessageBox.Show("Entries do not match.");
                 else

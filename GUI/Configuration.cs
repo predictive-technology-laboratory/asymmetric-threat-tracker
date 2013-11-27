@@ -273,8 +273,8 @@ namespace PTL.ATT.GUI
                 if (pf.ShowDialog() == DialogResult.Cancel)
                     break;
 
-                string passphrase = (pf.GetValue("passphrase") as string).Trim();
-                string confirmed = (pf.GetValue("confirmed") as string).Trim();
+                string passphrase = pf.GetValue<string>("passphrase").Trim();
+                string confirmed = pf.GetValue<string>("confirmed").Trim();
                 if (passphrase != confirmed)
                     MessageBox.Show("Entries do not match.");
                 else if (passphrase.Length < 8)
