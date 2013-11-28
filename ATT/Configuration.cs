@@ -143,30 +143,6 @@ namespace PTL.ATT
         }
         #endregion
 
-        #region incident
-        private static Importer _incidentImporter;
-        private static int _incidentHourOffset;
-        private static int _incidentNativeLocationSRID;
-
-        public static Importer IncidentImporter
-        {
-            get { return Configuration._incidentImporter; }
-            set { Configuration._incidentImporter = value; }
-        }
-
-        public static int IncidentHourOffset
-        {
-            get { return Configuration._incidentHourOffset; }
-            set { Configuration._incidentHourOffset = value; }
-        }
-
-        public static int IncidentNativeLocationSRID
-        {
-            get { return Configuration._incidentNativeLocationSRID; }
-            set { Configuration._incidentNativeLocationSRID = value; }
-        }
-        #endregion
-
         #region models
         private static string _modelsDirectory;
         private static Dictionary<Type, Type> _modelTypeFeatureExtractorType;
@@ -289,11 +265,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
                 _classifierTypeOptions.Add(type, optionValue);
             }
-
-            XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
-            _incidentImporter = Activator.CreateInstance(Reflection.GetType(incidentsP.ElementText("importer"))) as Importer;
-            _incidentHourOffset = int.Parse(incidentsP.ElementText("hour_offset"));
-            _incidentNativeLocationSRID = int.Parse(incidentsP.ElementText("native_location_srid"));
 
             XmlParser modelingP = new XmlParser(p.OuterXML("modeling"));
             _modelsDirectory = modelingP.ElementText("model_directory");

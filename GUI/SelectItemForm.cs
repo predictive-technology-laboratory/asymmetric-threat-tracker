@@ -28,40 +28,45 @@ using System.Windows.Forms;
 
 namespace PTL.ATT.GUI
 {
-    public partial class SelectAreaForm : Form
+    public partial class SelectItemForm<T> : Form where T : class
     {
-        public Area SelectedArea
+        public T SelectedItem
         {
-            get { return areas.SelectedItem as Area; }
+            get { return itemList.SelectedItem as T; }
         }
 
-        public int AreaCount
+        public T[] SelectedItems
         {
-            get { return areas.Items.Count; }
+            get { return itemList.SelectedItems.Cast<T>().ToArray(); }
         }
 
-        public SelectAreaForm(string prompt)
+        public SelectItemForm(T[] items, string text, SelectionMode selectionMode)
         {
+            if (items == null || items.Length == 0)
+                throw new ArgumentException("Must pass items from which to select");
+                
             InitializeComponent();
 
-            Text = prompt;
+            foreach (T item in items)
+                itemList.Items.Add(item);
 
-            foreach (Area area in Area.GetAvailable())
-                areas.Items.Add(area);                       
+            itemList.SelectedIndex = 0;
 
-            DialogResult = System.Windows.Forms.DialogResult.Cancel;
-
+            Text = text;
+            itemList.SelectionMode = selectionMode;
             Size = PreferredSize;
+            DialogResult = DialogResult.Cancel;
         }
 
         private void ok_Click(object sender, EventArgs e)
         {
-            DialogResult = System.Windows.Forms.DialogResult.OK;
+            DialogResult = DialogResult.OK;
             Close();
         }
 
         private void cancel_Click(object sender, EventArgs e)
         {
+            DialogResult = DialogResult.Cancel;
             Close();
         }
     }

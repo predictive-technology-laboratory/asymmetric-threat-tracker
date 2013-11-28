@@ -19,7 +19,7 @@
  
 namespace PTL.ATT.GUI
 {
-    partial class AddAreaForm
+    partial class SelectItemForm<T>
     {
         /// <summary>
         /// Required designer variable.
@@ -47,61 +47,59 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
+            this.itemList = new System.Windows.Forms.ListBox();
             this.cancel = new System.Windows.Forms.Button();
             this.ok = new System.Windows.Forms.Button();
-            this.areas = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
+            // 
+            // itemList
+            // 
+            this.itemList.FormattingEnabled = true;
+            this.itemList.Location = new System.Drawing.Point(12, 12);
+            this.itemList.Name = "itemList";
+            this.itemList.Size = new System.Drawing.Size(268, 212);
+            this.itemList.TabIndex = 0;
             // 
             // cancel
             // 
-            this.cancel.Location = new System.Drawing.Point(153, 154);
+            this.cancel.Location = new System.Drawing.Point(149, 233);
             this.cancel.Name = "cancel";
             this.cancel.Size = new System.Drawing.Size(75, 23);
-            this.cancel.TabIndex = 5;
+            this.cancel.TabIndex = 7;
             this.cancel.Text = "Cancel";
             this.cancel.UseVisualStyleBackColor = true;
             this.cancel.Click += new System.EventHandler(this.cancel_Click);
             // 
             // ok
             // 
-            this.ok.Location = new System.Drawing.Point(72, 154);
+            this.ok.Location = new System.Drawing.Point(68, 233);
             this.ok.Name = "ok";
             this.ok.Size = new System.Drawing.Size(75, 23);
-            this.ok.TabIndex = 4;
+            this.ok.TabIndex = 6;
             this.ok.Text = "OK";
             this.ok.UseVisualStyleBackColor = true;
             this.ok.Click += new System.EventHandler(this.ok_Click);
             // 
-            // areas
-            // 
-            this.areas.FormattingEnabled = true;
-            this.areas.Location = new System.Drawing.Point(23, 12);
-            this.areas.Name = "areas";
-            this.areas.Size = new System.Drawing.Size(249, 134);
-            this.areas.Sorted = true;
-            this.areas.TabIndex = 6;
-            // 
-            // AddAreaForm
+            // SelectItemForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(298, 189);
-            this.Controls.Add(this.areas);
+            this.ClientSize = new System.Drawing.Size(292, 266);
             this.Controls.Add(this.cancel);
             this.Controls.Add(this.ok);
+            this.Controls.Add(this.itemList);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "AddAreaForm";
+            this.Name = "SelectItemForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Select shapefile to base area on...";
-            this.Load += new System.EventHandler(this.AddAreaForm_Load);
+            this.Text = "...";
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
+        private System.Windows.Forms.ListBox itemList;
         private System.Windows.Forms.Button cancel;
         private System.Windows.Forms.Button ok;
-        private System.Windows.Forms.ListBox areas;
     }
 }

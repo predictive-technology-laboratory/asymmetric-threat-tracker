@@ -39,7 +39,7 @@ namespace PTL.ATT.Incidents.Chicago
         {
         }
 
-        public override void Import(string path, Area area)
+        public override void Import(string path, Area area, int hourOffset, int srid)
         {
             Console.Out.WriteLine("Importing incidents from \"" + path + "\"");
 
@@ -85,7 +85,7 @@ namespace PTL.ATT.Incidents.Chicago
                         if (existingNativeIDs.Add(nativeId))
                         {
                             string caseNumber = rowP.ElementText("case_number"); rowP.Reset();
-                            DateTime date = DateTime.Parse(rowP.ElementText("date")) + new TimeSpan(Configuration.IncidentHourOffset, 0, 0); rowP.Reset();
+                            DateTime date = DateTime.Parse(rowP.ElementText("date")) + new TimeSpan(hourOffset, 0, 0); rowP.Reset();
                             string block = rowP.ElementText("block"); rowP.Reset();
                             string iucr = rowP.ElementText("iucr"); rowP.Reset();
                             string primaryType = rowP.ElementText("primary_type"); rowP.Reset();
@@ -110,7 +110,7 @@ namespace PTL.ATT.Incidents.Chicago
 
                             rowP.Reset();
 
-                            PostGIS.Point location = new PostGIS.Point(x, y, Configuration.IncidentNativeLocationSRID);
+                            PostGIS.Point location = new PostGIS.Point(x, y, srid);
 
                             incidentInsert.Append((batchCount == 0 ? incidentInsertBase : ",") + "(" + Incident.GetValue(area.Id, "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")", false, "@date_" + nativeId, primaryType) + ")");
                             incidentParameters.Add(new Parameter("date_" + nativeId, NpgsqlDbType.Timestamp, date));

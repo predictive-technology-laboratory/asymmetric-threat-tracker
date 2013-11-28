@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -150,7 +150,7 @@ namespace PTL.ATT.GUI
         {
             get { return predictionAreas.SelectedItem as Area; }
         }
-        
+
         public List<Prediction> SelectedPredictions
         {
             get
@@ -180,7 +180,7 @@ namespace PTL.ATT.GUI
         }
         #endregion
 
-        #region construction and loading
+        #region construction / loading / closing
         public AttForm()
         {
             InitializeComponent();
@@ -226,14 +226,19 @@ namespace PTL.ATT.GUI
 
                 GUI.Configuration.Initialize(guiConfigPath);
 
-                splash.UpdateProgress("Loading plugins...");
-                foreach (Plugin plugin in GUI.Configuration.PluginTypes)
+                if (GUI.Configuration.PluginTypes.Count > 0)
                 {
-                    ToolStripMenuItem pluginMenuItem = new ToolStripMenuItem(plugin.MenuItemName);
-                    pluginMenuItem.Tag = plugin;
-                    pluginMenuItem.Click += new EventHandler(pluginsMenu_Click);
-                    pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
+                    splash.UpdateProgress("Loading plugins...");
+                    foreach (Plugin plugin in GUI.Configuration.PluginTypes)
+                    {
+                        ToolStripMenuItem pluginMenuItem = new ToolStripMenuItem(plugin.MenuItemName);
+                        pluginMenuItem.Tag = plugin;
+                        pluginMenuItem.Click += new EventHandler(pluginsMenu_Click);
+                        pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
+                    }
                 }
+                else
+                    pluginsToolStripMenuItem.Visible = false;
 
                 _logWriter = new LogWriter(log, Configuration.LogPath, true, Console.Out);
                 Console.SetOut(_logWriter);
@@ -291,21 +296,6 @@ namespace PTL.ATT.GUI
 
             Console.Out.WriteLine("ATT started");
         }
-        #endregion
-
-        #region menus
-        private void viewLogToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            try { Process.Start(Configuration.LoggingEditor, Configuration.LogPath); }
-            catch (Exception ex) { MessageBox.Show("Error while opening log:  " + ex.Message); }
-        }
-
-        private void deleteLogToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Are you sure you want to delete the log?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                try { _logWriter.Clear(); }
-                catch (Exception ex) { MessageBox.Show("Error while deleting log:  " + ex.Message); }
-        }
 
         public void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -316,37 +306,82 @@ namespace PTL.ATT.GUI
         {
             Console.Out.WriteLine("ATT exited.");
         }
+        #endregion
 
-        public void importShapeFilesToolStripMenuItem_Click(object sender, EventArgs e)
+        #region data
+        public void importShapefilesFromDiskToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImportShapeFileForm form = new ImportShapeFileForm(this);
-            form.Show();
+            form.ShowDialog();
         }
 
-        public void importIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void deleteShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Area importArea = PromptForArea("Select area to import incidents into...");
-            if (importArea != null)
+            Shapefile[] shapefiles = Shapefile.GetAvailable().ToArray();
+            if (shapefiles.Length == 0)
+                MessageBox.Show("No shapefiles available for deletion.");
+            else
             {
-                string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
-                if (path != null)
+                SelectItemForm<Shapefile> f = new SelectItemForm<Shapefile>(shapefiles, "Select shapefile(s) to delete...", SelectionMode.MultiExtended);
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK && f.SelectedItems.Length > 0 && MessageBox.Show("Are you sure you want to delete " + f.SelectedItems.Length + " shapefile(s)?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                 {
-                    Thread t = new Thread(new ThreadStart(delegate()
-                        {
-                            try
-                            {
-                                ATT.Configuration.IncidentImporter.Import(path, importArea);
-                                RefreshIncidentTypes();
-                            }
-                            catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
-                        }));
+                    foreach (Shapefile shapefile in f.SelectedItems)
+                        shapefile.Delete();
 
-                    t.Start();
+                    RefreshFeatures();
+
+                    Console.Out.WriteLine("Deleted " + f.SelectedItems.Length + " shapefile(s)");
                 }
             }
         }
 
-        public void clearToolStripMenuItem_Click(object sender, EventArgs e)
+        public void importIncidentsFromFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Importer[] importers = Assembly.GetAssembly(typeof(Importer)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Importer))).Select(t => Activator.CreateInstance(t)).Cast<Importer>().ToArray();
+            if (Area.GetAvailable().Count() == 0)
+                MessageBox.Show("No areas available. Create one first.");
+            else if (importers.Length == 0)
+                MessageBox.Show("No incident importers available.");
+            else
+            {
+                SelectItemForm<Importer> importerForm = new SelectItemForm<Importer>(importers, "Select importer to use...", SelectionMode.One);
+                if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK && importerForm.SelectedItem != null)
+                {
+                    Importer importer = importerForm.SelectedItem;
+
+                    ParameterizeForm pf = new ParameterizeForm("Select import options...", MessageBoxButtons.OKCancel);
+                    pf.AddNumericUpdown("Incident hour offset:  ", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
+                    pf.AddNumericUpdown("Incident SRID:  ", 4326, 0, 0, decimal.MaxValue, 1, "srid");
+                    if (pf.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        int hourOffset = Convert.ToInt32(pf.GetValue<decimal>("offset"));
+                        int srid = Convert.ToInt32(pf.GetValue<decimal>("srid"));
+
+                        Area importArea = PromptForArea("Select area to import incidents into...");
+                        if (importArea != null)
+                        {
+                            string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
+                            if (path != null)
+                            {
+                                Thread t = new Thread(new ThreadStart(delegate()
+                                    {
+                                        try
+                                        {
+                                            importer.Import(path, importArea, hourOffset, srid);
+                                            RefreshIncidentTypes();
+                                        }
+                                        catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
+                                    }));
+
+                                t.Start();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Area clearArea = PromptForArea("Select area to clear incidents from...");
             if (clearArea != null && MessageBox.Show("Are you sure you want to clear all incidents from \"" + clearArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -360,7 +395,7 @@ namespace PTL.ATT.GUI
         public void simulateIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Area simulateArea = PromptForArea("Select area in which to simulate incidents...");
-            if(simulateArea != null)
+            if (simulateArea != null)
             {
                 SimulateIncidentsForm f = new SimulateIncidentsForm(simulateArea);
                 f.ShowDialog();
@@ -379,35 +414,9 @@ namespace PTL.ATT.GUI
             }
         }
 
-        private void pluginsMenu_Click(object sender, EventArgs e)
+        private void importFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Thread t = new Thread(new ThreadStart(delegate()
-                {
-                    Invoke(new Action(delegate()
-                        {
-                            Plugin plugin = (sender as ToolStripMenuItem).Tag as Plugin;
-                            Console.Out.WriteLine("Running plugin action \"" + plugin.MenuItemName + "\"");
-                            plugin.Run(this);
-                        }));
-                }));
 
-            t.Start();
-        }
-
-        private Area PromptForArea(string prompt)
-        {
-            SelectAreaForm f = new SelectAreaForm(prompt);
-            if (f.AreaCount == 0)
-            {
-                MessageBox.Show("No areas available. Please create one first.");
-                return null;
-            }
-
-            Area importArea = null;
-            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK && f.SelectedArea != null)
-                importArea = f.SelectedArea;
-
-            return importArea;
         }
         #endregion
 
@@ -421,21 +430,25 @@ namespace PTL.ATT.GUI
             RefreshModels(-1, true);
         }
 
-        public void addTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
+        public void addAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            AddAreaForm aaf = new AddAreaForm();
-            if (aaf.ShowDialog() == DialogResult.OK && aaf.AreaShapefile != null)
+            Shapefile[] areaShapefiles = Shapefile.GetAvailable().Where(sf => sf.Type == Shapefile.ShapefileType.Area).ToArray();
+            if (areaShapefiles.Length == 0)
+                MessageBox.Show("No shapefiles available from which to create area. Import shapefiles first.");
+            else
             {
-                Shapefile shapeFile = aaf.AreaShapefile;
-                string name = shapeFile.Name;
-                Thread t = new Thread(new ThreadStart(delegate()
-                    {
-                        Area.Create(aaf.AreaShapefile, aaf.AreaShapefile.Name);
-                        RefreshAreas();
-
-                        Console.Out.WriteLine("Finished creating area");
-                    }));
-                t.Start();
+                SelectItemForm<Shapefile> f = new SelectItemForm<Shapefile>(areaShapefiles, "Select shapefile to base area on...", SelectionMode.One);
+                if (f.ShowDialog() == DialogResult.OK && f.SelectedItem != null)
+                {
+                    Shapefile shapefile = f.SelectedItem;
+                    Thread t = new Thread(new ThreadStart(delegate()
+                        {
+                            Area.Create(shapefile, shapefile.Name);
+                            Console.Out.WriteLine("Finished creating area");
+                            RefreshAreas();
+                        }));
+                    t.Start();
+                }
             }
         }
 
@@ -1709,7 +1722,7 @@ namespace PTL.ATT.GUI
             t.Start();
         }
 
-        private void generateEncryptedPasswordToolStripMenuItem_Click(object sender, EventArgs e)
+        private void encryptStringToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string password = null;
 
@@ -1748,6 +1761,53 @@ namespace PTL.ATT.GUI
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(ATT.Configuration.LicenseText, "About the Asymmetric Threat Tracker");
+        }
+        #endregion
+
+        #region miscellaneous
+        private void viewLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try { Process.Start(Configuration.LoggingEditor, Configuration.LogPath); }
+            catch (Exception ex) { MessageBox.Show("Error while opening log:  " + ex.Message); }
+        }
+
+        private void deleteLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to delete the log?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                try { _logWriter.Clear(); }
+                catch (Exception ex) { MessageBox.Show("Error while deleting log:  " + ex.Message); }
+        }
+
+        private void pluginsMenu_Click(object sender, EventArgs e)
+        {
+            Thread t = new Thread(new ThreadStart(delegate()
+                {
+                    Invoke(new Action(delegate()
+                        {
+                            Plugin plugin = (sender as ToolStripMenuItem).Tag as Plugin;
+                            Console.Out.WriteLine("Running plugin action \"" + plugin.MenuItemName + "\"");
+                            plugin.Run(this);
+                        }));
+                }));
+
+            t.Start();
+        }
+
+        private Area PromptForArea(string prompt, int srid = -1)
+        {
+            Area[] areas = Area.GetAvailable(srid).ToArray();
+            if (areas.Length == 0)
+            {
+                MessageBox.Show("No areas available" + (srid == -1 ? "" : " for SRID " + srid) + ". Create one first.");
+                return null;
+            }
+
+            SelectItemForm<Area> f = new SelectItemForm<Area>(areas, prompt, SelectionMode.One);
+            Area importArea = null;
+            if (f.ShowDialog() == DialogResult.OK && f.SelectedItem != null)
+                importArea = f.SelectedItem;
+
+            return importArea;
         }
         #endregion
     }

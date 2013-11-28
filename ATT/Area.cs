@@ -81,10 +81,10 @@ namespace PTL.ATT
             }
         }
 
-        public static IEnumerable<Area> GetAvailable()
+        public static IEnumerable<Area> GetAvailable(int srid = -1)
         {
             List<Area> areas = new List<Area>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + (srid == -1 ? "" : " WHERE " + Columns.SRID + "=" + srid));
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
                 areas.Add(new Area(reader));

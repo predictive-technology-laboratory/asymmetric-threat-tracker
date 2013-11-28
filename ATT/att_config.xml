@@ -40,12 +40,6 @@
     </classifier>
   </classifiers>
 
-  <incidents>
-    <importer>PTL.ATT.Incidents.Chicago.ChicagoImporter</importer> <!-- Type name of importer for incident data. -->
-    <hour_offset>0</hour_offset>                                   <!-- Use this to adjust the time of imported events, in hours. This value is added to the timestamp of the incidents in the imported file. -->
-    <native_location_srid>4326</native_location_srid>              <!-- The SRID of incident locations within the imported incidents file. -->
-  </incidents>
-
   <modeling>
     <model_directory></model_directory> <!-- Path to directory in which to store data related to the models that are built when running predictions. This can be any empty or non-existent directory. -->
     <feature_extractors>                <!-- Externally defined feature extractors. Each element within feature_extractors should have the following form, where the model_type attribute indicates the type of the model the feature extractor is used with, and feature_extractor_type is the type name of the feature extractor to load. The "option=value" pairs are passed to the feature extractor's Initialize method. -->
