@@ -64,16 +64,15 @@ namespace PTL.ATT.GUI
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.shapefilesToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.importShapefilesFromDiskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteShapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.incidentsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.importFromFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearImportedIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.simulateIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearSimulatedIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.shapefilesToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.importShapefilesFromDiskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteShapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -160,6 +159,8 @@ namespace PTL.ATT.GUI
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
+            this.importShapefileFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importIncidentsFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainMenu.SuspendLayout();
             this.trainingAreaMenu.SuspendLayout();
             this.featuresMenu.SuspendLayout();
@@ -301,86 +302,80 @@ namespace PTL.ATT.GUI
             // 
             this.importToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.shapefilesToolStripMenuItem1,
-            this.incidentsToolStripMenuItem1,
-            this.importFromSocrataToolStripMenuItem});
+            this.incidentsToolStripMenuItem1});
             this.importToolStripMenuItem1.Name = "importToolStripMenuItem1";
             this.importToolStripMenuItem1.Size = new System.Drawing.Size(42, 20);
             this.importToolStripMenuItem1.Text = "Data";
-            // 
-            // incidentsToolStripMenuItem1
-            // 
-            this.incidentsToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.importFromFileToolStripMenuItem,
-            this.clearImportedIncidentsToolStripMenuItem,
-            this.toolStripSeparator6,
-            this.simulateIncidentsToolStripMenuItem,
-            this.clearSimulatedIncidentsToolStripMenuItem});
-            this.incidentsToolStripMenuItem1.Name = "incidentsToolStripMenuItem1";
-            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(194, 22);
-            this.incidentsToolStripMenuItem1.Text = "Incidents";
-            // 
-            // importFromFileToolStripMenuItem
-            // 
-            this.importFromFileToolStripMenuItem.Name = "importFromFileToolStripMenuItem";
-            this.importFromFileToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.importFromFileToolStripMenuItem.Text = "Import incidents from file...";
-            this.importFromFileToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromFileToolStripMenuItem_Click);
-            // 
-            // clearImportedIncidentsToolStripMenuItem
-            // 
-            this.clearImportedIncidentsToolStripMenuItem.Name = "clearImportedIncidentsToolStripMenuItem";
-            this.clearImportedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.clearImportedIncidentsToolStripMenuItem.Text = "Clear imported incidents";
-            this.clearImportedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearImportedIncidentsToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator6
-            // 
-            this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(213, 6);
-            // 
-            // simulateIncidentsToolStripMenuItem
-            // 
-            this.simulateIncidentsToolStripMenuItem.Name = "simulateIncidentsToolStripMenuItem";
-            this.simulateIncidentsToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.simulateIncidentsToolStripMenuItem.Text = "Simulate incidents...";
-            this.simulateIncidentsToolStripMenuItem.Click += new System.EventHandler(this.simulateIncidentsToolStripMenuItem_Click);
-            // 
-            // clearSimulatedIncidentsToolStripMenuItem
-            // 
-            this.clearSimulatedIncidentsToolStripMenuItem.Name = "clearSimulatedIncidentsToolStripMenuItem";
-            this.clearSimulatedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.clearSimulatedIncidentsToolStripMenuItem.Text = "Clear simulated incidents";
-            this.clearSimulatedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearSimulatedIncidentsToolStripMenuItem_Click);
             // 
             // shapefilesToolStripMenuItem1
             // 
             this.shapefilesToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importShapefilesFromDiskToolStripMenuItem,
+            this.importShapefileFromSocrataToolStripMenuItem,
             this.deleteShapefilesToolStripMenuItem});
             this.shapefilesToolStripMenuItem1.Name = "shapefilesToolStripMenuItem1";
-            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(194, 22);
+            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
             this.shapefilesToolStripMenuItem1.Text = "Shapefiles";
             // 
             // importShapefilesFromDiskToolStripMenuItem
             // 
             this.importShapefilesFromDiskToolStripMenuItem.Name = "importShapefilesFromDiskToolStripMenuItem";
-            this.importShapefilesFromDiskToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.importShapefilesFromDiskToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.importShapefilesFromDiskToolStripMenuItem.Text = "Import shapefiles from disk...";
             this.importShapefilesFromDiskToolStripMenuItem.Click += new System.EventHandler(this.importShapefilesFromDiskToolStripMenuItem_Click);
             // 
             // deleteShapefilesToolStripMenuItem
             // 
             this.deleteShapefilesToolStripMenuItem.Name = "deleteShapefilesToolStripMenuItem";
-            this.deleteShapefilesToolStripMenuItem.Size = new System.Drawing.Size(226, 22);
+            this.deleteShapefilesToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.deleteShapefilesToolStripMenuItem.Text = "Delete shapefiles...";
             this.deleteShapefilesToolStripMenuItem.Click += new System.EventHandler(this.deleteShapefilesToolStripMenuItem_Click);
             // 
-            // importFromSocrataToolStripMenuItem
+            // incidentsToolStripMenuItem1
             // 
-            this.importFromSocrataToolStripMenuItem.Name = "importFromSocrataToolStripMenuItem";
-            this.importFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-            this.importFromSocrataToolStripMenuItem.Text = "Import from Socrata...";
-            this.importFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importFromSocrataToolStripMenuItem_Click);
+            this.incidentsToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.importFromFileToolStripMenuItem,
+            this.importIncidentsFromSocrataToolStripMenuItem,
+            this.clearImportedIncidentsToolStripMenuItem,
+            this.toolStripSeparator6,
+            this.simulateIncidentsToolStripMenuItem,
+            this.clearSimulatedIncidentsToolStripMenuItem});
+            this.incidentsToolStripMenuItem1.Name = "incidentsToolStripMenuItem1";
+            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.incidentsToolStripMenuItem1.Text = "Incidents";
+            // 
+            // importFromFileToolStripMenuItem
+            // 
+            this.importFromFileToolStripMenuItem.Name = "importFromFileToolStripMenuItem";
+            this.importFromFileToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.importFromFileToolStripMenuItem.Text = "Import incidents from file...";
+            this.importFromFileToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromFileToolStripMenuItem_Click);
+            // 
+            // clearImportedIncidentsToolStripMenuItem
+            // 
+            this.clearImportedIncidentsToolStripMenuItem.Name = "clearImportedIncidentsToolStripMenuItem";
+            this.clearImportedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.clearImportedIncidentsToolStripMenuItem.Text = "Clear imported incidents";
+            this.clearImportedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearImportedIncidentsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator6
+            // 
+            this.toolStripSeparator6.Name = "toolStripSeparator6";
+            this.toolStripSeparator6.Size = new System.Drawing.Size(236, 6);
+            // 
+            // simulateIncidentsToolStripMenuItem
+            // 
+            this.simulateIncidentsToolStripMenuItem.Name = "simulateIncidentsToolStripMenuItem";
+            this.simulateIncidentsToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.simulateIncidentsToolStripMenuItem.Text = "Simulate incidents...";
+            this.simulateIncidentsToolStripMenuItem.Click += new System.EventHandler(this.simulateIncidentsToolStripMenuItem_Click);
+            // 
+            // clearSimulatedIncidentsToolStripMenuItem
+            // 
+            this.clearSimulatedIncidentsToolStripMenuItem.Name = "clearSimulatedIncidentsToolStripMenuItem";
+            this.clearSimulatedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.clearSimulatedIncidentsToolStripMenuItem.Text = "Clear simulated incidents";
+            this.clearSimulatedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearSimulatedIncidentsToolStripMenuItem_Click);
             // 
             // pluginsToolStripMenuItem
             // 
@@ -1246,6 +1241,20 @@ namespace PTL.ATT.GUI
             this.log.TabIndex = 0;
             this.log.Text = "";
             // 
+            // importShapefileFromSocrataToolStripMenuItem
+            // 
+            this.importShapefileFromSocrataToolStripMenuItem.Name = "importShapefileFromSocrataToolStripMenuItem";
+            this.importShapefileFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.importShapefileFromSocrataToolStripMenuItem.Text = "Import shapefile from Socrata...";
+            this.importShapefileFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importShapefileFromSocrataToolStripMenuItem_Click);
+            // 
+            // importIncidentsFromSocrataToolStripMenuItem
+            // 
+            this.importIncidentsFromSocrataToolStripMenuItem.Name = "importIncidentsFromSocrataToolStripMenuItem";
+            this.importIncidentsFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.importIncidentsFromSocrataToolStripMenuItem.Text = "Import incidents from Socrata...";
+            this.importIncidentsFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromSocrataToolStripMenuItem_Click);
+            // 
             // AttForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1393,7 +1402,6 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem importFromFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
         private System.Windows.Forms.ToolStripMenuItem shapefilesToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem importFromSocrataToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem notificationsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sendNotificationsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sendTestNotificationToolStripMenuItem;
@@ -1404,6 +1412,8 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem importShapefilesFromDiskToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteShapefilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
+        private System.Windows.Forms.ToolStripMenuItem importShapefileFromSocrataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importIncidentsFromSocrataToolStripMenuItem;
     }
 }
 

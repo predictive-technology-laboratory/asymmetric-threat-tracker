@@ -54,19 +54,17 @@ namespace PTL.ATT.Incidents.Chicago
             public const string IUCR = "iucr";
             [Reflector.Insert,Reflector.Select(true)]
             public const string LocationDescription = "location_description";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string NativeId = "native_id";
             [Reflector.Insert,Reflector.Select(true)]
             public const string Ward = "ward";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select(int srid) { return Incident.Columns.Select(srid) + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); }
-            public static string JoinIncident(int srid) { return Incident.GetTableName(srid) + " JOIN " + Table + " ON " + Incident.GetTableName(srid) + "." + Incident.Columns.Id + "=" + Table + "." + Columns.Id; }
+            public static string Select(Area area) { return Incident.Columns.Select(area) + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); }
+            public static string JoinIncident(Area area) { return Incident.GetTableName(area) + " JOIN " + Table + " ON " + Incident.GetTableName(area) + "." + Incident.Columns.Id + "=" + Table + "." + Columns.Id; }
         }
 
-        internal new static void CreateTable(int srid)
+        internal new static void CreateTable(Area area)
         {
-            Incident.CreateTable(srid);
+            Incident.CreateTable(area);
 
             if (!DB.Connection.TableExists(Table))
                 DB.Connection.ExecuteNonQuery(
@@ -78,13 +76,11 @@ namespace PTL.ATT.Incidents.Chicago
                     Columns.Description + " VARCHAR," +
                     Columns.Domestic + " BOOLEAN," +
                     Columns.FbiCode + " VARCHAR," +
-                    Columns.Id + " INT PRIMARY KEY REFERENCES " + Incident.GetTableName(srid) + " ON DELETE CASCADE," +
+                    Columns.Id + " INT PRIMARY KEY REFERENCES " + Incident.GetTableName(area) + " ON DELETE CASCADE," +
                     Columns.IUCR + " VARCHAR," +
                     Columns.LocationDescription + " VARCHAR," +
-                    Columns.NativeId + " INT UNIQUE," +
                     Columns.Ward + " VARCHAR);" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.CaseNumber + ");" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.NativeId + ");");
+                    "CREATE INDEX ON " + Table + " (" + Columns.CaseNumber + ");");
         }
 
         internal static void VacuumTable()
@@ -92,9 +88,9 @@ namespace PTL.ATT.Incidents.Chicago
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
         }
 
-        internal static string GetValue(bool arrest, string beat, string block, string caseNumber, string description, bool domestic, string fbiCode, string id, string iucr, string locationDescription, int nativeId, string ward)
+        internal static string GetValue(bool arrest, string beat, string block, string caseNumber, string description, bool domestic, string fbiCode, string id, string iucr, string locationDescription, string ward)
         {
-            return arrest + ",'" + Util.Escape(beat) + "','" + Util.Escape(block) + "','" + Util.Escape(caseNumber) + "','" + Util.Escape(description) + "'," + domestic + ",'" + Util.Escape(fbiCode) + "'," + id + ",'" + Util.Escape(iucr) + "','" + Util.Escape(locationDescription) + "'," + nativeId + ",'" + Util.Escape(ward) + "'";
+            return arrest + ",'" + Util.Escape(beat) + "','" + Util.Escape(block) + "','" + Util.Escape(caseNumber) + "','" + Util.Escape(description) + "'," + domestic + ",'" + Util.Escape(fbiCode) + "'," + id + ",'" + Util.Escape(iucr) + "','" + Util.Escape(locationDescription) + "','" + Util.Escape(ward) + "'";
         }
 
         private bool _arrest;
@@ -106,11 +102,10 @@ namespace PTL.ATT.Incidents.Chicago
         private string _fbiCode;
         private string _iucr;
         private string _locationDescription;
-        private int _nativeId;
         private string _ward;
 
-        public ChicagoIncident(NpgsqlDataReader reader, int srid)
-            : base(reader, srid)
+        public ChicagoIncident(NpgsqlDataReader reader, Area area)
+            : base(reader, area)
         {
             _arrest = Convert.ToBoolean(reader[Table + "_" + Columns.Arrest]);
             _beat = Convert.ToString(reader[Table + "_" + Columns.Beat]);
@@ -121,7 +116,6 @@ namespace PTL.ATT.Incidents.Chicago
             _fbiCode = Convert.ToString(reader[Table + "_" + Columns.FbiCode]);
             _iucr = Convert.ToString(reader[Table + "_" + Columns.IUCR]);
             _locationDescription = Convert.ToString(reader[Table + "_" + Columns.LocationDescription]);
-            _nativeId = Convert.ToInt32(reader[Table + "_" + Columns.NativeId]);
             _ward = Convert.ToString(reader[Table + "_" + Columns.Ward]);
         }
 

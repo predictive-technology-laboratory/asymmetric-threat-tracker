@@ -39,23 +39,16 @@ namespace PTL.ATT.Incidents.Chicago
         {
         }
 
-        public override void Import(string path, Area area, int hourOffset, int srid)
+        public override void Import(string path, Area area, int hourOffset, int sourceSRID)
         {
             Console.Out.WriteLine("Importing incidents from \"" + path + "\"");
 
-            ChicagoIncident.CreateTable(area.SRID);
-            
-            Set<int> existingNativeIDs = new Set<int>(false);
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + ChicagoIncident.Columns.NativeId + " FROM " + ChicagoIncident.Table);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                existingNativeIDs.Add(Convert.ToInt32(reader[0]));
+            Set<int> existingNativeIDs = Incident.GetNativeIds(area);
 
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
+            ChicagoIncident.CreateTable(area);
 
             StringBuilder incidentInsert = new StringBuilder();
-            string incidentInsertBase = "INSERT INTO " + Incident.GetTableName(area.SRID) + " (" + Incident.Columns.Insert + ") VALUES ";
+            string incidentInsertBase = "INSERT INTO " + Incident.GetTableName(area) + " (" + Incident.Columns.Insert + ") VALUES ";
             List<Parameter> incidentParameters = new List<Parameter>();
 
             StringBuilder chicagoIncidentInsert = new StringBuilder();
@@ -110,12 +103,12 @@ namespace PTL.ATT.Incidents.Chicago
 
                             rowP.Reset();
 
-                            PostGIS.Point location = new PostGIS.Point(x, y, srid);
+                            PostGIS.Point location = new PostGIS.Point(x, y, sourceSRID);
 
-                            incidentInsert.Append((batchCount == 0 ? incidentInsertBase : ",") + "(" + Incident.GetValue(area.Id, "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")", false, "@date_" + nativeId, primaryType) + ")");
+                            incidentInsert.Append((batchCount == 0 ? incidentInsertBase : ",") + "(" + Incident.GetValue(area.Id, nativeId, location, area.SRID, false, "@date_" + nativeId, primaryType) + ")");
                             incidentParameters.Add(new Parameter("date_" + nativeId, NpgsqlDbType.Timestamp, date));
 
-                            chicagoIncidentInsert.Append((batchCount == 0 ? chicagoIncidentInsertBase : ",") + "(" + ChicagoIncident.GetValue(arrest, beat, block, caseNumber, description, domestic, fbiCode, "@id_" + nativeId, iucr, locationDescription, nativeId, ward) + ")");
+                            chicagoIncidentInsert.Append((batchCount == 0 ? chicagoIncidentInsertBase : ",") + "(" + ChicagoIncident.GetValue(arrest, beat, block, caseNumber, description, domestic, fbiCode, "@id_" + nativeId, iucr, locationDescription, ward) + ")");
                             chicagoIncidentParameters.Add(new Parameter("id_" + nativeId, NpgsqlDbType.Integer, null));
 
                             if (++batchCount >= 5000)
@@ -145,7 +138,7 @@ namespace PTL.ATT.Incidents.Chicago
                         totalImported += batchCount;
                     }
 
-                    Incident.VacuumTable(area.SRID);
+                    Incident.VacuumTable(area);
                     ChicagoIncident.VacuumTable();
 
                     Console.Out.WriteLine("Import from \"" + path + "\" was successful.  Imported " + totalImported + " incidents of " + totalRows + " total in the file (" + alreadyPresent + " incidents were already in the database)");

@@ -51,6 +51,10 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
+using PTL.ATT.GUI.Socrata;
+using Newtonsoft.Json.Linq;
+using LAIR.ResourceAPIs.PostgreSQL;
+using PostGIS = LAIR.ResourceAPIs.PostGIS;
 
 namespace PTL.ATT.GUI
 {
@@ -315,6 +319,11 @@ namespace PTL.ATT.GUI
             form.ShowDialog();
         }
 
+        private void importShapefileFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void deleteShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Shapefile[] shapefiles = Shapefile.GetAvailable().ToArray();
@@ -351,13 +360,13 @@ namespace PTL.ATT.GUI
 
                     ParameterizeForm pf = new ParameterizeForm("Select import options...", MessageBoxButtons.OKCancel);
                     pf.AddNumericUpdown("Incident hour offset:  ", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
-                    pf.AddNumericUpdown("Incident SRID:  ", 4326, 0, 0, decimal.MaxValue, 1, "srid");
+                    pf.AddNumericUpdown("Source SRID:  ", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                    pf.AddDropDown("Destination area:  ", Area.GetAvailable().ToArray(), null, "area");
                     if (pf.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
                         int hourOffset = Convert.ToInt32(pf.GetValue<decimal>("offset"));
-                        int srid = Convert.ToInt32(pf.GetValue<decimal>("srid"));
-
-                        Area importArea = PromptForArea("Select area to import incidents into...");
+                        int sourceSRID = Convert.ToInt32(pf.GetValue<decimal>("source_srid"));
+                        Area importArea = pf.GetValue<Area>("area");
                         if (importArea != null)
                         {
                             string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
@@ -367,7 +376,7 @@ namespace PTL.ATT.GUI
                                     {
                                         try
                                         {
-                                            importer.Import(path, importArea, hourOffset, srid);
+                                            importer.Import(path, importArea, hourOffset, sourceSRID);
                                             RefreshIncidentTypes();
                                         }
                                         catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
@@ -378,6 +387,96 @@ namespace PTL.ATT.GUI
                         }
                     }
                 }
+            }
+        }
+
+        private void importIncidentsFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ParameterizeForm f = new ParameterizeForm("Enter import information...", MessageBoxButtons.OKCancel);
+            f.AddTextBox("URI:  ", "                                                                      ", "uri", '\0', true);
+            f.AddNumericUpdown("Incident hour offset:  ", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
+            f.AddNumericUpdown("Source SRID:  ", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+            f.AddDropDown("Destination area:  ", Area.GetAvailable().ToArray(), null, "area");
+            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Area importArea = f.GetValue<Area>("area");
+                if (importArea == null)
+                    MessageBox.Show("Must select an area to import incidents into.");
+                else
+                    try
+                    {
+                        SocrataClient client = new SocrataClient();
+                        Uri uri = new Uri(f.GetValue<string>("uri"));
+                        List<string> columns = client.GetColumnNames(uri);
+                        columns.Sort();
+                        ParameterizeForm dbMap = new ParameterizeForm("Map Socrata columns to ATT database columns...", MessageBoxButtons.OKCancel);
+                        List<string> dbFields = new List<string>(new string[] { "N/A", Incident.Columns.NativeId, Incident.Columns.X(importArea), Incident.Columns.Y(importArea), Incident.Columns.Time, Incident.Columns.Type });
+                        dbFields.Sort();
+                        foreach (string column in columns)
+                            dbMap.AddDropDown(column + ":  ", dbFields.ToArray(), "N/A", column);
+
+                        int hourOffset = Convert.ToInt32(f.GetValue<decimal>("offset"));
+                        int sourceSRID = Convert.ToInt32(f.GetValue<decimal>("source_srid"));
+
+                        if (dbMap.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        {
+                            Incident.CreateTable(importArea);
+
+                            Set<int> existingNativeIds = Incident.GetNativeIds(importArea);
+
+                            Dictionary<string, string> dbColSocrataCol = new Dictionary<string, string>();
+                            foreach (string column in columns)
+                            {
+                                string dbCol = dbMap.GetValue<string>(column);
+                                if (dbCol != "N/A")
+                                    dbColSocrataCol.Add(dbCol, column);
+                            }
+
+                            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
+                            StringBuilder insertCmd = new StringBuilder();
+                            List<Parameter> parameters = new List<Parameter>();
+                            int rowNum = 0;
+                            foreach (JToken row in client.Read(uri, 1000))
+                            {
+                                int nativeId = (int)row[dbColSocrataCol[Incident.Columns.NativeId]];
+                                if (existingNativeIds.Contains(nativeId))
+                                    continue;
+
+                                double x = (double)row[dbColSocrataCol[Incident.Columns.X(importArea)]];
+                                double y = (double)row[dbColSocrataCol[Incident.Columns.Y(importArea)]];
+                                PostGIS.Point location = new PostGIS.Point(x, y, sourceSRID);
+                                DateTime time = DateTime.Parse((string)row[dbColSocrataCol[Incident.Columns.Time]]) + new TimeSpan(hourOffset, 0, 0);
+                                string type = (string)row[dbColSocrataCol[Incident.Columns.Type]];
+
+                                insertCmd.Append((insertCmd.Length == 0 ? "INSERT INTO " + Incident.CreateTable(importArea) + " (" + Incident.Columns.Insert + ") VALUES " : ",") + "(" + Incident.GetValue(importArea.Id, nativeId, location, importArea.SRID, false, "@time_" + rowNum, type) + ")");
+                                parameters.Add(new Parameter("@time_" + rowNum, NpgsqlDbType.Timestamp, time));
+
+                                if ((++rowNum % 5000) == 0)
+                                {
+                                    cmd.CommandText = insertCmd.ToString();
+                                    ConnectionPool.AddParameters(cmd, parameters);
+                                    cmd.ExecuteNonQuery();
+                                    insertCmd.Clear();
+                                    parameters.Clear();
+                                }
+                            }
+
+                            if (insertCmd.Length > 0)
+                            {
+                                cmd.CommandText = insertCmd.ToString();
+                                ConnectionPool.AddParameters(cmd, parameters);
+                                cmd.ExecuteNonQuery();
+                                insertCmd.Clear();
+                                parameters.Clear();
+                            }
+
+                            DB.Connection.Return(cmd.Connection);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Out.WriteLine("Socrata import error:  " + ex.Message);
+                    }
             }
         }
 
@@ -412,11 +511,6 @@ namespace PTL.ATT.GUI
                 RefreshIncidentTypes();
                 RefreshFeatures();
             }
-        }
-
-        private void importFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
         }
         #endregion
 

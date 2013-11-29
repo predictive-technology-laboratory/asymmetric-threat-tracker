@@ -99,6 +99,7 @@ namespace PTL.ATT.GUI
             l.Text = label;
             l.TextAlign = ContentAlignment.MiddleRight;
             l.Size = l.PreferredSize;
+            l.Margin = new System.Windows.Forms.Padding(5);
 
             TextBox tb = new TextBox();
             tb.Name = valueId;
@@ -175,23 +176,26 @@ namespace PTL.ATT.GUI
             l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
 
-            ListBox lb = new ListBox();
+            ComboBox cb = new ComboBox();
+            cb.DropDownStyle = ComboBoxStyle.DropDownList;
             foreach (object o in values)
-                lb.Items.Add(o);
+                cb.Items.Add(o);
 
-            lb.Size = lb.PreferredSize;
+            cb.Size = cb.PreferredSize;
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;
             p.Controls.Add(l);
-            p.Controls.Add(lb);
+            p.Controls.Add(cb);
             p.Size = p.PreferredSize;
 
             _mainPanel.Controls.Add(p);
-            _valueIdReturn.Add(valueId, new Func<object>(() => lb.SelectedItem));
+            _valueIdReturn.Add(valueId, new Func<object>(() => cb.SelectedItem));
 
             if (selected != null)
-                lb.SetSelected(lb.Items.IndexOf(selected), true);
+                cb.SelectedItem = selected;
+            else if (cb.Items.Count > 0)
+                cb.SelectedIndex = 0;
         }
 
         public T GetValue<T>(string valueId)
