@@ -1947,18 +1947,18 @@ namespace PTL.ATT.GUI
             using (Stream responseStream = response.GetResponseStream())
             {
                 long totalBytesRead = 0;
-                long bytesInMB = (long)Math.Pow(2, 20);
+                long bytesUntilUpdate = 5 * (long)Math.Pow(2, 20);  // update every 5MB
                 byte[] buffer = new byte[1024 * 64];
                 int bytesRead;
                 while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
                 {
                     downloadFile.Write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
-                    bytesInMB -= bytesRead;
-                    if (bytesInMB <= 0)
+                    bytesUntilUpdate -= bytesRead;
+                    if (bytesUntilUpdate <= 0)
                     {
-                        bytesInMB = (long)Math.Pow(2, 20);
-                        Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesInMB) + " MB...");
+                        bytesUntilUpdate = (long)Math.Pow(2, 20);
+                        Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesUntilUpdate) + " MB...");
                     }
                 }
                 downloadFile.Close();
