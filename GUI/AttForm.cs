@@ -320,7 +320,11 @@ namespace PTL.ATT.GUI
 
         private void importShapefileFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Thread t = new Thread(new ThreadStart(delegate()
+                {
+                }));
 
+            t.Start();
         }
 
         private void deleteShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -403,37 +407,7 @@ namespace PTL.ATT.GUI
                             {
                                 path = Path.Combine(Configuration.IncidentsDataDirectory, new string(("socrata_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToShortTimeString() + ".xml").Select(c => c == ' ' || Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray()));
 
-                                try
-                                {
-                                    WebRequest request = WebRequest.Create(f.GetValue<string>("uri"));
-                                    request.Method = "GET";
-
-                                    Console.Out.Write("Downloading file to \"" + path + "\"...");
-                                    using (FileStream downloadFile = new FileStream(path, FileMode.Create, FileAccess.Write))
-                                    using (WebResponse response = request.GetResponse())
-                                    using (Stream responseStream = response.GetResponseStream())
-                                    {
-                                        long totalBytesRead = 0;
-                                        long bytesInMB = (long)Math.Pow(2, 20);
-                                        byte[] buffer = new byte[1024 * 64];
-                                        int bytesRead;
-                                        while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
-                                        {
-                                            downloadFile.Write(buffer, 0, bytesRead);
-                                            totalBytesRead += bytesRead;
-                                            bytesInMB -= bytesRead;
-                                            if (bytesInMB <= 0)
-                                            {
-                                                bytesInMB = (long)Math.Pow(2, 20);
-                                                Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesInMB) + " MB...");
-                                            }
-                                        }
-                                        downloadFile.Close();
-                                        response.Close();
-                                        responseStream.Close();
-                                        Console.Out.WriteLine("download finished.");
-                                    }
-                                }
+                                try { Download(f.GetValue<string>("uri"), path); }
                                 catch (Exception ex)
                                 {
                                     try { File.Delete(path); }
@@ -1959,6 +1933,39 @@ namespace PTL.ATT.GUI
                 importArea = f.GetValue<Area>("area");
 
             return importArea;
+        }
+
+        private void Download(string uri, string path)
+        {
+            Console.Out.Write("Downloading \"" + uri + "\" to \"" + path + "\"...");
+
+            WebRequest request = WebRequest.Create(uri);
+            request.Method = "GET";
+
+            using (FileStream downloadFile = new FileStream(path, FileMode.Create, FileAccess.Write))
+            using (WebResponse response = request.GetResponse())
+            using (Stream responseStream = response.GetResponseStream())
+            {
+                long totalBytesRead = 0;
+                long bytesInMB = (long)Math.Pow(2, 20);
+                byte[] buffer = new byte[1024 * 64];
+                int bytesRead;
+                while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    downloadFile.Write(buffer, 0, bytesRead);
+                    totalBytesRead += bytesRead;
+                    bytesInMB -= bytesRead;
+                    if (bytesInMB <= 0)
+                    {
+                        bytesInMB = (long)Math.Pow(2, 20);
+                        Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesInMB) + " MB...");
+                    }
+                }
+                downloadFile.Close();
+                response.Close();
+                responseStream.Close();
+                Console.Out.WriteLine("download finished.");
+            }
         }
         #endregion
     }
