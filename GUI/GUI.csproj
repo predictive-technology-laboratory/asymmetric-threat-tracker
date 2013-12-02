@@ -118,12 +118,6 @@
       <DependentUpon>CheckedImageBox.cs</DependentUpon>
     </Compile>
     <Compile Include="Configuration.cs" />
-    <Compile Include="ConfigurationEditor.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ConfigurationEditor.Designer.cs">
-      <DependentUpon>ConfigurationEditor.cs</DependentUpon>
-    </Compile>
     <Compile Include="ClassifierList.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -249,9 +243,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="CheckedImageBox.resx">
       <DependentUpon>CheckedImageBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ConfigurationEditor.resx">
-      <DependentUpon>ConfigurationEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ClassifierList.resx">
       <DependentUpon>ClassifierList.cs</DependentUpon>
