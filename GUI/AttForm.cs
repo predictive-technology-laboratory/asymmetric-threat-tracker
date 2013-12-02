@@ -231,9 +231,10 @@ namespace PTL.ATT.GUI
 
                 GUI.Configuration.Initialize(guiConfigPath);
 
-                if (GUI.Configuration.PluginTypes.Count > 0)
-                {
-                    splash.UpdateProgress("Loading plugins...");
+                splash.UpdateProgress("Loading plugins...");
+                if (GUI.Configuration.PluginTypes.Count == 0)
+                    pluginsToolStripMenuItem.Visible = false;
+                else
                     foreach (Plugin plugin in GUI.Configuration.PluginTypes)
                     {
                         ToolStripMenuItem pluginMenuItem = new ToolStripMenuItem(plugin.MenuItemName);
@@ -241,9 +242,6 @@ namespace PTL.ATT.GUI
                         pluginMenuItem.Click += new EventHandler(pluginsMenu_Click);
                         pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
                     }
-                }
-                else
-                    pluginsToolStripMenuItem.Visible = false;
 
                 _logWriter = new LogWriter(log, Configuration.LogPath, true, Console.Out);
                 Console.SetOut(_logWriter);
