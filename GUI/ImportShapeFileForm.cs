@@ -92,7 +92,7 @@ namespace PTL.ATT.GUI
                         {
                             try
                             {
-                                Shapefile.ImportShapeFiles(shapeFilePaths, selectedShapefileType);
+                                Shapefile.ImportShapefiles(shapeFilePaths, selectedShapefileType);
                                 Console.Out.WriteLine("Shapefile import succeeded");
                             }
                             catch (Exception ex)

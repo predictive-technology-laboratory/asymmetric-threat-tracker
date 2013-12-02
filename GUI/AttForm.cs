@@ -322,6 +322,40 @@ namespace PTL.ATT.GUI
         {
             Thread t = new Thread(new ThreadStart(delegate()
                 {
+                    DynamicForm f = new DynamicForm("Provide shapefile import details...", MessageBoxButtons.OKCancel);
+                    f.AddTextBox("Socrata shapefile .zip URI:", "".PadLeft(75), "uri");
+                    f.AddTextBox("Descriptive name for shapefile:", "".PadLeft(75), "name");
+                    f.AddNumericUpdown("Source SRID:", 1, 0, 1, decimal.MaxValue, 1, "source_srid");
+                    f.AddNumericUpdown("Target SRID:", 1, 0, 1, decimal.MaxValue, 1, "target_srid");
+                    f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), null, "type");
+                    if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        string uri = f.GetValue<string>("uri");
+
+                        try
+                        {
+                            string name = ReplaceInvalidFilenameCharacters(f.GetValue<string>("name"));
+                            string unzipDir = Path.Combine(Configuration.PostGisShapefileDirectory, name);
+                            if (Directory.Exists(unzipDir))
+                                if (MessageBox.Show("Directory \"" + unzipDir + "\" already exists. Replace?", "Replace?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                                    Directory.Delete(unzipDir, true);
+                                else
+                                    return;
+
+                            string downloadPath = Path.GetTempFileName();
+                            Download(uri, downloadPath);
+
+                            // unzip and rename files using name
+
+                            File.WriteAllText(Path.Combine(unzipDir, name + ".srid"), f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid"));
+
+                            Shapefile.ImportShapefile(Path.Combine(unzipDir, name + ".shp"), f.GetValue<Shapefile.ShapefileType>("type"));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Out.WriteLine("Error while importing shapefile from \"" + uri + "\":  " + ex.Message);
+                        }
+                    }
                 }));
 
             t.Start();
@@ -405,7 +439,7 @@ namespace PTL.ATT.GUI
                                 path = f.GetValue<string>("path");
                             else if (incidentImportSource == IncidentImportSource.URI)
                             {
-                                path = Path.Combine(Configuration.IncidentsDataDirectory, new string(("socrata_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToShortTimeString() + ".xml").Select(c => c == ' ' || Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray()));
+                                path = Path.Combine(Configuration.IncidentsDataDirectory, ReplaceInvalidFilenameCharacters("socrata_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToShortTimeString() + ".xml"));
 
                                 try { Download(f.GetValue<string>("uri"), path); }
                                 catch (Exception ex)
@@ -1889,6 +1923,11 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region miscellaneous
+        private string ReplaceInvalidFilenameCharacters(string fileName)
+        {
+            return new string(fileName.Select(c => c == ' ' || Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+        }
+
         private void viewLogToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try { Process.Start(Configuration.LoggingEditor, Configuration.LogPath); }

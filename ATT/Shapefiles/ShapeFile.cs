@@ -74,7 +74,12 @@ namespace PTL.ATT.ShapeFiles
             return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
 
-        public static void ImportShapeFiles(string[] shapefilePaths, ShapefileType type)
+        public static void ImportShapefile(string shapefilePath, ShapefileType type)
+        {
+            ImportShapefiles(new string[] { shapefilePath }, type);
+        }
+
+        public static void ImportShapefiles(string[] shapefilePaths, ShapefileType type)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
             int shapefileId = -1;
