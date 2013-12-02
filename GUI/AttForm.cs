@@ -33,8 +33,6 @@ using PTL.ATT.Models;
 using System.Reflection;
 using PTL.ATT.Classifiers;
 using Npgsql;
-using PTL.ATT.Incidents;
-using PTL.ATT.Incidents.Chicago;
 using PTL.ATT.ShapeFiles;
 using LAIR.Collections.Generic;
 using PTL.ATT.GUI.Visualization;
@@ -51,16 +49,22 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
-using PTL.ATT.GUI.Socrata;
 using Newtonsoft.Json.Linq;
 using LAIR.ResourceAPIs.PostgreSQL;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
+using PTL.ATT.Importers;
 
 namespace PTL.ATT.GUI
 {
     public partial class AttForm : Form
     {
         public const int PlotHeight = 400;
+
+        public enum IncidentImportSource
+        {
+            LocalFile,
+            URI
+        }
 
         #region members and properties
         private bool _setTrainingStartEndToolTip;
@@ -202,10 +206,7 @@ namespace PTL.ATT.GUI
                 {
                     Splash s = o as Splash;
                     s.Show();
-                    while (!done)
-                    {
-                        Application.DoEvents();
-                    }
+                    while (!done) { Application.DoEvents(); }
                     s.Close();
                     s.Dispose();
                 }));
@@ -331,152 +332,205 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No shapefiles available for deletion.");
             else
             {
-                SelectItemForm<Shapefile> f = new SelectItemForm<Shapefile>(shapefiles, "Select shapefile(s) to delete...", SelectionMode.MultiExtended);
-                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK && f.SelectedItems.Length > 0 && MessageBox.Show("Are you sure you want to delete " + f.SelectedItems.Length + " shapefile(s)?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                DynamicForm f = new DynamicForm("Select shapefile(s) to delete...");
+                f.AddListBox("Shapefile(s):", shapefiles, null, SelectionMode.MultiExtended, "shapefiles");
+                if (f.ShowDialog() == DialogResult.OK)
                 {
-                    foreach (Shapefile shapefile in f.SelectedItems)
-                        shapefile.Delete();
+                    Shapefile[] selected = f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("shapefiles").Cast<Shapefile>().ToArray();
+                    if (selected.Length > 0 && MessageBox.Show("Are you sure you want to delete " + selected.Length + " shapefile(s)?", "Confirm delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        foreach (Shapefile shapefile in selected)
+                            shapefile.Delete();
 
-                    RefreshFeatures();
+                        RefreshFeatures();
 
-                    Console.Out.WriteLine("Deleted " + f.SelectedItems.Length + " shapefile(s)");
+                        Console.Out.WriteLine("Deleted " + selected.Length + " shapefile(s)");
+                    }
                 }
             }
         }
 
         public void importIncidentsFromFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Importer[] importers = Assembly.GetAssembly(typeof(Importer)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Importer))).Select(t => Activator.CreateInstance(t)).Cast<Importer>().ToArray();
-            if (Area.GetAvailable().Count() == 0)
-                MessageBox.Show("No areas available. Create one first.");
-            else if (importers.Length == 0)
-                MessageBox.Show("No incident importers available.");
-            else
-            {
-                SelectItemForm<Importer> importerForm = new SelectItemForm<Importer>(importers, "Select importer to use...", SelectionMode.One);
-                if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK && importerForm.SelectedItem != null)
-                {
-                    Importer importer = importerForm.SelectedItem;
-
-                    ParameterizeForm pf = new ParameterizeForm("Select import options...", MessageBoxButtons.OKCancel);
-                    pf.AddNumericUpdown("Incident hour offset:  ", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
-                    pf.AddNumericUpdown("Source SRID:  ", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
-                    pf.AddDropDown("Destination area:  ", Area.GetAvailable().ToArray(), null, "area");
-                    if (pf.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    {
-                        int hourOffset = Convert.ToInt32(pf.GetValue<decimal>("offset"));
-                        int sourceSRID = Convert.ToInt32(pf.GetValue<decimal>("source_srid"));
-                        Area importArea = pf.GetValue<Area>("area");
-                        if (importArea != null)
-                        {
-                            string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
-                            if (path != null)
-                            {
-                                Thread t = new Thread(new ThreadStart(delegate()
-                                    {
-                                        try
-                                        {
-                                            importer.Import(path, importArea, hourOffset, sourceSRID);
-                                            RefreshIncidentTypes();
-                                        }
-                                        catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
-                                    }));
-
-                                t.Start();
-                            }
-                        }
-                    }
-                }
-            }
+            ImportIncidents(IncidentImportSource.LocalFile);
         }
 
         private void importIncidentsFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ParameterizeForm f = new ParameterizeForm("Enter import information...", MessageBoxButtons.OKCancel);
-            f.AddTextBox("URI:  ", "                                                                      ", "uri", '\0', true);
-            f.AddNumericUpdown("Incident hour offset:  ", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
-            f.AddNumericUpdown("Source SRID:  ", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
-            f.AddDropDown("Destination area:  ", Area.GetAvailable().ToArray(), null, "area");
-            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            ImportIncidents(IncidentImportSource.URI);
+        }
+
+        private void ImportIncidents(IncidentImportSource incidentImportSource)
+        {
+            Area[] areas = Area.GetAvailable().ToArray();
+            Type[] importerTypes = Assembly.GetAssembly(typeof(Importer)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Importer))).ToArray();
+            if (Area.GetAvailable().Count() == 0)
+                MessageBox.Show("No areas available. Create one first.");
+            else if (importerTypes.Length == 0)
+                MessageBox.Show("No incident importers available.");
+            else
             {
-                Area importArea = f.GetValue<Area>("area");
-                if (importArea == null)
-                    MessageBox.Show("Must select an area to import incidents into.");
-                else
-                    try
+                Thread t = new Thread(new ThreadStart(delegate()
                     {
-                        SocrataClient client = new SocrataClient();
-                        Uri uri = new Uri(f.GetValue<string>("uri"));
-                        List<string> columns = client.GetColumnNames(uri);
-                        columns.Sort();
-                        ParameterizeForm dbMap = new ParameterizeForm("Map Socrata columns to ATT database columns...", MessageBoxButtons.OKCancel);
-                        List<string> dbFields = new List<string>(new string[] { "N/A", Incident.Columns.NativeId, Incident.Columns.X(importArea), Incident.Columns.Y(importArea), Incident.Columns.Time, Incident.Columns.Type });
-                        dbFields.Sort();
-                        foreach (string column in columns)
-                            dbMap.AddDropDown(column + ":  ", dbFields.ToArray(), "N/A", column);
+                        DynamicForm f = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
 
-                        int hourOffset = Convert.ToInt32(f.GetValue<decimal>("offset"));
-                        int sourceSRID = Convert.ToInt32(f.GetValue<decimal>("source_srid"));
-
-                        if (dbMap.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        if (incidentImportSource == IncidentImportSource.LocalFile)
                         {
-                            Incident.CreateTable(importArea);
+                            string path = LAIR.IO.File.PromptForOpenPath("Select incident file...", Configuration.IncidentsDataDirectory);
+                            if (path == null)
+                                return;
+                            else
+                                f.AddTextBox("Path:", path, "path");
+                        }
+                        else if (incidentImportSource == IncidentImportSource.URI)
+                        {
+                            f.AddTextBox("Download XML URI:", "                                                                      ", "uri", '\0', true);
+                        }
+                        else
+                            throw new NotImplementedException("Unknown incident import source:  " + incidentImportSource);
 
-                            Set<int> existingNativeIds = Incident.GetNativeIds(importArea);
+                        f.AddCheckBox("Delete file after import:", System.Windows.Forms.RightToLeft.Yes, false, "delete");
+                        f.AddDropDown("Importer:", importerTypes, importerTypes[0], "importer");
+                        f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                        f.AddDropDown("Destination area:", areas, areas[0], "area");
+                        f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
 
-                            Dictionary<string, string> dbColSocrataCol = new Dictionary<string, string>();
-                            foreach (string column in columns)
+                        if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        {
+                            #region get path of file to import
+                            string path;
+                            if (incidentImportSource == IncidentImportSource.LocalFile)
+                                path = f.GetValue<string>("path");
+                            else if (incidentImportSource == IncidentImportSource.URI)
                             {
-                                string dbCol = dbMap.GetValue<string>(column);
-                                if (dbCol != "N/A")
-                                    dbColSocrataCol.Add(dbCol, column);
-                            }
+                                path = Path.Combine(Configuration.IncidentsDataDirectory, new string(("socrata_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToShortTimeString() + ".xml").Select(c => c == ' ' || Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray()));
 
-                            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-                            StringBuilder insertCmd = new StringBuilder();
-                            List<Parameter> parameters = new List<Parameter>();
-                            int rowNum = 0;
-                            foreach (JToken row in client.Read(uri, 1000))
-                            {
-                                int nativeId = (int)row[dbColSocrataCol[Incident.Columns.NativeId]];
-                                if (existingNativeIds.Contains(nativeId))
-                                    continue;
-
-                                double x = (double)row[dbColSocrataCol[Incident.Columns.X(importArea)]];
-                                double y = (double)row[dbColSocrataCol[Incident.Columns.Y(importArea)]];
-                                PostGIS.Point location = new PostGIS.Point(x, y, sourceSRID);
-                                DateTime time = DateTime.Parse((string)row[dbColSocrataCol[Incident.Columns.Time]]) + new TimeSpan(hourOffset, 0, 0);
-                                string type = (string)row[dbColSocrataCol[Incident.Columns.Type]];
-
-                                insertCmd.Append((insertCmd.Length == 0 ? "INSERT INTO " + Incident.CreateTable(importArea) + " (" + Incident.Columns.Insert + ") VALUES " : ",") + "(" + Incident.GetValue(importArea.Id, nativeId, location, importArea.SRID, false, "@time_" + rowNum, type) + ")");
-                                parameters.Add(new Parameter("@time_" + rowNum, NpgsqlDbType.Timestamp, time));
-
-                                if ((++rowNum % 5000) == 0)
+                                try
                                 {
-                                    cmd.CommandText = insertCmd.ToString();
-                                    ConnectionPool.AddParameters(cmd, parameters);
-                                    cmd.ExecuteNonQuery();
-                                    insertCmd.Clear();
-                                    parameters.Clear();
+                                    WebRequest request = WebRequest.Create(f.GetValue<string>("uri"));
+                                    request.Method = "GET";
+
+                                    Console.Out.Write("Downloading file to \"" + path + "\"...");
+                                    using (FileStream downloadFile = new FileStream(path, FileMode.Create, FileAccess.Write))
+                                    using (WebResponse response = request.GetResponse())
+                                    using (Stream responseStream = response.GetResponseStream())
+                                    {
+                                        long totalBytesRead = 0;
+                                        long bytesInMB = (long)Math.Pow(2, 20);
+                                        byte[] buffer = new byte[1024 * 64];
+                                        int bytesRead;
+                                        while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                                        {
+                                            downloadFile.Write(buffer, 0, bytesRead);
+                                            totalBytesRead += bytesRead;
+                                            bytesInMB -= bytesRead;
+                                            if (bytesInMB <= 0)
+                                            {
+                                                bytesInMB = (long)Math.Pow(2, 20);
+                                                Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesInMB) + " MB...");
+                                            }
+                                        }
+                                        downloadFile.Close();
+                                        response.Close();
+                                        responseStream.Close();
+                                        Console.Out.WriteLine("download finished.");
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    try { File.Delete(path); }
+                                    catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + path + "\":  " + ex2.Message); }
+
+                                    Console.Out.WriteLine("Error downloading file from Socrata URI:  " + ex.Message);
+
+                                    return;
                                 }
                             }
+                            else
+                                throw new NotImplementedException("Unknown incident import source:  " + incidentImportSource);
+                            #endregion
 
-                            if (insertCmd.Length > 0)
+                            #region import file
+                            if (path != null && File.Exists(path))
                             {
-                                cmd.CommandText = insertCmd.ToString();
-                                ConnectionPool.AddParameters(cmd, parameters);
-                                cmd.ExecuteNonQuery();
-                                insertCmd.Clear();
-                                parameters.Clear();
-                            }
+                                Type importerType = f.GetValue<Type>("importer");
+                                int sourceSRID = Convert.ToInt32(f.GetValue<decimal>("source_srid"));
+                                Area importArea = f.GetValue<Area>("area");
+                                int hourOffset = Convert.ToInt32(f.GetValue<decimal>("offset"));
+                                bool deleteFileAfterImport = f.GetValue<bool>("delete");
 
-                            DB.Connection.Return(cmd.Connection);
+                                try
+                                {
+                                    Incident.CreateTable(importArea);
+                                    Set<int> existingNativeIDs = Incident.GetNativeIds(importArea);
+                                    existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
+
+                                    if (importerType == typeof(SocrataXmlImporter))
+                                    {
+                                        f = new DynamicForm("Map ATT database columns to Socrata columns...", MessageBoxButtons.OK);
+                                        string[] dbCols = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
+                                        string[] socrataCols = SocrataXmlImporter.GetColumnNames(path);
+                                        Array.Sort(socrataCols);
+                                        foreach (string dbCol in dbCols)
+                                            f.AddDropDown(dbCol + ":", socrataCols, null, dbCol);
+
+                                        f.ShowDialog();
+
+                                        Dictionary<string, string> dbColSocrataCol = new Dictionary<string, string>();
+                                        foreach (string dbCol in dbCols)
+                                            dbColSocrataCol.Add(dbCol, f.GetValue<string>(dbCol));
+
+                                        new SocrataXmlImporter().Import(path, Incident.GetTableName(importArea), Incident.Columns.Insert, new Func<XmlParser, Tuple<string, List<Parameter>>>(
+                                            rowP =>
+                                            {
+                                                int nativeId = int.Parse(rowP.ElementText(dbColSocrataCol[Incident.Columns.NativeId])); rowP.Reset();
+
+                                                if (existingNativeIDs.Add(nativeId))
+                                                {
+                                                    DateTime time = DateTime.Parse(rowP.ElementText(dbColSocrataCol[Incident.Columns.Time])) + new TimeSpan(hourOffset, 0, 0); rowP.Reset();
+                                                    string type = rowP.ElementText(dbColSocrataCol[Incident.Columns.Type]); rowP.Reset();
+
+                                                    double x;
+                                                    if (!double.TryParse(rowP.ElementText(dbColSocrataCol[Incident.Columns.X(importArea)]), out x))
+                                                        return null;
+
+                                                    rowP.Reset();
+
+                                                    double y;
+                                                    if (!double.TryParse(rowP.ElementText(dbColSocrataCol[Incident.Columns.Y(importArea)]), out y))
+                                                        return null;
+
+                                                    rowP.Reset();
+
+                                                    PostGIS.Point location = new PostGIS.Point(x, y, sourceSRID);
+
+                                                    string value = Incident.GetValue(importArea, nativeId, location, false, "@time_" + nativeId, type);
+                                                    List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter("time_" + nativeId, NpgsqlDbType.Timestamp, time) });
+                                                    return new Tuple<string, List<Parameter>>(value, parameters);
+                                                }
+                                                else
+                                                    return null;
+                                            }));
+
+                                        if (deleteFileAfterImport)
+                                            File.Delete(path);
+                                    }
+                                    else
+                                        throw new NotImplementedException("Unknown importer type:  " + importerType);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.Out.WriteLine("Error while importing:  " + ex.Message);
+                                }
+
+                                RefreshIncidentTypes();
+                            }
+                            #endregion
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Out.WriteLine("Socrata import error:  " + ex.Message);
-                    }
+                    }));
+
+                t.SetApartmentState(ApartmentState.STA);
+                t.Start();
             }
         }
 
@@ -531,17 +585,21 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No shapefiles available from which to create area. Import shapefiles first.");
             else
             {
-                SelectItemForm<Shapefile> f = new SelectItemForm<Shapefile>(areaShapefiles, "Select shapefile to base area on...", SelectionMode.One);
-                if (f.ShowDialog() == DialogResult.OK && f.SelectedItem != null)
+                DynamicForm f = new DynamicForm("Select shapefile to base area on...", MessageBoxButtons.OKCancel);
+                f.AddDropDown("Shapefile:", areaShapefiles, null, "shapefile");
+                if (f.ShowDialog() == DialogResult.OK)
                 {
-                    Shapefile shapefile = f.SelectedItem;
-                    Thread t = new Thread(new ThreadStart(delegate()
-                        {
-                            Area.Create(shapefile, shapefile.Name);
-                            Console.Out.WriteLine("Finished creating area");
-                            RefreshAreas();
-                        }));
-                    t.Start();
+                    Shapefile selected = f.GetValue<Shapefile>("shapefile");
+                    if (selected != null)
+                    {
+                        Thread t = new Thread(new ThreadStart(delegate()
+                            {
+                                Area.Create(selected, selected.Name);
+                                Console.Out.WriteLine("Finished creating area");
+                                RefreshAreas();
+                            }));
+                        t.Start();
+                    }
                 }
             }
         }
@@ -1244,12 +1302,12 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Select one or more predictions to copy.");
             else if (selectedPredictions.Count == 1 || MessageBox.Show("Are you sure you want to copy " + selectedPredictions.Count + " prediction(s)?", "Confirm copy", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                ParameterizeForm pf = new ParameterizeForm("Set copy parameters");
-                pf.AddNumericUpdown("Number of copies of each prediction:  ", 1, 0, 1, 99999, 1, "copies");
-                if (pf.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                DynamicForm f = new DynamicForm("Set copy parameters");
+                f.AddNumericUpdown("Number of copies of each prediction:  ", 1, 0, 1, decimal.MaxValue, 1, "copies");
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     int numCopies;
-                    try { numCopies = Convert.ToInt32(pf.GetValue<decimal>("copies")); }
+                    try { numCopies = Convert.ToInt32(f.GetValue<decimal>("copies")); }
                     catch (Exception ex) { MessageBox.Show("Invalid number of copies:  " + ex.Message); return; }
 
                     Thread t = new Thread(new ThreadStart(delegate()
@@ -1822,15 +1880,15 @@ namespace PTL.ATT.GUI
 
             while (true)
             {
-                ParameterizeForm pf = new ParameterizeForm("Enter password");
-                pf.AddTextBox("Password:", "            ", "password", '*', true);
-                pf.AddTextBox("Confirm password:", "            ", "confirmed", '*', true);
+                DynamicForm f = new DynamicForm("Enter password");
+                f.AddTextBox("Password:", "            ", "password", '*', true);
+                f.AddTextBox("Confirm password:", "            ", "confirmed", '*', true);
 
-                if (pf.ShowDialog() == DialogResult.Cancel)
+                if (f.ShowDialog() == DialogResult.Cancel)
                     break;
 
-                string pass = pf.GetValue<string>("password").Trim();
-                string confirmed = pf.GetValue<string>("confirmed").Trim();
+                string pass = f.GetValue<string>("password").Trim();
+                string confirmed = f.GetValue<string>("confirmed").Trim();
                 if (pass != confirmed)
                     MessageBox.Show("Entries do not match.");
                 else
@@ -1843,7 +1901,7 @@ namespace PTL.ATT.GUI
             if (password != null && password.Length > 0)
                 try
                 {
-                    ParameterizeForm showEncrypted = new ParameterizeForm("Encrypted password", MessageBoxButtons.OK);
+                    DynamicForm showEncrypted = new DynamicForm("Encrypted password", MessageBoxButtons.OK);
                     showEncrypted.AddTextBox("Result:", password.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), "encrypted");
                     showEncrypted.ShowDialog();
                 }
@@ -1896,10 +1954,11 @@ namespace PTL.ATT.GUI
                 return null;
             }
 
-            SelectItemForm<Area> f = new SelectItemForm<Area>(areas, prompt, SelectionMode.One);
+            DynamicForm f = new DynamicForm(prompt, MessageBoxButtons.OKCancel);
+            f.AddDropDown("Areas:", areas, null, "area");
             Area importArea = null;
-            if (f.ShowDialog() == DialogResult.OK && f.SelectedItem != null)
-                importArea = f.SelectedItem;
+            if (f.ShowDialog() == DialogResult.OK)
+                importArea = f.GetValue<Area>("area");
 
             return importArea;
         }

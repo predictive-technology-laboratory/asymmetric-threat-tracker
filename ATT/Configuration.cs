@@ -25,7 +25,6 @@ using LAIR.XML;
 using System.IO;
 using LAIR.MachineLearning.ClassifierWrappers.LibLinear;
 using LAIR.ResourceAPIs.R;
-using PTL.ATT.Incidents;
 
 namespace PTL.ATT
 {

@@ -27,7 +27,6 @@ using NpgsqlTypes;
 using LAIR.Extensions;
 
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
-using PTL.ATT.Incidents;
 using LAIR.Collections.Generic;
 using System.Drawing;
 using PTL.ATT.Evaluation;

@@ -90,6 +90,8 @@
     <Compile Include="Classifiers\SvmRank.cs" />
     <Compile Include="Exceptions\ConfigurationException.cs" />
     <Compile Include="Exceptions\ZeroPositivePointsException.cs" />
+    <Compile Include="Importers\Importer.cs" />
+    <Compile Include="Importers\SocrataXmlImporter.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />
     <Compile Include="Models\KernelDensityDCM.cs" />
@@ -98,16 +100,13 @@
     <Compile Include="DB.cs" />
     <Compile Include="Evaluation\Plot.cs" />
     <Compile Include="Evaluation\SurveillancePlot.cs" />
-    <Compile Include="Incidents\Chicago\ChicagoIncident.cs" />
-    <Compile Include="Incidents\Chicago\ChicagoImporter.cs" />
-    <Compile Include="Incidents\Importer.cs" />
     <Compile Include="Models\SpatialDistanceDCM.cs" />
     <Compile Include="Models\DiscreteChoiceModel.cs" />
     <Compile Include="Models\TimeSliceDCM.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="PointPrediction.cs" />
     <Compile Include="Feature.cs" />
-    <Compile Include="Incidents\Incident.cs" />
+    <Compile Include="Incident.cs" />
     <Compile Include="PredictionGroup.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

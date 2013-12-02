@@ -25,7 +25,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using PTL.ATT.Incidents;
 
 namespace PTL.ATT.GUI
 {

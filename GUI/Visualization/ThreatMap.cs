@@ -36,7 +36,6 @@ using Npgsql;
 using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Drawing.Imaging;
-using PTL.ATT.Incidents;
 using PTL.ATT.Smoothers;
 using PTL.ATT.GUI.Properties;
 

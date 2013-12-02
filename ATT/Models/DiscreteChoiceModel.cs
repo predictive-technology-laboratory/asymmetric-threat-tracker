@@ -31,7 +31,6 @@ using LAIR.MachineLearning;
 using LAIR.Extensions;
 using NpgsqlTypes;
 using System.Threading;
-using PTL.ATT.Incidents;
 using System.Drawing;
 using PTL.ATT.Evaluation;
 using PTL.ATT.Smoothers;

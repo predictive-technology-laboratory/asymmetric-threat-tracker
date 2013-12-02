@@ -19,7 +19,7 @@
  
 namespace PTL.ATT.GUI
 {
-    partial class ParameterizeForm
+    partial class DynamicForm
     {
         /// <summary>
         /// Required designer variable.

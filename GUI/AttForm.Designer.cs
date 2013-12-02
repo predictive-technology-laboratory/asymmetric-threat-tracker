@@ -66,9 +66,11 @@ namespace PTL.ATT.GUI
             this.importToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.shapefilesToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.importShapefilesFromDiskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importShapefileFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteShapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.incidentsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.importFromFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importIncidentsFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearImportedIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.simulateIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -159,8 +161,6 @@ namespace PTL.ATT.GUI
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
-            this.importShapefileFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importIncidentsFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainMenu.SuspendLayout();
             this.trainingAreaMenu.SuspendLayout();
             this.featuresMenu.SuspendLayout();
@@ -314,7 +314,7 @@ namespace PTL.ATT.GUI
             this.importShapefileFromSocrataToolStripMenuItem,
             this.deleteShapefilesToolStripMenuItem});
             this.shapefilesToolStripMenuItem1.Name = "shapefilesToolStripMenuItem1";
-            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(134, 22);
             this.shapefilesToolStripMenuItem1.Text = "Shapefiles";
             // 
             // importShapefilesFromDiskToolStripMenuItem
@@ -323,6 +323,13 @@ namespace PTL.ATT.GUI
             this.importShapefilesFromDiskToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
             this.importShapefilesFromDiskToolStripMenuItem.Text = "Import shapefiles from disk...";
             this.importShapefilesFromDiskToolStripMenuItem.Click += new System.EventHandler(this.importShapefilesFromDiskToolStripMenuItem_Click);
+            // 
+            // importShapefileFromSocrataToolStripMenuItem
+            // 
+            this.importShapefileFromSocrataToolStripMenuItem.Name = "importShapefileFromSocrataToolStripMenuItem";
+            this.importShapefileFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.importShapefileFromSocrataToolStripMenuItem.Text = "Import shapefile from Socrata...";
+            this.importShapefileFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importShapefileFromSocrataToolStripMenuItem_Click);
             // 
             // deleteShapefilesToolStripMenuItem
             // 
@@ -341,7 +348,7 @@ namespace PTL.ATT.GUI
             this.simulateIncidentsToolStripMenuItem,
             this.clearSimulatedIncidentsToolStripMenuItem});
             this.incidentsToolStripMenuItem1.Name = "incidentsToolStripMenuItem1";
-            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(134, 22);
             this.incidentsToolStripMenuItem1.Text = "Incidents";
             // 
             // importFromFileToolStripMenuItem
@@ -350,6 +357,13 @@ namespace PTL.ATT.GUI
             this.importFromFileToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
             this.importFromFileToolStripMenuItem.Text = "Import incidents from file...";
             this.importFromFileToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromFileToolStripMenuItem_Click);
+            // 
+            // importIncidentsFromSocrataToolStripMenuItem
+            // 
+            this.importIncidentsFromSocrataToolStripMenuItem.Name = "importIncidentsFromSocrataToolStripMenuItem";
+            this.importIncidentsFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.importIncidentsFromSocrataToolStripMenuItem.Text = "Import incidents from Socrata...";
+            this.importIncidentsFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromSocrataToolStripMenuItem_Click);
             // 
             // clearImportedIncidentsToolStripMenuItem
             // 
@@ -1240,20 +1254,6 @@ namespace PTL.ATT.GUI
             this.log.Size = new System.Drawing.Size(1122, 91);
             this.log.TabIndex = 0;
             this.log.Text = "";
-            // 
-            // importShapefileFromSocrataToolStripMenuItem
-            // 
-            this.importShapefileFromSocrataToolStripMenuItem.Name = "importShapefileFromSocrataToolStripMenuItem";
-            this.importShapefileFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
-            this.importShapefileFromSocrataToolStripMenuItem.Text = "Import shapefile from Socrata...";
-            this.importShapefileFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importShapefileFromSocrataToolStripMenuItem_Click);
-            // 
-            // importIncidentsFromSocrataToolStripMenuItem
-            // 
-            this.importIncidentsFromSocrataToolStripMenuItem.Name = "importIncidentsFromSocrataToolStripMenuItem";
-            this.importIncidentsFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
-            this.importIncidentsFromSocrataToolStripMenuItem.Text = "Import incidents from Socrata...";
-            this.importIncidentsFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromSocrataToolStripMenuItem_Click);
             // 
             // AttForm
             // 

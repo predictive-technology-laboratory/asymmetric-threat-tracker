@@ -28,13 +28,13 @@ using System.Windows.Forms;
 
 namespace PTL.ATT.GUI
 {
-    public partial class ParameterizeForm : Form
+    public partial class DynamicForm : Form
     {
         private FlowLayoutPanel _mainPanel;
         private Dictionary<string, Func<object>> _valueIdReturn;
         private MessageBoxButtons _buttons;
 
-        public ParameterizeForm(string title = "", MessageBoxButtons buttons = MessageBoxButtons.OKCancel)
+        public DynamicForm(string title = "", MessageBoxButtons buttons = MessageBoxButtons.OKCancel)
         {
             InitializeComponent();
 
@@ -156,7 +156,7 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
         }
 
-        internal void AddCheckBox(string label, RightToLeft rightToLeft, bool isChecked, string valueId)
+        public void AddCheckBox(string label, RightToLeft rightToLeft, bool isChecked, string valueId)
         {
             CheckBox cb = new CheckBox();
             cb.Text = label;
@@ -169,7 +169,7 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
         }
 
-        internal void AddDropDown(string label, Array values, object selected, string valueId)
+        public void AddDropDown(string label, Array values, object selected, string valueId)
         {
             Label l = new Label();
             l.Text = label;
@@ -196,6 +196,35 @@ namespace PTL.ATT.GUI
                 cb.SelectedItem = selected;
             else if (cb.Items.Count > 0)
                 cb.SelectedIndex = 0;
+        }
+
+        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId)
+        {
+            Label l = new Label();
+            l.Text = label;
+            l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            ListBox lb = new ListBox();
+            lb.SelectionMode = selectionMode;
+            foreach (object o in values)
+                lb.Items.Add(o);
+
+            lb.Size = lb.PreferredSize;
+
+            FlowLayoutPanel p = new FlowLayoutPanel();
+            p.FlowDirection = FlowDirection.LeftToRight;
+            p.Controls.Add(l);
+            p.Controls.Add(lb);
+            p.Size = p.PreferredSize;
+
+            _mainPanel.Controls.Add(p);
+            _valueIdReturn.Add(valueId, new Func<object>(() => lb.SelectedItems));
+
+            if (selected != null)
+                lb.SelectedItem = selected;
+            else if (lb.Items.Count > 0)
+                lb.SelectedIndex = 0;
         }
 
         public T GetValue<T>(string valueId)

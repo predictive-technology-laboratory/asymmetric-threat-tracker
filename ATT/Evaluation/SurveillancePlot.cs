@@ -28,7 +28,6 @@ using System.Diagnostics;
 using LAIR.ResourceAPIs.R;
 using System.Drawing.Imaging;
 using LAIR.Extensions;
-using PTL.ATT.Incidents;
 using PTL.ATT.Models;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 

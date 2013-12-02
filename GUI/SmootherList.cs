@@ -69,31 +69,31 @@ namespace PTL.ATT.GUI
                     if (smoother is KdeSmoother)
                     {
                         KdeSmoother kdeSmoother = smoother as KdeSmoother;
-                        ParameterizeForm form = new ParameterizeForm("Set KDE smoother parameters");
-                        form.AddNumericUpdown("Sample size:  ", kdeSmoother.SampleSize, 0, 1, 9999999, 1, "sample_size");
-                        form.AddCheckBox("Normalize:  ", System.Windows.Forms.RightToLeft.Yes, kdeSmoother.Normalize, "normalize");
-                        if (form.ShowDialog() == DialogResult.OK)
+                        DynamicForm f = new DynamicForm("Set KDE smoother parameters");
+                        f.AddNumericUpdown("Sample size:", kdeSmoother.SampleSize, 0, 1, decimal.MaxValue, 1, "sample_size");
+                        f.AddCheckBox("Normalize:", System.Windows.Forms.RightToLeft.Yes, kdeSmoother.Normalize, "normalize");
+                        if (f.ShowDialog() == DialogResult.OK)
                         {
-                            try { kdeSmoother.SampleSize = Convert.ToInt32(form.GetValue<decimal>("sample_size")); }
+                            try { kdeSmoother.SampleSize = Convert.ToInt32(f.GetValue<decimal>("sample_size")); }
                             catch (Exception ex) { MessageBox.Show("Invalid value for sample size:  " + ex.Message); }
 
-                            kdeSmoother.Normalize = form.GetValue<bool>("normalize");
+                            kdeSmoother.Normalize = f.GetValue<bool>("normalize");
                         }
                     }
                     else if (smoother is WeightedAverageSmoother)
                     {
                         WeightedAverageSmoother avgSmoother = smoother as WeightedAverageSmoother;
-                        ParameterizeForm form = new ParameterizeForm("Set weighted average smoother parameters");
-                        form.AddNumericUpdown("Minimum:  ", (decimal)avgSmoother.Minimum, 0, 0, 9999999, 1, "minimum");
-                        form.AddNumericUpdown("Maximum:  ", (decimal)avgSmoother.Maximum, 0, 0, 9999999, 1, "maximum");
-                        if (form.ShowDialog() == DialogResult.OK)
+                        DynamicForm f = new DynamicForm("Set weighted average smoother parameters");
+                        f.AddNumericUpdown("Minimum:", (decimal)avgSmoother.Minimum, 0, 0, decimal.MaxValue, 1, "minimum");
+                        f.AddNumericUpdown("Maximum:", (decimal)avgSmoother.Maximum, 0, 0, decimal.MaxValue, 1, "maximum");
+                        if (f.ShowDialog() == DialogResult.OK)
                         {
-                            try { avgSmoother.Minimum = Convert.ToDouble(form.GetValue<decimal>("minimum")); }
+                            try { avgSmoother.Minimum = Convert.ToDouble(f.GetValue<decimal>("minimum")); }
                             catch (Exception ex) { MessageBox.Show("Invalid value for minimum:  " + ex.Message); }
 
                             try
                             {
-                                double value = Convert.ToDouble(form.GetValue<decimal>("maximum"));
+                                double value = Convert.ToDouble(f.GetValue<decimal>("maximum"));
                                 if (value < avgSmoother.Minimum)
                                 {
                                     avgSmoother.Maximum = avgSmoother.Minimum + 500;
@@ -108,19 +108,19 @@ namespace PTL.ATT.GUI
                     else if (smoother is MarsSmoother)
                     {
                         MarsSmoother marsSmoother = smoother as MarsSmoother;
-                        ParameterizeForm form = new ParameterizeForm("Set MARS smoother parameters");
-                        form.AddNumericUpdown("Number of considered parent terms (-1 for all):  ", marsSmoother.ConsideredParentTerms, 0, -1, 9999999, 1, "parent");
-                        form.AddNumericUpdown("Degree of interaction:  ", marsSmoother.InteractionDegree, 0, 1, 9999999, 1, "interaction");
-                        form.AddNumericUpdown("Number of knots (-1 for auto):  ", marsSmoother.NumberOfKnots, 0, -1, 9999999, 1, "knots");
-                        if (form.ShowDialog() == DialogResult.OK)
+                        DynamicForm f = new DynamicForm("Set MARS smoother parameters");
+                        f.AddNumericUpdown("Number of considered parent terms (-1 for all):", marsSmoother.ConsideredParentTerms, 0, -1, decimal.MaxValue, 1, "parent");
+                        f.AddNumericUpdown("Degree of interaction:", marsSmoother.InteractionDegree, 0, 1, decimal.MaxValue, 1, "interaction");
+                        f.AddNumericUpdown("Number of knots (-1 for auto):", marsSmoother.NumberOfKnots, 0, -1, decimal.MaxValue, 1, "knots");
+                        if (f.ShowDialog() == DialogResult.OK)
                         {
-                            try { marsSmoother.ConsideredParentTerms = Convert.ToInt32(form.GetValue<decimal>("parent")); }
+                            try { marsSmoother.ConsideredParentTerms = Convert.ToInt32(f.GetValue<decimal>("parent")); }
                             catch (Exception ex) { MessageBox.Show("Invalid value for parent terms:  " + ex.Message); }
 
-                            try { marsSmoother.InteractionDegree = Convert.ToInt32(form.GetValue<decimal>("interaction")); }
+                            try { marsSmoother.InteractionDegree = Convert.ToInt32(f.GetValue<decimal>("interaction")); }
                             catch (Exception ex) { MessageBox.Show("Invalid value for interaction degree:  " + ex.Message); }
 
-                            try { marsSmoother.NumberOfKnots = Convert.ToInt32(form.GetValue<decimal>("knots")); }
+                            try { marsSmoother.NumberOfKnots = Convert.ToInt32(f.GetValue<decimal>("knots")); }
                             catch (Exception ex) { MessageBox.Show("Invalid value for number of knots:  " + ex.Message); }
                         }
                     }

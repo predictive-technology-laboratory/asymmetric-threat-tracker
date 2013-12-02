@@ -137,13 +137,6 @@
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
     </Compile>
     <Compile Include="LogWriter.cs" />
-    <Compile Include="SelectItemForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SelectItemForm.Designer.cs">
-      <DependentUpon>SelectItemForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Socrata\SocrataClient.cs" />
     <Compile Include="Splash.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -213,11 +206,11 @@
     <Compile Include="TimeSliceDcmForm.Designer.cs">
       <DependentUpon>TimeSliceDcmForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ParameterizeForm.cs">
+    <Compile Include="DynamicForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ParameterizeForm.Designer.cs">
-      <DependentUpon>ParameterizeForm.cs</DependentUpon>
+    <Compile Include="DynamicForm.Designer.cs">
+      <DependentUpon>DynamicForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Visualization\Assessments.cs">
       <SubType>UserControl</SubType>
@@ -266,9 +259,6 @@
     <EmbeddedResource Include="FeatureRemappingForm.resx">
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SelectItemForm.resx">
-      <DependentUpon>SelectItemForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>
     </EmbeddedResource>
@@ -312,8 +302,8 @@
     <EmbeddedResource Include="TimeSliceDcmForm.resx">
       <DependentUpon>TimeSliceDcmForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ParameterizeForm.resx">
-      <DependentUpon>ParameterizeForm.cs</DependentUpon>
+    <EmbeddedResource Include="DynamicForm.resx">
+      <DependentUpon>DynamicForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Visualization\Assessments.resx">
       <DependentUpon>Assessments.cs</DependentUpon>

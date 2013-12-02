@@ -23,13 +23,17 @@ using System.Linq;
 using System.Text;
 using Npgsql;
 using LAIR.ResourceAPIs.PostgreSQL;
+using LAIR.XML;
 
-namespace PTL.ATT.Incidents
+namespace PTL.ATT.Importers
 {
     public abstract class Importer
     {
-        public Importer() { }
+        protected Importer() { }
 
-        public abstract void Import(string path, Area area, int hourOffset, int srid);
+        public virtual void Import(string path, string table, string columns, Func<XmlParser, Tuple<string, List<Parameter>>> rowToInsertValueAndParams)
+        {
+            Console.Out.WriteLine("Importing data from \"" + path + "\" into table \"" + table + "\"");
+        }
     }
 }

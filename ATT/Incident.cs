@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +28,7 @@ using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using System.Reflection;
 using LAIR.Collections.Generic;
 
-namespace PTL.ATT.Incidents
+namespace PTL.ATT
 {
     public class Incident
     {
@@ -73,17 +73,17 @@ namespace PTL.ATT.Incidents
             if (!DB.Connection.TableExists(tableName))
                 DB.Connection.ExecuteNonQuery(
                     "CREATE TABLE " + tableName + " (" +
-                    Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," + 
+                    Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
                     Columns.Location + " GEOMETRY(POINT," + area.SRID + ")," +
                     Columns.NativeId + " INT," +
                     Columns.Simulated + " BOOLEAN," +
                     Columns.Time + " TIMESTAMP," +
-                    Columns.Type + " VARCHAR," + 
-                    "UNIQUE (" + Columns.AreaId + "," + Columns.NativeId + "));" + 
+                    Columns.Type + " VARCHAR," +
+                    "UNIQUE (" + Columns.AreaId + "," + Columns.NativeId + "));" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.AreaId + ");" +
                     "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Location + ");" +
-                    "CREATE INDEX ON " + tableName + " (" + Columns.NativeId + ");" + 
+                    "CREATE INDEX ON " + tableName + " (" + Columns.NativeId + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.Simulated + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.Type + ");");
@@ -96,9 +96,9 @@ namespace PTL.ATT.Incidents
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(area));
         }
 
-        public static string GetValue(int areaId, int nativeId, PostGIS.Point location, int toSRID, bool simulated, string time, string type)
+        public static string GetValue(Area area, int nativeId, PostGIS.Point location, bool simulated, string time, string type)
         {
-            return areaId + "," + nativeId + "," + (location.SRID == toSRID ? location.StGeometryFromText : "st_transform(" + location.StGeometryFromText + "," + toSRID + ")") + "," + simulated + "," + time + ",'" + Util.Escape(type) + "'";
+            return area.Id + "," + (location.SRID == area.SRID ? location.StGeometryFromText : "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")") + "," + nativeId + "," + simulated + "," + time + ",'" + Util.Escape(type) + "'";
         }
 
         public static void Clear(Area area)
@@ -133,7 +133,9 @@ namespace PTL.ATT.Incidents
             int batchSize = 500;
             Random r = new Random();
             List<Parameter> param = new List<Parameter>(batchSize);
-            for (int i = 0; i < n; ++i)
+            int nativeIdStart = Convert.ToInt32(DB.Connection.ExecuteScalar("SELECT max(" + Incident.Columns.NativeId + ") FROM " + Incident.GetTableName(area) + " WHERE " + Incident.Columns.AreaId + "=" + area.Id)) + 1;
+            int nativeIdEnd = nativeIdStart + n - 1;
+            for (int nativeId = nativeIdStart; nativeId <= nativeIdEnd; ++nativeId)
             {
                 DateTime date = startDate.AddDays(r.Next(dayRange));
                 double x = minX + r.NextDouble() * xRange;
@@ -141,7 +143,7 @@ namespace PTL.ATT.Incidents
                 string type = incidentTypes[r.Next(incidentTypes.Length)];
                 PostGIS.Point location = new PostGIS.Point(x, y, area.SRID);
 
-                cmdText.Append("INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES (" + GetValue(area.Id, i, location, location.SRID, true, "@date" + numInBatch, type) + ");");
+                cmdText.Append("INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES (" + GetValue(area, nativeId, location, true, "@date" + numInBatch, type) + ");");
                 param.Add(new Parameter("date" + numInBatch, NpgsqlDbType.Timestamp, date));
 
                 if (++numInBatch >= batchSize)

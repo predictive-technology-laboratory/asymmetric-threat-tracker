@@ -27,7 +27,6 @@ using LAIR.ResourceAPIs.R;
 using Npgsql;
 using LAIR.ResourceAPIs.PostgreSQL;
 using PTL.ATT.Models;
-using PTL.ATT.Incidents;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using NpgsqlTypes;
 using LAIR.Extensions;
