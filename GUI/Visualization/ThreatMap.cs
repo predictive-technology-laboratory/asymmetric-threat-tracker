@@ -823,20 +823,24 @@ namespace PTL.ATT.GUI.Visualization
 
                         dataView.Rows.Add(pointPredictions.Length);
 
-                        Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointPredictionLog = DisplayedPrediction.ReadPointPredictionLog(new Set<int>(pointPredictions.Select(p => p.PointId).ToArray()));
-                        for (int i = 0; i < pointPredictions.Length; ++i)
+                        try
                         {
-                            PointPrediction pointPrediction = pointPredictions[i];
+                            Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointPredictionLog = DisplayedPrediction.ReadPointPredictionLog(new Set<int>(pointPredictions.Select(p => p.PointId).ToArray()));
+                            for (int i = 0; i < pointPredictions.Length; ++i)
+                            {
+                                PointPrediction pointPrediction = pointPredictions[i];
 
-                            dataView[predictionIdCol, i].Value = pointPrediction.PointId;
+                                dataView[predictionIdCol, i].Value = pointPrediction.PointId;
 
-                            foreach (Tuple<string, double> labelConfidence in pointPredictionLog[pointPrediction.PointId].Item1)
-                                if (labelConfidence.Item1 != PointPrediction.NullLabel)
-                                    dataView[incidentProbCol[labelConfidence.Item1], i].Value = Math.Round(labelConfidence.Item2, 3);
+                                foreach (Tuple<string, double> labelConfidence in pointPredictionLog[pointPrediction.PointId].Item1)
+                                    if (labelConfidence.Item1 != PointPrediction.NullLabel)
+                                        dataView[incidentProbCol[labelConfidence.Item1], i].Value = Math.Round(labelConfidence.Item2, 3);
 
-                            foreach (Tuple<int, double> featureIdValue in pointPredictionLog[pointPrediction.PointId].Item2)
-                                dataView[featureIdCol[featureIdValue.Item1], i].Value = Math.Round(featureIdValue.Item2, 3);
+                                foreach (Tuple<int, double> featureIdValue in pointPredictionLog[pointPrediction.PointId].Item2)
+                                    dataView[featureIdCol[featureIdValue.Item1], i].Value = Math.Round(featureIdValue.Item2, 3);
+                            }
                         }
+                        catch (Exception ex) { Console.Out.WriteLine("Error while reading prediction log:  " + ex.Message); }
 
                         dataView.SortCompare += new DataGridViewSortCompareEventHandler(delegate(object o, DataGridViewSortCompareEventArgs args)
                             {

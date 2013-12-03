@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -150,7 +150,7 @@ namespace PTL.ATT.GUI
         {
             get { return predictionAreas.SelectedItem as Area; }
         }
-        
+
         public List<Prediction> SelectedPredictions
         {
             get
@@ -360,7 +360,7 @@ namespace PTL.ATT.GUI
         public void simulateIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Area simulateArea = PromptForArea("Select area in which to simulate incidents...");
-            if(simulateArea != null)
+            if (simulateArea != null)
             {
                 SimulateIncidentsForm f = new SimulateIncidentsForm(simulateArea);
                 f.ShowDialog();
@@ -1155,12 +1155,13 @@ namespace PTL.ATT.GUI
                                 for (int copyNum = 1; copyNum <= numCopies; ++copyNum)
                                 {
                                     Console.Out.WriteLine("Creating copy " + copyNum + " (of " + numCopies + ") of prediction " + predictionNum + " (of " + selectedPredictions.Count + ")");
-                                    int copyId = selectedPrediction.Copy("Copy " + copyNum + " of " + selectedPrediction.Name, predictionNum == 1 && copyNum == 1, false);
-
-                                    try { Point.VacuumTable(copyId); }
-                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum point table:  " + ex.Message); }
-                                    try { PointPrediction.VacuumTable(copyId); }
-                                    catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum point table:  " + ex.Message); }
+                                    try
+                                    {
+                                        int copyId = selectedPrediction.Copy("Copy " + copyNum + " of " + selectedPrediction.Name, predictionNum == 1 && copyNum == 1, false);
+                                        Point.VacuumTable(copyId);
+                                        PointPrediction.VacuumTable(copyId);
+                                    }
+                                    catch (Exception ex) { Console.Out.WriteLine("Error while copying prediction:  " + ex.Message); }
                                 }
                             }
 
