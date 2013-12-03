@@ -314,7 +314,7 @@ namespace PTL.ATT.GUI
             this.importShapefileFromSocrataToolStripMenuItem,
             this.deleteShapefilesToolStripMenuItem});
             this.shapefilesToolStripMenuItem1.Name = "shapefilesToolStripMenuItem1";
-            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(134, 22);
             this.shapefilesToolStripMenuItem1.Text = "Shapefiles";
             // 
             // importShapefilesFromDiskToolStripMenuItem
@@ -348,7 +348,7 @@ namespace PTL.ATT.GUI
             this.simulateIncidentsToolStripMenuItem,
             this.clearSimulatedIncidentsToolStripMenuItem});
             this.incidentsToolStripMenuItem1.Name = "incidentsToolStripMenuItem1";
-            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(134, 22);
             this.incidentsToolStripMenuItem1.Text = "Incidents";
             // 
             // importFromFileToolStripMenuItem

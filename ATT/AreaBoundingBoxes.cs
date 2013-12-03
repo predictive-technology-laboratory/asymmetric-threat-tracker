@@ -24,7 +24,6 @@ using System.Text;
 using LAIR.ResourceAPIs.PostgreSQL;
 using Npgsql;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
-using PTL.ATT.ShapeFiles;
 
 namespace PTL.ATT
 {

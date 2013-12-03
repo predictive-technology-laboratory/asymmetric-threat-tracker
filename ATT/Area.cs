@@ -23,7 +23,6 @@ using System.Linq;
 using System.Text;
 
 using Npgsql;
-using PTL.ATT.ShapeFiles;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using LAIR.ResourceAPIs.PostgreSQL;
 using LAIR.Collections.Generic;

@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
-
+ 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -33,7 +33,6 @@ using PTL.ATT.Models;
 using System.Reflection;
 using PTL.ATT.Classifiers;
 using Npgsql;
-using PTL.ATT.ShapeFiles;
 using LAIR.Collections.Generic;
 using PTL.ATT.GUI.Visualization;
 using LAIR.ResourceAPIs.PostGIS;

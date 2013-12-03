@@ -26,7 +26,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
-using PTL.ATT.ShapeFiles;
 using System.Threading;
 using Npgsql;
 

@@ -23,7 +23,6 @@ using System.Linq;
 using System.Text;
 using NpgsqlTypes;
 using Npgsql;
-using PTL.ATT.ShapeFiles;
 using LAIR.ResourceAPIs.PostgreSQL;
 using LAIR.Collections.Generic;
 using PTL.ATT.Classifiers;

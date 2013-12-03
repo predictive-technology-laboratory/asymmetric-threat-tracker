@@ -29,7 +29,7 @@ using Npgsql;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace PTL.ATT.ShapeFiles
+namespace PTL.ATT
 {
     public class Shapefile
     {

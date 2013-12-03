@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
-
+ 
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +32,6 @@ using System.Drawing;
 using PTL.ATT.Evaluation;
 using LAIR.MachineLearning;
 using System.Threading;
-using PTL.ATT.ShapeFiles;
 using System.IO;
 using PTL.ATT.Smoothers;
 using System.Runtime.Serialization.Formatters.Binary;
