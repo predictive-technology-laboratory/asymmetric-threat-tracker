@@ -73,7 +73,7 @@ namespace PTL.ATT.GUI
                     {
                         LibLinear liblinear = classifier as LibLinear;
                         DynamicForm f = new DynamicForm("Set LibLinear parameters");
-                        f.AddCheckBox("Run feature selection:", System.Windows.Forms.RightToLeft.Yes, liblinear.RunFeatureSelection, "run_feature_selection");
+                        f.AddCheckBox("Run feature selection:", ContentAlignment.MiddleRight, liblinear.RunFeatureSelection, "run_feature_selection");
                         f.AddDropDown("Positive weighting:", Enum.GetValues(typeof(LibLinear.PositiveClassWeighting)), liblinear.Weighting, "positive_weighting");
                         if (f.ShowDialog() == DialogResult.OK)
                         {

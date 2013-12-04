@@ -424,7 +424,7 @@ namespace PTL.ATT.GUI
                         else
                             throw new NotImplementedException("Unknown incident import source:  " + incidentImportSource);
 
-                        f.AddCheckBox("Delete file after import:", System.Windows.Forms.RightToLeft.Yes, false, "delete");
+                        f.AddCheckBox("Delete file after import:", ContentAlignment.MiddleRight, false, "delete");
                         f.AddDropDown("Importer:", importerTypes, importerTypes[0], "importer");
                         f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
                         f.AddDropDown("Destination area:", areas, areas[0], "area");

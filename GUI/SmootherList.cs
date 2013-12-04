@@ -71,7 +71,7 @@ namespace PTL.ATT.GUI
                         KdeSmoother kdeSmoother = smoother as KdeSmoother;
                         DynamicForm f = new DynamicForm("Set KDE smoother parameters");
                         f.AddNumericUpdown("Sample size:", kdeSmoother.SampleSize, 0, 1, decimal.MaxValue, 1, "sample_size");
-                        f.AddCheckBox("Normalize:", System.Windows.Forms.RightToLeft.Yes, kdeSmoother.Normalize, "normalize");
+                        f.AddCheckBox("Normalize:", ContentAlignment.MiddleRight, kdeSmoother.Normalize, "normalize");
                         if (f.ShowDialog() == DialogResult.OK)
                         {
                             try { kdeSmoother.SampleSize = Convert.ToInt32(f.GetValue<decimal>("sample_size")); }

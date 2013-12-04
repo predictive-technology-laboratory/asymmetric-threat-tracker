@@ -48,10 +48,10 @@ namespace PTL.ATT.GUI
             _mainPanel = new FlowLayoutPanel();
             _mainPanel.FlowDirection = FlowDirection.TopDown;
 
-            Shown += new EventHandler(ParameterizationForm_Shown);
+            Shown += new EventHandler(DynamicForm_Shown);
         }
 
-        private void ParameterizationForm_Shown(object sender, EventArgs args)
+        private void DynamicForm_Shown(object sender, EventArgs args)
         {
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel();
             buttonPanel.FlowDirection = FlowDirection.LeftToRight;
@@ -91,6 +91,7 @@ namespace PTL.ATT.GUI
 
             Controls.Add(_mainPanel);
             Size = PreferredSize;
+            TopMost = true;
         }
 
         public void AddTextBox(string label, string text, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false)
@@ -156,12 +157,11 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
         }
 
-        public void AddCheckBox(string label, RightToLeft rightToLeft, bool isChecked, string valueId)
+        public void AddCheckBox(string label, ContentAlignment checkAlign, bool isChecked, string valueId)
         {
             CheckBox cb = new CheckBox();
             cb.Text = label;
-            cb.RightToLeft = rightToLeft;
-            cb.TextAlign = rightToLeft == System.Windows.Forms.RightToLeft.Yes ? ContentAlignment.MiddleRight : ContentAlignment.MiddleLeft;
+            cb.CheckAlign = checkAlign;
             cb.Checked = isChecked;
             cb.Size = cb.PreferredSize;
 
@@ -181,7 +181,7 @@ namespace PTL.ATT.GUI
             foreach (object o in values)
                 cb.Items.Add(o);
 
-            cb.Size = cb.PreferredSize;
+            cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;

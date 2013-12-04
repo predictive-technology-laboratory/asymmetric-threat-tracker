@@ -227,9 +227,9 @@ namespace PTL.ATT.GUI
             // normalize
             // 
             this.normalize.AutoSize = true;
-            this.normalize.Location = new System.Drawing.Point(62, 125);
+            this.normalize.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.normalize.Location = new System.Drawing.Point(60, 125);
             this.normalize.Name = "normalize";
-            this.normalize.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.normalize.Size = new System.Drawing.Size(75, 17);
             this.normalize.TabIndex = 4;
             this.normalize.Text = "Normalize:";
@@ -249,7 +249,9 @@ namespace PTL.ATT.GUI
             this.smoothers.FormattingEnabled = true;
             this.smoothers.Location = new System.Drawing.Point(123, 148);
             this.smoothers.Name = "smoothers";
+            this.smoothers.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.smoothers.Size = new System.Drawing.Size(189, 95);
+            this.smoothers.Sorted = true;
             this.smoothers.TabIndex = 34;
             // 
             // KernelDensityDcmForm
