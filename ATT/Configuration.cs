@@ -241,7 +241,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
             if (rExePath == null || !File.Exists(rExePath))
                 rExePath = Environment.GetEnvironmentVariable("R_EXE");
 
-            _rPackageInstallDirectory = rP.ElementText("install_directory");
+            _rPackageInstallDirectory = rP.ElementText("package_install_directory");
             if (!Directory.Exists(_rPackageInstallDirectory))
                 Directory.CreateDirectory(_rPackageInstallDirectory);
 

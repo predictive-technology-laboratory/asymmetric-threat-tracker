@@ -1002,6 +1002,8 @@ namespace PTL.ATT.GUI
                                     Notify("Error", msg);
                                 }
                             }
+
+                            Console.Out.WriteLine("Completed prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
                         }
 
                         m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart.Value, trainingEnd.Value, m.TrainingSampleSize, m.PredictionSampleSize, incidentTypes, m.Smoothers);

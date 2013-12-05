@@ -306,8 +306,6 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 Smooth(prediction);
 
                 LastRun = DateTime.Now;
-
-                Console.Out.WriteLine(GetType().FullName + " prediction complete");
             }
             finally
             {
