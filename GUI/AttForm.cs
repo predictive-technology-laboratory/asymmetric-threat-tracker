@@ -322,37 +322,42 @@ namespace PTL.ATT.GUI
             Thread t = new Thread(new ThreadStart(delegate()
                 {
                     DynamicForm f = new DynamicForm("Provide shapefile import details...", MessageBoxButtons.OKCancel);
-                    f.AddTextBox("Socrata shapefile .zip URI:", "".PadLeft(75), "uri");
-                    f.AddTextBox("Descriptive name for shapefile:", "".PadLeft(75), "name");
+                    f.AddTextBox("Socrata shapefile .zip URI:", null, 200, "uri");
+                    f.AddTextBox("Descriptive name for shapefile:", null, 75, "name");
                     f.AddNumericUpdown("Source SRID:", 1, 0, 1, decimal.MaxValue, 1, "source_srid");
                     f.AddNumericUpdown("Target SRID:", 1, 0, 1, decimal.MaxValue, 1, "target_srid");
                     f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), null, "type");
                     if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
                         string uri = f.GetValue<string>("uri");
-
+                        string downloadPath = Path.GetTempFileName();
                         try
                         {
-                            string name = ReplaceInvalidFilenameCharacters(f.GetValue<string>("name"));
-                            string unzipDir = Path.Combine(Configuration.PostGisShapefileDirectory, name);
+                            string name = f.GetValue<string>("name");
+                            string unzipDir = Path.Combine(Configuration.PostGisShapefileDirectory, ReplaceInvalidFilenameCharacters(name));
                             if (Directory.Exists(unzipDir))
                                 if (MessageBox.Show("Directory \"" + unzipDir + "\" already exists. Replace?", "Replace?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                                     Directory.Delete(unzipDir, true);
                                 else
                                     return;
 
-                            string downloadPath = Path.GetTempFileName();
+
                             Download(uri, downloadPath);
 
-                            // unzip and rename files using name
+                            ZipFile.ExtractToDirectory(downloadPath, unzipDir);
 
-                            File.WriteAllText(Path.Combine(unzipDir, name + ".srid"), f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid"));
-
-                            Shapefile.ImportShapefile(Path.Combine(unzipDir, name + ".shp"), f.GetValue<Shapefile.ShapefileType>("type"));
+                            string shapefileFileName = Path.GetFileNameWithoutExtension(Directory.GetFiles(unzipDir).First());
+                            File.WriteAllText(Path.Combine(unzipDir, shapefileFileName + ".srid"), f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid"));
+                            Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), name, f.GetValue<Shapefile.ShapefileType>("type"));
                         }
                         catch (Exception ex)
                         {
                             Console.Out.WriteLine("Error while importing shapefile from \"" + uri + "\":  " + ex.Message);
+                        }
+                        finally
+                        {
+                            try { File.Delete(downloadPath); }
+                            catch (Exception ex) { Console.Out.WriteLine("Failed to delete temporary downloaded shapefile \"" + downloadPath + "\":  " + ex.Message); }
                         }
                     }
                 }));
@@ -415,11 +420,11 @@ namespace PTL.ATT.GUI
                             if (path == null)
                                 return;
                             else
-                                f.AddTextBox("Path:", path, "path");
+                                f.AddTextBox("Path:", path, -1, "path");
                         }
                         else if (incidentImportSource == IncidentImportSource.URI)
                         {
-                            f.AddTextBox("Download XML URI:", "                                                                      ", "uri", '\0', true);
+                            f.AddTextBox("Download XML URI:", null, 200, "uri", '\0', true);
                         }
                         else
                             throw new NotImplementedException("Unknown incident import source:  " + incidentImportSource);
@@ -1886,8 +1891,8 @@ namespace PTL.ATT.GUI
             while (true)
             {
                 DynamicForm f = new DynamicForm("Enter password");
-                f.AddTextBox("Password:", "            ", "password", '*', true);
-                f.AddTextBox("Confirm password:", "            ", "confirmed", '*', true);
+                f.AddTextBox("Password:", null, 20, "password", '*', true);
+                f.AddTextBox("Confirm password:", null, 20, "confirmed", '*', true);
 
                 if (f.ShowDialog() == DialogResult.Cancel)
                     break;
@@ -1907,7 +1912,7 @@ namespace PTL.ATT.GUI
                 try
                 {
                     DynamicForm showEncrypted = new DynamicForm("Encrypted password", MessageBoxButtons.OK);
-                    showEncrypted.AddTextBox("Result:", password.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), "encrypted");
+                    showEncrypted.AddTextBox("Result:", password.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), -1, "encrypted");
                     showEncrypted.ShowDialog();
                 }
                 catch (Exception ex) { MessageBox.Show("Error getting encrypted password:  " + ex.Message); }
@@ -1995,7 +2000,7 @@ namespace PTL.ATT.GUI
                     bytesUntilUpdate -= bytesRead;
                     if (bytesUntilUpdate <= 0)
                     {
-                        bytesUntilUpdate = (long)Math.Pow(2, 20);
+                        bytesUntilUpdate = 5 * (long)Math.Pow(2, 20);
                         Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesUntilUpdate) + " MB...");
                     }
                 }

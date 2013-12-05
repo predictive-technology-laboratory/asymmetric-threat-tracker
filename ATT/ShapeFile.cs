@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +37,6 @@ namespace PTL.ATT
         {
             Area,
             DistanceFeature,
-            RasterFeature
         }
 
         internal const string Table = "shapefile";
@@ -74,24 +73,24 @@ namespace PTL.ATT
             return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
 
-        public static void ImportShapefile(string shapefilePath, ShapefileType type)
+        public static void ImportShapefile(string shapefilePath, string name, ShapefileType type)
         {
-            ImportShapefiles(new string[] { shapefilePath }, type);
+            ImportShapefiles(new Tuple<string, string>[] { new Tuple<string, string>(shapefilePath, name) }, type);
         }
 
-        public static void ImportShapefiles(string[] shapefilePaths, ShapefileType type)
+        public static void ImportShapefiles(Tuple<string, string>[] shapefilePathsAndNames, ShapefileType type)
         {
+            Console.Out.WriteLine("Importing " + shapefilePathsAndNames.Length + " shapefile(s)");
+
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
             int shapefileId = -1;
             try
             {
                 Regex reprojectionRE = new Regex("(?<from>[0-9]+):(?<to>[0-9]+)");
 
-                foreach (string shapefilePath in shapefilePaths)
+                foreach (Tuple<string, string> shapefilePathName in shapefilePathsAndNames)
                 {
-                    string shapefileName = Path.GetFileNameWithoutExtension(shapefilePath);
-
-                    string reprojectionPath = Path.Combine(Path.GetDirectoryName(shapefilePath), shapefileName + ".srid");
+                    string reprojectionPath = Path.Combine(Path.GetDirectoryName(shapefilePathName.Item1), Path.GetFileNameWithoutExtension(shapefilePathName.Item1) + ".srid");
                     if (!File.Exists(reprojectionPath))
                         throw new Exception("Could not find SRID file at \"" + reprojectionPath + "\"");
 
@@ -110,14 +109,14 @@ namespace PTL.ATT
                     using (Process process = new Process())
                     {
                         process.StartInfo.FileName = Configuration.Shp2PgsqlPath;
-                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapefilePath + "\" temp";
+                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapefilePathName.Item1 + "\" temp";
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = false;
                         process.StartInfo.RedirectStandardError = true;
                         process.StartInfo.RedirectStandardOutput = true;
                         process.Start();
 
-                        Console.Out.WriteLine("Converting shapefile \"" + shapefilePath + "\".");
+                        Console.Out.WriteLine("Converting shapefile \"" + shapefilePathName.Item2 + "\".");
 
                         sql = process.StandardOutput.ReadToEnd().Replace("BEGIN;", "").Replace("COMMIT;", "");
                         error = process.StandardError.ReadToEnd().Trim().Replace(Environment.NewLine, "; ").Replace("\n", "; ");
@@ -131,7 +130,7 @@ namespace PTL.ATT
                     cmd.ExecuteNonQuery();
 
                     Console.Out.WriteLine("Importing shapefile into database");
-                    shapefileId = Create(cmd.Connection, shapefileName, toSRID, type);
+                    shapefileId = Create(cmd.Connection, shapefilePathName.Item2, toSRID, type);
                     ShapefileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
 
                     cmd.CommandText = "DROP TABLE temp";
@@ -160,6 +159,8 @@ namespace PTL.ATT
             {
                 DB.Connection.Return(cmd.Connection);
             }
+
+            Console.Out.WriteLine("Imported " + shapefilePathsAndNames.Length + " shapefile(s) successfully.");
         }
 
         public static IEnumerable<Shapefile> GetAvailable(int srid = -1)

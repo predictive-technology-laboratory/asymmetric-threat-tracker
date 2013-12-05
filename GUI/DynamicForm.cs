@@ -94,7 +94,7 @@ namespace PTL.ATT.GUI
             TopMost = true;
         }
 
-        public void AddTextBox(string label, string text, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false)
+        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false)
         {
             Label l = new Label();
             l.Text = label;
@@ -106,7 +106,7 @@ namespace PTL.ATT.GUI
             tb.Name = valueId;
             tb.Text = text;
             tb.PasswordChar = passwordChar;
-            tb.Size = tb.PreferredSize;
+            tb.Size = widthInCharacters == -1 ? tb.PreferredSize : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), Font).Width, tb.PreferredSize.Height);
             tb.KeyDown += new KeyEventHandler((o, args) =>
                 {
                     if (args.KeyCode == Keys.Enter)

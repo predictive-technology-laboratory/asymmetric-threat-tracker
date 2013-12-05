@@ -454,6 +454,9 @@ namespace PTL.ATT.GUI.Visualization
 
         private void UpdateHighlightedThreatRectangle(System.Drawing.Point mouseLocation)
         {
+            if (DisplayedPrediction == null)
+                return;
+
             float pixelsPerMeter;
             float threatRectanglePixelWidth;
             GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);

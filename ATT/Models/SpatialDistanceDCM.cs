@@ -648,7 +648,7 @@ namespace PTL.ATT.Models
 
                 LastRun = DateTime.Now;
 
-                Console.Out.WriteLine("Prediction complete");
+                Console.Out.WriteLine("Prediction \"" + prediction.Name + "\" complete");
 
                 return prediction.Id;
             }

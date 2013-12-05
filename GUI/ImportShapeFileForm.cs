@@ -91,7 +91,7 @@ namespace PTL.ATT.GUI
                         {
                             try
                             {
-                                Shapefile.ImportShapefiles(shapeFilePaths, selectedShapefileType);
+                                Shapefile.ImportShapefiles(shapeFilePaths.Select(path => new Tuple<string, string>(path, Path.GetFileNameWithoutExtension(path))).ToArray(), selectedShapefileType);
                                 Console.Out.WriteLine("Shapefile import succeeded");
                             }
                             catch (Exception ex)
