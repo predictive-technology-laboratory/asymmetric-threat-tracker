@@ -1,13 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
 
+  <application_data_directory></application_data_directory> <!-- Path to application data directory. If left blank, the default local application data directory will be used. -->
+  
   <postgis>
     <shapefile_directory></shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., the ShapeFiles sub-directory of the ATT installation directory). -->
   </postgis>
 
   <logging>
-    <path>log.txt</path>         <!-- Path to log file. Will be created if it doesn't exist, and will be appended to if it does exist. -->
-    <editor>notepad.exe</editor> <!-- Path to editor executable for viewing the log file. -->
+    <editor>notepad.exe</editor>                  <!-- Path to editor executable for viewing the log file. -->
   </logging>
 
   <incidents>

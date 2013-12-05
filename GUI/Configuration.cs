@@ -187,7 +187,16 @@ namespace PTL.ATT.GUI
 
         public static void Initialize(string path)
         {
-            string encryptionInitPath = ".encryption_initialization";
+            XmlParser p = new XmlParser(File.ReadAllText(path));
+
+            string applicationDataDirectory = p.ElementText("application_data_directory");
+            if (applicationDataDirectory == "")
+                applicationDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "asymmetric_threat_tracker");
+
+            if(!Directory.Exists(applicationDataDirectory))
+                Directory.CreateDirectory(applicationDataDirectory);
+
+            string encryptionInitPath = Path.Combine(applicationDataDirectory, "encryption_initialization");
             if (File.Exists(encryptionInitPath))
                 _encryptionInitialization = File.ReadAllText(encryptionInitPath).Split('-').Select(s => byte.Parse(s)).ToArray();
             else
@@ -197,13 +206,11 @@ namespace PTL.ATT.GUI
                 File.WriteAllText(encryptionInitPath, string.Join("-", _encryptionInitialization));
             }
 
-            XmlParser p = new XmlParser(File.ReadAllText(path));
-
             XmlParser postgisP = new XmlParser(p.OuterXML("postgis"));
             _postgisShapefileDirectory = postgisP.ElementText("shapefile_directory");
 
             XmlParser loggingP = new XmlParser(p.OuterXML("logging"));
-            _logPath = loggingP.ElementText("path");
+            _logPath = Path.Combine(applicationDataDirectory, "log.txt");
             _loggingEditor = loggingP.ElementText("editor");
 
             XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
