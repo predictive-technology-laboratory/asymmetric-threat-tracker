@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
-
+ 
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,13 +27,11 @@ using NpgsqlTypes;
 using LAIR.Extensions;
 
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
-using PTL.ATT.Incidents;
 using LAIR.Collections.Generic;
 using System.Drawing;
 using PTL.ATT.Evaluation;
 using LAIR.MachineLearning;
 using System.Threading;
-using PTL.ATT.ShapeFiles;
 using System.IO;
 using PTL.ATT.Smoothers;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -465,7 +463,7 @@ namespace PTL.ATT.Models
                                     Console.Out.WriteLine("Computing spatial density of \"" + incident + "\"");
 
                                     IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(TrainingStart, TrainingEnd, area, incident).Select(inc => inc.Location);
-                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 500, false, 0, 0, kdeEvalPoints, true, true);
+                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 500, false, 0, 0, kdeEvalPoints, true);
                                     lock (kdeFeatureDensityEstimates)
                                     {
                                         kdeFeatureDensityEstimates.Add(kdeFeature, densityEstimates);
@@ -650,7 +648,7 @@ namespace PTL.ATT.Models
 
                 LastRun = DateTime.Now;
 
-                Console.Out.WriteLine(GetType().FullName + " prediction complete");
+                Console.Out.WriteLine("Prediction \"" + prediction.Name + "\" complete");
 
                 return prediction.Id;
             }

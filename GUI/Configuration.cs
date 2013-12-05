@@ -266,15 +266,15 @@ namespace PTL.ATT.GUI
 
             while (true)
             {
-                ParameterizeForm pf = new ParameterizeForm("Enter encryption passphrase");
-                pf.AddTextBox("Passphrase:", "            ", "passphrase", '*', true);
-                pf.AddTextBox("Confirm passphrase:", "            ", "confirmed", '*', true);
+                DynamicForm f = new DynamicForm("Enter encryption passphrase");
+                f.AddTextBox("Passphrase:", null, 20, "passphrase", '*', true);
+                f.AddTextBox("Confirm passphrase:", null, 20, "confirmed", '*', true);
 
-                if (pf.ShowDialog() == DialogResult.Cancel)
+                if (f.ShowDialog() == DialogResult.Cancel)
                     break;
 
-                string passphrase = pf.GetValue<string>("passphrase").Trim();
-                string confirmed = pf.GetValue<string>("confirmed").Trim();
+                string passphrase = f.GetValue<string>("passphrase").Trim();
+                string confirmed = f.GetValue<string>("confirmed").Trim();
                 if (passphrase != confirmed)
                     MessageBox.Show("Entries do not match.");
                 else if (passphrase.Length < 8)

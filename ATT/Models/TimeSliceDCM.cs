@@ -26,7 +26,6 @@ using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using LAIR.ResourceAPIs.PostgreSQL;
 using LAIR.Collections.Generic;
 using LAIR.MachineLearning;
-using PTL.ATT.Incidents;
 using LAIR.Extensions;
 using System.Drawing;
 using PTL.ATT.Evaluation;

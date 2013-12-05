@@ -33,9 +33,6 @@ using PTL.ATT.Models;
 using System.Reflection;
 using PTL.ATT.Classifiers;
 using Npgsql;
-using PTL.ATT.Incidents;
-using PTL.ATT.Incidents.Chicago;
-using PTL.ATT.ShapeFiles;
 using LAIR.Collections.Generic;
 using PTL.ATT.GUI.Visualization;
 using LAIR.ResourceAPIs.PostGIS;
@@ -51,12 +48,22 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
+using Newtonsoft.Json.Linq;
+using LAIR.ResourceAPIs.PostgreSQL;
+using PostGIS = LAIR.ResourceAPIs.PostGIS;
+using PTL.ATT.Importers;
 
 namespace PTL.ATT.GUI
 {
     public partial class AttForm : Form
     {
         public const int PlotHeight = 400;
+
+        public enum IncidentImportSource
+        {
+            LocalFile,
+            URI
+        }
 
         #region members and properties
         private bool _setTrainingStartEndToolTip;
@@ -180,7 +187,7 @@ namespace PTL.ATT.GUI
         }
         #endregion
 
-        #region construction and loading
+        #region construction / loading / closing
         public AttForm()
         {
             InitializeComponent();
@@ -198,10 +205,7 @@ namespace PTL.ATT.GUI
                 {
                     Splash s = o as Splash;
                     s.Show();
-                    while (!done)
-                    {
-                        Application.DoEvents();
-                    }
+                    while (!done) { Application.DoEvents(); }
                     s.Close();
                     s.Dispose();
                 }));
@@ -227,13 +231,16 @@ namespace PTL.ATT.GUI
                 GUI.Configuration.Initialize(guiConfigPath);
 
                 splash.UpdateProgress("Loading plugins...");
-                foreach (Plugin plugin in GUI.Configuration.PluginTypes)
-                {
-                    ToolStripMenuItem pluginMenuItem = new ToolStripMenuItem(plugin.MenuItemName);
-                    pluginMenuItem.Tag = plugin;
-                    pluginMenuItem.Click += new EventHandler(pluginsMenu_Click);
-                    pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
-                }
+                if (GUI.Configuration.PluginTypes.Count == 0)
+                    pluginsToolStripMenuItem.Visible = false;
+                else
+                    foreach (Plugin plugin in GUI.Configuration.PluginTypes)
+                    {
+                        ToolStripMenuItem pluginMenuItem = new ToolStripMenuItem(plugin.MenuItemName);
+                        pluginMenuItem.Tag = plugin;
+                        pluginMenuItem.Click += new EventHandler(pluginsMenu_Click);
+                        pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
+                    }
 
                 _logWriter = new LogWriter(log, Configuration.LogPath, true, Console.Out);
                 Console.SetOut(_logWriter);
@@ -291,21 +298,6 @@ namespace PTL.ATT.GUI
 
             Console.Out.WriteLine("ATT started");
         }
-        #endregion
-
-        #region menus
-        private void viewLogToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            try { Process.Start(Configuration.LoggingEditor, Configuration.LogPath); }
-            catch (Exception ex) { MessageBox.Show("Error while opening log:  " + ex.Message); }
-        }
-
-        private void deleteLogToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("Are you sure you want to delete the log?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                try { _logWriter.Clear(); }
-                catch (Exception ex) { MessageBox.Show("Error while deleting log:  " + ex.Message); }
-        }
 
         public void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -316,37 +308,243 @@ namespace PTL.ATT.GUI
         {
             Console.Out.WriteLine("ATT exited.");
         }
+        #endregion
 
-        public void importShapeFilesToolStripMenuItem_Click(object sender, EventArgs e)
+        #region data
+        public void importShapefilesFromDiskToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImportShapeFileForm form = new ImportShapeFileForm(this);
-            form.Show();
+            form.ShowDialog();
         }
 
-        public void importIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void importShapefileFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Area importArea = PromptForArea("Select area to import incidents into...");
-            if (importArea != null)
-            {
-                string path = LAIR.IO.File.PromptForOpenPath("Importing incidents in \"" + importArea.Name + "\". Select incident file...", Configuration.IncidentsDataDirectory);
-                if (path != null)
+            Thread t = new Thread(new ThreadStart(delegate()
                 {
-                    Thread t = new Thread(new ThreadStart(delegate()
+                    DynamicForm f = new DynamicForm("Provide shapefile import details...", MessageBoxButtons.OKCancel);
+                    f.AddTextBox("Socrata shapefile .zip URI:", null, 200, "uri");
+                    f.AddTextBox("Descriptive name for shapefile:", null, 75, "name");
+                    f.AddNumericUpdown("Source SRID:", 1, 0, 1, decimal.MaxValue, 1, "source_srid");
+                    f.AddNumericUpdown("Target SRID:", 1, 0, 1, decimal.MaxValue, 1, "target_srid");
+                    f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), null, "type");
+                    if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        string uri = f.GetValue<string>("uri");
+                        string downloadPath = Path.GetTempFileName();
+                        try
                         {
-                            try
-                            {
-                                ATT.Configuration.IncidentImporter.Import(path, importArea);
-                                RefreshIncidentTypes();
-                            }
-                            catch (Exception ex) { MessageBox.Show("Errow while importing incidents into \"" + importArea + "\":  " + ex.Message); }
-                        }));
+                            string name = f.GetValue<string>("name");
+                            string unzipDir = Path.Combine(Configuration.PostGisShapefileDirectory, ReplaceInvalidFilenameCharacters(name));
+                            if (Directory.Exists(unzipDir))
+                                if (MessageBox.Show("Directory \"" + unzipDir + "\" already exists. Replace?", "Replace?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                                    Directory.Delete(unzipDir, true);
+                                else
+                                    return;
 
-                    t.Start();
+
+                            Download(uri, downloadPath);
+
+                            ZipFile.ExtractToDirectory(downloadPath, unzipDir);
+
+                            string shapefileFileName = Path.GetFileNameWithoutExtension(Directory.GetFiles(unzipDir).First());
+                            File.WriteAllText(Path.Combine(unzipDir, shapefileFileName + ".srid"), f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid"));
+                            Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), name, f.GetValue<Shapefile.ShapefileType>("type"));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Out.WriteLine("Error while importing shapefile from \"" + uri + "\":  " + ex.Message);
+                        }
+                        finally
+                        {
+                            try { File.Delete(downloadPath); }
+                            catch (Exception ex) { Console.Out.WriteLine("Failed to delete temporary downloaded shapefile \"" + downloadPath + "\":  " + ex.Message); }
+                        }
+                    }
+                }));
+
+            t.Start();
+        }
+
+        private void deleteShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Shapefile[] shapefiles = Shapefile.GetAvailable().ToArray();
+            if (shapefiles.Length == 0)
+                MessageBox.Show("No shapefiles available for deletion.");
+            else
+            {
+                DynamicForm f = new DynamicForm("Select shapefile(s) to delete...");
+                f.AddListBox("Shapefile(s):", shapefiles, null, SelectionMode.MultiExtended, "shapefiles");
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    Shapefile[] selected = f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("shapefiles").Cast<Shapefile>().ToArray();
+                    if (selected.Length > 0 && MessageBox.Show("Are you sure you want to delete " + selected.Length + " shapefile(s)?", "Confirm delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        foreach (Shapefile shapefile in selected)
+                            shapefile.Delete();
+
+                        RefreshFeatures();
+
+                        Console.Out.WriteLine("Deleted " + selected.Length + " shapefile(s)");
+                    }
                 }
             }
         }
 
-        public void clearToolStripMenuItem_Click(object sender, EventArgs e)
+        public void importIncidentsFromFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImportIncidents(IncidentImportSource.LocalFile);
+        }
+
+        private void importIncidentsFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImportIncidents(IncidentImportSource.URI);
+        }
+
+        private void ImportIncidents(IncidentImportSource incidentImportSource)
+        {
+            Area[] areas = Area.GetAvailable().ToArray();
+            Type[] importerTypes = Assembly.GetAssembly(typeof(Importer)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Importer))).ToArray();
+            if (Area.GetAvailable().Count() == 0)
+                MessageBox.Show("No areas available. Create one first.");
+            else if (importerTypes.Length == 0)
+                MessageBox.Show("No incident importers available.");
+            else
+            {
+                Thread t = new Thread(new ThreadStart(delegate()
+                    {
+                        DynamicForm f = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
+
+                        if (incidentImportSource == IncidentImportSource.LocalFile)
+                        {
+                            string path = LAIR.IO.File.PromptForOpenPath("Select incident file...", Configuration.IncidentsDataDirectory);
+                            if (path == null)
+                                return;
+                            else
+                                f.AddTextBox("Path:", path, -1, "path");
+                        }
+                        else if (incidentImportSource == IncidentImportSource.URI)
+                        {
+                            f.AddTextBox("Download XML URI:", null, 200, "uri", '\0', true);
+                        }
+                        else
+                            throw new NotImplementedException("Unknown incident import source:  " + incidentImportSource);
+
+                        f.AddCheckBox("Delete file after import:", ContentAlignment.MiddleRight, false, "delete");
+                        f.AddDropDown("Importer:", importerTypes, importerTypes[0], "importer");
+                        f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                        f.AddDropDown("Destination area:", areas, areas[0], "area");
+                        f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
+
+                        if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        {
+                            #region get path of file to import
+                            string path;
+                            if (incidentImportSource == IncidentImportSource.LocalFile)
+                                path = f.GetValue<string>("path");
+                            else if (incidentImportSource == IncidentImportSource.URI)
+                            {
+                                path = Path.Combine(Configuration.IncidentsDataDirectory, ReplaceInvalidFilenameCharacters("socrata_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToShortTimeString() + ".xml"));
+
+                                try { Download(f.GetValue<string>("uri"), path); }
+                                catch (Exception ex)
+                                {
+                                    try { File.Delete(path); }
+                                    catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + path + "\":  " + ex2.Message); }
+
+                                    Console.Out.WriteLine("Error downloading file from Socrata URI:  " + ex.Message);
+
+                                    return;
+                                }
+                            }
+                            else
+                                throw new NotImplementedException("Unknown incident import source:  " + incidentImportSource);
+                            #endregion
+
+                            #region import file
+                            if (path != null && File.Exists(path))
+                            {
+                                Type importerType = f.GetValue<Type>("importer");
+                                int sourceSRID = Convert.ToInt32(f.GetValue<decimal>("source_srid"));
+                                Area importArea = f.GetValue<Area>("area");
+                                int hourOffset = Convert.ToInt32(f.GetValue<decimal>("offset"));
+                                bool deleteFileAfterImport = f.GetValue<bool>("delete");
+
+                                try
+                                {
+                                    Incident.CreateTable(importArea);
+                                    Set<int> existingNativeIDs = Incident.GetNativeIds(importArea);
+                                    existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
+
+                                    if (importerType == typeof(SocrataXmlImporter))
+                                    {
+                                        f = new DynamicForm("Map ATT database columns to Socrata columns...", MessageBoxButtons.OK);
+                                        string[] dbCols = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
+                                        string[] socrataCols = SocrataXmlImporter.GetColumnNames(path);
+                                        Array.Sort(socrataCols);
+                                        foreach (string dbCol in dbCols)
+                                            f.AddDropDown(dbCol + ":", socrataCols, null, dbCol);
+
+                                        f.ShowDialog();
+
+                                        Dictionary<string, string> dbColSocrataCol = new Dictionary<string, string>();
+                                        foreach (string dbCol in dbCols)
+                                            dbColSocrataCol.Add(dbCol, f.GetValue<string>(dbCol));
+
+                                        new SocrataXmlImporter().Import(path, Incident.GetTableName(importArea), Incident.Columns.Insert, new Func<XmlParser, Tuple<string, List<Parameter>>>(
+                                            rowP =>
+                                            {
+                                                int nativeId = int.Parse(rowP.ElementText(dbColSocrataCol[Incident.Columns.NativeId])); rowP.Reset();
+
+                                                if (existingNativeIDs.Add(nativeId))
+                                                {
+                                                    DateTime time = DateTime.Parse(rowP.ElementText(dbColSocrataCol[Incident.Columns.Time])) + new TimeSpan(hourOffset, 0, 0); rowP.Reset();
+                                                    string type = rowP.ElementText(dbColSocrataCol[Incident.Columns.Type]); rowP.Reset();
+
+                                                    double x;
+                                                    if (!double.TryParse(rowP.ElementText(dbColSocrataCol[Incident.Columns.X(importArea)]), out x))
+                                                        return null;
+
+                                                    rowP.Reset();
+
+                                                    double y;
+                                                    if (!double.TryParse(rowP.ElementText(dbColSocrataCol[Incident.Columns.Y(importArea)]), out y))
+                                                        return null;
+
+                                                    rowP.Reset();
+
+                                                    PostGIS.Point location = new PostGIS.Point(x, y, sourceSRID);
+
+                                                    string value = Incident.GetValue(importArea, nativeId, location, false, "@time_" + nativeId, type);
+                                                    List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter("time_" + nativeId, NpgsqlDbType.Timestamp, time) });
+                                                    return new Tuple<string, List<Parameter>>(value, parameters);
+                                                }
+                                                else
+                                                    return null;
+                                            }));
+
+                                        if (deleteFileAfterImport)
+                                            File.Delete(path);
+                                    }
+                                    else
+                                        throw new NotImplementedException("Unknown importer type:  " + importerType);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.Out.WriteLine("Error while importing:  " + ex.Message);
+                                }
+
+                                RefreshIncidentTypes();
+                            }
+                            #endregion
+                        }
+                    }));
+
+                t.SetApartmentState(ApartmentState.STA);
+                t.Start();
+            }
+        }
+
+        public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Area clearArea = PromptForArea("Select area to clear incidents from...");
             if (clearArea != null && MessageBox.Show("Are you sure you want to clear all incidents from \"" + clearArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -378,37 +576,6 @@ namespace PTL.ATT.GUI
                 RefreshFeatures();
             }
         }
-
-        private void pluginsMenu_Click(object sender, EventArgs e)
-        {
-            Thread t = new Thread(new ThreadStart(delegate()
-                {
-                    Invoke(new Action(delegate()
-                        {
-                            Plugin plugin = (sender as ToolStripMenuItem).Tag as Plugin;
-                            Console.Out.WriteLine("Running plugin action \"" + plugin.MenuItemName + "\"");
-                            plugin.Run(this);
-                        }));
-                }));
-
-            t.Start();
-        }
-
-        private Area PromptForArea(string prompt)
-        {
-            SelectAreaForm f = new SelectAreaForm(prompt);
-            if (f.AreaCount == 0)
-            {
-                MessageBox.Show("No areas available. Please create one first.");
-                return null;
-            }
-
-            Area importArea = null;
-            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK && f.SelectedArea != null)
-                importArea = f.SelectedArea;
-
-            return importArea;
-        }
         #endregion
 
         #region training area
@@ -421,21 +588,29 @@ namespace PTL.ATT.GUI
             RefreshModels(-1, true);
         }
 
-        public void addTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
+        public void addAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            AddAreaForm aaf = new AddAreaForm();
-            if (aaf.ShowDialog() == DialogResult.OK && aaf.AreaShapefile != null)
+            Shapefile[] areaShapefiles = Shapefile.GetAvailable().Where(sf => sf.Type == Shapefile.ShapefileType.Area).ToArray();
+            if (areaShapefiles.Length == 0)
+                MessageBox.Show("No shapefiles available from which to create area. Import shapefiles first.");
+            else
             {
-                Shapefile shapeFile = aaf.AreaShapefile;
-                string name = shapeFile.Name;
-                Thread t = new Thread(new ThreadStart(delegate()
+                DynamicForm f = new DynamicForm("Select shapefile to base area on...", MessageBoxButtons.OKCancel);
+                f.AddDropDown("Shapefile:", areaShapefiles, null, "shapefile");
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    Shapefile selected = f.GetValue<Shapefile>("shapefile");
+                    if (selected != null)
                     {
-                        Area.Create(aaf.AreaShapefile, aaf.AreaShapefile.Name);
-                        RefreshAreas();
-
-                        Console.Out.WriteLine("Finished creating area");
-                    }));
-                t.Start();
+                        Thread t = new Thread(new ThreadStart(delegate()
+                            {
+                                Area.Create(selected, selected.Name);
+                                Console.Out.WriteLine("Finished creating area");
+                                RefreshAreas();
+                            }));
+                        t.Start();
+                    }
+                }
             }
         }
 
@@ -1137,12 +1312,12 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Select one or more predictions to copy.");
             else if (selectedPredictions.Count == 1 || MessageBox.Show("Are you sure you want to copy " + selectedPredictions.Count + " prediction(s)?", "Confirm copy", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                ParameterizeForm pf = new ParameterizeForm("Set copy parameters");
-                pf.AddNumericUpdown("Number of copies of each prediction:  ", 1, 0, 1, 99999, 1, "copies");
-                if (pf.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                DynamicForm f = new DynamicForm("Set copy parameters");
+                f.AddNumericUpdown("Number of copies of each prediction:  ", 1, 0, 1, decimal.MaxValue, 1, "copies");
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     int numCopies;
-                    try { numCopies = Convert.ToInt32(pf.GetValue<decimal>("copies")); }
+                    try { numCopies = Convert.ToInt32(f.GetValue<decimal>("copies")); }
                     catch (Exception ex) { MessageBox.Show("Invalid number of copies:  " + ex.Message); return; }
 
                     Thread t = new Thread(new ThreadStart(delegate()
@@ -1710,21 +1885,21 @@ namespace PTL.ATT.GUI
             t.Start();
         }
 
-        private void generateEncryptedPasswordToolStripMenuItem_Click(object sender, EventArgs e)
+        private void encryptStringToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string password = null;
 
             while (true)
             {
-                ParameterizeForm pf = new ParameterizeForm("Enter password");
-                pf.AddTextBox("Password:", "            ", "password", '*', true);
-                pf.AddTextBox("Confirm password:", "            ", "confirmed", '*', true);
+                DynamicForm f = new DynamicForm("Enter password");
+                f.AddTextBox("Password:", null, 20, "password", '*', true);
+                f.AddTextBox("Confirm password:", null, 20, "confirmed", '*', true);
 
-                if (pf.ShowDialog() == DialogResult.Cancel)
+                if (f.ShowDialog() == DialogResult.Cancel)
                     break;
 
-                string pass = pf.GetValue<string>("password").Trim();
-                string confirmed = pf.GetValue<string>("confirmed").Trim();
+                string pass = f.GetValue<string>("password").Trim();
+                string confirmed = f.GetValue<string>("confirmed").Trim();
                 if (pass != confirmed)
                     MessageBox.Show("Entries do not match.");
                 else
@@ -1737,8 +1912,8 @@ namespace PTL.ATT.GUI
             if (password != null && password.Length > 0)
                 try
                 {
-                    ParameterizeForm showEncrypted = new ParameterizeForm("Encrypted password", MessageBoxButtons.OK);
-                    showEncrypted.AddTextBox("Result:", password.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), "encrypted");
+                    DynamicForm showEncrypted = new DynamicForm("Encrypted password", MessageBoxButtons.OK);
+                    showEncrypted.AddTextBox("Result:", password.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), -1, "encrypted");
                     showEncrypted.ShowDialog();
                 }
                 catch (Exception ex) { MessageBox.Show("Error getting encrypted password:  " + ex.Message); }
@@ -1749,6 +1924,92 @@ namespace PTL.ATT.GUI
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(ATT.Configuration.LicenseText, "About the Asymmetric Threat Tracker");
+        }
+        #endregion
+
+        #region miscellaneous
+        private string ReplaceInvalidFilenameCharacters(string fileName)
+        {
+            return new string(fileName.Select(c => c == ' ' || Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+        }
+
+        private void viewLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try { Process.Start(Configuration.LoggingEditor, Configuration.LogPath); }
+            catch (Exception ex) { MessageBox.Show("Error while opening log:  " + ex.Message); }
+        }
+
+        private void deleteLogToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to delete the log?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                try { _logWriter.Clear(); }
+                catch (Exception ex) { MessageBox.Show("Error while deleting log:  " + ex.Message); }
+        }
+
+        private void pluginsMenu_Click(object sender, EventArgs e)
+        {
+            Thread t = new Thread(new ThreadStart(delegate()
+                {
+                    Invoke(new Action(delegate()
+                        {
+                            Plugin plugin = (sender as ToolStripMenuItem).Tag as Plugin;
+                            Console.Out.WriteLine("Running plugin action \"" + plugin.MenuItemName + "\"");
+                            plugin.Run(this);
+                        }));
+                }));
+
+            t.Start();
+        }
+
+        private Area PromptForArea(string prompt, int srid = -1)
+        {
+            Area[] areas = Area.GetAvailable(srid).ToArray();
+            if (areas.Length == 0)
+            {
+                MessageBox.Show("No areas available" + (srid == -1 ? "" : " for SRID " + srid) + ". Create one first.");
+                return null;
+            }
+
+            DynamicForm f = new DynamicForm(prompt, MessageBoxButtons.OKCancel);
+            f.AddDropDown("Areas:", areas, null, "area");
+            Area importArea = null;
+            if (f.ShowDialog() == DialogResult.OK)
+                importArea = f.GetValue<Area>("area");
+
+            return importArea;
+        }
+
+        private void Download(string uri, string path)
+        {
+            Console.Out.Write("Downloading \"" + uri + "\" to \"" + path + "\"...");
+
+            WebRequest request = WebRequest.Create(uri);
+            request.Method = "GET";
+
+            using (FileStream downloadFile = new FileStream(path, FileMode.Create, FileAccess.Write))
+            using (WebResponse response = request.GetResponse())
+            using (Stream responseStream = response.GetResponseStream())
+            {
+                long totalBytesRead = 0;
+                long bytesUntilUpdate = 5 * (long)Math.Pow(2, 20);  // update every 5MB
+                byte[] buffer = new byte[1024 * 64];
+                int bytesRead;
+                while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    downloadFile.Write(buffer, 0, bytesRead);
+                    totalBytesRead += bytesRead;
+                    bytesUntilUpdate -= bytesRead;
+                    if (bytesUntilUpdate <= 0)
+                    {
+                        bytesUntilUpdate = 5 * (long)Math.Pow(2, 20);
+                        Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesUntilUpdate) + " MB...");
+                    }
+                }
+                downloadFile.Close();
+                response.Close();
+                responseStream.Close();
+                Console.Out.WriteLine("download finished.");
+            }
         }
         #endregion
     }

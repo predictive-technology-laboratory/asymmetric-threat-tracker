@@ -21,6 +21,7 @@
 
   <r>                                                       <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). The following R packages must also be installed (an attempt will be made to install them on startup using the CRAN mirror specified below):  zoo, ks, earth -->
     <exe_path></exe_path>                                   <!-- Path to R executable. The R_EXE environment variable will be used if this path does not exist. -->
+    <install_directory></install_directory>                 <!-- Writable directory into which R packages are to be installed. -->
     <cran_mirror>http://cran.us.r-project.org</cran_mirror> <!-- CRAN mirror to use for package installation. -->
   </r>  
 
@@ -39,12 +40,6 @@
       <classify></classify>                         <!-- Path to svm_rank_classify.exe executable for SvmRank. --> 
     </classifier>
   </classifiers>
-
-  <incidents>
-    <importer>PTL.ATT.Incidents.Chicago.ChicagoImporter</importer> <!-- Type name of importer for incident data. -->
-    <hour_offset>0</hour_offset>                                   <!-- Use this to adjust the time of imported events, in hours. This value is added to the timestamp of the incidents in the imported file. -->
-    <native_location_srid>4326</native_location_srid>              <!-- The SRID of incident locations within the imported incidents file. -->
-  </incidents>
 
   <modeling>
     <model_directory></model_directory> <!-- Path to directory in which to store data related to the models that are built when running predictions. This can be any empty or non-existent directory. -->

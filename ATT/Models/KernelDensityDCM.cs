@@ -27,7 +27,6 @@ using LAIR.ResourceAPIs.R;
 using Npgsql;
 using LAIR.ResourceAPIs.PostgreSQL;
 using PTL.ATT.Models;
-using PTL.ATT.Incidents;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using NpgsqlTypes;
 using LAIR.Extensions;
@@ -83,13 +82,14 @@ namespace PTL.ATT.Models
             return id;
         }
 
-        public static List<float> GetDensityEstimate(IEnumerable<PostGIS.Point> inputPoints, int inputSampleSize, bool binned, float bGridSizeX, float bGridSizeY, IEnumerable<PostGIS.Point> evalPoints, bool normalize, bool allowFailure)
+        public static List<float> GetDensityEstimate(IEnumerable<PostGIS.Point> inputPoints, int inputSampleSize, bool binned, float bGridSizeX, float bGridSizeY, IEnumerable<PostGIS.Point> evalPoints, bool normalize)
         {
             if (binned)
                 if (bGridSizeX <= 0 || bGridSizeY <= 0)
                     throw new ArgumentException("bGridSizeX and bGridSizeY must be > 0 when performing binning");
 
             int numInputPoints = inputPoints.Count();
+
             if (inputSampleSize < numInputPoints)
             {
                 List<PostGIS.Point> sample = new List<PostGIS.Point>(numInputPoints);
@@ -156,11 +156,8 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             {
                 List<float> density = File.ReadLines(outputPath).Select(line => float.Parse(line)).ToList();
 
-                if (allowFailure && density.Count > 0 && density.Count != numEvalPoints)
-                    throw new Exception("Density estimation produced output (" + density.Count + "), but the output does not match the number of evaluation points (" + numEvalPoints + ")");
-
-                if (!allowFailure && density.Count != numEvalPoints)
-                    throw new Exception("Density estimation output (" + density.Count + ") does not match the number of evaluation points (" + numEvalPoints + ")");
+                if (density.Count != numEvalPoints)
+                    Console.Out.WriteLine("WARNING:  Number of density estimation output points (" + density.Count + ") does not match the number of evaluation points (" + numEvalPoints + ")");
 
                 return density;
             }
@@ -266,7 +263,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, predictionArea, false, false);
 
                 List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
-                List<float> density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize, false);
+                List<float> density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize);
                 Dictionary<int, float> pointIdOverallDensity = new Dictionary<int, float>();
                 int pointNum = 0;
                 foreach (int nullPointId in nullPointIds)
@@ -289,9 +286,9 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                     {
                         incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, incidentType).Select(i => i.Location));
 
-                        Console.Out.WriteLine("Running KDE for incident \"" + incidentType);
+                        Console.Out.WriteLine("Running KDE for incident \"" + incidentType + "\"");
 
-                        density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize, true);
+                        density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize);
                         if (density.Count > 0)
                         {
                             pointNum = 0;

@@ -25,7 +25,6 @@ using LAIR.XML;
 using System.IO;
 using LAIR.MachineLearning.ClassifierWrappers.LibLinear;
 using LAIR.ResourceAPIs.R;
-using PTL.ATT.Incidents;
 
 namespace PTL.ATT
 {
@@ -125,6 +124,13 @@ namespace PTL.ATT
 
         #region r
         private static string _rCranMirror;
+        private static string _rPackageInstallDirectory;
+
+        public static string RPackageInstallDirectory
+        {
+            get { return Configuration._rPackageInstallDirectory; }
+            set { Configuration._rPackageInstallDirectory = value; }
+        }
 
         public static string RCranMirror
         {
@@ -140,30 +146,6 @@ namespace PTL.ATT
         {
             get { return Configuration._classifierTypeOptions; }
             set { Configuration._classifierTypeOptions = value; }
-        }
-        #endregion
-
-        #region incident
-        private static Importer _incidentImporter;
-        private static int _incidentHourOffset;
-        private static int _incidentNativeLocationSRID;
-
-        public static Importer IncidentImporter
-        {
-            get { return Configuration._incidentImporter; }
-            set { Configuration._incidentImporter = value; }
-        }
-
-        public static int IncidentHourOffset
-        {
-            get { return Configuration._incidentHourOffset; }
-            set { Configuration._incidentHourOffset = value; }
-        }
-
-        public static int IncidentNativeLocationSRID
-        {
-            get { return Configuration._incidentNativeLocationSRID; }
-            set { Configuration._incidentNativeLocationSRID = value; }
         }
         #endregion
 
@@ -259,12 +241,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
             if (rExePath == null || !File.Exists(rExePath))
                 rExePath = Environment.GetEnvironmentVariable("R_EXE");
 
+            _rPackageInstallDirectory = rP.ElementText("install_directory");
+            if (!Directory.Exists(_rPackageInstallDirectory))
+                Directory.CreateDirectory(_rPackageInstallDirectory);
+
+            R.AddLibPath(_rPackageInstallDirectory);
+
             _rCranMirror = rP.ElementText("cran_mirror");
 
             R.ExePath = rExePath;
             List<string> missingRPackages = R.CheckForMissingPackages(new string[] { "zoo", "ks", "earth", "geoR" });
             if (missingRPackages.Count > 0)
-                R.InstallPackages(missingRPackages, _rCranMirror);
+                R.InstallPackages(missingRPackages, _rCranMirror, _rPackageInstallDirectory);
 
             XmlParser javaP = new XmlParser(p.OuterXML("java"));
             _javaExePath = javaP.ElementText("exe_path");
@@ -289,11 +277,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
                 _classifierTypeOptions.Add(type, optionValue);
             }
-
-            XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
-            _incidentImporter = Activator.CreateInstance(Reflection.GetType(incidentsP.ElementText("importer"))) as Importer;
-            _incidentHourOffset = int.Parse(incidentsP.ElementText("hour_offset"));
-            _incidentNativeLocationSRID = int.Parse(incidentsP.ElementText("native_location_srid"));
 
             XmlParser modelingP = new XmlParser(p.OuterXML("modeling"));
             _modelsDirectory = modelingP.ElementText("model_directory");

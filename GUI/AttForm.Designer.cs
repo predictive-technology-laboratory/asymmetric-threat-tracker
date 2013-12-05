@@ -52,21 +52,29 @@ namespace PTL.ATT.GUI
             this.label5 = new System.Windows.Forms.Label();
             this.mainMenu = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.generateEncryptedPasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.resetEncryptionKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.notificationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendNotificationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendTestNotificationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+            this.encryptStringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetEncryptionKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.viewLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.incidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.clearToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.shapefilesToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.importShapefilesFromDiskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importShapefileFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteShapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.incidentsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.importFromFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importIncidentsFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearImportedIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.simulateIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearSimulatedIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.shapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -191,8 +199,7 @@ namespace PTL.ATT.GUI
             // 
             this.mainMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.incidentsToolStripMenuItem,
-            this.shapefilesToolStripMenuItem,
+            this.importToolStripMenuItem1,
             this.pluginsToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.mainMenu.Location = new System.Drawing.Point(0, 0);
@@ -204,126 +211,185 @@ namespace PTL.ATT.GUI
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.generateEncryptedPasswordToolStripMenuItem,
+            this.notificationsToolStripMenuItem,
+            this.toolStripSeparator8,
+            this.encryptStringToolStripMenuItem,
             this.resetEncryptionKeyToolStripMenuItem,
-            this.sendNotificationsToolStripMenuItem,
-            this.sendTestNotificationToolStripMenuItem,
+            this.toolStripSeparator7,
             this.viewLogToolStripMenuItem,
             this.deleteLogToolStripMenuItem,
+            this.toolStripSeparator1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
-            // generateEncryptedPasswordToolStripMenuItem
+            // notificationsToolStripMenuItem
             // 
-            this.generateEncryptedPasswordToolStripMenuItem.Name = "generateEncryptedPasswordToolStripMenuItem";
-            this.generateEncryptedPasswordToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
-            this.generateEncryptedPasswordToolStripMenuItem.Text = "Generate encrypted password...";
-            this.generateEncryptedPasswordToolStripMenuItem.Click += new System.EventHandler(this.generateEncryptedPasswordToolStripMenuItem_Click);
-            // 
-            // resetEncryptionKeyToolStripMenuItem
-            // 
-            this.resetEncryptionKeyToolStripMenuItem.Name = "resetEncryptionKeyToolStripMenuItem";
-            this.resetEncryptionKeyToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
-            this.resetEncryptionKeyToolStripMenuItem.Text = "Reset encryption key";
-            this.resetEncryptionKeyToolStripMenuItem.Click += new System.EventHandler(this.resetEncryptionKeyToolStripMenuItem_Click);
+            this.notificationsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.sendNotificationsToolStripMenuItem,
+            this.sendTestNotificationToolStripMenuItem});
+            this.notificationsToolStripMenuItem.Name = "notificationsToolStripMenuItem";
+            this.notificationsToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.notificationsToolStripMenuItem.Text = "Notifications";
             // 
             // sendNotificationsToolStripMenuItem
             // 
             this.sendNotificationsToolStripMenuItem.CheckOnClick = true;
             this.sendNotificationsToolStripMenuItem.Name = "sendNotificationsToolStripMenuItem";
-            this.sendNotificationsToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.sendNotificationsToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.sendNotificationsToolStripMenuItem.Text = "Send notifications";
             this.sendNotificationsToolStripMenuItem.CheckedChanged += new System.EventHandler(this.sendNotificationsToolStripMenuItem_CheckedChanged);
             // 
             // sendTestNotificationToolStripMenuItem
             // 
             this.sendTestNotificationToolStripMenuItem.Name = "sendTestNotificationToolStripMenuItem";
-            this.sendTestNotificationToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.sendTestNotificationToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.sendTestNotificationToolStripMenuItem.Text = "Send test notification";
             this.sendTestNotificationToolStripMenuItem.Click += new System.EventHandler(this.sendTestNotificationToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator8
+            // 
+            this.toolStripSeparator8.Name = "toolStripSeparator8";
+            this.toolStripSeparator8.Size = new System.Drawing.Size(184, 6);
+            // 
+            // encryptStringToolStripMenuItem
+            // 
+            this.encryptStringToolStripMenuItem.Name = "encryptStringToolStripMenuItem";
+            this.encryptStringToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.encryptStringToolStripMenuItem.Text = "Encrypt string...";
+            this.encryptStringToolStripMenuItem.Click += new System.EventHandler(this.encryptStringToolStripMenuItem_Click);
+            // 
+            // resetEncryptionKeyToolStripMenuItem
+            // 
+            this.resetEncryptionKeyToolStripMenuItem.Name = "resetEncryptionKeyToolStripMenuItem";
+            this.resetEncryptionKeyToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.resetEncryptionKeyToolStripMenuItem.Text = "Reset encryption key";
+            this.resetEncryptionKeyToolStripMenuItem.Click += new System.EventHandler(this.resetEncryptionKeyToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator7
+            // 
+            this.toolStripSeparator7.Name = "toolStripSeparator7";
+            this.toolStripSeparator7.Size = new System.Drawing.Size(184, 6);
             // 
             // viewLogToolStripMenuItem
             // 
             this.viewLogToolStripMenuItem.Name = "viewLogToolStripMenuItem";
-            this.viewLogToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.viewLogToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.viewLogToolStripMenuItem.Text = "View log";
             this.viewLogToolStripMenuItem.Click += new System.EventHandler(this.viewLogToolStripMenuItem_Click);
             // 
             // deleteLogToolStripMenuItem
             // 
             this.deleteLogToolStripMenuItem.Name = "deleteLogToolStripMenuItem";
-            this.deleteLogToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.deleteLogToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.deleteLogToolStripMenuItem.Text = "Delete log";
             this.deleteLogToolStripMenuItem.Click += new System.EventHandler(this.deleteLogToolStripMenuItem_Click);
-            // 
-            // exitToolStripMenuItem
-            // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
-            this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
-            // incidentsToolStripMenuItem
-            // 
-            this.incidentsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.importIncidentsToolStripMenuItem,
-            this.clearToolStripMenuItem,
-            this.toolStripSeparator1,
-            this.simulateIncidentsToolStripMenuItem,
-            this.clearSimulatedIncidentsToolStripMenuItem});
-            this.incidentsToolStripMenuItem.Name = "incidentsToolStripMenuItem";
-            this.incidentsToolStripMenuItem.Size = new System.Drawing.Size(63, 20);
-            this.incidentsToolStripMenuItem.Text = "Incidents";
-            // 
-            // importIncidentsToolStripMenuItem
-            // 
-            this.importIncidentsToolStripMenuItem.Name = "importIncidentsToolStripMenuItem";
-            this.importIncidentsToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
-            this.importIncidentsToolStripMenuItem.Text = "Import...";
-            this.importIncidentsToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsToolStripMenuItem_Click);
-            // 
-            // clearToolStripMenuItem
-            // 
-            this.clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-            this.clearToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
-            this.clearToolStripMenuItem.Text = "Clear incidents";
-            this.clearToolStripMenuItem.Click += new System.EventHandler(this.clearToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(200, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(184, 6);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // importToolStripMenuItem1
+            // 
+            this.importToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.shapefilesToolStripMenuItem1,
+            this.incidentsToolStripMenuItem1});
+            this.importToolStripMenuItem1.Name = "importToolStripMenuItem1";
+            this.importToolStripMenuItem1.Size = new System.Drawing.Size(42, 20);
+            this.importToolStripMenuItem1.Text = "Data";
+            // 
+            // shapefilesToolStripMenuItem1
+            // 
+            this.shapefilesToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.importShapefilesFromDiskToolStripMenuItem,
+            this.importShapefileFromSocrataToolStripMenuItem,
+            this.deleteShapefilesToolStripMenuItem});
+            this.shapefilesToolStripMenuItem1.Name = "shapefilesToolStripMenuItem1";
+            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(134, 22);
+            this.shapefilesToolStripMenuItem1.Text = "Shapefiles";
+            // 
+            // importShapefilesFromDiskToolStripMenuItem
+            // 
+            this.importShapefilesFromDiskToolStripMenuItem.Name = "importShapefilesFromDiskToolStripMenuItem";
+            this.importShapefilesFromDiskToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.importShapefilesFromDiskToolStripMenuItem.Text = "Import shapefiles from disk...";
+            this.importShapefilesFromDiskToolStripMenuItem.Click += new System.EventHandler(this.importShapefilesFromDiskToolStripMenuItem_Click);
+            // 
+            // importShapefileFromSocrataToolStripMenuItem
+            // 
+            this.importShapefileFromSocrataToolStripMenuItem.Name = "importShapefileFromSocrataToolStripMenuItem";
+            this.importShapefileFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.importShapefileFromSocrataToolStripMenuItem.Text = "Import shapefile from Socrata...";
+            this.importShapefileFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importShapefileFromSocrataToolStripMenuItem_Click);
+            // 
+            // deleteShapefilesToolStripMenuItem
+            // 
+            this.deleteShapefilesToolStripMenuItem.Name = "deleteShapefilesToolStripMenuItem";
+            this.deleteShapefilesToolStripMenuItem.Size = new System.Drawing.Size(240, 22);
+            this.deleteShapefilesToolStripMenuItem.Text = "Delete shapefiles...";
+            this.deleteShapefilesToolStripMenuItem.Click += new System.EventHandler(this.deleteShapefilesToolStripMenuItem_Click);
+            // 
+            // incidentsToolStripMenuItem1
+            // 
+            this.incidentsToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.importFromFileToolStripMenuItem,
+            this.importIncidentsFromSocrataToolStripMenuItem,
+            this.clearImportedIncidentsToolStripMenuItem,
+            this.toolStripSeparator6,
+            this.simulateIncidentsToolStripMenuItem,
+            this.clearSimulatedIncidentsToolStripMenuItem});
+            this.incidentsToolStripMenuItem1.Name = "incidentsToolStripMenuItem1";
+            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(134, 22);
+            this.incidentsToolStripMenuItem1.Text = "Incidents";
+            // 
+            // importFromFileToolStripMenuItem
+            // 
+            this.importFromFileToolStripMenuItem.Name = "importFromFileToolStripMenuItem";
+            this.importFromFileToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.importFromFileToolStripMenuItem.Text = "Import incidents from file...";
+            this.importFromFileToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromFileToolStripMenuItem_Click);
+            // 
+            // importIncidentsFromSocrataToolStripMenuItem
+            // 
+            this.importIncidentsFromSocrataToolStripMenuItem.Name = "importIncidentsFromSocrataToolStripMenuItem";
+            this.importIncidentsFromSocrataToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.importIncidentsFromSocrataToolStripMenuItem.Text = "Import incidents from Socrata...";
+            this.importIncidentsFromSocrataToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsFromSocrataToolStripMenuItem_Click);
+            // 
+            // clearImportedIncidentsToolStripMenuItem
+            // 
+            this.clearImportedIncidentsToolStripMenuItem.Name = "clearImportedIncidentsToolStripMenuItem";
+            this.clearImportedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.clearImportedIncidentsToolStripMenuItem.Text = "Clear imported incidents";
+            this.clearImportedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearImportedIncidentsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator6
+            // 
+            this.toolStripSeparator6.Name = "toolStripSeparator6";
+            this.toolStripSeparator6.Size = new System.Drawing.Size(236, 6);
             // 
             // simulateIncidentsToolStripMenuItem
             // 
             this.simulateIncidentsToolStripMenuItem.Name = "simulateIncidentsToolStripMenuItem";
-            this.simulateIncidentsToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
-            this.simulateIncidentsToolStripMenuItem.Text = "Simulate...";
+            this.simulateIncidentsToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
+            this.simulateIncidentsToolStripMenuItem.Text = "Simulate incidents...";
             this.simulateIncidentsToolStripMenuItem.Click += new System.EventHandler(this.simulateIncidentsToolStripMenuItem_Click);
             // 
             // clearSimulatedIncidentsToolStripMenuItem
             // 
             this.clearSimulatedIncidentsToolStripMenuItem.Name = "clearSimulatedIncidentsToolStripMenuItem";
-            this.clearSimulatedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(203, 22);
+            this.clearSimulatedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(239, 22);
             this.clearSimulatedIncidentsToolStripMenuItem.Text = "Clear simulated incidents";
             this.clearSimulatedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearSimulatedIncidentsToolStripMenuItem_Click);
-            // 
-            // shapefilesToolStripMenuItem
-            // 
-            this.shapefilesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.importToolStripMenuItem});
-            this.shapefilesToolStripMenuItem.Name = "shapefilesToolStripMenuItem";
-            this.shapefilesToolStripMenuItem.Size = new System.Drawing.Size(68, 20);
-            this.shapefilesToolStripMenuItem.Text = "Shapefiles";
-            // 
-            // importToolStripMenuItem
-            // 
-            this.importToolStripMenuItem.Name = "importToolStripMenuItem";
-            this.importToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
-            this.importToolStripMenuItem.Text = "Import...";
-            this.importToolStripMenuItem.Click += new System.EventHandler(this.importShapeFilesToolStripMenuItem_Click);
             // 
             // pluginsToolStripMenuItem
             // 
@@ -378,7 +444,7 @@ namespace PTL.ATT.GUI
             this.addTrainingAreaToolStripMenuItem.Name = "addTrainingAreaToolStripMenuItem";
             this.addTrainingAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.addTrainingAreaToolStripMenuItem.Text = "Add";
-            this.addTrainingAreaToolStripMenuItem.Click += new System.EventHandler(this.addTrainingAreaToolStripMenuItem_Click);
+            this.addTrainingAreaToolStripMenuItem.Click += new System.EventHandler(this.addAreaToolStripMenuItem_Click);
             // 
             // deleteTrainingAreaToolStripMenuItem
             // 
@@ -596,7 +662,7 @@ namespace PTL.ATT.GUI
             this.addPredictionAreaToolStripMenuItem.Name = "addPredictionAreaToolStripMenuItem";
             this.addPredictionAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.addPredictionAreaToolStripMenuItem.Text = "Add";
-            this.addPredictionAreaToolStripMenuItem.Click += new System.EventHandler(this.addTrainingAreaToolStripMenuItem_Click);
+            this.addPredictionAreaToolStripMenuItem.Click += new System.EventHandler(this.addAreaToolStripMenuItem_Click);
             // 
             // deletePredictionAreaToolStripMenuItem
             // 
@@ -1242,20 +1308,12 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.StatusStrip status;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.ToolStripMenuItem incidentsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem importIncidentsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem simulateIncidentsToolStripMenuItem;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.ToolStripMenuItem clearSimulatedIncidentsToolStripMenuItem;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem shapefilesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem importToolStripMenuItem;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.ToolStripMenuItem clearToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label13;
@@ -1330,16 +1388,32 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem viewLogToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteLogToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectFeaturesForPredictionAndRerunToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem generateEncryptedPasswordToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem sendNotificationsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem encryptStringToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resetEncryptionKeyToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem sendTestNotificationToolStripMenuItem;
         public Visualization.ThreatMap threatMap;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem remapSelectedFeaturesDuringPredictionToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem clearFeatureRemappingToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem incidentsToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem clearImportedIncidentsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importFromFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
+        private System.Windows.Forms.ToolStripMenuItem shapefilesToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem notificationsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem sendNotificationsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem sendTestNotificationToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem simulateIncidentsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clearSimulatedIncidentsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importShapefilesFromDiskToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deleteShapefilesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
+        private System.Windows.Forms.ToolStripMenuItem importShapefileFromSocrataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importIncidentsFromSocrataToolStripMenuItem;
     }
 }
 

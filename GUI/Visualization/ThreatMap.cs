@@ -36,7 +36,6 @@ using Npgsql;
 using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Drawing.Imaging;
-using PTL.ATT.Incidents;
 using PTL.ATT.Smoothers;
 using PTL.ATT.GUI.Properties;
 
@@ -455,6 +454,9 @@ namespace PTL.ATT.GUI.Visualization
 
         private void UpdateHighlightedThreatRectangle(System.Drawing.Point mouseLocation)
         {
+            if (DisplayedPrediction == null)
+                return;
+
             float pixelsPerMeter;
             float threatRectanglePixelWidth;
             GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);

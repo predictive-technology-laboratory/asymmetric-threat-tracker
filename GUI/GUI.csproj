@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PTL.ATT.GUI</RootNamespace>
     <AssemblyName>GUI</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -29,6 +29,7 @@
     <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
@@ -45,6 +46,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>bullseye.ico</ApplicationIcon>
@@ -82,6 +84,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\LAIR.XML.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Libraries\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Npgsql, Version=2.0.11.94, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\Npgsql.dll</HintPath>
@@ -92,6 +97,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -108,12 +114,6 @@
     <Compile Include="AttForm.Designer.cs">
       <DependentUpon>AttForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="AddAreaForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AddAreaForm.Designer.cs">
-      <DependentUpon>AddAreaForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="CheckedImageBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -121,12 +121,6 @@
       <DependentUpon>CheckedImageBox.cs</DependentUpon>
     </Compile>
     <Compile Include="Configuration.cs" />
-    <Compile Include="ConfigurationEditor.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ConfigurationEditor.Designer.cs">
-      <DependentUpon>ConfigurationEditor.cs</DependentUpon>
-    </Compile>
     <Compile Include="ClassifierList.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -140,12 +134,6 @@
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
     </Compile>
     <Compile Include="LogWriter.cs" />
-    <Compile Include="SelectAreaForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SelectAreaForm.Designer.cs">
-      <DependentUpon>SelectAreaForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Splash.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -215,11 +203,11 @@
     <Compile Include="TimeSliceDcmForm.Designer.cs">
       <DependentUpon>TimeSliceDcmForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ParameterizeForm.cs">
+    <Compile Include="DynamicForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ParameterizeForm.Designer.cs">
-      <DependentUpon>ParameterizeForm.cs</DependentUpon>
+    <Compile Include="DynamicForm.Designer.cs">
+      <DependentUpon>DynamicForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Visualization\Assessments.cs">
       <SubType>UserControl</SubType>
@@ -256,23 +244,14 @@
     <EmbeddedResource Include="AttForm.resx">
       <DependentUpon>AttForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="AddAreaForm.resx">
-      <DependentUpon>AddAreaForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="CheckedImageBox.resx">
       <DependentUpon>CheckedImageBox.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ConfigurationEditor.resx">
-      <DependentUpon>ConfigurationEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ClassifierList.resx">
       <DependentUpon>ClassifierList.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FeatureRemappingForm.resx">
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SelectAreaForm.resx">
-      <DependentUpon>SelectAreaForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>
@@ -317,8 +296,8 @@
     <EmbeddedResource Include="TimeSliceDcmForm.resx">
       <DependentUpon>TimeSliceDcmForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ParameterizeForm.resx">
-      <DependentUpon>ParameterizeForm.cs</DependentUpon>
+    <EmbeddedResource Include="DynamicForm.resx">
+      <DependentUpon>DynamicForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Visualization\Assessments.resx">
       <DependentUpon>Assessments.cs</DependentUpon>

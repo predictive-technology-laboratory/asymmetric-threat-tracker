@@ -26,7 +26,6 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
-using PTL.ATT.ShapeFiles;
 using System.Threading;
 using Npgsql;
 
@@ -92,7 +91,7 @@ namespace PTL.ATT.GUI
                         {
                             try
                             {
-                                Shapefile.ImportShapeFiles(shapeFilePaths, selectedShapefileType); 
+                                Shapefile.ImportShapefiles(shapeFilePaths.Select(path => new Tuple<string, string>(path, Path.GetFileNameWithoutExtension(path))).ToArray(), selectedShapefileType);
                                 Console.Out.WriteLine("Shapefile import succeeded");
                             }
                             catch (Exception ex)

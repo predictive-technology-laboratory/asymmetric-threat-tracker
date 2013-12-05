@@ -24,7 +24,7 @@
       <port>587</port>                         <!-- Host port for SMTP server. -->
       <enable_ssl>true</enable_ssl>            <!-- Whether or not to use SSL encryption (true/false). -->
       <username></username>                    <!-- Username on SMTP server. -->
-      <password></password>                    <!-- Password for username, in encrypted format. To obtain an encrypted password, run ATT and select File -> Generate encrypted password. Then insert the resulting value here. -->
+      <password></password>                    <!-- Password for username, in encrypted format. To obtain an encrypted password, run ATT and select File -> Encrypt string. Then insert the resulting value here. -->
       <from>                    
         <email></email>                        <!-- Source email address from which messages originate. -->
         <name>Asymmetric Threat Tracker</name> <!-- Source name from which messages originate. -->

@@ -28,13 +28,13 @@ using System.Windows.Forms;
 
 namespace PTL.ATT.GUI
 {
-    public partial class ParameterizeForm : Form
+    public partial class DynamicForm : Form
     {
         private FlowLayoutPanel _mainPanel;
         private Dictionary<string, Func<object>> _valueIdReturn;
         private MessageBoxButtons _buttons;
 
-        public ParameterizeForm(string title = "", MessageBoxButtons buttons = MessageBoxButtons.OKCancel)
+        public DynamicForm(string title = "", MessageBoxButtons buttons = MessageBoxButtons.OKCancel)
         {
             InitializeComponent();
 
@@ -48,10 +48,10 @@ namespace PTL.ATT.GUI
             _mainPanel = new FlowLayoutPanel();
             _mainPanel.FlowDirection = FlowDirection.TopDown;
 
-            Shown += new EventHandler(ParameterizationForm_Shown);
+            Shown += new EventHandler(DynamicForm_Shown);
         }
 
-        private void ParameterizationForm_Shown(object sender, EventArgs args)
+        private void DynamicForm_Shown(object sender, EventArgs args)
         {
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel();
             buttonPanel.FlowDirection = FlowDirection.LeftToRight;
@@ -91,20 +91,22 @@ namespace PTL.ATT.GUI
 
             Controls.Add(_mainPanel);
             Size = PreferredSize;
+            TopMost = true;
         }
 
-        public void AddTextBox(string label, string text, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false)
+        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false)
         {
             Label l = new Label();
             l.Text = label;
             l.TextAlign = ContentAlignment.MiddleRight;
             l.Size = l.PreferredSize;
+            l.Margin = new System.Windows.Forms.Padding(5);
 
             TextBox tb = new TextBox();
             tb.Name = valueId;
             tb.Text = text;
             tb.PasswordChar = passwordChar;
-            tb.Size = tb.PreferredSize;
+            tb.Size = widthInCharacters == -1 ? tb.PreferredSize : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), Font).Width, tb.PreferredSize.Height);
             tb.KeyDown += new KeyEventHandler((o, args) =>
                 {
                     if (args.KeyCode == Keys.Enter)
@@ -155,12 +157,11 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
         }
 
-        internal void AddCheckBox(string label, RightToLeft rightToLeft, bool isChecked, string valueId)
+        public void AddCheckBox(string label, ContentAlignment checkAlign, bool isChecked, string valueId)
         {
             CheckBox cb = new CheckBox();
             cb.Text = label;
-            cb.RightToLeft = rightToLeft;
-            cb.TextAlign = rightToLeft == System.Windows.Forms.RightToLeft.Yes ? ContentAlignment.MiddleRight : ContentAlignment.MiddleLeft;
+            cb.CheckAlign = checkAlign;
             cb.Checked = isChecked;
             cb.Size = cb.PreferredSize;
 
@@ -168,7 +169,36 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
         }
 
-        internal void AddDropDown(string label, Array values, object selected, string valueId)
+        public void AddDropDown(string label, Array values, object selected, string valueId)
+        {
+            Label l = new Label();
+            l.Text = label;
+            l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            ComboBox cb = new ComboBox();
+            cb.DropDownStyle = ComboBoxStyle.DropDownList;
+            foreach (object o in values)
+                cb.Items.Add(o);
+
+            cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+
+            FlowLayoutPanel p = new FlowLayoutPanel();
+            p.FlowDirection = FlowDirection.LeftToRight;
+            p.Controls.Add(l);
+            p.Controls.Add(cb);
+            p.Size = p.PreferredSize;
+
+            _mainPanel.Controls.Add(p);
+            _valueIdReturn.Add(valueId, new Func<object>(() => cb.SelectedItem));
+
+            if (selected != null)
+                cb.SelectedItem = selected;
+            else if (cb.Items.Count > 0)
+                cb.SelectedIndex = 0;
+        }
+
+        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId)
         {
             Label l = new Label();
             l.Text = label;
@@ -176,6 +206,7 @@ namespace PTL.ATT.GUI
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
 
             ListBox lb = new ListBox();
+            lb.SelectionMode = selectionMode;
             foreach (object o in values)
                 lb.Items.Add(o);
 
@@ -188,10 +219,12 @@ namespace PTL.ATT.GUI
             p.Size = p.PreferredSize;
 
             _mainPanel.Controls.Add(p);
-            _valueIdReturn.Add(valueId, new Func<object>(() => lb.SelectedItem));
+            _valueIdReturn.Add(valueId, new Func<object>(() => lb.SelectedItems));
 
             if (selected != null)
-                lb.SetSelected(lb.Items.IndexOf(selected), true);
+                lb.SelectedItem = selected;
+            else if (lb.Items.Count > 0)
+                lb.SelectedIndex = 0;
         }
 
         public T GetValue<T>(string valueId)

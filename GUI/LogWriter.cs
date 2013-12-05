@@ -68,7 +68,8 @@ namespace PTL.ATT.GUI
             }
             else
             {
-                value = value.Trim('.') + ".";
+                if (newLine)
+                    value = value.Trim('.') + ".";
 
                 value = base.Write(value, newLine);
 

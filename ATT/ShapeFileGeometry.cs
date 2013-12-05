@@ -26,7 +26,7 @@ using LAIR.ResourceAPIs.PostgreSQL;
 using Npgsql;
 using LAIR.Collections.Generic;
 
-namespace PTL.ATT.ShapeFiles
+namespace PTL.ATT
 {
     public class ShapefileGeometry
     {

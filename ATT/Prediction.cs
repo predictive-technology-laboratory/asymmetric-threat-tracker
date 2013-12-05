@@ -23,7 +23,6 @@ using System.Linq;
 using System.Text;
 using NpgsqlTypes;
 using Npgsql;
-using PTL.ATT.ShapeFiles;
 using LAIR.ResourceAPIs.PostgreSQL;
 using LAIR.Collections.Generic;
 using PTL.ATT.Classifiers;
@@ -101,16 +100,16 @@ namespace PTL.ATT
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.IncidentTypes + " VARCHAR[]," +
                    Columns.ModelDirectory + " VARCHAR," +
-                   Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE RESTRICT," +
+                   Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
                    Columns.MostRecentlyEvaluatedIncidentTime + " TIMESTAMP," +
                    Columns.Name + " VARCHAR," +
                    Columns.PointSpacing + " INT," +
-                   Columns.PredictionAreaId + " INT REFERENCES " + Area.Table + " ON DELETE CASCADE," +
+                   Columns.PredictionAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
                    Columns.PredictionEndTime + " TIMESTAMP," +
                    Columns.PredictionStartTime + " TIMESTAMP," +
                    Columns.RunId + " INT," +
                    Columns.Smoothing + " VARCHAR," +
-                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE CASCADE," +
+                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
                    Columns.TrainingEndTime + " TIMESTAMP," +
                    Columns.TrainingStartTime + " TIMESTAMP);" +
                    (connection.TableExists(Table) ? "" :

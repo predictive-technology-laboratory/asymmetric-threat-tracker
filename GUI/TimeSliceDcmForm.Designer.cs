@@ -351,9 +351,9 @@ namespace PTL.ATT.GUI
             // classifyNonZeroVectorsUniformly
             // 
             this.classifyNonZeroVectorsUniformly.AutoSize = true;
+            this.classifyNonZeroVectorsUniformly.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.classifyNonZeroVectorsUniformly.Location = new System.Drawing.Point(12, 146);
             this.classifyNonZeroVectorsUniformly.Name = "classifyNonZeroVectorsUniformly";
-            this.classifyNonZeroVectorsUniformly.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.classifyNonZeroVectorsUniformly.Size = new System.Drawing.Size(190, 17);
             this.classifyNonZeroVectorsUniformly.TabIndex = 7;
             this.classifyNonZeroVectorsUniformly.Text = "Classify non-zero vectors uniformly:";

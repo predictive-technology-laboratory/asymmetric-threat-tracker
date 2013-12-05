@@ -273,9 +273,9 @@ namespace PTL.ATT.GUI
             // classifyNonZeroVectorsUniformly
             // 
             this.classifyNonZeroVectorsUniformly.AutoSize = true;
-            this.classifyNonZeroVectorsUniformly.Location = new System.Drawing.Point(14, 142);
+            this.classifyNonZeroVectorsUniformly.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.classifyNonZeroVectorsUniformly.Location = new System.Drawing.Point(12, 141);
             this.classifyNonZeroVectorsUniformly.Name = "classifyNonZeroVectorsUniformly";
-            this.classifyNonZeroVectorsUniformly.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.classifyNonZeroVectorsUniformly.Size = new System.Drawing.Size(190, 17);
             this.classifyNonZeroVectorsUniformly.TabIndex = 5;
             this.classifyNonZeroVectorsUniformly.Text = "Classify non-zero vectors uniformly:";
@@ -297,6 +297,7 @@ namespace PTL.ATT.GUI
             this.smoothers.Name = "smoothers";
             this.smoothers.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.smoothers.Size = new System.Drawing.Size(177, 95);
+            this.smoothers.Sorted = true;
             this.smoothers.TabIndex = 22;
             // 
             // classifiers
@@ -305,6 +306,7 @@ namespace PTL.ATT.GUI
             this.classifiers.Location = new System.Drawing.Point(190, 165);
             this.classifiers.Name = "classifiers";
             this.classifiers.Size = new System.Drawing.Size(177, 95);
+            this.classifiers.Sorted = true;
             this.classifiers.TabIndex = 23;
             // 
             // label11

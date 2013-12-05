@@ -72,23 +72,23 @@ namespace PTL.ATT.GUI
                     if (classifier is LibLinear)
                     {
                         LibLinear liblinear = classifier as LibLinear;
-                        ParameterizeForm form = new ParameterizeForm("Set LibLinear parameters");
-                        form.AddCheckBox("Run feature selection:", System.Windows.Forms.RightToLeft.Yes, liblinear.RunFeatureSelection, "run_feature_selection");
-                        form.AddDropDown("Positive weighting:", Enum.GetValues(typeof(LibLinear.PositiveClassWeighting)), liblinear.Weighting, "positive_weighting");
-                        if (form.ShowDialog() == DialogResult.OK)
+                        DynamicForm f = new DynamicForm("Set LibLinear parameters");
+                        f.AddCheckBox("Run feature selection:", ContentAlignment.MiddleRight, liblinear.RunFeatureSelection, "run_feature_selection");
+                        f.AddDropDown("Positive weighting:", Enum.GetValues(typeof(LibLinear.PositiveClassWeighting)), liblinear.Weighting, "positive_weighting");
+                        if (f.ShowDialog() == DialogResult.OK)
                         {
-                            liblinear.RunFeatureSelection = form.GetValue<bool>("run_feature_selection");
-                            liblinear.Weighting = form.GetValue<LibLinear.PositiveClassWeighting>("positive_weighting");
+                            liblinear.RunFeatureSelection = f.GetValue<bool>("run_feature_selection");
+                            liblinear.Weighting = f.GetValue<LibLinear.PositiveClassWeighting>("positive_weighting");
                         }
                     }
                     else if (classifier is SvmRank)
                     {
                         SvmRank svmRank = classifier as SvmRank;
-                        ParameterizeForm form = new ParameterizeForm("Set SvmRank parameters");
-                        form.AddNumericUpdown("c:  ", (decimal)svmRank.C, 3, decimal.MinValue, decimal.MaxValue, (decimal)0.01, "c");
-                        if (form.ShowDialog() == DialogResult.OK)
+                        DynamicForm f = new DynamicForm("Set SvmRank parameters");
+                        f.AddNumericUpdown("c:", (decimal)svmRank.C, 3, decimal.MinValue, decimal.MaxValue, (decimal)0.01, "c");
+                        if (f.ShowDialog() == DialogResult.OK)
                         {
-                            try { svmRank.C = Convert.ToSingle(form.GetValue<decimal>("c")); }
+                            try { svmRank.C = Convert.ToSingle(f.GetValue<decimal>("c")); }
                             catch (Exception ex) { MessageBox.Show("Invalid value for C:  " + ex.Message); }
                         }
                     }

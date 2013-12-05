@@ -26,58 +26,64 @@ using NpgsqlTypes;
 using LAIR.ResourceAPIs.PostgreSQL;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using System.Reflection;
+using LAIR.Collections.Generic;
 
-namespace PTL.ATT.Incidents
+namespace PTL.ATT
 {
     public class Incident
     {
         #region static members
-        internal class Columns
+        public class Columns
         {
             [Reflector.Insert, Reflector.Select(true)]
-            internal const string AreaId = "area_id";
+            public const string AreaId = "area_id";
             [Reflector.Select(true)]
-            internal const string Id = "id";
+            public const string Id = "id";
             [Reflector.Insert]
-            internal const string Location = "location";
+            public const string Location = "location";
             [Reflector.Insert, Reflector.Select(true)]
-            internal const string Simulated = "simulated";
+            public const string NativeId = "native_id";
             [Reflector.Insert, Reflector.Select(true)]
-            internal const string Time = "time";
+            public const string Simulated = "simulated";
             [Reflector.Insert, Reflector.Select(true)]
-            internal const string Type = "type";
+            public const string Time = "time";
+            [Reflector.Insert, Reflector.Select(true)]
+            public const string Type = "type";
 
-            internal static string StX(int srid) { return "st_x(" + GetTableName(srid) + "." + Location + ") as " + X(srid); }
-            internal static string X(int srid) { return GetTableName(srid) + "_x"; }
-            internal static string StY(int srid) { return "st_y(" + GetTableName(srid) + "." + Location + ") as " + Y(srid); }
-            internal static string Y(int srid) { return GetTableName(srid) + "_y"; }
-            internal static string StSRID(int srid) { return "st_srid(" + GetTableName(srid) + "." + Location + ") as " + SRID(srid); }
-            internal static string SRID(int srid) { return GetTableName(srid) + "_srid"; }
+            public static string StX(Area area) { return "st_x(" + GetTableName(area) + "." + Location + ") as " + X(area); }
+            public static string X(Area area) { return GetTableName(area) + "_x"; }
+            public static string StY(Area area) { return "st_y(" + GetTableName(area) + "." + Location + ") as " + Y(area); }
+            public static string Y(Area area) { return GetTableName(area) + "_y"; }
+            public static string StSRID(Area area) { return "st_srid(" + GetTableName(area) + "." + Location + ") as " + SRID(area); }
+            public static string SRID(Area area) { return GetTableName(area) + "_srid"; }
 
-            internal static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            internal static string Select(int srid) { return Reflector.GetSelectColumns(GetTableName(srid), new string[] { StX(srid), StY(srid), StSRID(srid) }, typeof(Columns)); }
+            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
+            public static string Select(Area area) { return Reflector.GetSelectColumns(GetTableName(area), new string[] { StX(area), StY(area), StSRID(area) }, typeof(Columns)); }
         }
 
-        internal static string GetTableName(int srid)
+        public static string GetTableName(Area area)
         {
-            return "incident_" + srid;
+            return "incident_" + area.SRID;
         }
 
-        internal static string CreateTable(int srid)
+        public static string CreateTable(Area area)
         {
-            string tableName = GetTableName(srid);
+            string tableName = GetTableName(area);
 
             if (!DB.Connection.TableExists(tableName))
                 DB.Connection.ExecuteNonQuery(
                     "CREATE TABLE " + tableName + " (" +
-                    Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," + 
+                    Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
-                    Columns.Location + " GEOMETRY(POINT," + srid + ")," +
+                    Columns.Location + " GEOMETRY(POINT," + area.SRID + ")," +
+                    Columns.NativeId + " INT," +
                     Columns.Simulated + " BOOLEAN," +
                     Columns.Time + " TIMESTAMP," +
-                    Columns.Type + " VARCHAR);" +
+                    Columns.Type + " VARCHAR," +
+                    "UNIQUE (" + Columns.AreaId + "," + Columns.NativeId + "));" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.AreaId + ");" +
                     "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Location + ");" +
+                    "CREATE INDEX ON " + tableName + " (" + Columns.NativeId + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.Simulated + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.Type + ");");
@@ -85,22 +91,22 @@ namespace PTL.ATT.Incidents
             return tableName;
         }
 
-        internal static void VacuumTable(int srid)
+        internal static void VacuumTable(Area area)
         {
-            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(srid));
+            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(area));
         }
 
-        internal static string GetValue(int areaId, string location, bool simulated, string time, string type)
+        public static string GetValue(Area area, int nativeId, PostGIS.Point location, bool simulated, string time, string type)
         {
-            return areaId + "," + location + "," + simulated + "," + time + ",'" + type + "'";
+            return area.Id + "," + (location.SRID == area.SRID ? location.StGeometryFromText : "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")") + "," + nativeId + "," + simulated + "," + time + ",'" + Util.Escape(type) + "'";
         }
 
         public static void Clear(Area area)
         {
-            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            if (DB.Connection.TableExists(GetTableName(area)))
             {
-                DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area.SRID) + " WHERE " + Columns.AreaId + "=" + area.Id);
-                VacuumTable(area.SRID);
+                DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area) + " WHERE " + Columns.AreaId + "=" + area.Id);
+                VacuumTable(area);
             }
         }
 
@@ -117,7 +123,7 @@ namespace PTL.ATT.Incidents
 
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
-            string tableName = CreateTable(area.SRID);
+            string tableName = CreateTable(area);
 
             cmd.CommandText = "BEGIN";
             cmd.ExecuteNonQuery();
@@ -127,7 +133,9 @@ namespace PTL.ATT.Incidents
             int batchSize = 500;
             Random r = new Random();
             List<Parameter> param = new List<Parameter>(batchSize);
-            for (int i = 0; i < n; ++i)
+            int nativeIdStart = Convert.ToInt32(DB.Connection.ExecuteScalar("SELECT max(" + Incident.Columns.NativeId + ") FROM " + Incident.GetTableName(area) + " WHERE " + Incident.Columns.AreaId + "=" + area.Id)) + 1;
+            int nativeIdEnd = nativeIdStart + n - 1;
+            for (int nativeId = nativeIdStart; nativeId <= nativeIdEnd; ++nativeId)
             {
                 DateTime date = startDate.AddDays(r.Next(dayRange));
                 double x = minX + r.NextDouble() * xRange;
@@ -135,7 +143,7 @@ namespace PTL.ATT.Incidents
                 string type = incidentTypes[r.Next(incidentTypes.Length)];
                 PostGIS.Point location = new PostGIS.Point(x, y, area.SRID);
 
-                cmdText.Append("INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES (" + GetValue(area.Id, location.StGeometryFromText, true, "@date" + numInBatch, type) + ");");
+                cmdText.Append("INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES (" + GetValue(area, nativeId, location, true, "@date" + numInBatch, type) + ");");
                 param.Add(new Parameter("date" + numInBatch, NpgsqlDbType.Timestamp, date));
 
                 if (++numInBatch >= batchSize)
@@ -166,15 +174,15 @@ namespace PTL.ATT.Incidents
 
             DB.Connection.Return(cmd.Connection);
 
-            VacuumTable(area.SRID);
+            VacuumTable(area);
         }
 
         public static void ClearSimulated(Area area)
         {
-            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            if (DB.Connection.TableExists(GetTableName(area)))
             {
-                DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area.SRID) + " WHERE " + Columns.AreaId + "=" + area.Id + " AND " + Columns.Simulated + "=" + true);
-                VacuumTable(area.SRID);
+                DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area) + " WHERE " + Columns.AreaId + "=" + area.Id + " AND " + Columns.Simulated + "=" + true);
+                VacuumTable(area);
             }
         }
 
@@ -182,10 +190,10 @@ namespace PTL.ATT.Incidents
         {
             List<string> types = new List<string>();
 
-            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            if (DB.Connection.TableExists(GetTableName(area)))
             {
                 NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT DISTINCT " + Columns.Type + " " +
-                                                             "FROM " + GetTableName(area.SRID) + " " +
+                                                             "FROM " + GetTableName(area) + " " +
                                                              "WHERE " + Columns.Time + " >= @start AND " + Columns.Time + " <= @end AND " + Columns.AreaId + "=" + area.Id,
                                                              new Parameter("start", NpgsqlDbType.Timestamp, start),
                                                              new Parameter("end", NpgsqlDbType.Timestamp, end));
@@ -206,7 +214,7 @@ namespace PTL.ATT.Incidents
         {
             List<Incident> incidents = new List<Incident>();
 
-            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            if (DB.Connection.TableExists(GetTableName(area)))
             {
                 string typesCondition = null;
                 if (types != null && types.Length > 0)
@@ -217,8 +225,8 @@ namespace PTL.ATT.Incidents
                     typesCondition += ")";
                 }
 
-                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(area.SRID) + " " +
-                                                             "FROM " + GetTableName(area.SRID) + " " +
+                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(area) + " " +
+                                                             "FROM " + GetTableName(area) + " " +
                                                              "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
                                                                         Columns.AreaId + "=" + area.Id + " AND " +
                                                                         Columns.Time + " >= @start AND " +
@@ -226,7 +234,7 @@ namespace PTL.ATT.Incidents
 
                 NpgsqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
-                    incidents.Add(new Incident(reader, area.SRID));
+                    incidents.Add(new Incident(reader, area));
 
                 reader.Close();
                 DB.Connection.Return(cmd.Connection);
@@ -237,7 +245,7 @@ namespace PTL.ATT.Incidents
 
         public static int Count(DateTime start, DateTime end, Area area, params string[] types)
         {
-            if (DB.Connection.TableExists(GetTableName(area.SRID)))
+            if (DB.Connection.TableExists(GetTableName(area)))
             {
                 string typesCondition = null;
                 if (types != null)
@@ -245,7 +253,7 @@ namespace PTL.ATT.Incidents
                         typesCondition = (typesCondition == null ? "" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
 
                 NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT COUNT(*) " +
-                                                             "FROM " + GetTableName(area.SRID) + " " +
+                                                             "FROM " + GetTableName(area) + " " +
                                                              "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
                                                                         Columns.AreaId + "=" + area.Id + " AND " +
                                                                         Columns.Time + " >= @start AND " +
@@ -259,6 +267,23 @@ namespace PTL.ATT.Incidents
             else
                 return 0;
         }
+
+        public static Set<int> GetNativeIds(Area area)
+        {
+            Set<int> nativeIds = new Set<int>();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.NativeId + " FROM " + GetTableName(area) + " WHERE " + Columns.AreaId + "=" + area.Id);
+            using (NpgsqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                    nativeIds.Add(Convert.ToInt32(reader[0]));
+
+                reader.Close();
+            }
+
+            DB.Connection.Return(cmd.Connection);
+
+            return nativeIds;
+        }
         #endregion
 
         private int _areaId;
@@ -267,6 +292,7 @@ namespace PTL.ATT.Incidents
         private bool _simulated;
         private DateTime _time;
         private string _type;
+        private int _nativeId;
 
         public int AreaId
         {
@@ -298,16 +324,22 @@ namespace PTL.ATT.Incidents
             get { return _type; }
         }
 
-        protected Incident(NpgsqlDataReader reader, int srid)
+        public int NativeId
         {
-            string tableName = GetTableName(srid);
+            get { return _nativeId; }
+        }
+
+        protected Incident(NpgsqlDataReader reader, Area area)
+        {
+            string tableName = GetTableName(area);
 
             _areaId = Convert.ToInt32(reader[tableName + "_" + Columns.AreaId]);
             _id = Convert.ToInt32(reader[tableName + "_" + Columns.Id]);
-            _location = new PostGIS.Point(Convert.ToDouble(reader[Columns.X(srid)]), Convert.ToDouble(reader[Columns.Y(srid)]), Convert.ToInt32(reader[Columns.SRID(srid)]));
+            _location = new PostGIS.Point(Convert.ToDouble(reader[Columns.X(area)]), Convert.ToDouble(reader[Columns.Y(area)]), Convert.ToInt32(reader[Columns.SRID(area)]));
             _simulated = Convert.ToBoolean(reader[tableName + "_" + Columns.Simulated]);
             _time = Convert.ToDateTime(reader[tableName + "_" + Columns.Time]);
             _type = Convert.ToString(reader[tableName + "_" + Columns.Type]);
+            _nativeId = Convert.ToInt32(reader[tableName + "_" + Columns.NativeId]);
         }
 
         public override string ToString()

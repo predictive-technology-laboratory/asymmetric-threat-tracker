@@ -77,7 +77,7 @@ namespace PTL.ATT.Smoothers
                                 kdeInputPoints.Add(pointPredictionLocation);
                         }
 
-                        List<float> density = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, _sampleSize, false, 0, 0, kdeEvalPoints, _normalize, false);
+                        List<float> density = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, _sampleSize, false, 0, 0, kdeEvalPoints, _normalize);
                         for (int i = 0; i < density.Count; ++i)
                             pointPredictions[i].IncidentScore[incident] = density[i];
                     }

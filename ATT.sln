@@ -1,12 +1,9 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ATT", "ATT\ATT.csproj", "{CFE7BDBC-A740-4FD5-9749-E490E8173C46}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUI", "GUI\GUI.csproj", "{E66DBDD7-A012-4EB7-98A3-7A0903E8C721}"
-	ProjectSection(ProjectDependencies) = postProject
-		{CFE7BDBC-A740-4FD5-9749-E490E8173C46} = {CFE7BDBC-A740-4FD5-9749-E490E8173C46}
-	EndProjectSection
 EndProject
 Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "Installer", "Installer\Installer.isproj", "{F1F115D6-A8EB-4191-9A8F-4FB5ADA2ADBC}"
 	ProjectSection(ProjectDependencies) = postProject
