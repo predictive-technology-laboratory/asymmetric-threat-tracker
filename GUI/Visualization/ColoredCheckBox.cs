@@ -60,7 +60,6 @@ namespace PTL.ATT.GUI.Visualization
             get { return checkBox.CheckState; }
         }
 
-
         public ColoredCheckBox(bool threeState, CheckState checkState, string text, Color backColor)
         {
             InitializeComponent();

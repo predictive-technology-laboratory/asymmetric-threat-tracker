@@ -47,12 +47,12 @@ namespace PTL.ATT.GUI.Visualization
         private static Pen _pen;
         private static SolidBrush _brush;
 
-        private static PointF ConvertMetersPointToDrawingPixels(PointF pointInMeters, PointF regionBottomLeftInMeters, float pixelsPerMeter, Rectangle drawingRectangle)
+        private static PointF ConvertMetersPointToDrawingPoint(PointF pointInMeters, PointF regionBottomLeftInMeters, float pixelsPerMeter, Rectangle drawingRectangle)
         {
-            float drawingPixelsX = (pointInMeters.X - regionBottomLeftInMeters.X) * pixelsPerMeter + drawingRectangle.Left;
-            float drawingPixelsY = drawingRectangle.Height - ((pointInMeters.Y - regionBottomLeftInMeters.Y) * pixelsPerMeter) + drawingRectangle.Top;
+            float drawingPointX = (pointInMeters.X - regionBottomLeftInMeters.X) * pixelsPerMeter + drawingRectangle.Left;
+            float drawingPointY = drawingRectangle.Height - ((pointInMeters.Y - regionBottomLeftInMeters.Y) * pixelsPerMeter) + drawingRectangle.Top;
 
-            return new PointF(drawingPixelsX, drawingPixelsY);
+            return new PointF(drawingPointX, drawingPointY);
         }
         #endregion
 
@@ -103,6 +103,18 @@ namespace PTL.ATT.GUI.Visualization
         private float ZoomFactor
         {
             get { return _zoomedImageWidth / CurrentThreatSurface.Width; }
+        }
+
+        public override Color BackColor
+        {
+            get { return base.BackColor; }
+            set
+            {
+                base.BackColor = value;
+
+                if (CurrentThreatSurface != null)
+                    GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
+            }
         }
 
         public ThreatMap()
@@ -217,36 +229,58 @@ namespace PTL.ATT.GUI.Visualization
                     bool newThreatSurface = threatResolution.Value != prediction.PointSpacing;
                     threatResolution.Value = threatResolution.Minimum = prediction.PointSpacing;
                     if (!newThreatSurface)
-                        GetThreatSurfaces(ClientRectangle, true);
+                    {
+                        Rectangle bitmapDimensions;
+                        if (_regionSizeInMeters.Height >= _regionSizeInMeters.Width)
+                            bitmapDimensions = new Rectangle(ClientRectangle.Location, new Size((int)(ClientRectangle.Height * (_regionSizeInMeters.Width / (float)_regionSizeInMeters.Height)), ClientRectangle.Height));
+                        else
+                            bitmapDimensions = new Rectangle(ClientRectangle.Location, new Size(ClientRectangle.Width, (int)(ClientRectangle.Width * (_regionSizeInMeters.Height / (float)_regionSizeInMeters.Width))));
+
+                        GetThreatSurfaces(bitmapDimensions, true);
+                    }
 
                     GetSliceTimeText();
                 }));
         }
 
-        private void GetThreatSurfaces(Rectangle bitmapDimensions, bool displayFirstSlice = false)
+        private void GetThreatSurfaces(Rectangle bitmapDimensions, bool displayFirstSlice)
         {
             if (_sliceIncidentPointScores == null)
                 return;
 
-            Set<string> selectedThreatSurfaces = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState != CheckState.Unchecked).Select(c => c.Text).ToArray());
+            Set<string> selectedIncidents = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState != CheckState.Unchecked).Select(c => c.Text).ToArray());
 
             float pixelsPerMeter;
             float threatRectanglePixelWidth;
             GetDrawingParameters(bitmapDimensions, out pixelsPerMeter, out threatRectanglePixelWidth);
 
-            _sliceThreatSurface = new Dictionary<long, Bitmap>(_sliceIncidentPointScores.Count);
+            if (_sliceThreatSurface == null)
+                _sliceThreatSurface = new Dictionary<long, Bitmap>(_sliceIncidentPointScores.Count);
+            else
+            {
+                foreach (Bitmap threatSurface in _sliceThreatSurface.Values)
+                    threatSurface.Dispose();
+
+                _sliceThreatSurface.Clear();
+            }
+
             Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>> sliceRowColIncidentScores = new Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>>();
             foreach (long slice in _sliceIncidentPointScores.Keys)
             {
-                _sliceThreatSurface.Add(slice, new Bitmap(bitmapDimensions.Width, bitmapDimensions.Height));
+                try { _sliceThreatSurface.Add(slice, new Bitmap(bitmapDimensions.Width, bitmapDimensions.Height, PixelFormat.Format16bppRgb565)); }
+                catch (ArgumentException)
+                {
+                    Console.Out.WriteLine("Maximum zoom exceeded.");
+                    return;
+                }
 
                 sliceRowColIncidentScores.EnsureContainsKey(slice, typeof(Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>));
 
                 foreach (string incident in _sliceIncidentPointScores[slice].Keys)
-                    if (selectedThreatSurfaces.Contains(incident))
+                    if (selectedIncidents.Contains(incident))
                         foreach (Tuple<PointF, double> pointScore in _sliceIncidentPointScores[slice][incident])
                         {
-                            PointF drawingPoint = ConvertMetersPointToDrawingPixels(pointScore.Item1, _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                            PointF drawingPoint = ConvertMetersPointToDrawingPoint(pointScore.Item1, _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
 
                             int row, col;
                             GetThreatRectangleRowColumn(drawingPoint, threatRectanglePixelWidth, out row, out col);
@@ -297,13 +331,21 @@ namespace PTL.ATT.GUI.Visualization
             foreach (long slice in sliceRowColScoreColor.Keys)
             {
                 Graphics g = Graphics.FromImage(_sliceThreatSurface[slice]);
+                g.Clear(BackColor);
 
                 foreach (int row in sliceRowColScoreColor[slice].Keys)
                     foreach (int col in sliceRowColScoreColor[slice][row].Keys)
                     {
                         Tuple<double, Color> scoreColor = sliceRowColScoreColor[slice][row][col];
                         double scaledScore = (scoreColor.Item1 - minScore) / scoreRange;
-                        _brush.Color = Color.FromArgb((int)(255 * scaledScore), scoreColor.Item2);
+                        double portionBackground = 1 - scaledScore;
+                        Color color = scoreColor.Item2;
+
+                        byte red = (byte)(scaledScore * color.R + portionBackground * BackColor.R);
+                        byte green = (byte)(scaledScore * color.G + portionBackground * BackColor.G);
+                        byte blue = (byte)(scaledScore * color.B + portionBackground * BackColor.B);
+                        _brush.Color = Color.FromArgb(red, green, blue);
+
                         g.FillRectangle(_brush, col * threatRectanglePixelWidth, row * threatRectanglePixelWidth, threatRectanglePixelWidth, threatRectanglePixelWidth);
                     }
 
@@ -315,14 +357,14 @@ namespace PTL.ATT.GUI.Visualization
                         foreach (List<PointF> points in overlay.Points)
                             if (points.Count == 1)
                             {
-                                PointF drawingPoint = ConvertMetersPointToDrawingPixels(points[0], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                                PointF drawingPoint = ConvertMetersPointToDrawingPoint(points[0], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
                                 RectangleF circle = GetCircleBoundingBox(drawingPoint, 5);
                                 g.FillEllipse(_brush, circle);
                                 g.DrawEllipse(_pen, circle);
                             }
                             else
                                 for (int i = 1; i < points.Count; ++i)
-                                    g.DrawLine(_pen, ConvertMetersPointToDrawingPixels(points[i - 1], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions), ConvertMetersPointToDrawingPixels(points[i], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions));
+                                    g.DrawLine(_pen, ConvertMetersPointToDrawingPoint(points[i - 1], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions), ConvertMetersPointToDrawingPoint(points[i], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions));
                     }
 
                 Set<string> selectedTrueIncidentOverlays = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState == CheckState.Checked).Select(c => c.Text).ToArray());
@@ -344,7 +386,7 @@ namespace PTL.ATT.GUI.Visualization
                     _pen.Color = Color.Black;
                     foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, DisplayedPrediction.PredictionArea, trueIncidentOverlay))
                     {
-                        PointF drawingPoint = ConvertMetersPointToDrawingPixels(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                        PointF drawingPoint = ConvertMetersPointToDrawingPoint(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
                         RectangleF circle = GetCircleBoundingBox(drawingPoint, 5);
                         g.FillEllipse(_brush, circle);
                         g.DrawEllipse(_pen, circle); 
@@ -584,13 +626,13 @@ namespace PTL.ATT.GUI.Visualization
             _highlightedThreatRectangle = Rectangle.Empty;
             _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
 
-            GetThreatSurfaces(threatSurfaceBoundingBox);
+            GetThreatSurfaces(threatSurfaceBoundingBox, false);
         }
 
         private void resetZoom_Click(object sender, EventArgs e)
         {
             _panOffset = new System.Drawing.Size(0, 0);
-            GetThreatSurfaces(ClientRectangle);
+            GetThreatSurfaces(ClientRectangle, false);
         }
         #endregion
 
@@ -601,7 +643,7 @@ namespace PTL.ATT.GUI.Visualization
 
         private void IncidentCheckBox_CheckStateChanged(object sender, EventArgs e)
         {
-            GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+            GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
         }
 
         private void IncidentCheckBox_LabelClicked(object sender, EventArgs e)
@@ -615,7 +657,7 @@ namespace PTL.ATT.GUI.Visualization
             {
                 ColorPalette.ReturnColor(cb.Label.BackColor);
                 cb.Label.BackColor = _incidentColor[cb.Text] = cd.Color;
-                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
             }
         }
 
@@ -626,7 +668,7 @@ namespace PTL.ATT.GUI.Visualization
                 throw new ArgumentException("Must pass ColoredCheckBox");
 
             Overlays.Where(o => o.Name == cb.Text).First().Displayed = cb.Checked;
-            GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+            GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
         }
 
         private void OverlayCheckBox_LabelClicked(object sender, EventArgs e)
@@ -641,7 +683,7 @@ namespace PTL.ATT.GUI.Visualization
                 ColorPalette.ReturnColor(cb.Label.BackColor);
 
                 cb.Label.BackColor = Overlays.Where(o => o.Name == cb.Text).First().Color = cd.Color;
-                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
             }
         }
 
@@ -689,9 +731,9 @@ namespace PTL.ATT.GUI.Visualization
             _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
 
             if (CurrentThreatSurface == null)
-                GetThreatSurfaces(ClientRectangle);
+                GetThreatSurfaces(ClientRectangle, false);
             else
-                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height));
+                GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
 
             panUpBtn.Focus();
         }
@@ -876,6 +918,13 @@ namespace PTL.ATT.GUI.Visualization
                         MessageBox.Show("No predictions were made at that location.");
                 }
             }
+        }
+
+        private void setBackgroundColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorDialog cd = new ColorDialog();
+            if (cd.ShowDialog() == DialogResult.OK)
+                BackColor = cd.Color;
         }
     }
 }
