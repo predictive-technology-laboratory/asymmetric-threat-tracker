@@ -314,7 +314,7 @@ namespace PTL.ATT.GUI
         public void importShapefilesFromDiskToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImportShapeFileForm form = new ImportShapeFileForm(this);
-            form.ShowDialog();
+            form.Show();
         }
 
         private void importShapefileFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -341,7 +341,6 @@ namespace PTL.ATT.GUI
                                 else
                                     return;
 
-
                             Download(uri, downloadPath);
 
                             ZipFile.ExtractToDirectory(downloadPath, unzipDir);
@@ -349,6 +348,7 @@ namespace PTL.ATT.GUI
                             string shapefileFileName = Path.GetFileNameWithoutExtension(Directory.GetFiles(unzipDir).First());
                             File.WriteAllText(Path.Combine(unzipDir, shapefileFileName + ".srid"), f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid"));
                             Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), name, f.GetValue<Shapefile.ShapefileType>("type"));
+                            RefreshFeatures();
                         }
                         catch (Exception ex)
                         {
@@ -709,29 +709,34 @@ namespace PTL.ATT.GUI
         #region model
         public void addModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Type[] modelTypes = Assembly.GetAssembly(typeof(DiscreteChoiceModel)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(DiscreteChoiceModel))).ToArray();
             if (SelectedTrainingArea == null)
                 MessageBox.Show("Must select a training area.");
             else if (incidentTypes.SelectedItems.Count == 0)
                 MessageBox.Show("Must select incident types.");
+            else if (modelTypes.Length == 0)
+                MessageBox.Show("No model type are available.");
             else
             {
-                SelectModelForm selectModel = new SelectModelForm();
-                if (selectModel.ShowDialog() == DialogResult.OK)
+                DynamicForm modelForm = new DynamicForm("Select model type...", MessageBoxButtons.OKCancel);
+                modelForm.AddDropDown("Model type:", modelTypes, modelTypes[0], "model_type");
+                if (modelForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
+                    Type modelType = modelForm.GetValue<Type>("model_type");
                     int newModelId = -1;
-                    if (selectModel.Type == typeof(SpatialDistanceDCM))
+                    if (modelType == typeof(SpatialDistanceDCM))
                     {
                         SpatialDistanceDcmForm f = new SpatialDistanceDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                             newModelId = SpatialDistanceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers);
                     }
-                    else if (selectModel.Type == typeof(TimeSliceDCM))
+                    else if (modelType == typeof(TimeSliceDCM))
                     {
                         TimeSliceDcmForm f = new TimeSliceDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                             newModelId = TimeSliceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers, f.TimeSliceHours, f.TimeSlicesPerPeriod);
                     }
-                    else if (selectModel.Type == typeof(KernelDensityDCM))
+                    else if (modelType == typeof(KernelDensityDCM))
                     {
                         KernelDensityDcmForm f = new KernelDensityDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)

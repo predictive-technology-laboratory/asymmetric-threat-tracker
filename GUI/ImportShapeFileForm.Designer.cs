@@ -104,7 +104,7 @@ namespace PTL.ATT.GUI
             // 
             // importShp
             // 
-            this.importShp.Location = new System.Drawing.Point(251, 87);
+            this.importShp.Location = new System.Drawing.Point(224, 87);
             this.importShp.Name = "importShp";
             this.importShp.Size = new System.Drawing.Size(75, 23);
             this.importShp.TabIndex = 6;
@@ -114,7 +114,7 @@ namespace PTL.ATT.GUI
             // 
             // close
             // 
-            this.close.Location = new System.Drawing.Point(332, 87);
+            this.close.Location = new System.Drawing.Point(305, 87);
             this.close.Name = "close";
             this.close.Size = new System.Drawing.Size(75, 23);
             this.close.TabIndex = 7;
