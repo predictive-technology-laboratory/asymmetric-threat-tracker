@@ -57,15 +57,16 @@ namespace PTL.ATT.GUI
 {
     public partial class AttForm : Form
     {
-        public const int PlotHeight = 400;
-
+        #region classes/types
         public enum IncidentImportSource
         {
             LocalFile,
             URI
         }
+        #endregion
 
         #region members and properties
+        public const int PlotHeight = 400;
         private bool _setTrainingStartEndToolTip;
         private bool _setPredictionsToolTip;
         private List<string> _groups;
