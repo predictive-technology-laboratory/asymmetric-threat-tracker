@@ -139,13 +139,12 @@ namespace PTL.ATT.GUI
 
             NumericUpDown ud = new NumericUpDown();
             ud.Name = valueId;
-            ud.Size = ud.PreferredSize;
             ud.DecimalPlaces = decimalPlaces;
             ud.Minimum = minimum;
             ud.Maximum = maximum;
             ud.Increment = increment;
             ud.Value = value;
-            ud.Size = ud.PreferredSize;
+            ud.Width = TextRenderer.MeasureText(value.ToString(), ud.Font).Width + 50;
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;

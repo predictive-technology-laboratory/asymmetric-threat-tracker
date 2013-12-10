@@ -170,10 +170,10 @@ namespace PTL.ATT
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
         }
 
-        public static IEnumerable<Prediction> GetAvailable(int modelId = -1)
+        public static List<Prediction> GetAll()
         {
             List<Prediction> predictions = new List<Prediction>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE" + (modelId == -1 ? "" : " AND " + Columns.ModelId + "=" + modelId));
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE");
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
                 predictions.Add(new Prediction(reader));
@@ -184,7 +184,21 @@ namespace PTL.ATT
             return predictions;
         }
 
-        public static IEnumerable<Prediction> GetForArea(Area area)
+        public static List<Prediction> GetForModel(DiscreteChoiceModel model)
+        {
+            List<Prediction> predictions = new List<Prediction>();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE AND " + Columns.ModelId + "=" + model.Id);
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+                predictions.Add(new Prediction(reader));
+
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
+
+            return predictions;
+        }
+
+        public static List<Prediction> GetForArea(Area area)
         {
             List<Prediction> predictions = new List<Prediction>();
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE AND (" + Columns.TrainingAreaId + "=" + area.Id + " OR " + Columns.PredictionAreaId + "=" + area.Id + ")");

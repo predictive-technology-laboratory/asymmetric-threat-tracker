@@ -108,17 +108,11 @@ namespace PTL.ATT
 
         #region postgis
         private static string _shp2pgsqlPath;
-        private static double _areaBoundingBoxSize;
 
         public static string Shp2PgsqlPath
         {
             get { return _shp2pgsqlPath; }
             set { _shp2pgsqlPath = value; }
-        }
-
-        public static double AreaBoundingBoxSize
-        {
-            get { return Configuration._areaBoundingBoxSize; }
         }
         #endregion
 
@@ -231,7 +225,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
             XmlParser postgisP = new XmlParser(p.OuterXML("postgis"));
             _shp2pgsqlPath = postgisP.ElementText("shp2pgsql");
-            _areaBoundingBoxSize = double.Parse(postgisP.ElementText("area_bounding_box_size"));
 
             if (!File.Exists(_shp2pgsqlPath))
                 throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");

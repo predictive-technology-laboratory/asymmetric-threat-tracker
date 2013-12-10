@@ -16,12 +16,11 @@
 
   <postgis>                                               <!-- Requires PostGIS 2.0 or higher. Install using the PostgreSQL Application Stack Builder. -->
     <shp2pgsql></shp2pgsql>                               <!-- Path to shp2pgsql executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
-    <area_bounding_box_size>1000</area_bounding_box_size> <!-- Size of bounding boxes to place in area geometries for computation of point containment. If the creation of training or prediction grids is very slow, try reducing this value. -->
   </postgis>
 
   <r>                                                       <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). The following R packages must also be installed (an attempt will be made to install them on startup using the CRAN mirror specified below):  zoo, ks, earth -->
     <exe_path></exe_path>                                   <!-- Path to R executable. The R_EXE environment variable will be used if this path does not exist. -->
-    <package_install_directory></package_install_directory>                 <!-- Writable directory into which R packages are to be installed. -->
+    <package_install_directory></package_install_directory> <!-- Writable directory into which R packages are to be installed. -->
     <cran_mirror>http://cran.us.r-project.org</cran_mirror> <!-- CRAN mirror to use for package installation. -->
   </r>  
 

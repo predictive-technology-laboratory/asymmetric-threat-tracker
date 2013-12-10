@@ -163,15 +163,35 @@ namespace PTL.ATT
             Console.Out.WriteLine("Imported " + shapefilePathsAndNames.Length + " shapefile(s) successfully.");
         }
 
-        public static IEnumerable<Shapefile> GetAvailable(int srid = -1)
+        public static IEnumerable<Shapefile> GetAll()
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + (srid == -1 ? "" : " WHERE " + Columns.SRID + "=" + srid));
+            List<Shapefile> shapefiles = new List<Shapefile>();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
-                yield return new Shapefile(reader);
+                shapefiles.Add(new Shapefile(reader));
 
             reader.Close();
             DB.Connection.Return(cmd.Connection);
+
+            return shapefiles;
+        }
+
+        public static IEnumerable<Shapefile> GetForSRID(int srid)
+        {
+            if (srid < 0)
+                throw new ArgumentException("Invalid SRID:  " + srid + ". Must be >= 0.");
+
+            List<Shapefile> shapefiles = new List<Shapefile>();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.SRID + "=" + srid);
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+                shapefiles.Add(new Shapefile(reader));
+
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
+
+            return shapefiles;
         }
 
         private int _id;

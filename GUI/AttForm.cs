@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -368,7 +368,7 @@ namespace PTL.ATT.GUI
 
         private void deleteShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Shapefile[] shapefiles = Shapefile.GetAvailable().ToArray();
+            Shapefile[] shapefiles = Shapefile.GetAll().ToArray();
             if (shapefiles.Length == 0)
                 MessageBox.Show("No shapefiles available for deletion.");
             else
@@ -403,9 +403,9 @@ namespace PTL.ATT.GUI
 
         private void ImportIncidents(IncidentImportSource incidentImportSource)
         {
-            Area[] areas = Area.GetAvailable().ToArray();
+            Area[] areas = Area.GetAll().ToArray();
             Type[] importerTypes = Assembly.GetAssembly(typeof(Importer)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Importer))).ToArray();
-            if (Area.GetAvailable().Count() == 0)
+            if (areas.Length == 0)
                 MessageBox.Show("No areas available. Create one first.");
             else if (importerTypes.Length == 0)
                 MessageBox.Show("No incident importers available.");
@@ -591,21 +591,23 @@ namespace PTL.ATT.GUI
 
         public void addAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Shapefile[] areaShapefiles = Shapefile.GetAvailable().Where(sf => sf.Type == Shapefile.ShapefileType.Area).ToArray();
+            Shapefile[] areaShapefiles = Shapefile.GetAll().Where(sf => sf.Type == Shapefile.ShapefileType.Area).ToArray();
             if (areaShapefiles.Length == 0)
                 MessageBox.Show("No shapefiles available from which to create area. Import shapefiles first.");
             else
             {
-                DynamicForm f = new DynamicForm("Select shapefile to base area on...", MessageBoxButtons.OKCancel);
+                DynamicForm f = new DynamicForm("Select area parameters...", MessageBoxButtons.OKCancel);
                 f.AddDropDown("Shapefile:", areaShapefiles, null, "shapefile");
+                f.AddNumericUpdown("Point containment bounding box size (meters):", 1000, 0, 1, decimal.MaxValue, 1, "bounding_box_size");
                 if (f.ShowDialog() == DialogResult.OK)
                 {
-                    Shapefile selected = f.GetValue<Shapefile>("shapefile");
-                    if (selected != null)
+                    Shapefile selectedShapefile = f.GetValue<Shapefile>("shapefile");
+                    int boundingBoxSize = Convert.ToInt32(f.GetValue<decimal>("bounding_box_size"));
+                    if (selectedShapefile != null)
                     {
                         Thread t = new Thread(new ThreadStart(delegate()
                             {
-                                Area.Create(selected, selected.Name);
+                                Area.Create(selectedShapefile, selectedShapefile.Name, boundingBoxSize);
                                 Console.Out.WriteLine("Finished creating area");
                                 RefreshAreas();
                             }));
@@ -617,26 +619,27 @@ namespace PTL.ATT.GUI
 
         public void deleteTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SelectedTrainingArea != null)
-                DeleteArea(SelectedTrainingArea);
+            DeleteArea(SelectedTrainingArea);
         }
 
         private void DeleteArea(Area area)
         {
-            bool hasMadePredictions = false;
-            bool deletePredictions = false;
-            foreach (Prediction prediction in Prediction.GetForArea(area))
+            if (area != null)
             {
-                hasMadePredictions = true;
+                List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(area);
+                List<Prediction> predictionsForArea = Prediction.GetForArea(area);
+                if (modelsForArea.Count > 0 || predictionsForArea.Count > 0)
+                    if (MessageBox.Show("The area \"" + area.Name + "\" is associated with " + modelsForArea.Count + " model(s) and " + predictionsForArea.Count + " prediction(s), which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                    {
+                        foreach (Prediction prediction in predictionsForArea)
+                            prediction.Delete();
 
-                if (!deletePredictions && !(deletePredictions = MessageBox.Show("The area \"" + area.Name + "\" is associated with models and predictions, which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes))
-                    break;
+                        foreach (DiscreteChoiceModel model in modelsForArea)
+                            model.Delete();
+                    }
+                    else
+                        return;
 
-                prediction.Delete();
-            }
-
-            if (!hasMadePredictions || deletePredictions)
-            {
                 area.Delete();
                 RefreshAll();
             }
@@ -668,11 +671,17 @@ namespace PTL.ATT.GUI
 
         private void SetTrainingStartEndToolTip()
         {
-            if (SelectedTrainingArea != null)
+            if (_setTrainingStartEndToolTip)
             {
-                string tip = Incident.Count(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea, SelectedIncidentTypes.ToArray()) + " total incidents";
-                toolTip.SetToolTip(trainingStart, tip);
-                toolTip.SetToolTip(trainingEnd, tip);
+                toolTip.SetToolTip(trainingStart, null);
+                toolTip.SetToolTip(trainingEnd, null);
+
+                if (SelectedTrainingArea != null)
+                {
+                    string tip = Incident.Count(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea, SelectedIncidentTypes.ToArray()) + " total incidents";
+                    toolTip.SetToolTip(trainingStart, tip);
+                    toolTip.SetToolTip(trainingEnd, tip);
+                }
             }
         }
         #endregion
@@ -702,8 +711,7 @@ namespace PTL.ATT.GUI
                 toolTip.SetToolTip(models, m.GetDetails(0));
             }
 
-            if (_setTrainingStartEndToolTip)
-                SetTrainingStartEndToolTip();
+            SetTrainingStartEndToolTip();
         }
         #endregion
 
@@ -1646,8 +1654,15 @@ namespace PTL.ATT.GUI
                 return;
             }
 
+            trainingAreas.Items.Clear();
+            incidentTypes.Items.Clear();
+            models.Items.Clear();
+            features.Items.Clear();
+            predictions.Nodes.Clear();
             threatMap.Clear();
             assessments.ClearPlots();
+
+            SetTrainingStartEndToolTip();
 
             try
             {
@@ -1672,14 +1687,14 @@ namespace PTL.ATT.GUI
             toolTip.SetToolTip(predictionAreas, null);
 
             trainingAreas.Items.Clear();
-            foreach (Area area in Area.GetAvailable())
+            foreach (Area area in Area.GetAll())
                 trainingAreas.Items.Add(area);
 
             if (trainingAreas.Items.Count > 0)
                 trainingAreas.SelectedIndex = 0;
 
             predictionAreas.Items.Clear();
-            foreach (Area area in Area.GetAvailable())
+            foreach (Area area in Area.GetAll())
                 predictionAreas.Items.Add(area);
 
             if (predictionAreas.Items.Count > 0)
@@ -1783,7 +1798,7 @@ namespace PTL.ATT.GUI
             }
 
             predictions.Nodes.Clear();
-            foreach (Prediction prediction in Prediction.GetAvailable())
+            foreach (Prediction prediction in Prediction.GetAll())
             {
                 TreeNode node = new TreeNode();
                 node.Tag = prediction;
@@ -1969,12 +1984,12 @@ namespace PTL.ATT.GUI
             t.Start();
         }
 
-        private Area PromptForArea(string prompt, int srid = -1)
+        private Area PromptForArea(string prompt)
         {
-            Area[] areas = Area.GetAvailable(srid).ToArray();
+            Area[] areas = Area.GetAll().ToArray();
             if (areas.Length == 0)
             {
-                MessageBox.Show("No areas available" + (srid == -1 ? "" : " for SRID " + srid) + ". Create one first.");
+                MessageBox.Show("No areas available.");
                 return null;
             }
 

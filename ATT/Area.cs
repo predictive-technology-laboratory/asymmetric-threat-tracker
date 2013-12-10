@@ -56,7 +56,7 @@ namespace PTL.ATT
                    Columns.SRID + " INTEGER);";
         }
 
-        public static int Create(Shapefile shapefile, string name)
+        public static int Create(Shapefile shapefile, string name, int pointContainmentBoundingBoxSize)
         {
             int areaId = -1;
             try
@@ -67,7 +67,7 @@ namespace PTL.ATT
                 AreaGeometry.Create(shapefile, areaId);
 
                 Console.Out.WriteLine("Creating area bounding boxes");
-                AreaBoundingBoxes.Create(areaId, shapefile.SRID, Configuration.AreaBoundingBoxSize);
+                AreaBoundingBoxes.Create(areaId, shapefile.SRID, pointContainmentBoundingBoxSize);
 
                 return areaId;
             }
@@ -80,10 +80,27 @@ namespace PTL.ATT
             }
         }
 
-        public static IEnumerable<Area> GetAvailable(int srid = -1)
+        public static List<Area> GetAll()
         {
             List<Area> areas = new List<Area>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + (srid == -1 ? "" : " WHERE " + Columns.SRID + "=" + srid));
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+                areas.Add(new Area(reader));
+
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
+
+            return areas;
+        }
+
+        public static List<Area> GetForSRID(int srid)
+        {
+            if (srid < 0)
+                throw new ArgumentException("Invalid SRID:  " + srid + ". Must be >= 0.", "srid");
+
+            List<Area> areas = new List<Area>();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.SRID + "=" + srid);
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
                 areas.Add(new Area(reader));

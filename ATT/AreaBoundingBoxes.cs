@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +66,7 @@ namespace PTL.ATT
             if (!DB.Connection.TableExists(tableName))
                 DB.Connection.ExecuteNonQuery(
                     "CREATE TABLE " + tableName + " (" +
-                    Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," + 
+                    Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," +
                     Columns.BoundingBox + " GEOMETRY(POLYGON," + srid + ")," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
                     Columns.Relationship + " VARCHAR);" +
@@ -77,19 +77,7 @@ namespace PTL.ATT
             return tableName;
         }
 
-        private static IEnumerable<PostGIS.Geometry> GetCandidateBoundingBoxes(double minX, double maxX, double minY, double maxY, double boxSize, int srid)
-        {
-            for (double x = minX; x <= maxX; x += boxSize)
-                for (double y = minY; y <= maxY; y += boxSize)
-                    yield return new PostGIS.Polygon(new PostGIS.Point[]{
-                        new PostGIS.Point(x, y, srid),
-                        new PostGIS.Point(x, y + boxSize, srid),
-                        new PostGIS.Point(x + boxSize, y + boxSize, srid),
-                        new PostGIS.Point(x + boxSize, y, srid),
-                        new PostGIS.Point(x, y, srid)}, srid);
-        }
-
-        internal static void Create(int areaId, int srid, double boxSize)
+        internal static void Create(int areaId, int srid, int pointContainmentBoundingBoxSize)
         {
             string tableName = CreateTable(srid);
 
@@ -108,11 +96,21 @@ namespace PTL.ATT
             double maxY = Convert.ToDouble(reader[3]);
             reader.Close();
 
+            List<PostGIS.Polygon> pointContainmentBoundingBoxes = new List<PostGIS.Polygon>();
+            for (double x = minX; x <= maxX; x += pointContainmentBoundingBoxSize)
+                for (double y = minY; y <= maxY; y += pointContainmentBoundingBoxSize)
+                    pointContainmentBoundingBoxes.Add(new PostGIS.Polygon(new PostGIS.Point[]{
+                        new PostGIS.Point(x, y, srid),
+                        new PostGIS.Point(x, y + pointContainmentBoundingBoxSize, srid),
+                        new PostGIS.Point(x + pointContainmentBoundingBoxSize, y + pointContainmentBoundingBoxSize, srid),
+                        new PostGIS.Point(x + pointContainmentBoundingBoxSize, y, srid),
+                        new PostGIS.Point(x, y, srid)}, srid));
+
             StringBuilder cmdText = new StringBuilder();
             int batchNum = 0;
-            foreach (PostGIS.Geometry geometry in GetCandidateBoundingBoxes(minX, maxX, minY, maxY, boxSize, srid))
+            foreach (PostGIS.Polygon boundingBox in pointContainmentBoundingBoxes)
             {
-                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + areaId + "," + geometry.StGeometryFromText + ")");
+                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + areaId + "," + boundingBox.StGeometryFromText + ")");
                 if (++batchNum >= 1000)
                 {
                     cmd.CommandText = cmdText.ToString();
@@ -134,20 +132,20 @@ namespace PTL.ATT
 
             cmd.CommandText = "UPDATE " + tableName + " " +
                               "SET " + Columns.Relationship + "='" + Relationship.Overlaps + "' " +
-                              "WHERE " + Columns.AreaId + "=" + areaId + " AND " + 
+                              "WHERE " + Columns.AreaId + "=" + areaId + " AND " +
                                      "EXISTS(SELECT 1 " +
                                             "FROM " + areaGeometryTable + " " +
-                                            "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " + 
+                                            "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " +
                                                       "st_overlaps(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
                                             ")";
             cmd.ExecuteNonQuery();
 
             cmd.CommandText = "UPDATE " + tableName + " " +
                               "SET " + Columns.Relationship + "='" + Relationship.Within + "' " +
-                              "WHERE " + Columns.AreaId + "=" + areaId + " AND " + 
+                              "WHERE " + Columns.AreaId + "=" + areaId + " AND " +
                                      "EXISTS(SELECT 1 " +
                                             "FROM " + areaGeometryTable + " " +
-                                            "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " + 
+                                            "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + areaId + " AND " +
                                                       "st_within(" + tableName + "." + Columns.BoundingBox + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
                                             ")";
             cmd.ExecuteNonQuery();

@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -219,7 +219,7 @@ namespace PTL.ATT.Models
 
         public override IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
-            foreach (Shapefile shapefile in Shapefile.GetAvailable(area.SRID))
+            foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID))
                 if (shapefile.Type == Shapefile.ShapefileType.DistanceFeature)
                     yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapeFile, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
 
@@ -532,7 +532,7 @@ namespace PTL.ATT.Models
                 throw new Exception("Must select one or more features.");
 
             // all features must reference a shapefile that is valid for the prediction area's SRID
-            Set<int> shapefilesInPredictionSRID = new Set<int>(Shapefile.GetAvailable(prediction.PredictionArea.SRID).Select(s => s.Id).ToArray());
+            Set<int> shapefilesInPredictionSRID = new Set<int>(Shapefile.GetForSRID(prediction.PredictionArea.SRID).Select(s => s.Id).ToArray());
             string badFeatures = prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.DistanceShapeFile) && !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
             if (badFeatures.Length > 0)
                 throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction.");

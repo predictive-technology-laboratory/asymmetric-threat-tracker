@@ -141,10 +141,10 @@ namespace PTL.ATT.Models
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
-        public static IEnumerable<DiscreteChoiceModel> GetForArea(Area trainingArea)
+        public static List<DiscreteChoiceModel> GetForArea(Area area)
         {
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.TrainingAreaId + "=" + trainingArea.Id);
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.TrainingAreaId + "=" + area.Id);
             using (NpgsqlDataReader reader = cmd.ExecuteReader())
             {
                 while (reader.Read())
@@ -157,7 +157,7 @@ namespace PTL.ATT.Models
             return models;
         }
 
-        public static IEnumerable<DiscreteChoiceModel> GetAvailable()
+        public static IEnumerable<DiscreteChoiceModel> GetAll()
         {
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
@@ -385,6 +385,11 @@ namespace PTL.ATT.Models
             }
         }
 
+        public List<Prediction> Predictions
+        {
+            get { return Prediction.GetForModel(this); }
+        }
+
         public bool HasMadePredictions
         {
             get
@@ -543,7 +548,7 @@ namespace PTL.ATT.Models
 
         public void DeletePredictions()
         {
-            foreach (Prediction prediction in Prediction.GetAvailable(_id))
+            foreach (Prediction prediction in Prediction.GetForModel(this))
                 prediction.Delete();
         }
 
