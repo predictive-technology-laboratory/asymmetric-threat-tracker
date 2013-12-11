@@ -235,10 +235,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
                 rExePath = Environment.GetEnvironmentVariable("R_EXE");
 
             _rPackageInstallDirectory = rP.ElementText("package_install_directory");
-            if (!Directory.Exists(_rPackageInstallDirectory))
-                Directory.CreateDirectory(_rPackageInstallDirectory);
+            if (_rPackageInstallDirectory != "")
+            {
+                if (!Directory.Exists(_rPackageInstallDirectory))
+                    Directory.CreateDirectory(_rPackageInstallDirectory);
 
-            R.AddLibPath(_rPackageInstallDirectory);
+                R.AddLibPath(_rPackageInstallDirectory);
+            }
 
             _rCranMirror = rP.ElementText("cran_mirror");
 
