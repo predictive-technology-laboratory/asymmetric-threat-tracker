@@ -124,6 +124,8 @@ namespace PTL.ATT.Models
             string bGridSizes = "c(" + bGridSizeX + "," + bGridSizeY + ")";
             string outputPath = Path.GetTempFileName();
 
+            string rOutput = null;
+            string rError = null;
             try
             {
                 R.Execute(@"
@@ -134,13 +136,19 @@ eval.points = read.csv(""" + evalPointsPath.Replace(@"\", @"\\") + @""",header=F
 h = Hpi(input.points,pilot=""dscalar""" + (binned ? ",binned=TRUE,bgridsize=" + bGridSizes : "") + @")
 est = kde(input.points,H=h," + (binned ? "binned=TRUE,bgridsize=" + bGridSizes + "," : "") + @"eval.points=eval.points)$estimate
 " + (normalize ? "est = (est - min(est))  / (max(est) - min(est))" : "") + @"
-write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALSE,col.names=FALSE)", false);
+write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALSE,col.names=FALSE)", out rOutput, out rError, false);
 
             }
             catch (Exception ex)
             {
                 try { File.Delete(outputPath); }
                 catch (Exception) { }
+
+                if (rOutput != null)
+                    Console.Out.WriteLine("R output:  " + rOutput);
+
+                if (rError != null)
+                    Console.Out.WriteLine("R error:  " + rError);
 
                 throw ex;
             }
@@ -157,7 +165,11 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 List<float> density = File.ReadLines(outputPath).Select(line => float.Parse(line)).ToList();
 
                 if (density.Count != numEvalPoints)
-                    Console.Out.WriteLine("WARNING:  Number of density estimation output points (" + density.Count + ") does not match the number of evaluation points (" + numEvalPoints + ")");
+                {
+                    Console.Out.WriteLine("WARNING:  Number of density estimation output points (" + density.Count + ") does not match the number of evaluation points (" + numEvalPoints + ")" + Environment.NewLine +
+                                          "\tR output:  " + rOutput + Environment.NewLine +
+                                          "\tR error:  " + rError);
+                }
 
                 return density;
             }

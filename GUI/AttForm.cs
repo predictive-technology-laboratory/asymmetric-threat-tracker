@@ -67,7 +67,7 @@ namespace PTL.ATT.GUI
 
         #region members and properties
         public const int PlotHeight = 400;
-        private bool _setTrainingStartEndToolTip;
+        private bool _setIncidentsToolTip;
         private bool _setPredictionsToolTip;
         private List<string> _groups;
         private LogWriter _logWriter;
@@ -193,7 +193,7 @@ namespace PTL.ATT.GUI
         {
             InitializeComponent();
 
-            _setTrainingStartEndToolTip = true;
+            _setIncidentsToolTip = true;
             _groups = new List<string>();
             _featureRemapKeyTargetPredictionResource = new Dictionary<string, string>();
         }
@@ -279,7 +279,7 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            SetTrainingStartEndToolTip();
+            SetIncidentsToolTip();
 
             trainingAreas.Anchor = incidentTypes.Anchor = models.Anchor = features.Anchor = predictionAreas.Anchor = predictions.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
 
@@ -669,19 +669,15 @@ namespace PTL.ATT.GUI
             RefreshIncidentTypes();
         }
 
-        private void SetTrainingStartEndToolTip()
+        private void SetIncidentsToolTip()
         {
-            if (_setTrainingStartEndToolTip)
+            if (_setIncidentsToolTip)
             {
-                toolTip.SetToolTip(trainingStart, null);
-                toolTip.SetToolTip(trainingEnd, null);
+                int numIncidents = 0;
+                if (SelectedTrainingArea != null && SelectedIncidentTypes.Count() > 0)
+                    numIncidents = Incident.Count(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea, SelectedIncidentTypes.ToArray());
 
-                if (SelectedTrainingArea != null)
-                {
-                    string tip = Incident.Count(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea, SelectedIncidentTypes.ToArray()) + " total incidents";
-                    toolTip.SetToolTip(trainingStart, tip);
-                    toolTip.SetToolTip(trainingEnd, tip);
-                }
+                toolTip.SetToolTip(incidentTypes, numIncidents + " total incidents selected");
             }
         }
         #endregion
@@ -689,14 +685,14 @@ namespace PTL.ATT.GUI
         #region incidents
         public void selectAllIncidentTypesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _setTrainingStartEndToolTip = false;
+            _setIncidentsToolTip = false;
 
             for (int i = 0; i < incidentTypes.Items.Count; ++i)
                 incidentTypes.SetSelected(i, true);
 
-            _setTrainingStartEndToolTip = true;
+            _setIncidentsToolTip = true;
 
-            SetTrainingStartEndToolTip();
+            SetIncidentsToolTip();
         }
 
         private void incidentTypes_SelectedIndexChanged(object sender, EventArgs e)
@@ -711,7 +707,7 @@ namespace PTL.ATT.GUI
                 toolTip.SetToolTip(models, m.GetDetails(0));
             }
 
-            SetTrainingStartEndToolTip();
+            SetIncidentsToolTip();
         }
         #endregion
 
@@ -1189,17 +1185,19 @@ namespace PTL.ATT.GUI
 
         private void predictions_AfterCheck(object sender, TreeViewEventArgs e)
         {
-            if (_setPredictionsToolTip)
-                SetPredictionsTooltip(SelectedPredictions.Count == 1 ? e.Node : null);
+            SetPredictionsTooltip(SelectedPredictions.Count == 1 ? TraversePredictionTree().Where(n => n.Tag is Prediction && SelectedPredictions.Contains(n.Tag as Prediction)).First() : null);
         }
 
         private void SetPredictionsTooltip(TreeNode selectedNode)
         {
-            string text = null;
-            if (selectedNode != null && selectedNode.Checked && selectedNode.Tag is Prediction)
-                text = (selectedNode.Tag as Prediction).GetDetails(0);
+            if (_setPredictionsToolTip)
+            {
+                string text = null;
+                if (selectedNode != null && selectedNode.Checked && selectedNode.Tag is Prediction)
+                    text = (selectedNode.Tag as Prediction).GetDetails(0);
 
-            toolTip.SetToolTip(predictions, text);
+                toolTip.SetToolTip(predictions, text);
+            }
         }
 
         public void displayPredictionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1662,7 +1660,7 @@ namespace PTL.ATT.GUI
             threatMap.Clear();
             assessments.ClearPlots();
 
-            SetTrainingStartEndToolTip();
+            SetIncidentsToolTip();
 
             try
             {
@@ -1709,7 +1707,7 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            _setTrainingStartEndToolTip = false;
+            _setIncidentsToolTip = false;
 
             incidentTypes.Items.Clear();
             if (SelectedTrainingArea != null)
@@ -1724,9 +1722,9 @@ namespace PTL.ATT.GUI
                         incidentTypes.SetSelected(index, true);
                 }
 
-            _setTrainingStartEndToolTip = true;
+            _setIncidentsToolTip = true;
 
-            SetTrainingStartEndToolTip();
+            SetIncidentsToolTip();
         }
 
         public void RefreshModels(int modelIdToSelect, bool refreshFeatures)
@@ -1811,10 +1809,6 @@ namespace PTL.ATT.GUI
             {
                 _setPredictionsToolTip = predictionIdsToSelect.Count() == 1;
                 TraversePredictionTree().Where(n => n.Tag is Prediction && predictionIdsToSelect.Contains((n.Tag as Prediction).Id)).Select(n => n.Checked = true).ToArray();
-
-                if (!_setPredictionsToolTip)
-                    SetPredictionsTooltip(null);
-
                 _setPredictionsToolTip = true;
             }
         }
