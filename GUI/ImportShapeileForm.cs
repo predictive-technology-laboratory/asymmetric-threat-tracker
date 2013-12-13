@@ -31,11 +31,11 @@ using Npgsql;
 
 namespace PTL.ATT.GUI
 {
-    public partial class ImportShapeFileForm : Form
+    public partial class ImportShapeileForm : Form
     {
         AttForm _attForm;
 
-        public ImportShapeFileForm(AttForm attForm)
+        public ImportShapeileForm(AttForm attForm)
         {
             InitializeComponent();
 

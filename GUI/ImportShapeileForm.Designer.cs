@@ -19,7 +19,7 @@
  
 namespace PTL.ATT.GUI
 {
-    partial class ImportShapeFileForm
+    partial class ImportShapeileForm
     {
         /// <summary>
         /// Required designer variable.

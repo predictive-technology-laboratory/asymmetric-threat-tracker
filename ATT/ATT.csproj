@@ -133,7 +133,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="att_config.xml" />
+    <Content Include="att_config.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="README.txt" />
     <Content Include="Todo.txt" />
   </ItemGroup>

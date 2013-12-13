@@ -47,7 +47,7 @@ namespace PTL.ATT.Models
             /// <summary>
             /// Shortest distance to entities in a shapefile
             /// </summary>
-            DistanceShapeFile,
+            DistanceShapefile,
 
             /// <summary>
             /// Value of incident density derived from the training incidents
@@ -221,13 +221,13 @@ namespace PTL.ATT.Models
         {
             foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID))
                 if (shapefile.Type == Shapefile.ShapefileType.DistanceFeature)
-                    yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapeFile, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
+                    yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapefile, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
 
             foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
                 if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
                     foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area))
                         yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, incidentType, "KDE \"" + incidentType + "\"");
-                else if (f != SpatialDistanceFeature.DistanceShapeFile)
+                else if (f != SpatialDistanceFeature.DistanceShapefile)
                     yield return new Feature(typeof(SpatialDistanceFeature), f, null, null, f.ToString());
 
             if (_externalFeatureExtractor != null)
@@ -345,7 +345,7 @@ namespace PTL.ATT.Models
                                                                      // cross points with features
                                                                      "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.PredictionId + "=" + prediction.Id + " AND " +                        // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
                                                                                                                                                            "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
-                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapeFile + "' " +  // as opposed to raster shapefiles
+                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapefile + "' " +  // as opposed to raster shapefiles
                             // only process points associated with the current core                                                                                         
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
@@ -533,7 +533,7 @@ namespace PTL.ATT.Models
 
             // all features must reference a shapefile that is valid for the prediction area's SRID
             Set<int> shapefilesInPredictionSRID = new Set<int>(Shapefile.GetForSRID(prediction.PredictionArea.SRID).Select(s => s.Id).ToArray());
-            string badFeatures = prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.DistanceShapeFile) && !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
+            string badFeatures = prediction.SelectedFeatures.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.DistanceShapefile) && !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
             if (badFeatures.Length > 0)
                 throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction.");
 

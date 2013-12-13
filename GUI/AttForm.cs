@@ -314,7 +314,7 @@ namespace PTL.ATT.GUI
         #region data
         public void importShapefilesFromDiskToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ImportShapeFileForm form = new ImportShapeFileForm(this);
+            ImportShapeileForm form = new ImportShapeileForm(this);
             form.Show();
         }
 

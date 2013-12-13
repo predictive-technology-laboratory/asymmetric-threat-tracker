@@ -183,11 +183,11 @@
     <Compile Include="SpatialDistanceDcmForm.Designer.cs">
       <DependentUpon>SpatialDistanceDcmForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ImportShapeFileForm.cs">
+    <Compile Include="ImportShapeileForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ImportShapeFileForm.Designer.cs">
-      <DependentUpon>ImportShapeFileForm.cs</DependentUpon>
+    <Compile Include="ImportShapeileForm.Designer.cs">
+      <DependentUpon>ImportShapeileForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -271,8 +271,8 @@
     <EmbeddedResource Include="SpatialDistanceDcmForm.resx">
       <DependentUpon>SpatialDistanceDcmForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ImportShapeFileForm.resx">
-      <DependentUpon>ImportShapeFileForm.cs</DependentUpon>
+    <EmbeddedResource Include="ImportShapeileForm.resx">
+      <DependentUpon>ImportShapeileForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
