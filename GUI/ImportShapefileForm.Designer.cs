@@ -131,7 +131,7 @@ namespace PTL.ATT.GUI
             this.label2.TabIndex = 18;
             this.label2.Text = "Shapefile type:";
             // 
-            // ImportShapeFileForm
+            // ImportShapefileForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -145,7 +145,7 @@ namespace PTL.ATT.GUI
             this.Controls.Add(this.shapefileType);
             this.Controls.Add(this.importShp);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
-            this.Name = "ImportShapeFileForm";
+            this.Name = "ImportShapefileForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Import shape file(s)...";
             this.ResumeLayout(false);
