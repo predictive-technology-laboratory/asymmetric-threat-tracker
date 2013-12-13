@@ -1241,7 +1241,7 @@ namespace PTL.ATT.GUI
                                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                                     {
                                         Feature feature = o as Feature;
-                                        if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.DistanceShapeFile))
+                                        if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.DistanceShapefile))
                                         {
                                             Dictionary<string, string> constraints = new Dictionary<string, string>();
                                             constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());
