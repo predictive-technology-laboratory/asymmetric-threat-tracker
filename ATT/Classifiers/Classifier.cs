@@ -37,7 +37,7 @@ namespace PTL.ATT.Classifiers
     {
         public static IEnumerable<Classifier> Available
         {
-            get { return Assembly.GetAssembly(typeof(Classifier)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Classifier)) && Configuration.ClassifierTypeOptions.ContainsKey(t)).Select(t => Activator.CreateInstance(t)).Cast<Classifier>(); }
+            get { return Assembly.GetAssembly(typeof(Classifier)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Classifier))).Select(t => Activator.CreateInstance(t)).Cast<Classifier>(); }
         }
 
         private int _modelId;

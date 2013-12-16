@@ -28,7 +28,7 @@
     <exe_path></exe_path> <!-- Path java.exe executable. The JAVA_EXE environment variable will be used if this path does not exist. -->
   </java>
 
-  <classifiers>                                       <!-- You can remove any of the following <classifier> entries. Removed entries will not be available for use. -->
+  <classifiers>                                       <!-- Options passed to classifiers. -->
     <classifier type="PTL.ATT.Classifiers.LibLinear"> <!-- Use the most current version of LibLinear:  http://www.csie.ntu.edu.tw/~cjlin/liblinear/ -->
       <train></train>                                 <!-- Path to train.exe executable for LibLinear. -->
       <predict></predict>                             <!-- Path to predict.exe executable for LibLinear. -->

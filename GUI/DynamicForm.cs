@@ -91,6 +91,7 @@ namespace PTL.ATT.GUI
 
             Controls.Add(_mainPanel);
             Size = PreferredSize;
+            Width = Math.Max(Width, TextRenderer.MeasureText(Text, Font).Width + 50);
             TopMost = true;
         }
 

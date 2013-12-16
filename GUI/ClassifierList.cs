@@ -92,6 +92,26 @@ namespace PTL.ATT.GUI
                             catch (Exception ex) { MessageBox.Show("Invalid value for C:  " + ex.Message); }
                         }
                     }
+                    else if (classifier is RandomForest)
+                    {
+                        RandomForest randomForest = classifier as RandomForest;
+                        DynamicForm f = new DynamicForm("Set RandomForest parameters");
+                        f.AddNumericUpdown("Number of trees:", randomForest.NumTrees, 0, 1, decimal.MaxValue, 1, "ntree");
+                        if (f.ShowDialog() == DialogResult.OK)
+                        {
+                            randomForest.NumTrees = Convert.ToInt32(f.GetValue<decimal>("ntree"));
+                        }
+                    }
+                    else if (classifier is AdaBoost)
+                    {
+                        AdaBoost adaBoost = classifier as AdaBoost;
+                        DynamicForm f = new DynamicForm("Set AdaBoost parameters");
+                        f.AddNumericUpdown("Number of iterations:", adaBoost.Iterations, 0, 1, decimal.MaxValue, 1, "iterations");
+                        if (f.ShowDialog() == DialogResult.OK)
+                        {
+                            adaBoost.Iterations = Convert.ToInt32(f.GetValue<decimal>("iterations"));
+                        }
+                    }
                 }
             }
         }
