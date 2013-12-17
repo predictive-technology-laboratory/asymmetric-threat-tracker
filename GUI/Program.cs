@@ -32,9 +32,16 @@ namespace PTL.ATT.GUI
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new AttForm());
+            try
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new AttForm());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while running the ATT:  " + ex.Message);
+            }
         }
     }
 }
