@@ -37,6 +37,11 @@ namespace PTL.ATT.Evaluation
     public class SurveillancePlot : Plot
     {
         #region static members
+        static SurveillancePlot()
+        {
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "zoo" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+        }
+
         public static Dictionary<long, Dictionary<string, int>> GetSliceLocationTrueCount(IEnumerable<Incident> incidents, Prediction prediction)
         {
             Dictionary<long, Dictionary<string, int>> sliceLocationTrueCount = new Dictionary<long, Dictionary<string, int>>();

@@ -230,9 +230,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
                 throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");
 
             XmlParser rP = new XmlParser(p.OuterXML("r"));
+
             string rExePath = rP.ElementText("exe_path");
             if (rExePath == null || !File.Exists(rExePath))
                 rExePath = Environment.GetEnvironmentVariable("R_EXE");
+
+            R.ExePath = rExePath;
 
             _rPackageInstallDirectory = rP.ElementText("package_install_directory");
             if (_rPackageInstallDirectory != "")
@@ -244,11 +247,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
             }
 
             _rCranMirror = rP.ElementText("cran_mirror");
-
-            R.ExePath = rExePath;
-            List<string> missingRPackages = R.CheckForMissingPackages(new string[] { "zoo", "ks", "earth", "geoR" });
-            if (missingRPackages.Count > 0)
-                R.InstallPackages(missingRPackages, _rCranMirror, _rPackageInstallDirectory);
 
             XmlParser javaP = new XmlParser(p.OuterXML("java"));
             _javaExePath = javaP.ElementText("exe_path");

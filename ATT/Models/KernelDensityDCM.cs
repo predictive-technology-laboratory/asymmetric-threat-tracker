@@ -36,6 +36,11 @@ namespace PTL.ATT.Models
 {
     public class KernelDensityDCM : DiscreteChoiceModel
     {
+        static KernelDensityDCM()
+        {
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "ks" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+        }
+
         private new const string Table = "kernel_density_dcm";
 
         private new class Columns

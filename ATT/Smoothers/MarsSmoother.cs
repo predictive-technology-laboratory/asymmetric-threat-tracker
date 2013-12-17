@@ -29,6 +29,11 @@ namespace PTL.ATT.Smoothers
 {
     public class MarsSmoother : Smoother
     {
+        static MarsSmoother()
+        {
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "earth" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+        }
+
         private int _numberOfKnots;
         private int _consideredParentTerms;
         private int _interactionDegree;

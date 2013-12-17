@@ -33,6 +33,11 @@ namespace PTL.ATT.Classifiers
     [Serializable]
     public class AdaBoost : Classifier
     {
+        static AdaBoost()
+        {
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "ada" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+        }
+
         [NonSerialized]
         private Prediction _prediction;
         private int _iterations;

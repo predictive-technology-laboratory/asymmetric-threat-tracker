@@ -18,7 +18,7 @@
     <shp2pgsql></shp2pgsql>                               <!-- Path to shp2pgsql executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
   </postgis>
 
-  <r>                                                       <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). The following R packages must also be installed (an attempt will be made to install them on startup using the CRAN mirror specified below):  zoo, ks, earth -->
+  <r>                                                       <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). -->
     <exe_path></exe_path>                                   <!-- Path to R executable. The R_EXE environment variable will be used if this path does not exist. -->
     <package_install_directory></package_install_directory> <!-- Writable directory into which R packages are to be installed. If left blank, the default directory will be used, which could be read-only depending on your user's permissions. -->
     <cran_mirror>http://cran.us.r-project.org</cran_mirror> <!-- CRAN mirror to use for package installation. -->

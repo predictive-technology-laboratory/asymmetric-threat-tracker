@@ -33,6 +33,11 @@ namespace PTL.ATT.Classifiers
     [Serializable]
     public class RandomForest : Classifier
     {
+        static RandomForest()
+        {
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "randomForest" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+        }
+
         [NonSerialized]
         private Prediction _prediction;
         private int _numTrees;
