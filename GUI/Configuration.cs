@@ -190,7 +190,7 @@ namespace PTL.ATT.GUI
             XmlParser p = new XmlParser(File.ReadAllText(path));
 
             string applicationDataDirectory = p.ElementText("application_data_directory");
-            if (applicationDataDirectory == "")
+            if (string.IsNullOrWhiteSpace(applicationDataDirectory))
                 applicationDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "asymmetric_threat_tracker");
 
             if(!Directory.Exists(applicationDataDirectory))
@@ -225,7 +225,7 @@ namespace PTL.ATT.GUI
             XmlParser notificationsP = new XmlParser(p.OuterXML("notifications"));
             XmlParser notificationsSetupP = new XmlParser(notificationsP.OuterXML("setup"));
             _notificationHost = notificationsSetupP.ElementText("host");
-            if (_notificationHost != "")
+            if (!string.IsNullOrWhiteSpace(_notificationHost))
             {
                 _notificationPort = int.Parse(notificationsSetupP.ElementText("port"));
                 _notificationEnableSSL = bool.Parse(notificationsSetupP.ElementText("enable_ssl"));

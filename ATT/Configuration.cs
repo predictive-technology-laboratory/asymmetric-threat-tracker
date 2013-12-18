@@ -226,19 +226,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
             XmlParser postgisP = new XmlParser(p.OuterXML("postgis"));
             _shp2pgsqlPath = postgisP.ElementText("shp2pgsql");
 
-            if (!File.Exists(_shp2pgsqlPath))
+            if (string.IsNullOrWhiteSpace(_shp2pgsqlPath) || !File.Exists(_shp2pgsqlPath))
                 throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");
 
             XmlParser rP = new XmlParser(p.OuterXML("r"));
 
             string rExePath = rP.ElementText("exe_path");
-            if (rExePath == null || !File.Exists(rExePath))
+            if (string.IsNullOrWhiteSpace(rExePath) || !File.Exists(rExePath))
                 rExePath = Environment.GetEnvironmentVariable("R_EXE");
 
             R.ExePath = rExePath;
 
             _rPackageInstallDirectory = rP.ElementText("package_install_directory");
-            if (_rPackageInstallDirectory != "")
+            if (!string.IsNullOrWhiteSpace(_rPackageInstallDirectory))
             {
                 if (!Directory.Exists(_rPackageInstallDirectory))
                     Directory.CreateDirectory(_rPackageInstallDirectory);
@@ -250,10 +250,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
             XmlParser javaP = new XmlParser(p.OuterXML("java"));
             _javaExePath = javaP.ElementText("exe_path");
-            if (_javaExePath == null || !File.Exists(_javaExePath))
+            if (string.IsNullOrWhiteSpace(_javaExePath) || !File.Exists(_javaExePath))
                 _javaExePath = Environment.GetEnvironmentVariable("JAVA_EXE");
 
-            if (!File.Exists(_javaExePath))
+            if (string.IsNullOrWhiteSpace(_javaExePath) || !File.Exists(_javaExePath))
                 throw new FileNotFoundException("Failed to locate java.exe excutable. Check configuration.");
 
             _classifierTypeOptions = new Dictionary<Type, Dictionary<string, string>>();
@@ -274,7 +274,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
             XmlParser modelingP = new XmlParser(p.OuterXML("modeling"));
             _modelsDirectory = modelingP.ElementText("model_directory");
-            if (_modelsDirectory != "" && !Directory.Exists(_modelsDirectory))
+            if (!string.IsNullOrWhiteSpace(_modelsDirectory) && !Directory.Exists(_modelsDirectory))
                 Directory.CreateDirectory(_modelsDirectory);
 
             _modelTypeFeatureExtractorType = new Dictionary<Type, Type>();
