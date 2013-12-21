@@ -252,6 +252,7 @@ namespace PTL.ATT.GUI
                 done = true;
 
                 MessageBox.Show("Failed to initialize:  " + ex.Message + Environment.NewLine +
+                                (ex.InnerException == null ? "" : "Inner exception message:  " + ex.InnerException.Message + Environment.NewLine) +
                                 "Stack trace:  " + ex.StackTrace + Environment.NewLine + Environment.NewLine +
                                 "Check the XML configuration files located in the Config sub-directory of the ATT executable directory.");
 
@@ -273,6 +274,7 @@ namespace PTL.ATT.GUI
                 done = true;
 
                 MessageBox.Show("Failed to load the ATT database:  " + ex.Message + Environment.NewLine +
+                                (ex.InnerException == null ? "" : "Inner exception message:  " + ex.InnerException.Message + Environment.NewLine) +
                                 "Stack trace:  " + ex.StackTrace + Environment.NewLine + Environment.NewLine +
                                 "If you think this error is caused by an outdated database schema, one solution is to delete all existing tables and then restart ATT. This will, however, destroy all of your data.");
                 Application.Exit();
