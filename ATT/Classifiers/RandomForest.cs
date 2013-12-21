@@ -199,7 +199,6 @@ write.table(dfp, file=""" + Path.Combine(_prediction.ModelDirectory, @"Predictio
 
         internal override void ChangeFeatureIds(Prediction prediction, Dictionary<int, int> oldNewFeatureId)
         {
-            throw new NotImplementedException();
         }
 
         public override string GetDetails(int indentLevel)
