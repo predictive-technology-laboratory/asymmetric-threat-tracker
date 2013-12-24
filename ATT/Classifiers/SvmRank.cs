@@ -76,7 +76,7 @@ namespace PTL.ATT.Classifiers
 
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                if (prediction.IncidentTypes.Count != 1)
+                if (prediction.Model.IncidentTypes.Count != 1)
                     throw new Exception("SvmRank cannot be used for multi-incident predictions. Select a single incident type.");
 
                 Dictionary<int, Point> idPoint = new Dictionary<int, Point>(featureVectors.Count);
@@ -90,7 +90,7 @@ namespace PTL.ATT.Classifiers
                         throw new NullReferenceException("Expected Point object in DerivedFrom");
 
                     PostGIS.Point vectorLocation = point.Location;
-                    int count = idPoint.Values.Count(p => p.Location.DistanceTo(vectorLocation) <= prediction.PointSpacing / 2d && p.IncidentType != PointPrediction.NullLabel);
+                    int count = idPoint.Values.Count(p => p.Location.DistanceTo(vectorLocation) <= prediction.Model.PointSpacing / 2d && p.IncidentType != PointPrediction.NullLabel);
                     vector.DerivedFrom.TrueClass = count + " qid:1";
                 }
 
@@ -122,10 +122,10 @@ namespace PTL.ATT.Classifiers
 
         public override void Classify(FeatureVectorList featureVectors, Prediction prediction)
         {
-            if (prediction.IncidentTypes.Count != 1)
+            if (prediction.Model.IncidentTypes.Count != 1)
                 throw new Exception("SvmRank cannot be used for multi-incident predictions. Select a single incident type.");
 
-            string incident = prediction.IncidentTypes.First();
+            string incident = prediction.Model.IncidentTypes.First();
 
             _svmRank.Classify(featureVectors);
 

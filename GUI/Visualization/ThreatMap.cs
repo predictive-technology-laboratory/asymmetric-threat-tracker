@@ -226,8 +226,8 @@ namespace PTL.ATT.GUI.Visualization
                     _regionBottomLeftInMeters = new PointF(minPointX, minPointY);
                     _regionSizeInMeters = new SizeF(maxPointX - minPointX, maxPointY - minPointY);
 
-                    bool newThreatSurface = threatResolution.Value != prediction.PointSpacing;
-                    threatResolution.Value = threatResolution.Minimum = prediction.PointSpacing;
+                    bool newThreatSurface = threatResolution.Value != prediction.Model.PointSpacing;
+                    threatResolution.Value = threatResolution.Minimum = prediction.Model.PointSpacing;
                     if (!newThreatSurface)
                     {
                         Rectangle bitmapDimensions;

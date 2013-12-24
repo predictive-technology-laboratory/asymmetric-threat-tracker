@@ -257,26 +257,26 @@ namespace PTL.ATT.Models
 
         protected virtual void InsertPointsIntoPrediction(NpgsqlConnection connection, Prediction prediction, bool training, bool vacuum)
         {
-            Area area = training ? prediction.TrainingArea : prediction.PredictionArea;
+            Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
 
             List<Tuple<PostGIS.Point, string, DateTime>> incidentPoints = new List<Tuple<PostGIS.Point, string, DateTime>>();
             Set<Tuple<double, double>> incidentLocations = new Set<Tuple<double, double>>(false);
-            foreach (Incident i in Incident.Get(prediction.TrainingStartTime, prediction.TrainingEndTime, area, prediction.IncidentTypes.ToArray()))
+            foreach (Incident i in Incident.Get(prediction.Model.TrainingStart, prediction.Model.TrainingEnd, area, prediction.Model.IncidentTypes.ToArray()))
             {
                 incidentPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue));
                 incidentLocations.Add(new Tuple<double, double>(i.Location.X, i.Location.Y));
             }
 
             if (training && incidentPoints.Count == 0)
-                throw new ZeroPositivePointsException("Zero positive incident points retrieved for \"" + prediction.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.TrainingStartTime.ToShortDateString() + " " + prediction.TrainingStartTime.ToShortTimeString() + " -- " + prediction.TrainingEndTime.ToShortDateString() + " " + prediction.TrainingEndTime.ToShortTimeString() + "\"");
+                throw new ZeroPositivePointsException("Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
 
             List<Tuple<PostGIS.Point, string, DateTime>> nullPoints = new List<Tuple<PostGIS.Point, string, DateTime>>();
             double areaMinX = area.BoundingBox.MinX;
             double areaMaxX = area.BoundingBox.MaxX;
             double areaMinY = area.BoundingBox.MinY;
             double areaMaxY = area.BoundingBox.MaxY;
-            for (double x = areaMinX + prediction.PointSpacing / 2d; x <= areaMaxX; x += prediction.PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
-                for (double y = areaMinY + prediction.PointSpacing / 2d; y <= areaMaxY; y += prediction.PointSpacing)
+            for (double x = areaMinX + prediction.Model.PointSpacing / 2d; x <= areaMaxX; x += prediction.Model.PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
+                for (double y = areaMinY + prediction.Model.PointSpacing / 2d; y <= areaMaxY; y += prediction.Model.PointSpacing)
                 {
                     Tuple<double, double> location = new Tuple<double, double>(x, y);
                     PostGIS.Point point = new PostGIS.Point(x, y, area.SRID);
@@ -305,7 +305,7 @@ namespace PTL.ATT.Models
                     Console.Out.WriteLine("WARNING:  we are using " + nullPointIds.Count + " points, but the maximum " + sample + " sample size is " + maxSampleSize + ". Be aware that this could be going beyond the memory limits of your machine.");
 
             if (training && incidentPoints.Count == 0)
-                throw new ZeroPositivePointsException("Zero positive incident points inserted into point sample for \"" + prediction.IncidentTypes.Concatenate(", ") + "\"." + (numIncidentsToRemove > 0 ? " This is due to sample size restrictions. Either increase the training sample size to " + (maxSampleSize + numIncidentsToRemove) + " to include all incidents or increase the point spacing to reduce the number of null points." : ""));
+                throw new ZeroPositivePointsException("Zero positive incident points inserted into point sample for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\"." + (numIncidentsToRemove > 0 ? " This is due to sample size restrictions. Either increase the training sample size to " + (maxSampleSize + numIncidentsToRemove) + " to include all incidents or increase the point spacing to reduce the number of null points." : ""));
 
             Point.Insert(connection, incidentPoints, prediction.Id, area, false, vacuum);
         }
@@ -318,7 +318,7 @@ namespace PTL.ATT.Models
             foreach (Feature f in prediction.SelectedFeatures)
                 idFeature.Add(f.Id, new NumericFeature(f.Id.ToString()));
 
-            Area area = training ? prediction.TrainingArea : prediction.PredictionArea;
+            Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
 
             #region spatial distance features
             Console.Out.WriteLine("Extracting spatial distance feature values");
@@ -548,7 +548,7 @@ namespace PTL.ATT.Models
                 {
                     Console.Out.WriteLine("Creating training grid");
 
-                    Point.CreateTable(prediction.Id, prediction.TrainingArea.SRID);
+                    Point.CreateTable(prediction.Id, prediction.Model.TrainingArea.SRID);
                     InsertPointsIntoPrediction(cmd.Connection, prediction, true, true);
 
                     #region feature selection
@@ -616,7 +616,7 @@ namespace PTL.ATT.Models
 
                                 pointPredictionLog.Write(p.Id + " <p><ls>");
                                 foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.SortKeysByValues(true))
-                                    if (label == PointPrediction.NullLabel || prediction.IncidentTypes.Contains(label))
+                                    if (label == PointPrediction.NullLabel || prediction.Model.IncidentTypes.Contains(label))
                                         pointPredictionLog.Write("<l c=\"" + Math.Round(vector.DerivedFrom.PredictionConfidenceScores[label], 3) + "\"><![CDATA[" + label + "]]></l>");
                                     else
                                         throw new Exception("Invalid prediction label on point:  " + label);
@@ -646,16 +646,7 @@ namespace PTL.ATT.Models
                 }
                 #endregion
 
-                LastRun = DateTime.Now;
-
                 return prediction.Id;
-            }
-            catch (Exception ex)
-            {
-                try { prediction.Delete(); }
-                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete prediction:  " + ex2.Message); }
-
-                throw ex;
             }
             finally
             {

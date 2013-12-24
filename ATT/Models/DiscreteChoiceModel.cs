@@ -53,8 +53,6 @@ namespace PTL.ATT.Models
             [Reflector.Insert, Reflector.Select(true)]
             public const string IncidentTypes = "incident_types";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string LastRun = "last_run";
-            [Reflector.Insert, Reflector.Select(true)]
             public const string Name = "name";
             [Reflector.Insert, Reflector.Select(true)]
             public const string PointSpacing = "point_spacing";
@@ -88,12 +86,11 @@ namespace PTL.ATT.Models
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.IncidentTypes + " VARCHAR[] DEFAULT '{}'," +
-                   Columns.LastRun + " TIMESTAMP," +
                    Columns.Name + " VARCHAR," +
                    Columns.PointSpacing + " INT," +
                    Columns.PredictionSampleSize + " INT," +
                    Columns.Smoothers + " BYTEA[]," +
-                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE CASCADE," +
+                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," +
                    Columns.TrainingEnd + " TIMESTAMP," +
                    Columns.TrainingStart + " TIMESTAMP," +
                    Columns.TrainingSampleSize + " INT," +
@@ -113,7 +110,6 @@ namespace PTL.ATT.Models
                                     IEnumerable<Smoother> smoothers)
         {
             NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('{" + incidentTypes.Select(i => "\"" + i + "\"").Concatenate(",") + "}'," +
-                                                                                                              "@last_run," +
                                                                                                               "'" + name + "'," +
                                                                                                               pointSpacing + "," +
                                                                                                               predictionSampleSize + "," +
@@ -125,8 +121,7 @@ namespace PTL.ATT.Models
 
 
 
-            ConnectionPool.AddParameters(cmd, new Parameter("last_run", NpgsqlDbType.Timestamp, DateTime.MinValue),
-                                              new Parameter("training_start", NpgsqlDbType.Timestamp, trainingStart),
+            ConnectionPool.AddParameters(cmd, new Parameter("training_start", NpgsqlDbType.Timestamp, trainingStart),
                                               new Parameter("training_end", NpgsqlDbType.Timestamp, trainingEnd));
 
             BinaryFormatter bf = new BinaryFormatter();
@@ -141,32 +136,30 @@ namespace PTL.ATT.Models
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
-        public static List<DiscreteChoiceModel> GetForArea(Area area)
-        {
-            List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.TrainingAreaId + "=" + area.Id);
-            using (NpgsqlDataReader reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
-                    models.Add(Instantiate(reader));
-
-                reader.Close();
-            }
-            DB.Connection.Return(cmd.Connection);
-
-            return models;
-        }
-
-        public static IEnumerable<DiscreteChoiceModel> GetAll()
+        public static IEnumerable<DiscreteChoiceModel> GetAll(bool excludeThoseCopiedForPredictions)
         {
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
-                models.Add(Instantiate(reader));
+            {
+                DiscreteChoiceModel model = Instantiate(reader);
+                if (!excludeThoseCopiedForPredictions || !model.HasMadePredictions)
+                    models.Add(model);
+            }
 
             reader.Close();
             DB.Connection.Return(cmd.Connection);
+
+            return models;
+        }
+
+        public static List<DiscreteChoiceModel> GetForArea(Area area, bool excludeThoseCopiedForPredictions)
+        {
+            List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
+            foreach (DiscreteChoiceModel model in GetAll(excludeThoseCopiedForPredictions))
+                if (model.TrainingAreaId == area.Id)
+                    models.Add(model);
 
             return models;
         }
@@ -210,9 +203,24 @@ namespace PTL.ATT.Models
         #region evaluation    
         public static void Evaluate(Prediction prediction, int plotWidth, int plotHeight)
         {
-            IEnumerable<Incident> incidents = GetIncidentsToEvaluate(prediction);
-            if (incidents == null)
+            List<Incident> newIncidents = new List<Incident>();
+            DateTime newIncidentsStart = prediction.PredictionStartTime;
+            if (prediction.MostRecentlyEvaluatedIncidentTime >= newIncidentsStart)
+                newIncidentsStart = prediction.MostRecentlyEvaluatedIncidentTime + new TimeSpan(0, 0, 0, 0, 1);
+
+            foreach (Incident i in Incident.Get(newIncidentsStart, prediction.PredictionEndTime, prediction.PredictionArea, prediction.Model.IncidentTypes.ToArray()))
+                newIncidents.Add(i);
+
+            if (newIncidents.Count == 0)
                 return;
+
+            List<Incident> oldIncidents = new List<Incident>();
+            DateTime oldIncidentsEnd = newIncidentsStart - new TimeSpan(0, 0, 0, 0, 1);
+            if (oldIncidentsEnd >= prediction.PredictionStartTime)
+                foreach (Incident i in Incident.Get(prediction.PredictionStartTime, oldIncidentsEnd, prediction.PredictionArea, prediction.Model.IncidentTypes.ToArray()))
+                    oldIncidents.Add(i);
+
+            IEnumerable<Incident> incidents = oldIncidents.Union(newIncidents);
 
             DiscreteChoiceModel model = prediction.Model;
 
@@ -264,7 +272,7 @@ namespace PTL.ATT.Models
             Dictionary<string, List<double>> aggregateLocationThreats = new Dictionary<string, List<double>>();
             foreach (Prediction prediction in predictions)
             {
-                IEnumerable<Incident> incidents = Incident.Get(prediction.PredictionStartTime, prediction.PredictionEndTime, prediction.PredictionArea, prediction.IncidentTypes.ToArray());
+                IEnumerable<Incident> incidents = Incident.Get(prediction.PredictionStartTime, prediction.PredictionEndTime, prediction.PredictionArea, prediction.Model.IncidentTypes.ToArray());
                 Dictionary<string, int> locationTrueCount = SurveillancePlot.GetOverallLocationTrueCount(incidents, prediction);
                 foreach (string location in locationTrueCount.Keys)
                     aggregateLocationTrueCount.Add(prediction.Id + "-" + location, locationTrueCount[location]);
@@ -282,28 +290,6 @@ namespace PTL.ATT.Models
 
             return new SurveillancePlot(plotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2);
         }
-
-        protected static IEnumerable<Incident> GetIncidentsToEvaluate(Prediction prediction)
-        {
-            List<Incident> newIncidents = new List<Incident>();
-            DateTime newIncidentsStart = prediction.PredictionStartTime;
-            if (prediction.MostRecentlyEvaluatedIncidentTime >= newIncidentsStart)
-                newIncidentsStart = prediction.MostRecentlyEvaluatedIncidentTime + new TimeSpan(0, 0, 0, 0, 1);
-
-            foreach (Incident i in Incident.Get(newIncidentsStart, prediction.PredictionEndTime, prediction.PredictionArea, prediction.IncidentTypes.ToArray()))
-                newIncidents.Add(i);
-
-            if (newIncidents.Count == 0)
-                return null;
-
-            List<Incident> oldIncidents = new List<Incident>();
-            DateTime oldIncidentsEnd = newIncidentsStart - new TimeSpan(0, 0, 0, 0, 1);
-            if (oldIncidentsEnd >= prediction.PredictionStartTime)
-                foreach (Incident i in Incident.Get(prediction.PredictionStartTime, oldIncidentsEnd, prediction.PredictionArea, prediction.IncidentTypes.ToArray()))
-                    oldIncidents.Add(i);
-
-            return oldIncidents.Union(newIncidents);
-        }
         #endregion
         #endregion
 
@@ -317,7 +303,6 @@ namespace PTL.ATT.Models
         private int _trainingSampleSize;
         private int _predictionSampleSize;
         private List<Smoother> _smoothers;
-        private DateTime _lastRun;
 
         #region properties
         public int Id
@@ -375,16 +360,6 @@ namespace PTL.ATT.Models
             get { return _smoothers; }
         }
 
-        public DateTime LastRun
-        {
-            get { return _lastRun; }
-            set
-            {
-                _lastRun = value;
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.LastRun + "=@now WHERE " + Columns.Id + "=" + _id, new Parameter("now", NpgsqlDbType.Timestamp, _lastRun));
-            }
-        }
-
         public List<Prediction> Predictions
         {
             get { return Prediction.GetForModel(this); }
@@ -413,7 +388,6 @@ namespace PTL.ATT.Models
             _trainingEnd = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingEnd]);
             _trainingSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.TrainingSampleSize]);
             _predictionSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.PredictionSampleSize]);
-            _lastRun = Convert.ToDateTime(reader[Table + "_" + Columns.LastRun]);
 
             BinaryFormatter bf = new BinaryFormatter();
 
@@ -440,12 +414,18 @@ namespace PTL.ATT.Models
             Prediction prediction = null;
             try
             {
-                prediction = new Prediction(Prediction.Create(cmd.Connection, _id, newRun, _incidentTypes, _trainingAreaId, _trainingStart, _trainingEnd, predictionName, _pointSpacing, predictionArea.Id, startTime, endTime, true));
+                prediction = new Prediction(Prediction.Create(cmd.Connection, Copy(), newRun, predictionName, predictionArea.Id, startTime, endTime, true));
                 prediction.SelectedFeatures = features;
+
+                Run(prediction, idOfSpatiotemporallyIdenticalPrediction);
+
+                prediction.Done = true;
+
+                return prediction.Id;
             }
             catch (Exception ex)
             {
-                Console.Out.WriteLine("ERROR:  An error occurred while creating prediction:  " + ex.Message + Environment.NewLine +
+                Console.Out.WriteLine("An error occurred while running prediction:  " + ex.Message + Environment.NewLine +
                                       ex.StackTrace);
 
                 try { prediction.Delete(); }
@@ -457,12 +437,6 @@ namespace PTL.ATT.Models
             {
                 DB.Connection.Return(cmd.Connection);
             }
-
-            Run(prediction, idOfSpatiotemporallyIdenticalPrediction);
-
-            prediction.Done = true;
-
-            return prediction.Id;
         }
 
         internal abstract void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction);
@@ -485,8 +459,7 @@ namespace PTL.ATT.Models
                    indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +
                    indent + "Prediction sample size:  " + _predictionSampleSize + Environment.NewLine +
                    indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
-                   indent + "Smoothers:  " + _smoothers.Select(s => s.GetSmoothingDetails()).Concatenate(", ") + Environment.NewLine +
-                   indent + "Last run:  " + (_lastRun.Equals(DateTime.MinValue) ? "Never" : _lastRun.ToShortDateString() + " " + _lastRun.ToShortTimeString());
+                   indent + "Smoothers:  " + _smoothers.Select(s => s.GetSmoothingDetails()).Concatenate(", ");
         }
 
         public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, List<Smoother> smoothers)

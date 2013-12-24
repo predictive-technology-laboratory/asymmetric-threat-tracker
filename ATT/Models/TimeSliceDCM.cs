@@ -241,8 +241,8 @@ namespace PTL.ATT.Models
                     }
 
                 long sliceTicks = TimeSliceTicks;
-                long firstSlice = (long)((training ? prediction.TrainingStartTime.Ticks : prediction.PredictionStartTime.Ticks) / sliceTicks);
-                long lastSlice = (long)((training ? prediction.TrainingEndTime.Ticks : prediction.PredictionEndTime.Ticks) / sliceTicks);
+                long firstSlice = (long)((training ? prediction.Model.TrainingStart.Ticks : prediction.PredictionStartTime.Ticks) / sliceTicks);
+                long lastSlice = (long)((training ? prediction.Model.TrainingEnd.Ticks : prediction.PredictionEndTime.Ticks) / sliceTicks);
                 int numSlices = (int)(lastSlice - firstSlice + 1);
                 long ticksPerHour = new TimeSpan(1, 0, 0).Ticks;
                 int numFeatures = prediction.SelectedFeatures.Count(f => f.EnumType == typeof(TimeSliceFeature)) + (ExternalFeatureExtractor == null ? 0 : ExternalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));

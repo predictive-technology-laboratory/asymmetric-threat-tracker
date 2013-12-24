@@ -57,8 +57,6 @@ namespace PTL.ATT
             public const string Done = "done";
             [Reflector.Select(true)]
             public const string Id = "id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string IncidentTypes = "incident_types";
             [Reflector.Select(true)]
             public const string ModelDirectory = "model_directory";
             [Reflector.Insert, Reflector.Select(true)]
@@ -67,8 +65,6 @@ namespace PTL.ATT
             public const string MostRecentlyEvaluatedIncidentTime = "most_recently_evaluated_incident_time";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Name = "name";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string PointSpacing = "point_spacing";
             [Reflector.Insert, Reflector.Select(true)]
             public const string PredictionAreaId = "prediction_area_id";
             [Reflector.Insert, Reflector.Select(true)]
@@ -79,12 +75,6 @@ namespace PTL.ATT
             public const string RunId = "run_id";
             [Reflector.Select(true)]
             public const string Smoothing = "smoothing";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingAreaId = "training_area_id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingEndTime = "training_end_time";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingStartTime = "training_start_time";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
@@ -96,52 +86,39 @@ namespace PTL.ATT
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Analysis + " VARCHAR," +
                    Columns.AssessmentPlots + " BYTEA," +
-                   Columns.Done + " BOOLEAN," + 
+                   Columns.Done + " BOOLEAN," +
                    Columns.Id + " SERIAL PRIMARY KEY," +
-                   Columns.IncidentTypes + " VARCHAR[]," +
                    Columns.ModelDirectory + " VARCHAR," +
                    Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
                    Columns.MostRecentlyEvaluatedIncidentTime + " TIMESTAMP," +
                    Columns.Name + " VARCHAR," +
-                   Columns.PointSpacing + " INT," +
                    Columns.PredictionAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
                    Columns.PredictionEndTime + " TIMESTAMP," +
                    Columns.PredictionStartTime + " TIMESTAMP," +
                    Columns.RunId + " INT," +
-                   Columns.Smoothing + " VARCHAR," +
-                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
-                   Columns.TrainingEndTime + " TIMESTAMP," +
-                   Columns.TrainingStartTime + " TIMESTAMP);" +
+                   Columns.Smoothing + " VARCHAR);" +
                    (connection.TableExists(Table) ? "" :
-                   "CREATE INDEX ON " + Table + " (" + Columns.Done + ");" + 
+                   "CREATE INDEX ON " + Table + " (" + Columns.Done + ");" +
                    "CREATE INDEX ON " + Table + " (" + Columns.ModelId + ");" +
                    "CREATE INDEX ON " + Table + " (" + Columns.PredictionAreaId + ");" +
-                   "CREATE INDEX ON " + Table + " (" + Columns.RunId + ");" +
-                   "CREATE INDEX ON " + Table + " (" + Columns.TrainingAreaId + ");");
+                   "CREATE INDEX ON " + Table + " (" + Columns.RunId + ");");
         }
 
-        internal static int Create(NpgsqlConnection connection, int modelId, bool newRun, IEnumerable<string> incidentTypes, int trainingAreaId, DateTime trainingStartTime, DateTime trainingEndTime, string name, int pointSpacing, int predictionAreaId, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
+        internal static int Create(NpgsqlConnection connection, int modelId, bool newRun, string name, int predictionAreaId, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
         {
             int runId = Convert.ToInt32(DB.Connection.ExecuteScalar("SELECT CASE WHEN COUNT(*) > 0 THEN MAX(" + Columns.RunId + ") ELSE -1 END FROM " + Table));
             runId += newRun ? 1 : 0;
 
             NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (FALSE," + 
-                                                                                                              "'{" + incidentTypes.Select(i => "\"" + i + "\"").Concatenate(",") + "}'," +
                                                                                                               modelId + "," +
                                                                                                               "@most_recently_evaluated_incident_time," +
                                                                                                               "'" + name + "'," +
-                                                                                                              pointSpacing + "," +
                                                                                                               predictionAreaId + "," +
                                                                                                               "@prediction_end_time," +
                                                                                                               "@prediction_start_time," +
-                                                                                                              runId + "," +
-                                                                                                              trainingAreaId + "," +
-                                                                                                              "@training_end_time," +
-                                                                                                              "@training_start_time) RETURNING " + Columns.Id, connection);
+                                                                                                              runId + ") RETURNING " + Columns.Id, connection);
 
             ConnectionPool.AddParameters(cmd, new Parameter("most_recently_evaluated_incident_time", NpgsqlDbType.Timestamp, DateTime.MinValue),
-                                              new Parameter("training_start_time", NpgsqlDbType.Timestamp, trainingStartTime),
-                                              new Parameter("training_end_time", NpgsqlDbType.Timestamp, trainingEndTime),
                                               new Parameter("prediction_start_time", NpgsqlDbType.Timestamp, predictionStartTime),
                                               new Parameter("prediction_end_time", NpgsqlDbType.Timestamp, predictionEndTime));
 
@@ -200,8 +177,11 @@ namespace PTL.ATT
 
         public static List<Prediction> GetForArea(Area area)
         {
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " + 
+                                                         "FROM " + Table + " JOIN " + DiscreteChoiceModel.Table + " ON " + DiscreteChoiceModel.Table + "." + DiscreteChoiceModel.Columns.Id + "=" + Prediction.Table + "." + Columns.ModelId + " " +  
+                                                         "WHERE " + Columns.Done + "=TRUE AND (" + DiscreteChoiceModel.Columns.TrainingAreaId + "=" + area.Id + " OR " + Columns.PredictionAreaId + "=" + area.Id + ")");
+
             List<Prediction> predictions = new List<Prediction>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE AND (" + Columns.TrainingAreaId + "=" + area.Id + " OR " + Columns.PredictionAreaId + "=" + area.Id + ")");
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
                 predictions.Add(new Prediction(reader));
@@ -217,13 +197,7 @@ namespace PTL.ATT
         private int _runId;
         private string _modelDirectory;
         private int _modelId;
-        private Set<string> _incidentTypes;
-        private int _trainingAreaId;
-        private Area _trainingArea;
-        private DateTime _trainingStartTime;
-        private DateTime _trainingEndTime;
         private string _name;
-        private int _pointSpacing;
         private int _predictionAreaId;
         private Area _predictionArea;
         private DateTime _predictionStartTime;
@@ -300,37 +274,6 @@ namespace PTL.ATT
             get { return DiscreteChoiceModel.Instantiate(_modelId); }
         }
 
-        public Set<string> IncidentTypes
-        {
-            get { return _incidentTypes; }
-        }
-
-        public int TrainingAreaId
-        {
-            get { return _trainingAreaId; }
-        }
-
-        public Area TrainingArea
-        {
-            get
-            {
-                if (_trainingArea == null)
-                    _trainingArea = new Area(_trainingAreaId);
-
-                return _trainingArea;
-            }
-        }
-
-        public DateTime TrainingStartTime
-        {
-            get { return _trainingStartTime; }
-        }
-
-        public DateTime TrainingEndTime
-        {
-            get { return _trainingEndTime; }
-        }
-
         public string Name
         {
             get { return _name; }
@@ -359,11 +302,6 @@ namespace PTL.ATT
 
                 DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Name + "='" + _name + "' WHERE " + Columns.Id + "=" + _id);
             }
-        }
-
-        public int PointSpacing
-        {
-            get { return _pointSpacing; }
         }
 
         public int PredictionAreaId
@@ -524,12 +462,7 @@ namespace PTL.ATT
             _runId = Convert.ToInt32(reader[Table + "_" + Columns.RunId]);
             _modelDirectory = Convert.ToString(reader[Table + "_" + Columns.ModelDirectory]);
             _modelId = Convert.ToInt32(reader[Table + "_" + Columns.ModelId]);
-            _incidentTypes = new Set<string>(reader[Table + "_" + Columns.IncidentTypes] as string[]);
-            _trainingAreaId = Convert.ToInt32(reader[Table + "_" + Columns.TrainingAreaId]);
-            _trainingStartTime = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingStartTime]);
-            _trainingEndTime = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingEndTime]);
             _name = Convert.ToString(reader[Table + "_" + Columns.Name]);
-            _pointSpacing = Convert.ToInt32(reader[Table + "_" + Columns.PointSpacing]);
             _predictionAreaId = Convert.ToInt32(reader[Table + "_" + Columns.PredictionAreaId]);
             _predictionStartTime = Convert.ToDateTime(reader[Table + "_" + Columns.PredictionStartTime]);
             _predictionEndTime = Convert.ToDateTime(reader[Table + "_" + Columns.PredictionEndTime]);
@@ -570,6 +503,9 @@ namespace PTL.ATT
             if (Directory.Exists(_modelDirectory))
                 Directory.Delete(_modelDirectory, true);
 
+            try { Model.Delete(); }
+            catch (Exception ex) { Console.Out.WriteLine("Failed to delete model for prediction:  " + ex.Message); }
+
             if (OnPredictionDeleted != null)
                 OnPredictionDeleted(this);
         }
@@ -592,7 +528,7 @@ namespace PTL.ATT
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
-            int copyId = Create(cmd.Connection, _modelId, newRun, _incidentTypes, _trainingAreaId, _trainingStartTime, _trainingEndTime, newName, _pointSpacing, _predictionAreaId, _predictionStartTime, _predictionEndTime, false);
+            int copyId = Create(cmd.Connection, Model.Copy(), newRun, newName, _predictionAreaId, _predictionStartTime, _predictionEndTime, false);
 
             try
             {
@@ -657,7 +593,7 @@ namespace PTL.ATT
                     else
                         File.Copy(path, Path.Combine(copy.ModelDirectory, Path.GetFileName(path)));
 
-                Model.ChangeFeatureIds(copy, oldNewFeatureId);
+                copy.Model.ChangeFeatureIds(copy, oldNewFeatureId);
                 copy.Done = true;
             }
             catch (Exception ex)
@@ -696,11 +632,7 @@ namespace PTL.ATT
                    indent + "Run:  " + _runId + Environment.NewLine +
                    indent + "Model:  " + Model.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Model directory:  " + _modelDirectory + Environment.NewLine +
-                   indent + "Incident types:  " + _incidentTypes.Concatenate(",") + Environment.NewLine +
-                   indent + "Features:  " + SelectedFeatures.Select(f => f.ToString()).Concatenate(",") + Environment.NewLine + 
-                   indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
-                   indent + "Training start:  " + _trainingStartTime.ToShortDateString() + " " + _trainingStartTime.ToShortTimeString() + Environment.NewLine +
-                   indent + "Training end:  " + _trainingEndTime.ToShortDateString() + " " + _trainingEndTime.ToShortTimeString() + Environment.NewLine +
+                   indent + "Features:  " + SelectedFeatures.Select(f => f.ToString()).Concatenate(",") + Environment.NewLine +
                    indent + "Prediction start:  " + _predictionStartTime.ToShortDateString() + " " + _predictionStartTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Prediction end:  " + _predictionEndTime.ToShortDateString() + " " + _predictionEndTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Smoothing:  " + _smoothing + Environment.NewLine +
@@ -801,7 +733,7 @@ namespace PTL.ATT
         /// </summary>
         public void ReleaseLazyLoadedData()
         {
-            _trainingArea = _predictionArea = null;
+            _predictionArea = null;
             _points = null;
             _pointPredictions = null;
             _selectedFeatures = null;

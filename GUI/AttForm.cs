@@ -628,7 +628,7 @@ namespace PTL.ATT.GUI
         {
             if (area != null)
             {
-                List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(area);
+                List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(area, false);
                 List<Prediction> predictionsForArea = Prediction.GetForArea(area);
                 if (modelsForArea.Count > 0 || predictionsForArea.Count > 0)
                     if (MessageBox.Show("The area \"" + area.Name + "\" is associated with " + modelsForArea.Count + " model(s) and " + predictionsForArea.Count + " prediction(s), which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
@@ -768,12 +768,6 @@ namespace PTL.ATT.GUI
             {
                 DiscreteChoiceModel m = SelectedModel;
 
-                if (m.HasMadePredictions)
-                    if (MessageBox.Show("You cannot update a model that has been used to make predictions. Would you like to copy the current model instead?", "Copy model?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                        m = DiscreteChoiceModel.Instantiate(m.Copy());
-                    else
-                        return;
-
                 if (m is TimeSliceDCM)
                 {
                     TimeSliceDCM ts = m as TimeSliceDCM;
@@ -803,15 +797,9 @@ namespace PTL.ATT.GUI
         public void deleteModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DiscreteChoiceModel m = SelectedModel;
-            if (m != null)
+            if (m != null && MessageBox.Show("Are you sure you want to delete model \"" + m.Name + "\"?", "Confirm delete...", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                if (m.HasMadePredictions)
-                    if (MessageBox.Show("Cannot delete model until all of its associated predictions have been deleted. Delete them now?", "Delete predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                        m.DeletePredictions();
-
-                if (!m.HasMadePredictions)
-                    m.Delete();
-
+                m.Delete();
                 RefreshAll();
             }
         }
@@ -1033,21 +1021,6 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region predictions
-        public void GroupPredictions()
-        {
-            predictions.BeginUpdate();
-
-            List<Prediction> preds = TraversePredictionTree().Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction).ToList();
-            preds.Sort(new Comparison<Prediction>((p1, p2) => p1.Id.CompareTo(p2.Id)));
-            predictions.Nodes.Clear();
-            foreach (PredictionGroup group in Group(preds, _groups, 0))
-                AddToTree(predictions.Nodes, group);
-
-            predictions.EndUpdate();
-
-            SetPredictionsTooltip(null);
-        }
-
         private IEnumerable<PredictionGroup> Group(IEnumerable<Prediction> predictions, List<string> _groups, int groupNum)
         {
             if (groupNum >= _groups.Count)
@@ -1064,7 +1037,7 @@ namespace PTL.ATT.GUI
             else if (_groups[groupNum] == groupByFeaturesToolStripMenuItem.Text)
                 grouper = p => "Features:  " + p.SelectedFeatures.OrderBy(f => f.Description).Select(f => f.Description).Concatenate(", ");
             else if (_groups[groupNum] == groupByIncidentTypesToolStripMenuItem.Text)
-                grouper = p => "Incidents:  " + p.IncidentTypes.OrderBy(i => i).Concatenate(", ");
+                grouper = p => "Incidents:  " + p.Model.IncidentTypes.OrderBy(i => i).Concatenate(", ");
             else if (_groups[groupNum] == groupByRunToolStripMenuItem.Text)
                 grouper = p => "Run:  " + p.RunId;
             else if (_groups[groupNum] == groupByPredictionIntervalToolStripMenuItem.Text)
@@ -1192,14 +1165,20 @@ namespace PTL.ATT.GUI
 
         private void SetPredictionsTooltip(TreeNode selectedNode)
         {
-            if (_setPredictionsToolTip)
-            {
-                string text = null;
-                if (selectedNode != null && selectedNode.Checked && selectedNode.Tag is Prediction)
-                    text = (selectedNode.Tag as Prediction).GetDetails(0);
+            if (selectedNode != null && selectedNode.Checked && selectedNode.Tag is Prediction)
+                SetPredictionsTooltip(selectedNode.Tag as Prediction);
+        }
 
-                toolTip.SetToolTip(predictions, text);
+        private void SetPredictionsTooltip(Prediction prediction)
+        {
+            if(predictions.InvokeRequired)
+            {
+                predictions.Invoke(new Action<Prediction>(SetPredictionsTooltip), prediction);
+                return;
             }
+
+            if (_setPredictionsToolTip)
+                toolTip.SetToolTip(predictions, prediction.GetDetails(0));
         }
 
         public void displayPredictionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1217,7 +1196,7 @@ namespace PTL.ATT.GUI
                             Thread evalThread = new Thread(new ThreadStart(delegate()
                                 {
                                     DiscreteChoiceModel.Evaluate(p, PlotHeight, PlotHeight);
-                                    Invoke(new Action(delegate() { toolTip.SetToolTip(predictions, p.GetDetails(0)); }));
+                                    SetPredictionsTooltip(p);
                                 }));
                             evalThread.Start();
                             threads.Add(evalThread);
@@ -1743,7 +1722,7 @@ namespace PTL.ATT.GUI
 
             if (SelectedTrainingArea != null)
             {
-                foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(SelectedTrainingArea))
+                foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(SelectedTrainingArea, true))
                     models.Items.Add(m);
 
                 if (models.Items.Count > 0)
@@ -1797,22 +1776,25 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            predictions.Nodes.Clear();
-            foreach (Prediction prediction in Prediction.GetAll())
-            {
-                TreeNode node = new TreeNode();
-                node.Tag = prediction;
-                predictions.Nodes.Add(node);
-            }
+            predictions.BeginUpdate();
 
-            GroupPredictions();
+            predictions.Nodes.Clear();
+            toolTip.SetToolTip(predictions, null);
+
+            List<Prediction> allPredictions = Prediction.GetAll();
+            allPredictions.Sort(new Comparison<Prediction>((p1, p2) => p1.Id.CompareTo(p2.Id)));
+            foreach (PredictionGroup group in Group(allPredictions, _groups, 0))
+                AddToTree(predictions.Nodes, group);
+
+            predictions.EndUpdate();
 
             if (predictionIdsToSelect != null)
             {
                 _setPredictionsToolTip = predictionIdsToSelect.Count() == 1;
                 TraversePredictionTree().Where(n => n.Tag is Prediction && predictionIdsToSelect.Contains((n.Tag as Prediction).Id)).Select(n => n.Checked = true).ToArray();
-                _setPredictionsToolTip = true;
             }
+
+            _setPredictionsToolTip = true;
         }
         #endregion
 
@@ -2031,5 +2013,6 @@ namespace PTL.ATT.GUI
             }
         }
         #endregion
+
     }
 }

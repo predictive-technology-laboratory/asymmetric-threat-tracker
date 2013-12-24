@@ -227,6 +227,25 @@ namespace PTL.ATT.GUI
                 lb.SelectedIndex = 0;
         }
 
+        public void AddControl(string label, Control control, Func<object> returnValueFunction, string valueId)
+        {
+            Label l = new Label();
+            l.Text = label;
+            l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            control.Size = control.PreferredSize;
+
+            FlowLayoutPanel p = new FlowLayoutPanel();
+            p.FlowDirection = FlowDirection.LeftToRight;
+            p.Controls.Add(l);
+            p.Controls.Add(control);
+            p.Size = p.PreferredSize;
+
+            _mainPanel.Controls.Add(p);
+            _valueIdReturn.Add(valueId, returnValueFunction);
+        }
+
         public T GetValue<T>(string valueId)
         {
             T castValue;

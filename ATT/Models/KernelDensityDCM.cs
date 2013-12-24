@@ -321,8 +321,6 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction.Id, false);
 
                 Smooth(prediction);
-
-                LastRun = DateTime.Now;
             }
             finally
             {
