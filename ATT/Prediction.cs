@@ -492,7 +492,8 @@ namespace PTL.ATT
         {
             ReleaseLazyLoadedData();
 
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
+            try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
+            catch (Exception ex) { Console.Out.WriteLine("Failed to delete prediction from table:  " + ex.Message); }
 
             try { Point.DeleteTable(_id); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete point table:  " + ex.Message); }
@@ -500,8 +501,12 @@ namespace PTL.ATT
             try { PointPrediction.DeleteTable(_id); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete point prediction table:  " + ex.Message); }
 
-            if (Directory.Exists(_modelDirectory))
-                Directory.Delete(_modelDirectory, true);
+            try
+            {
+                if (Directory.Exists(_modelDirectory))
+                    Directory.Delete(_modelDirectory, true);
+            }
+            catch (Exception ex) { Console.Out.WriteLine("Failed to delete model directory:  " + ex.Message); }
 
             try { Model.Delete(); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete model for prediction:  " + ex.Message); }

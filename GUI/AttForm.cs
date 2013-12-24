@@ -976,7 +976,7 @@ namespace PTL.ATT.GUI
                                     }
                                     catch (Exception ex)
                                     {
-                                        string msg = "ERROR:  An error occurred while running prediction:  " + ex.Message + Environment.NewLine +
+                                        string msg = "An error occurred while running prediction:  " + ex.Message + Environment.NewLine +
                                                       ex.StackTrace;
                                         Console.Out.WriteLine(msg);
                                         Notify("Error", msg);
@@ -996,7 +996,7 @@ namespace PTL.ATT.GUI
                                 }
                                 catch (Exception ex)
                                 {
-                                    string msg = "ERROR:  An error occurred while running prediction:  " + ex.Message + Environment.NewLine +
+                                    string msg = "An error occurred while running prediction:  " + ex.Message + Environment.NewLine +
                                                   ex.StackTrace;
                                     Console.Out.WriteLine(msg);
                                     Notify("Error", msg);
@@ -1044,7 +1044,7 @@ namespace PTL.ATT.GUI
                 grouper = p => "Time:  " + p.PredictionStartTime.ToShortDateString() + " " + p.PredictionStartTime.ToShortTimeString() + " -- " + p.PredictionEndTime.ToShortDateString() + " " + p.PredictionEndTime.ToShortTimeString();
             else
             {
-                MessageBox.Show("ERROR:  Grouping \"" + _groups[groupNum] + "\" not implemented. Please send this message to the developers.");
+                MessageBox.Show("Grouping \"" + _groups[groupNum] + "\" not implemented. Please send this message to the developers.");
                 yield break;
             }
 
@@ -1336,7 +1336,7 @@ namespace PTL.ATT.GUI
                             }
 
                             try { Prediction.VacuumTable(); }
-                            catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + Prediction.Table + ":  " + ex.Message); }
+                            catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum " + Prediction.Table + ":  " + ex.Message); }
 
                             string msg = "Done copying predictions";
                             Console.Out.WriteLine(msg);
@@ -1560,7 +1560,7 @@ namespace PTL.ATT.GUI
                             }
 
                             try { Prediction.VacuumTable(); }
-                            catch (Exception ex) { Console.Out.WriteLine("ERROR:  failed to vacuum " + Prediction.Table + ":  " + ex.Message); }
+                            catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum " + Prediction.Table + ":  " + ex.Message); }
 
                             string msg = "Done deleting predictions";
                             Console.Out.WriteLine(msg);
