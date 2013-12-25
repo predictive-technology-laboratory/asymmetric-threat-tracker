@@ -756,7 +756,7 @@ namespace PTL.ATT.GUI
             }
         }
 
-        public void updateModelToolStripMenuItem_Click(object sender, EventArgs e)
+        public void editModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (SelectedModel == null)
                 MessageBox.Show("Must select model.");

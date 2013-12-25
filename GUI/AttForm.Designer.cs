@@ -96,7 +96,7 @@ namespace PTL.ATT.GUI
             this.models = new System.Windows.Forms.ComboBox();
             this.modelMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.updateModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
             this.run = new System.Windows.Forms.Button();
@@ -556,29 +556,29 @@ namespace PTL.ATT.GUI
             // 
             this.modelMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addModelToolStripMenuItem,
-            this.updateModelToolStripMenuItem,
+            this.editModelToolStripMenuItem,
             this.deleteModelToolStripMenuItem});
             this.modelMenu.Name = "modelMenu";
-            this.modelMenu.Size = new System.Drawing.Size(110, 70);
+            this.modelMenu.Size = new System.Drawing.Size(153, 92);
             // 
             // addModelToolStripMenuItem
             // 
             this.addModelToolStripMenuItem.Name = "addModelToolStripMenuItem";
-            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.addModelToolStripMenuItem.Text = "Add";
             this.addModelToolStripMenuItem.Click += new System.EventHandler(this.addModelToolStripMenuItem_Click);
             // 
-            // updateModelToolStripMenuItem
+            // editModelToolStripMenuItem
             // 
-            this.updateModelToolStripMenuItem.Name = "updateModelToolStripMenuItem";
-            this.updateModelToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
-            this.updateModelToolStripMenuItem.Text = "Update";
-            this.updateModelToolStripMenuItem.Click += new System.EventHandler(this.updateModelToolStripMenuItem_Click);
+            this.editModelToolStripMenuItem.Name = "editModelToolStripMenuItem";
+            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.editModelToolStripMenuItem.Text = "Edit";
+            this.editModelToolStripMenuItem.Click += new System.EventHandler(this.editModelToolStripMenuItem_Click);
             // 
             // deleteModelToolStripMenuItem
             // 
             this.deleteModelToolStripMenuItem.Name = "deleteModelToolStripMenuItem";
-            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.deleteModelToolStripMenuItem.Text = "Delete";
             this.deleteModelToolStripMenuItem.Click += new System.EventHandler(this.deleteModelToolStripMenuItem_Click);
             // 
@@ -789,7 +789,8 @@ namespace PTL.ATT.GUI
             this.groupByPredictionIntervalToolStripMenuItem,
             this.groupByRunToolStripMenuItem});
             this.predictionGroups.Name = "sorts";
-            this.predictionGroups.Size = new System.Drawing.Size(184, 136);
+            this.predictionGroups.OwnerItem = this.groupByToolStripMenuItem;
+            this.predictionGroups.Size = new System.Drawing.Size(184, 114);
             this.predictionGroups.Closing += new System.Windows.Forms.ToolStripDropDownClosingEventHandler(this.submenu_Closing);
             // 
             // groupByFeaturesToolStripMenuItem
@@ -1324,7 +1325,7 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem selectAllIncidentTypesToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip modelMenu;
         private System.Windows.Forms.ToolStripMenuItem addModelToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem updateModelToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editModelToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteModelToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip featuresMenu;
         private System.Windows.Forms.ToolStripMenuItem selectAllFeaturesToolStripMenuItem;
