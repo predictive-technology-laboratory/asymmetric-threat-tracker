@@ -1,39 +1,74 @@
-﻿#region copyright
-// Copyright 2013 Matthew S. Gerber (gerber.matthew@gmail.com)
-// 
-// This file is part of the Asymmetric Threat Tracker (ATT).
-// 
-// The ATT is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// The ATT is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
-#endregion
- 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+﻿using LAIR.Collections.Generic;
 using LAIR.ResourceAPIs.PostgreSQL;
 using LAIR.XML;
 using Npgsql;
-using System.Threading;
-using LAIR.Collections.Generic;
-using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using NpgsqlTypes;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using PostGIS = LAIR.ResourceAPIs.PostGIS;
 
 namespace PTL.ATT.Importers
 {
-    public class SocrataXmlImporter : Importer
+    public class XmlImporter : Importer
     {
+        public abstract class XmlRowInserter
+        {
+            public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
+        }
+
+        public class SocrataIncidentXmlRowInserter : XmlRowInserter
+        {
+            private Dictionary<string, string> _dbColSocrataCol;
+            private Area _importArea;
+            private int _hourOffset;
+            private int _sourceSRID;
+            private Set<int> _existingNativeIDs;
+
+            public SocrataIncidentXmlRowInserter(Dictionary<string, string> dbColSocrataCol, Area importArea, int hourOffset, int sourceSRID, Set<int> existingNativeIDs)
+            {
+                _dbColSocrataCol = dbColSocrataCol;
+                _importArea = importArea;
+                _hourOffset = hourOffset;
+                _sourceSRID = sourceSRID;
+                _existingNativeIDs = existingNativeIDs;
+            }
+
+            public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser rowXmlParser)
+            {
+                int nativeId = int.Parse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.NativeId])); rowXmlParser.Reset();
+
+                if (_existingNativeIDs.Add(nativeId))
+                {
+                    DateTime time = DateTime.Parse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.Time])) + new TimeSpan(_hourOffset, 0, 0); rowXmlParser.Reset();
+                    string type = rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.Type]); rowXmlParser.Reset();
+
+                    double x;
+                    if (!double.TryParse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.X(_importArea)]), out x))
+                        return null;
+
+                    rowXmlParser.Reset();
+
+                    double y;
+                    if (!double.TryParse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.Y(_importArea)]), out y))
+                        return null;
+
+                    rowXmlParser.Reset();
+
+                    PostGIS.Point location = new PostGIS.Point(x, y, _sourceSRID);
+
+                    string value = Incident.GetValue(_importArea, nativeId, location, false, "@time_" + nativeId, type);
+                    List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter("time_" + nativeId, NpgsqlDbType.Timestamp, time) });
+                    return new Tuple<string, List<Parameter>>(value, parameters);
+                }
+                else
+                    return null;
+            }
+        }
+
         public static string[] GetColumnNames(string path)
         {
             using (FileStream file = new FileStream(path, FileMode.Open))
@@ -52,15 +87,15 @@ namespace PTL.ATT.Importers
             }
         }
 
-        public SocrataXmlImporter()
-            : base()
+        private XmlRowInserter _xmlRowInserter;
+
+        public XmlImporter(XmlRowInserter xmlRowInserter)
         {
+            _xmlRowInserter = xmlRowInserter;
         }
 
-        public override void Import(string path, string table, string columns, Func<XmlParser, Tuple<string, List<Parameter>>> rowToInsertValueAndParams)
+        public override void Import(string path, string table, string columns)
         {
-            base.Import(path, table, columns, rowToInsertValueAndParams);
-
             using (FileStream file = new FileStream(path, FileMode.Open))
             {
                 XmlParser p = new XmlParser(file);
@@ -79,7 +114,7 @@ namespace PTL.ATT.Importers
                     {
                         ++totalRows;
 
-                        Tuple<string, List<Parameter>> valueParameters = rowToInsertValueAndParams(new XmlParser(rowXML));
+                        Tuple<string, List<Parameter>> valueParameters = _xmlRowInserter.GetInsertValueAndParameters(new XmlParser(rowXML));
 
                         if (valueParameters == null)
                             ++skippedRows;

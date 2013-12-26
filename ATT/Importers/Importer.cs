@@ -29,11 +29,6 @@ namespace PTL.ATT.Importers
 {
     public abstract class Importer
     {
-        protected Importer() { }
-
-        public virtual void Import(string path, string table, string columns, Func<XmlParser, Tuple<string, List<Parameter>>> rowToInsertValueAndParams)
-        {
-            Console.Out.WriteLine("Importing data from \"" + path + "\" into table \"" + table + "\"");
-        }
+        public abstract void Import(string path, string table, string columns);
     }
 }

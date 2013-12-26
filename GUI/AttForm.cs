@@ -478,14 +478,18 @@ namespace PTL.ATT.GUI
                                     Set<int> existingNativeIDs = Incident.GetNativeIds(importArea);
                                     existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
 
-                                    if (importerType == typeof(SocrataXmlImporter))
+                                    if (importerType == typeof(XmlImporter))
                                     {
-                                        f = new DynamicForm("Map ATT database columns to Socrata columns...", MessageBoxButtons.OK);
+                                        f = new DynamicForm("Map ATT database columns to input file columns...", MessageBoxButtons.OK);
+
+                                        Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(XmlImporter.XmlRowInserter))).ToArray();
+                                        f.AddDropDown("Row inserter:", rowInserterTypes, rowInserterTypes[0], "row_inserter");
+
                                         string[] dbCols = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
-                                        string[] socrataCols = SocrataXmlImporter.GetColumnNames(path);
-                                        Array.Sort(socrataCols);
+                                        string[] inputCols = XmlImporter.GetColumnNames(path);
+                                        Array.Sort(inputCols);
                                         foreach (string dbCol in dbCols)
-                                            f.AddDropDown(dbCol + ":", socrataCols, null, dbCol);
+                                            f.AddDropDown(dbCol + ":", inputCols, null, dbCol);
 
                                         f.ShowDialog();
 
@@ -493,37 +497,15 @@ namespace PTL.ATT.GUI
                                         foreach (string dbCol in dbCols)
                                             dbColSocrataCol.Add(dbCol, f.GetValue<string>(dbCol));
 
-                                        new SocrataXmlImporter().Import(path, Incident.GetTableName(importArea), Incident.Columns.Insert, new Func<XmlParser, Tuple<string, List<Parameter>>>(
-                                            rowP =>
-                                            {
-                                                int nativeId = int.Parse(rowP.ElementText(dbColSocrataCol[Incident.Columns.NativeId])); rowP.Reset();
+                                        XmlImporter.XmlRowInserter rowInserter;
+                                        Type rowInserterType = f.GetValue<Type>("row_inserter");
+                                        if (rowInserterType == typeof(XmlImporter.SocrataIncidentXmlRowInserter))
+                                            rowInserter = new XmlImporter.SocrataIncidentXmlRowInserter(dbColSocrataCol, importArea, hourOffset, sourceSRID, existingNativeIDs);
+                                        else
+                                            throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
 
-                                                if (existingNativeIDs.Add(nativeId))
-                                                {
-                                                    DateTime time = DateTime.Parse(rowP.ElementText(dbColSocrataCol[Incident.Columns.Time])) + new TimeSpan(hourOffset, 0, 0); rowP.Reset();
-                                                    string type = rowP.ElementText(dbColSocrataCol[Incident.Columns.Type]); rowP.Reset();
-
-                                                    double x;
-                                                    if (!double.TryParse(rowP.ElementText(dbColSocrataCol[Incident.Columns.X(importArea)]), out x))
-                                                        return null;
-
-                                                    rowP.Reset();
-
-                                                    double y;
-                                                    if (!double.TryParse(rowP.ElementText(dbColSocrataCol[Incident.Columns.Y(importArea)]), out y))
-                                                        return null;
-
-                                                    rowP.Reset();
-
-                                                    PostGIS.Point location = new PostGIS.Point(x, y, sourceSRID);
-
-                                                    string value = Incident.GetValue(importArea, nativeId, location, false, "@time_" + nativeId, type);
-                                                    List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter("time_" + nativeId, NpgsqlDbType.Timestamp, time) });
-                                                    return new Tuple<string, List<Parameter>>(value, parameters);
-                                                }
-                                                else
-                                                    return null;
-                                            }));
+                                        XmlImporter importer = new XmlImporter(rowInserter);
+                                        importer.Import(path, Incident.GetTableName(importArea), Incident.Columns.Insert);
 
                                         if (deleteFileAfterImport)
                                             File.Delete(path);

@@ -96,7 +96,7 @@
     <Compile Include="Exceptions\ConfigurationException.cs" />
     <Compile Include="Exceptions\ZeroPositivePointsException.cs" />
     <Compile Include="Importers\Importer.cs" />
-    <Compile Include="Importers\SocrataXmlImporter.cs" />
+    <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />
     <Compile Include="Models\KernelDensityDCM.cs" />
