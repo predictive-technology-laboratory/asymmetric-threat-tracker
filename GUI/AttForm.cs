@@ -486,7 +486,7 @@ namespace PTL.ATT.GUI
                                         f.AddDropDown("Row inserter:", rowInserterTypes, rowInserterTypes[0], "row_inserter");
 
                                         string[] dbCols = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
-                                        string[] inputCols = XmlImporter.GetColumnNames(path);
+                                        string[] inputCols = XmlImporter.GetColumnNames(path, "row", "row");
                                         Array.Sort(inputCols);
                                         foreach (string dbCol in dbCols)
                                             f.AddDropDown(dbCol + ":", inputCols, null, dbCol);
@@ -499,12 +499,12 @@ namespace PTL.ATT.GUI
 
                                         XmlImporter.XmlRowInserter rowInserter;
                                         Type rowInserterType = f.GetValue<Type>("row_inserter");
-                                        if (rowInserterType == typeof(XmlImporter.SocrataIncidentXmlRowInserter))
-                                            rowInserter = new XmlImporter.SocrataIncidentXmlRowInserter(dbColSocrataCol, importArea, hourOffset, sourceSRID, existingNativeIDs);
+                                        if (rowInserterType == typeof(XmlImporter.IncidentXmlRowInserter))
+                                            rowInserter = new XmlImporter.IncidentXmlRowInserter(dbColSocrataCol, importArea, hourOffset, sourceSRID, existingNativeIDs);
                                         else
                                             throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
 
-                                        XmlImporter importer = new XmlImporter(rowInserter);
+                                        XmlImporter importer = new XmlImporter(rowInserter, "row", "row");
                                         importer.Import(path, Incident.GetTableName(importArea), Incident.Columns.Insert);
 
                                         if (deleteFileAfterImport)

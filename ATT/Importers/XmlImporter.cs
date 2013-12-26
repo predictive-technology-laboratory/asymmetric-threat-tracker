@@ -15,12 +15,13 @@ namespace PTL.ATT.Importers
 {
     public class XmlImporter : Importer
     {
+        #region row inserters
         public abstract class XmlRowInserter
         {
             public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
         }
 
-        public class SocrataIncidentXmlRowInserter : XmlRowInserter
+        public class IncidentXmlRowInserter : XmlRowInserter
         {
             private Dictionary<string, string> _dbColSocrataCol;
             private Area _importArea;
@@ -28,7 +29,7 @@ namespace PTL.ATT.Importers
             private int _sourceSRID;
             private Set<int> _existingNativeIDs;
 
-            public SocrataIncidentXmlRowInserter(Dictionary<string, string> dbColSocrataCol, Area importArea, int hourOffset, int sourceSRID, Set<int> existingNativeIDs)
+            public IncidentXmlRowInserter(Dictionary<string, string> dbColSocrataCol, Area importArea, int hourOffset, int sourceSRID, Set<int> existingNativeIDs)
             {
                 _dbColSocrataCol = dbColSocrataCol;
                 _importArea = importArea;
@@ -68,15 +69,16 @@ namespace PTL.ATT.Importers
                     return null;
             }
         }
+        #endregion
 
-        public static string[] GetColumnNames(string path)
+        public static string[] GetColumnNames(string path, string rootElementName, string rowElementName)
         {
             using (FileStream file = new FileStream(path, FileMode.Open))
             {
                 XmlParser p = new XmlParser(file);
-                p.SkipToElement("row");
+                p.SkipToElement(rootElementName);
                 p.MoveToElementNode(false);
-                string rowXML = p.OuterXML("row");
+                string rowXML = p.OuterXML(rowElementName);
                 XmlParser rowP = new XmlParser(rowXML);
                 rowP.MoveToElementNode(true);
                 List<string> columnNames = new List<string>();
@@ -88,10 +90,14 @@ namespace PTL.ATT.Importers
         }
 
         private XmlRowInserter _xmlRowInserter;
+        private string _rootElementName;
+        private string _rowElementName;
 
-        public XmlImporter(XmlRowInserter xmlRowInserter)
+        public XmlImporter(XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
         {
             _xmlRowInserter = xmlRowInserter;
+            _rootElementName = rootElementName;
+            _rowElementName = rowElementName;
         }
 
         public override void Import(string path, string table, string columns)
@@ -99,7 +105,7 @@ namespace PTL.ATT.Importers
             using (FileStream file = new FileStream(path, FileMode.Open))
             {
                 XmlParser p = new XmlParser(file);
-                p.SkipToElement("row");
+                p.SkipToElement(_rootElementName);
                 p.MoveToElementNode(false);
                 int totalRows = 0;
                 int totalImported = 0;
@@ -110,7 +116,7 @@ namespace PTL.ATT.Importers
                 StringBuilder cmdTxt = new StringBuilder();
                 try
                 {
-                    while ((rowXML = p.OuterXML("row")) != null)
+                    while ((rowXML = p.OuterXML(_rowElementName)) != null)
                     {
                         ++totalRows;
 

@@ -314,7 +314,7 @@ namespace PTL.ATT.GUI
             this.importShapefileFromSocrataToolStripMenuItem,
             this.deleteShapefilesToolStripMenuItem});
             this.shapefilesToolStripMenuItem1.Name = "shapefilesToolStripMenuItem1";
-            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(123, 22);
+            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
             this.shapefilesToolStripMenuItem1.Text = "Shapefiles";
             // 
             // importShapefilesFromDiskToolStripMenuItem
@@ -348,7 +348,7 @@ namespace PTL.ATT.GUI
             this.simulateIncidentsToolStripMenuItem,
             this.clearSimulatedIncidentsToolStripMenuItem});
             this.incidentsToolStripMenuItem1.Name = "incidentsToolStripMenuItem1";
-            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(123, 22);
+            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
             this.incidentsToolStripMenuItem1.Text = "Incidents";
             // 
             // importFromFileToolStripMenuItem
@@ -369,7 +369,7 @@ namespace PTL.ATT.GUI
             // 
             this.clearImportedIncidentsToolStripMenuItem.Name = "clearImportedIncidentsToolStripMenuItem";
             this.clearImportedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
-            this.clearImportedIncidentsToolStripMenuItem.Text = "Clear imported incidents";
+            this.clearImportedIncidentsToolStripMenuItem.Text = "Clear imported incidents...";
             this.clearImportedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearImportedIncidentsToolStripMenuItem_Click);
             // 
             // toolStripSeparator6
@@ -388,7 +388,7 @@ namespace PTL.ATT.GUI
             // 
             this.clearSimulatedIncidentsToolStripMenuItem.Name = "clearSimulatedIncidentsToolStripMenuItem";
             this.clearSimulatedIncidentsToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
-            this.clearSimulatedIncidentsToolStripMenuItem.Text = "Clear simulated incidents";
+            this.clearSimulatedIncidentsToolStripMenuItem.Text = "Clear simulated incidents...";
             this.clearSimulatedIncidentsToolStripMenuItem.Click += new System.EventHandler(this.clearSimulatedIncidentsToolStripMenuItem_Click);
             // 
             // pluginsToolStripMenuItem
@@ -559,26 +559,26 @@ namespace PTL.ATT.GUI
             this.editModelToolStripMenuItem,
             this.deleteModelToolStripMenuItem});
             this.modelMenu.Name = "modelMenu";
-            this.modelMenu.Size = new System.Drawing.Size(153, 92);
+            this.modelMenu.Size = new System.Drawing.Size(106, 70);
             // 
             // addModelToolStripMenuItem
             // 
             this.addModelToolStripMenuItem.Name = "addModelToolStripMenuItem";
-            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(105, 22);
             this.addModelToolStripMenuItem.Text = "Add";
             this.addModelToolStripMenuItem.Click += new System.EventHandler(this.addModelToolStripMenuItem_Click);
             // 
             // editModelToolStripMenuItem
             // 
             this.editModelToolStripMenuItem.Name = "editModelToolStripMenuItem";
-            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(105, 22);
             this.editModelToolStripMenuItem.Text = "Edit";
             this.editModelToolStripMenuItem.Click += new System.EventHandler(this.editModelToolStripMenuItem_Click);
             // 
             // deleteModelToolStripMenuItem
             // 
             this.deleteModelToolStripMenuItem.Name = "deleteModelToolStripMenuItem";
-            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(105, 22);
             this.deleteModelToolStripMenuItem.Text = "Delete";
             this.deleteModelToolStripMenuItem.Click += new System.EventHandler(this.deleteModelToolStripMenuItem_Click);
             // 
