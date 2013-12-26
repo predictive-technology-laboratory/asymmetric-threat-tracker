@@ -1,5 +1,4 @@
-﻿Simple XML input format for incidents
-Instead of using distance to nearest spatial entity, we could create a density map of the entities and then use the value of the density function.
+﻿Instead of using distance to nearest spatial entity, we could create a density map of the entities and then use the value of the density function.
 Allow user to generate a simple density estimate/map for one or more crime types without having to go through the entire prediction pipeline.
 Multiple kernel learning
   * http://www2.csie.ntu.edu.tw/~b95028/software/liblinear-mkl/index.php
