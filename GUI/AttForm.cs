@@ -139,9 +139,9 @@ namespace PTL.ATT.GUI
             get { return trainingAreas.SelectedItem as Area; }
         }
 
-        public IEnumerable<string> SelectedIncidentTypes
+        public string[] SelectedIncidentTypes
         {
-            get { return incidentTypes.SelectedItems.Cast<string>(); }
+            get { return incidentTypes.SelectedItems.Cast<string>().ToArray(); }
         }
 
         public DiscreteChoiceModel SelectedModel
@@ -149,9 +149,9 @@ namespace PTL.ATT.GUI
             get { return models.SelectedItem as DiscreteChoiceModel; }
         }
 
-        public IEnumerable<Feature> SelectedFeatures
+        public Feature[] SelectedFeatures
         {
-            get { return features.SelectedItems.Cast<Feature>(); }
+            get { return features.SelectedItems.Cast<Feature>().ToArray(); }
         }
 
         public Area SelectedPredictionArea
@@ -701,7 +701,7 @@ namespace PTL.ATT.GUI
             Type[] modelTypes = Assembly.GetAssembly(typeof(DiscreteChoiceModel)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(DiscreteChoiceModel))).ToArray();
             if (SelectedTrainingArea == null)
                 MessageBox.Show("Must select a training area.");
-            else if (incidentTypes.SelectedItems.Count == 0)
+            else if (SelectedIncidentTypes.Length == 0)
                 MessageBox.Show("Must select incident types.");
             else if (modelTypes.Length == 0)
                 MessageBox.Show("No model type are available.");
@@ -1147,8 +1147,12 @@ namespace PTL.ATT.GUI
 
         private void SetPredictionsTooltip(TreeNode selectedNode)
         {
+            Prediction prediction = null;
+
             if (selectedNode != null && selectedNode.Checked && selectedNode.Tag is Prediction)
-                SetPredictionsTooltip(selectedNode.Tag as Prediction);
+                prediction = selectedNode.Tag as Prediction;
+
+            SetPredictionsTooltip(prediction);
         }
 
         private void SetPredictionsTooltip(Prediction prediction)
@@ -1160,7 +1164,12 @@ namespace PTL.ATT.GUI
             }
 
             if (_setPredictionsToolTip)
-                toolTip.SetToolTip(predictions, prediction.GetDetails(0));
+            {
+                toolTip.SetToolTip(predictions, null);
+
+                if (prediction != null)
+                    toolTip.SetToolTip(predictions, prediction.GetDetails(0));
+            }
         }
 
         public void displayPredictionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1452,15 +1461,16 @@ namespace PTL.ATT.GUI
                         string plotTitle = selectedPlot.Title.Replace(Environment.NewLine, " ").RemoveRepeatedWhitespace();
                         comparisonTitle.Append((comparisonTitle.Length == 0 ? "Comparison of " : ", ") + plotTitle);
                         foreach (string series in selectedPlot.SeriesPoints.Keys)
-                        {
-                            string seriesTitle = plotTitle;
-                            if (series == DiscreteChoiceModel.OptimalSeriesName)
-                                seriesTitle = DiscreteChoiceModel.OptimalSeriesName + " " + seriesTitle;
+                            if (series != DiscreteChoiceModel.OptimalSeriesName)
+                            {
+                                string seriesTitle = plotTitle;
+                                if (series == DiscreteChoiceModel.OptimalSeriesName)
+                                    seriesTitle = DiscreteChoiceModel.OptimalSeriesName + " " + seriesTitle;
 
-                            seriesTitle = seriesPoints.ContainsKey(seriesTitle) ? seriesTitle + " " + seriesPoints.Keys.Count(k => k == seriesTitle) : seriesTitle;
+                                seriesTitle = seriesPoints.ContainsKey(seriesTitle) ? seriesTitle + " " + seriesPoints.Keys.Count(k => k == seriesTitle) : seriesTitle;
 
-                            seriesPoints.Add(seriesTitle, selectedPlot.SeriesPoints[series]);
-                        }
+                                seriesPoints.Add(seriesTitle, selectedPlot.SeriesPoints[series]);
+                            }
                     }
 
                     SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), seriesPoints, 500, 500, Plot.Format.JPEG, 2);
