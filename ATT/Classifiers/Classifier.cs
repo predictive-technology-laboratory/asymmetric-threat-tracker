@@ -42,7 +42,6 @@ namespace PTL.ATT.Classifiers
 
         private int _modelId;
         private bool _runFeatureSelection;
-        private string _modelDirectory;
 
         public int ModelId
         {
@@ -50,9 +49,9 @@ namespace PTL.ATT.Classifiers
             set { _modelId = value; }
         }
 
-        public DiscreteChoiceModel Model
+        public IFeatureBasedDCM Model
         {
-            get { return DiscreteChoiceModel.Instantiate(_modelId); }
+            get { return DiscreteChoiceModel.Instantiate(_modelId) as IFeatureBasedDCM; }
         }
 
         public bool RunFeatureSelection
@@ -63,7 +62,7 @@ namespace PTL.ATT.Classifiers
 
         private string TrainingInstanceLocationsPath
         {
-            get { return Path.Combine(_modelDirectory, "training_instance_locations"); }
+            get { return Path.Combine(Model.ModelDirectory, "training_instance_locations"); }
         }
 
         public string CompressedTrainingInstanceLocationsPath
@@ -82,19 +81,13 @@ namespace PTL.ATT.Classifiers
             _runFeatureSelection = runFeatureSelection;
         }
 
-        public virtual void Initialize(Prediction prediction)
-        {
-            _modelDirectory = prediction.ModelDirectory;
-        }
+        public abstract void Initialize();
 
-        public virtual void Consume(FeatureVectorList featureVectors, Prediction prediction)
+        public virtual void Consume(FeatureVectorList featureVectors)
         {
-            if (_modelDirectory != prediction.ModelDirectory)
-                throw new Exception("Classifier has not been initialized");
-
             if (featureVectors != null)
             {
-                DiscreteChoiceModel model = Model;
+                IFeatureBasedDCM model = Model;
                 Area trainingArea = model.TrainingArea;
                 long timeSliceTicks = model is TimeSliceDCM ? (model as TimeSliceDCM).TimeSliceTicks : -1;
 
@@ -110,31 +103,25 @@ namespace PTL.ATT.Classifiers
             }
         }
 
-        public void Train(FeatureVectorList featureVectors, Prediction prediction)
+        public void Train(FeatureVectorList featureVectors)
         {
-            if (_modelDirectory != prediction.ModelDirectory)
-                throw new Exception("Classifier has not been initialized");
-
-            Consume(featureVectors, prediction);
+            Consume(featureVectors);
             BuildModel();
 
             LAIR.IO.File.Compress(TrainingInstanceLocationsPath, CompressedTrainingInstanceLocationsPath, true);
             System.IO.File.Delete(TrainingInstanceLocationsPath);
         }
 
-        public void Train(Prediction prediction)
+        public void Train()
         {
-            if (_modelDirectory != prediction.ModelDirectory)
-                throw new Exception("Classifier has not been initialized");
-
-            Train(null, prediction);
+            Train(null);
         }
 
         protected abstract void BuildModel();
 
         public abstract IEnumerable<int> SelectFeatures(Prediction prediction);
 
-        public abstract void Classify(FeatureVectorList featureVectors, Prediction prediction);
+        public abstract void Classify(FeatureVectorList featureVectors);
 
         public virtual string GetDetails(int indentLevel)
         {
@@ -150,6 +137,6 @@ namespace PTL.ATT.Classifiers
 
         internal abstract string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation);
 
-        internal abstract void ChangeFeatureIds(Prediction prediction, Dictionary<int, int> oldNewFeatureId);
+        internal abstract void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId);
     }
 }

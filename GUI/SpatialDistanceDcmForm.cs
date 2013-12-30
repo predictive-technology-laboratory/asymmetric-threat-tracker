@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -33,71 +33,30 @@ namespace PTL.ATT.GUI
 {
     public partial class SpatialDistanceDcmForm : Form
     {
-        public string ModelName
-        {
-            get { return modelName.Text; }
-        }
-
-        public int PointSpacing
-        {
-            get { return (int)pointSpacing.Value; }
-        }
-
-        public int FeatureDistanceThreshold
-        {
-            get { return (int)featureDistanceThreshold.Value; }
-        }
-
-        public bool ClassifyNonZeroVectorsUniformly
-        {
-            get { return classifyNonZeroVectorsUniformly.Checked; }
-        }
-
-        public int TrainingSampleSize
-        {
-            get { return (int)trainingSampleSize.Value; }
-        }
-
-        public int PredictionSampleSize
-        {
-            get { return (int)predictionSampleSize.Value; }
-        }
-
-        public Classifier Classifier
-        {
-            get { return classifiers.SelectedItem as Classifier; }
-        }
-
-        public List<Smoother> Smoothers
-        {
-            get { return smoothers.SelectedItems.Cast<Smoother>().ToList(); }
-        }
-
         public SpatialDistanceDcmForm()
         {
             InitializeComponent();
 
-            classifiers.Populate(null);
-            smoothers.Populate(null);
+            discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += new EventHandler((o, e) =>
+                {
+                    spatialDistanceDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
+                    spatialDistanceDcmOptions.RefreshAll();
+                });
+
+            spatialDistanceDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => SpatialDistanceDCM.GetAvailableFeatures(a).ToList());
+
+            discreteChoiceModelOptions.RefreshAreas();
         }
 
         public SpatialDistanceDcmForm(SpatialDistanceDCM current)
             : this()
         {
-            modelName.Text = current.Name;
-            pointSpacing.Value = current.PointSpacing;
-            featureDistanceThreshold.Value = current.FeatureDistanceThreshold;
-            classifyNonZeroVectorsUniformly.Checked = current.ClassifyNonZeroVectorsUniformly;
-            trainingSampleSize.Value = current.TrainingSampleSize;
-            predictionSampleSize.Value = current.PredictionSampleSize;
-
-            classifiers.Populate(current);
-            smoothers.Populate(current);
+            discreteChoiceModelOptions.DiscreteChoiceModel = spatialDistanceDcmOptions.SpatialDistanceDCM = current;
         }
 
         private void ok_Click(object sender, EventArgs e)
         {
-            if (classifiers.SelectedItem == null)
+            if (spatialDistanceDcmOptions.Classifier == null)
                 MessageBox.Show("You must select a classifier.");
             else
             {

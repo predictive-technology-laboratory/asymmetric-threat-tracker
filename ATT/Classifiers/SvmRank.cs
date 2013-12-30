@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,26 +61,24 @@ namespace PTL.ATT.Classifiers
             _c = c;
         }
 
-        public override void Initialize(Prediction prediction)
+        public override void Initialize()
         {
-            base.Initialize(prediction);
-
             string learnPath = Configuration.ClassifierTypeOptions[GetType()]["learn"];
             string classifyPath = Configuration.ClassifierTypeOptions[GetType()]["classify"];
-            _svmRank = new SvmRankClassifier(_c, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, prediction.ModelDirectory, learnPath, classifyPath, null);
+            _svmRank = new SvmRankClassifier(_c, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, Model.ModelDirectory, learnPath, classifyPath, null);
         }
 
-        public override void Consume(FeatureVectorList featureVectors, Prediction prediction)
+        public override void Consume(FeatureVectorList featureVectors)
         {
-            base.Consume(featureVectors, prediction);
+            base.Consume(featureVectors);
 
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                if (prediction.Model.IncidentTypes.Count != 1)
+                if (Model.IncidentTypes.Count != 1)
                     throw new Exception("SvmRank cannot be used for multi-incident predictions. Select a single incident type.");
 
                 Dictionary<int, Point> idPoint = new Dictionary<int, Point>(featureVectors.Count);
-                foreach (Point point in prediction.Points)
+                foreach (Point point in featureVectors.Select(vector => vector.DerivedFrom as Point))
                     idPoint.Add(point.Id, point);
 
                 foreach (FeatureVector vector in featureVectors)
@@ -90,7 +88,7 @@ namespace PTL.ATT.Classifiers
                         throw new NullReferenceException("Expected Point object in DerivedFrom");
 
                     PostGIS.Point vectorLocation = point.Location;
-                    int count = idPoint.Values.Count(p => p.Location.DistanceTo(vectorLocation) <= prediction.Model.PointSpacing / 2d && p.IncidentType != PointPrediction.NullLabel);
+                    int count = idPoint.Values.Count(p => p.Location.DistanceTo(vectorLocation) <= Model.PointSpacing / 2d && p.IncidentType != PointPrediction.NullLabel);
                     vector.DerivedFrom.TrueClass = count + " qid:1";
                 }
 
@@ -120,12 +118,12 @@ namespace PTL.ATT.Classifiers
             throw new NotImplementedException();
         }
 
-        public override void Classify(FeatureVectorList featureVectors, Prediction prediction)
+        public override void Classify(FeatureVectorList featureVectors)
         {
-            if (prediction.Model.IncidentTypes.Count != 1)
+            if (Model.IncidentTypes.Count != 1)
                 throw new Exception("SvmRank cannot be used for multi-incident predictions. Select a single incident type.");
 
-            string incident = prediction.Model.IncidentTypes.First();
+            string incident = Model.IncidentTypes.First();
 
             _svmRank.Classify(featureVectors);
 
@@ -160,13 +158,13 @@ namespace PTL.ATT.Classifiers
                    indent + "C:  " + _c;
         }
 
-        internal override void ChangeFeatureIds(Prediction prediction, Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
         {
             Dictionary<string, string> oldNameNewName = new Dictionary<string, string>();
             foreach (int oldFeatureId in oldNewFeatureId.Keys)
                 oldNameNewName.Add(oldFeatureId.ToString(), oldNewFeatureId[oldFeatureId].ToString());
 
-            NumberedFeatureClassifier.ChangeFeatureNames(prediction.ModelDirectory, oldNameNewName);
+            NumberedFeatureClassifier.ChangeFeatureNames(Model.ModelDirectory, oldNameNewName);
         }
     }
 }

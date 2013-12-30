@@ -248,9 +248,13 @@ namespace PTL.ATT
             if (DB.Connection.TableExists(GetTableName(area)))
             {
                 string typesCondition = null;
-                if (types != null)
+                if (types != null && types.Length > 0)
+                {
                     foreach (string type in types)
-                        typesCondition = (typesCondition == null ? "" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
+                        typesCondition = (typesCondition == null ? "(" : typesCondition + " OR ") + Columns.Type + "='" + type + "'";
+
+                    typesCondition += ")";
+                }
 
                 NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT COUNT(*) " +
                                                              "FROM " + GetTableName(area) + " " +

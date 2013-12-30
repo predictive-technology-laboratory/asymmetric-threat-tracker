@@ -31,7 +31,8 @@ namespace PTL.ATT.Smoothers
     {
         static MarsSmoother()
         {
-            R.InstallPackages(R.CheckForMissingPackages(new string[] { "earth" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+            if (Configuration.RCranMirror != null)
+                R.InstallPackages(R.CheckForMissingPackages(new string[] { "earth" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
         private int _numberOfKnots;

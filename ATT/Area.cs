@@ -200,6 +200,21 @@ namespace PTL.ATT
                                new PostGIS.Point(left, top, _srid)}), _srid), _srid);
         }
 
+        public override bool Equals(object obj)
+        {
+            if(!(obj is Area))
+                return false;
+
+            Area other = obj as Area;
+
+            return _id == other.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return _id.GetHashCode();
+        }
+
         public void Delete()
         {
             if (Prediction.GetForArea(this).Count() > 0)

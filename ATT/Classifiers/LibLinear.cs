@@ -76,21 +76,19 @@ namespace PTL.ATT.Classifiers
             _positiveClassWeighting = positiveClassWeighting;
         }
 
-        public override void Initialize(Prediction prediction)
+        public override void Initialize()
         {
-            base.Initialize(prediction);
-
             LibLinearClassifier.Solver solver = (LibLinearClassifier.Solver)Enum.Parse(typeof(LibLinearClassifier.Solver), Configuration.ClassifierTypeOptions[GetType()]["solver"]);
             string trainPath = Configuration.ClassifierTypeOptions[GetType()]["train"];
             string predictPath = Configuration.ClassifierTypeOptions[GetType()]["predict"];
 
-            _libLinear = new LibLinearClassifier(solver, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, prediction.ModelDirectory, trainPath, predictPath, null, float.MinValue);
+            _libLinear = new LibLinearClassifier(solver, NumericFeatureNameTransform.AccessMethod.Memory, FeatureSpace.AccessMethod.Memory, true, Model.ModelDirectory, trainPath, predictPath, null, float.MinValue);
             _libLinear.OutputProbabilities = true;
         }
 
-        public override void Consume(FeatureVectorList featureVectors, Prediction prediction)
+        public override void Consume(FeatureVectorList featureVectors)
         {
-            base.Consume(featureVectors, prediction);
+            base.Consume(featureVectors);
 
             if (featureVectors != null)
                 _libLinear.ConsumeTrainingVectors(featureVectors);
@@ -138,7 +136,7 @@ namespace PTL.ATT.Classifiers
         {
             _libLinear.LoadClassificationModelFiles();
 
-            string logPath = Path.Combine(prediction.ModelDirectory, "feature_selection_log.txt");
+            string logPath = Path.Combine(Model.ModelDirectory, "feature_selection_log.txt");
             System.IO.File.Delete(logPath);
 
             int nullClass = -1;
@@ -190,7 +188,7 @@ namespace PTL.ATT.Classifiers
             string groupNamePath = Path.GetTempFileName();
             StreamWriter groupNameFile = new StreamWriter(groupNamePath);
             Dictionary<string, int> groupNameFeatureId = new Dictionary<string, int>();
-            foreach (Feature feature in prediction.SelectedFeatures)
+            foreach (PTL.ATT.Models.Feature feature in Model.Features)
             {
                 int featureNumber;
                 if (_libLinear.TryGetFeatureNumber(feature.Id.ToString(), out featureNumber))
@@ -250,7 +248,7 @@ namespace PTL.ATT.Classifiers
             return featureRankContribution.Keys.Select(groupName => groupNameFeatureId[groupName]);
         }
 
-        public override void Classify(FeatureVectorList featureVectors, Prediction prediction)
+        public override void Classify(FeatureVectorList featureVectors)
         {
             _libLinear.Classify(featureVectors);
         }
@@ -258,16 +256,16 @@ namespace PTL.ATT.Classifiers
         internal override string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation)
         {
             StringBuilder report = new StringBuilder("Details for model created by prediction \"" + prediction.Name + "\"" + Environment.NewLine);
-            Dictionary<int, Dictionary<int, double>> classFeatureWeight = LibLinearClassifier.GetFeatureWeights(Path.Combine(prediction.ModelDirectory, LibLinearClassifier.ModelFileName));
-            LabelMap labelMap = new LabelMap(Path.Combine(prediction.ModelDirectory, LibLinearClassifier.LabelMapFileName));
-            MemoryNumericFeatureNameTransform featureNameTransform = new MemoryNumericFeatureNameTransform(Path.Combine(prediction.ModelDirectory, LibLinearClassifier.FeatureNameTransformFileName));
+            Dictionary<int, Dictionary<int, double>> classFeatureWeight = LibLinearClassifier.GetFeatureWeights(Path.Combine(Model.ModelDirectory, LibLinearClassifier.ModelFileName));
+            LabelMap labelMap = new LabelMap(Path.Combine(Model.ModelDirectory, LibLinearClassifier.LabelMapFileName));
+            MemoryNumericFeatureNameTransform featureNameTransform = new MemoryNumericFeatureNameTransform(Path.Combine(Model.ModelDirectory, LibLinearClassifier.FeatureNameTransformFileName));
 
             Dictionary<int, int> liblinearFeatureNumberAttFeatureId = new Dictionary<int, int>();
             foreach (string attFeatureId in featureNameTransform)
                 liblinearFeatureNumberAttFeatureId.Add(featureNameTransform.GetFeatureNumber(attFeatureId), int.Parse(attFeatureId));
 
             Dictionary<int, string> attFeatureIdDesc = new Dictionary<int, string>();
-            foreach (Feature f in prediction.SelectedFeatures)
+            foreach (PTL.ATT.Models.Feature f in Model.Features)
                 attFeatureIdDesc.Add(f.Id, "Feature \"" + f.Description + "\"");
 
             foreach (int classNumber in classFeatureWeight.Keys.OrderBy(i => i))
@@ -297,13 +295,13 @@ namespace PTL.ATT.Classifiers
             return new LibLinear(RunFeatureSelection, ModelId, _positiveClassWeighting);
         }
 
-        internal override void ChangeFeatureIds(Prediction prediction, Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
         {
             Dictionary<string, string> oldNameNewName = new Dictionary<string, string>();
             foreach (int oldFeatureId in oldNewFeatureId.Keys)
                 oldNameNewName.Add(oldFeatureId.ToString(), oldNewFeatureId[oldFeatureId].ToString());
 
-            NumberedFeatureClassifier.ChangeFeatureNames(prediction.ModelDirectory, oldNameNewName);
+            NumberedFeatureClassifier.ChangeFeatureNames(Model.ModelDirectory, oldNameNewName);
         }
 
         public override string GetDetails(int indentLevel)

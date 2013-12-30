@@ -54,11 +54,6 @@ namespace PTL.ATT
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select(string table) { return Reflector.GetSelectColumns(table, new string[] { StX(table), StY(table), StSRID(table) }, typeof(Columns)); }
-
-            public static string GetInsertWithout(Set<string> withoutColumns)
-            {
-                return Reflector.GetInsertColumns(withoutColumns, typeof(Columns));
-            }
         }
 
         public static string GetTableName(int predictionId)

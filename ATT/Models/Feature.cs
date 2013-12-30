@@ -26,7 +26,7 @@ using LAIR.ResourceAPIs.PostgreSQL;
 using PTL.ATT.Models;
 using LAIR.Collections.Generic;
 
-namespace PTL.ATT
+namespace PTL.ATT.Models
 {
     public class Feature : IComparable<Feature>
     {
@@ -43,7 +43,7 @@ namespace PTL.ATT
             [Reflector.Select(true)]
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string PredictionId = "prediction_id";
+            public const string ModelId = "model_id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string PredictionResourceId = "prediction_resource_id";
             [Reflector.Insert, Reflector.Select(true)]
@@ -61,20 +61,20 @@ namespace PTL.ATT
                     Columns.EnumType + " VARCHAR," +
                     Columns.EnumValue + " VARCHAR," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
-                    Columns.PredictionId + " INT REFERENCES " + Prediction.Table + " ON DELETE CASCADE," +
+                    Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
                     Columns.PredictionResourceId + " VARCHAR," + 
                     Columns.TrainingResourceId + " VARCHAR);" + 
                     (connection.TableExists(Table) ? "" :
                     "CREATE INDEX ON " + Table + " (" + Columns.EnumType + ");" +
                     "CREATE INDEX ON " + Table + " (" + Columns.EnumValue + ");" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.PredictionId + ");" +
+                    "CREATE INDEX ON " + Table + " (" + Columns.ModelId + ");" +
                     "CREATE INDEX ON " + Table + " (" + Columns.PredictionResourceId + ");" +
                     "CREATE INDEX ON " + Table + " (" + Columns.TrainingResourceId + ");");
         }
 
-        public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, int predictionId, string trainingResourceId, string predictionResourceId, bool vacuum)
+        public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, DiscreteChoiceModel model, string trainingResourceId, string predictionResourceId, bool vacuum)
         {
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + predictionId + "," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + ") RETURNING " + Columns.Id, connection);
+            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + model.Id + "," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + ") RETURNING " + Columns.Id, connection);
             int id = Convert.ToInt32(cmd.ExecuteScalar());
 
             if (vacuum)
@@ -92,7 +92,7 @@ namespace PTL.ATT
         private Type _enumType;
         private Enum _enumValue;
         private string _description;
-        private int _predictionId;
+        private int _modelId;
         private string _trainingResourceId;
         private string _predictionResourceId;
 
@@ -116,14 +116,9 @@ namespace PTL.ATT
             get { return _description; }
         }
 
-        public int PredictionId
+        public int ModelId
         {
-            get { return _predictionId; }
-        }
-
-        public Prediction Prediction
-        {
-            get { return new Prediction(_predictionId); }
+            get { return _modelId; }
         }
 
         public string TrainingResourceId
@@ -162,7 +157,7 @@ namespace PTL.ATT
             Type enumType = Reflection.GetType(Convert.ToString(reader[Table + "_" + Columns.EnumType]));
 
             Construct(Convert.ToInt32(reader[Table + "_" + Columns.Id]),
-                      Convert.ToInt32(reader[Table + "_" + Columns.PredictionId]),
+                      Convert.ToInt32(reader[Table + "_" + Columns.ModelId]),
                       enumType,
                       (Enum)Enum.Parse(enumType, Convert.ToString(reader[Table + "_" + Columns.EnumValue])),
                       Convert.ToString(reader[Table + "_" + Columns.TrainingResourceId]),
@@ -170,10 +165,10 @@ namespace PTL.ATT
                       Convert.ToString(reader[Table + "_" + Columns.Description]));
         }
 
-        private void Construct(int id, int predictionId, Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description)
+        private void Construct(int id, int modelId, Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description)
         {
             _id = id;
-            _predictionId = predictionId;
+            _modelId = modelId;
             _enumType = enumType;
             _enumValue = enumValue;
             _description = description;

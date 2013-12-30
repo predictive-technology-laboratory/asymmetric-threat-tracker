@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -67,35 +67,13 @@ namespace PTL.ATT.GUI
 
         #region members and properties
         public const int PlotHeight = 400;
-        private bool _setIncidentsToolTip;
         private bool _setPredictionsToolTip;
         private List<string> _groups;
         private LogWriter _logWriter;
-        private Dictionary<string, string> _featureRemapKeyTargetPredictionResource;
 
         public List<string> Groups
         {
             get { return _groups; }
-        }
-
-        public DateTime TrainingStartDate
-        {
-            get { return trainingStart.Value; }
-            set
-            {
-                trainingStart.Value = value;
-                RefreshIncidentTypes();
-            }
-        }
-
-        public DateTime TrainingEndDate
-        {
-            get { return trainingEnd.Value; }
-            set
-            {
-                trainingEnd.Value = value;
-                RefreshIncidentTypes();
-            }
         }
 
         public DateTime PredictionStartDateTime
@@ -134,24 +112,9 @@ namespace PTL.ATT.GUI
             }
         }
 
-        public Area SelectedTrainingArea
-        {
-            get { return trainingAreas.SelectedItem as Area; }
-        }
-
-        public string[] SelectedIncidentTypes
-        {
-            get { return incidentTypes.SelectedItems.Cast<string>().ToArray(); }
-        }
-
         public DiscreteChoiceModel SelectedModel
         {
             get { return models.SelectedItem as DiscreteChoiceModel; }
-        }
-
-        public Feature[] SelectedFeatures
-        {
-            get { return features.SelectedItems.Cast<Feature>().ToArray(); }
         }
 
         public Area SelectedPredictionArea
@@ -193,9 +156,7 @@ namespace PTL.ATT.GUI
         {
             InitializeComponent();
 
-            _setIncidentsToolTip = true;
             _groups = new List<string>();
-            _featureRemapKeyTargetPredictionResource = new Dictionary<string, string>();
         }
 
         private void AttForm_Load(object sender, EventArgs e)
@@ -260,9 +221,6 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            trainingStart.Value = DateTime.Today.Add(new TimeSpan(-7, 0, 0, 0));
-            trainingEnd.Value = trainingStart.Value.Add(new TimeSpan(6, 23, 59, 59));
-
             PredictionStartDateTime = DateTime.Today;
             PredictionEndDateTime = DateTime.Today + new TimeSpan(23, 59, 59);
 
@@ -281,20 +239,11 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            SetIncidentsToolTip();
-
-            trainingAreas.Anchor = incidentTypes.Anchor = models.Anchor = features.Anchor = predictionAreas.Anchor = predictions.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            models.Anchor = predictionAreas.Anchor = predictions.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
 
             WindowState = FormWindowState.Maximized;
 
-            verticalSplitContainer.SplitterDistance = trainingAreas.Right + 20;
-
-            if (Configuration.MonoAddIncidentRefresh)
-            {
-                ToolStripMenuItem refresh = new ToolStripMenuItem("Refresh");
-                refresh.Click += new EventHandler((o, args) => RefreshIncidentTypes());
-                incidentTypesMenu.Items.Add(refresh);
-            }
+            verticalSplitContainer.SplitterDistance = models.Right + 20;
 
             splash.UpdateProgress("ATT started");
             done = true;
@@ -351,7 +300,6 @@ namespace PTL.ATT.GUI
                             string shapefileFileName = Path.GetFileNameWithoutExtension(Directory.GetFiles(unzipDir).First());
                             File.WriteAllText(Path.Combine(unzipDir, shapefileFileName + ".srid"), f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid"));
                             Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), name, f.GetValue<Shapefile.ShapefileType>("type"));
-                            RefreshFeatures();
                         }
                         catch (Exception ex)
                         {
@@ -385,10 +333,70 @@ namespace PTL.ATT.GUI
                         foreach (Shapefile shapefile in selected)
                             shapefile.Delete();
 
-                        RefreshFeatures();
-
                         Console.Out.WriteLine("Deleted " + selected.Length + " shapefile(s)");
                     }
+                }
+            }
+        }
+
+        private void addAreaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Shapefile[] areaShapefiles = Shapefile.GetAll().Where(sf => sf.Type == Shapefile.ShapefileType.Area).ToArray();
+            if (areaShapefiles.Length == 0)
+                MessageBox.Show("No shapefiles available from which to create area. Import shapefiles first.");
+            else
+            {
+                DynamicForm f = new DynamicForm("Select area parameters...", MessageBoxButtons.OKCancel);
+                f.AddDropDown("Shapefile:", areaShapefiles, null, "shapefile");
+                f.AddNumericUpdown("Point containment bounding box size (meters):", 1000, 0, 1, decimal.MaxValue, 1, "bounding_box_size");
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    Shapefile selectedShapefile = f.GetValue<Shapefile>("shapefile");
+                    int boundingBoxSize = Convert.ToInt32(f.GetValue<decimal>("bounding_box_size"));
+                    if (selectedShapefile != null)
+                    {
+                        Thread t = new Thread(new ThreadStart(delegate()
+                            {
+                                Area.Create(selectedShapefile, selectedShapefile.Name, boundingBoxSize);
+                                RefreshAreas();
+                                Console.Out.WriteLine("Finished creating area");
+                            }));
+                        t.Start();
+                    }
+                }
+            }
+        }
+
+        private void deleteAreaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            List<Area> areas = Area.GetAll();
+            if (areas.Count == 0)
+                MessageBox.Show("No areas available to delete.");
+            else
+            {
+                DynamicForm f = new DynamicForm("Delete area...");
+                f.AddDropDown("Area:", areas.ToArray(), null, "area");
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    Area area = f.GetValue<Area>("area");
+
+                    List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(area, false);
+                    List<Prediction> predictionsForArea = Prediction.GetForArea(area);
+                    if (modelsForArea.Count > 0 || predictionsForArea.Count > 0)
+                        if (MessageBox.Show("The area \"" + area.Name + "\" is associated with " + modelsForArea.Count + " model(s) and " + predictionsForArea.Count + " prediction(s), which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                        {
+                            foreach (Prediction prediction in predictionsForArea)
+                                prediction.Delete();
+
+                            foreach (DiscreteChoiceModel model in modelsForArea)
+                                model.Delete();
+                        }
+                        else
+                            return;
+
+                    area.Delete();
+
+                    RefreshAll();
                 }
             }
         }
@@ -517,8 +525,6 @@ namespace PTL.ATT.GUI
                                 {
                                     Console.Out.WriteLine("Error while importing:  " + ex.Message);
                                 }
-
-                                RefreshIncidentTypes();
                             }
                             #endregion
                         }
@@ -533,11 +539,7 @@ namespace PTL.ATT.GUI
         {
             Area clearArea = PromptForArea("Select area to clear incidents from...");
             if (clearArea != null && MessageBox.Show("Are you sure you want to clear all incidents from \"" + clearArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
-            {
                 Incident.Clear(clearArea);
-                RefreshIncidentTypes();
-                RefreshFeatures();
-            }
         }
 
         public void simulateIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -547,7 +549,6 @@ namespace PTL.ATT.GUI
             {
                 SimulateIncidentsForm f = new SimulateIncidentsForm(simulateArea);
                 f.ShowDialog();
-                RefreshIncidentTypes();
             }
         }
 
@@ -555,143 +556,7 @@ namespace PTL.ATT.GUI
         {
             Area clearSimulatedArea = PromptForArea("Select area to clear simulated incidents from...");
             if (clearSimulatedArea != null && MessageBox.Show("Are you sure you want to clear all simulated incidents from \"" + clearSimulatedArea.Name + "\"? This cannot be undone.", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
-            {
                 Incident.ClearSimulated(clearSimulatedArea);
-                RefreshIncidentTypes();
-                RefreshFeatures();
-            }
-        }
-        #endregion
-
-        #region training area
-        private void trainingAreas_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (SelectedTrainingArea != null)
-                toolTip.SetToolTip(trainingAreas, SelectedTrainingArea.GetDetails(0));
-
-            RefreshIncidentTypes();
-            RefreshModels(-1, true);
-        }
-
-        public void addAreaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Shapefile[] areaShapefiles = Shapefile.GetAll().Where(sf => sf.Type == Shapefile.ShapefileType.Area).ToArray();
-            if (areaShapefiles.Length == 0)
-                MessageBox.Show("No shapefiles available from which to create area. Import shapefiles first.");
-            else
-            {
-                DynamicForm f = new DynamicForm("Select area parameters...", MessageBoxButtons.OKCancel);
-                f.AddDropDown("Shapefile:", areaShapefiles, null, "shapefile");
-                f.AddNumericUpdown("Point containment bounding box size (meters):", 1000, 0, 1, decimal.MaxValue, 1, "bounding_box_size");
-                if (f.ShowDialog() == DialogResult.OK)
-                {
-                    Shapefile selectedShapefile = f.GetValue<Shapefile>("shapefile");
-                    int boundingBoxSize = Convert.ToInt32(f.GetValue<decimal>("bounding_box_size"));
-                    if (selectedShapefile != null)
-                    {
-                        Thread t = new Thread(new ThreadStart(delegate()
-                            {
-                                Area.Create(selectedShapefile, selectedShapefile.Name, boundingBoxSize);
-                                Console.Out.WriteLine("Finished creating area");
-                                RefreshAreas();
-                            }));
-                        t.Start();
-                    }
-                }
-            }
-        }
-
-        public void deleteTrainingAreaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            DeleteArea(SelectedTrainingArea);
-        }
-
-        private void DeleteArea(Area area)
-        {
-            if (area != null)
-            {
-                List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(area, false);
-                List<Prediction> predictionsForArea = Prediction.GetForArea(area);
-                if (modelsForArea.Count > 0 || predictionsForArea.Count > 0)
-                    if (MessageBox.Show("The area \"" + area.Name + "\" is associated with " + modelsForArea.Count + " model(s) and " + predictionsForArea.Count + " prediction(s), which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                    {
-                        foreach (Prediction prediction in predictionsForArea)
-                            prediction.Delete();
-
-                        foreach (DiscreteChoiceModel model in modelsForArea)
-                            model.Delete();
-                    }
-                    else
-                        return;
-
-                area.Delete();
-                RefreshAll();
-            }
-        }
-        #endregion
-
-        #region training dates
-        private void trainingStart_ValueChanged(object sender, EventArgs e)
-        {
-            if (trainingEnd.Value < trainingStart.Value)
-                trainingEnd.Value = trainingStart.Value + new TimeSpan(23, 59, 59);
-        }
-
-        private void trainingStart_CloseUp(object sender, EventArgs e)
-        {
-            RefreshIncidentTypes();
-        }
-
-        private void trainingEnd_ValueChanged(object sender, EventArgs e)
-        {
-            if (trainingEnd.Value < trainingStart.Value)
-                trainingStart.Value = trainingEnd.Value - new TimeSpan(23, 59, 59);
-        }
-
-        private void trainingEnd_CloseUp(object sender, EventArgs e)
-        {
-            RefreshIncidentTypes();
-        }
-
-        private void SetIncidentsToolTip()
-        {
-            if (_setIncidentsToolTip)
-            {
-                int numIncidents = 0;
-                if (SelectedTrainingArea != null && SelectedIncidentTypes.Count() > 0)
-                    numIncidents = Incident.Count(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea, SelectedIncidentTypes.ToArray());
-
-                toolTip.SetToolTip(incidentTypes, numIncidents + " total incidents selected");
-            }
-        }
-        #endregion
-
-        #region incidents
-        public void selectAllIncidentTypesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            _setIncidentsToolTip = false;
-
-            for (int i = 0; i < incidentTypes.Items.Count; ++i)
-                incidentTypes.SetSelected(i, true);
-
-            _setIncidentsToolTip = true;
-
-            SetIncidentsToolTip();
-        }
-
-        private void incidentTypes_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            perIncident.Enabled = incidentTypes.SelectedItems.Count > 1;
-
-            DiscreteChoiceModel m = SelectedModel;
-
-            if (m != null)
-            {
-                m.Update(m.Name, m.PointSpacing, m.TrainingArea, m.TrainingStart, m.TrainingEnd, m.TrainingSampleSize, m.PredictionSampleSize, SelectedIncidentTypes, m.Smoothers);
-                toolTip.SetToolTip(models, m.GetDetails(0));
-            }
-
-            SetIncidentsToolTip();
         }
         #endregion
 
@@ -699,11 +564,7 @@ namespace PTL.ATT.GUI
         public void addModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Type[] modelTypes = Assembly.GetAssembly(typeof(DiscreteChoiceModel)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(DiscreteChoiceModel))).ToArray();
-            if (SelectedTrainingArea == null)
-                MessageBox.Show("Must select a training area.");
-            else if (SelectedIncidentTypes.Length == 0)
-                MessageBox.Show("Must select incident types.");
-            else if (modelTypes.Length == 0)
+            if (modelTypes.Length == 0)
                 MessageBox.Show("No model type are available.");
             else
             {
@@ -713,27 +574,67 @@ namespace PTL.ATT.GUI
                 {
                     Type modelType = modelForm.GetValue<Type>("model_type");
                     int newModelId = -1;
-                    if (modelType == typeof(SpatialDistanceDCM))
+
+                    if (modelType == typeof(KernelDensityDCM))
+                    {
+                        KernelDensityDcmForm f = new KernelDensityDcmForm();
+                        if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                            newModelId = KernelDensityDCM.Create(f.discreteChoiceModelOptions.ModelName,
+                                                                 f.discreteChoiceModelOptions.PointSpacing,
+                                                                 f.discreteChoiceModelOptions.TrainingArea,
+                                                                 f.discreteChoiceModelOptions.TrainingStart,
+                                                                 f.discreteChoiceModelOptions.TrainingEnd,
+                                                                 f.discreteChoiceModelOptions.TrainingSampleSize,
+                                                                 f.discreteChoiceModelOptions.PredictionSampleSize,
+                                                                 f.discreteChoiceModelOptions.IncidentTypes,
+                                                                 f.kernelDensityDcmOptions.Normalize,
+                                                                 f.discreteChoiceModelOptions.Smoothers);
+                    }
+                    else if (modelType == typeof(SpatialDistanceDCM))
                     {
                         SpatialDistanceDcmForm f = new SpatialDistanceDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            newModelId = SpatialDistanceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers);
+                            newModelId = SpatialDistanceDCM.Create(null,
+                                                                   f.discreteChoiceModelOptions.ModelName,
+                                                                   f.discreteChoiceModelOptions.PointSpacing,
+                                                                   f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
+                                                                   f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
+                                                                   null,
+                                                                   f.discreteChoiceModelOptions.TrainingArea,
+                                                                   f.discreteChoiceModelOptions.TrainingStart,
+                                                                   f.discreteChoiceModelOptions.TrainingEnd,
+                                                                   f.discreteChoiceModelOptions.TrainingSampleSize,
+                                                                   f.discreteChoiceModelOptions.PredictionSampleSize,
+                                                                   f.discreteChoiceModelOptions.IncidentTypes,
+                                                                   f.spatialDistanceDcmOptions.Classifier,
+                                                                   f.discreteChoiceModelOptions.Smoothers,
+                                                                   f.spatialDistanceDcmOptions.Features);
                     }
                     else if (modelType == typeof(TimeSliceDCM))
                     {
                         TimeSliceDcmForm f = new TimeSliceDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            newModelId = TimeSliceDCM.Create(null, f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, null, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers, f.TimeSliceHours, f.TimeSlicesPerPeriod);
-                    }
-                    else if (modelType == typeof(KernelDensityDCM))
-                    {
-                        KernelDensityDcmForm f = new KernelDensityDcmForm();
-                        if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            newModelId = KernelDensityDCM.Create(f.ModelName, f.PointSpacing, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Normalize, f.Smoothers);
+                            newModelId = TimeSliceDCM.Create(null,
+                                                             f.discreteChoiceModelOptions.ModelName,
+                                                             f.discreteChoiceModelOptions.PointSpacing,
+                                                             f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
+                                                             f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
+                                                             null,
+                                                             f.discreteChoiceModelOptions.TrainingArea,
+                                                             f.discreteChoiceModelOptions.TrainingStart,
+                                                             f.discreteChoiceModelOptions.TrainingEnd,
+                                                             f.discreteChoiceModelOptions.TrainingSampleSize,
+                                                             f.discreteChoiceModelOptions.PredictionSampleSize,
+                                                             f.discreteChoiceModelOptions.IncidentTypes,
+                                                             f.spatialDistanceDcmOptions.Classifier,
+                                                             f.discreteChoiceModelOptions.Smoothers,
+                                                             f.spatialDistanceDcmOptions.Features,
+                                                             f.timeSliceDcmOptions.TimeSliceHours,
+                                                             f.timeSliceDcmOptions.TimeSlicesPerPeriod);
                     }
 
                     if (newModelId >= 0)
-                        RefreshModels(newModelId, true);
+                        RefreshModels(newModelId);
                 }
             }
         }
@@ -742,10 +643,6 @@ namespace PTL.ATT.GUI
         {
             if (SelectedModel == null)
                 MessageBox.Show("Must select model.");
-            else if (SelectedTrainingArea == null)
-                MessageBox.Show("Must select a training area.");
-            else if (SelectedIncidentTypes.Count() == 0)
-                MessageBox.Show("Must select incident types.");
             else
             {
                 DiscreteChoiceModel m = SelectedModel;
@@ -755,24 +652,59 @@ namespace PTL.ATT.GUI
                     TimeSliceDCM ts = m as TimeSliceDCM;
                     TimeSliceDcmForm f = new TimeSliceDcmForm(ts);
                     if (f.ShowDialog() == DialogResult.OK)
-                        ts.Update(f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers, f.TimeSliceHours, f.TimeSlicesPerPeriod);
+                        ts.Update(f.discreteChoiceModelOptions.ModelName,
+                                  f.discreteChoiceModelOptions.PointSpacing,
+                                  f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
+                                  f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
+                                  f.discreteChoiceModelOptions.TrainingArea,
+                                  f.discreteChoiceModelOptions.TrainingStart,
+                                  f.discreteChoiceModelOptions.TrainingEnd,
+                                  f.discreteChoiceModelOptions.TrainingSampleSize,
+                                  f.discreteChoiceModelOptions.PredictionSampleSize,
+                                  f.discreteChoiceModelOptions.IncidentTypes,
+                                  f.spatialDistanceDcmOptions.Classifier,
+                                  f.discreteChoiceModelOptions.Smoothers,
+                                  f.spatialDistanceDcmOptions.Features,
+                                  f.timeSliceDcmOptions.TimeSliceHours,
+                                  f.timeSliceDcmOptions.TimeSlicesPerPeriod);
                 }
                 else if (m is SpatialDistanceDCM)
                 {
                     SpatialDistanceDCM sd = m as SpatialDistanceDCM;
                     SpatialDistanceDcmForm f = new SpatialDistanceDcmForm(sd);
                     if (f.ShowDialog() == DialogResult.OK)
-                        sd.Update(f.ModelName, f.PointSpacing, f.FeatureDistanceThreshold, f.ClassifyNonZeroVectorsUniformly, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Classifier, f.Smoothers);
+                        sd.Update(f.discreteChoiceModelOptions.ModelName,
+                                  f.discreteChoiceModelOptions.PointSpacing,
+                                  f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
+                                  f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
+                                  f.discreteChoiceModelOptions.TrainingArea,
+                                  f.discreteChoiceModelOptions.TrainingStart,
+                                  f.discreteChoiceModelOptions.TrainingEnd,
+                                  f.discreteChoiceModelOptions.TrainingSampleSize,
+                                  f.discreteChoiceModelOptions.PredictionSampleSize,
+                                  f.discreteChoiceModelOptions.IncidentTypes,
+                                  f.spatialDistanceDcmOptions.Classifier,
+                                  f.discreteChoiceModelOptions.Smoothers,
+                                  f.spatialDistanceDcmOptions.Features);
                 }
                 else if (m is KernelDensityDCM)
                 {
                     KernelDensityDCM kde = m as KernelDensityDCM;
                     KernelDensityDcmForm f = new KernelDensityDcmForm(kde);
                     if (f.ShowDialog() == DialogResult.OK)
-                        kde.Update(f.ModelName, f.PointSpacing, SelectedTrainingArea, trainingStart.Value, trainingEnd.Value, f.TrainingSampleSize, f.PredictionSampleSize, SelectedIncidentTypes, f.Normalize, f.Smoothers);
+                        kde.Update(f.discreteChoiceModelOptions.ModelName,
+                                   f.discreteChoiceModelOptions.PointSpacing,
+                                   f.discreteChoiceModelOptions.TrainingArea,
+                                   f.discreteChoiceModelOptions.TrainingStart,
+                                   f.discreteChoiceModelOptions.TrainingEnd,
+                                   f.discreteChoiceModelOptions.TrainingSampleSize,
+                                   f.discreteChoiceModelOptions.PredictionSampleSize,
+                                   f.discreteChoiceModelOptions.IncidentTypes,
+                                   f.kernelDensityDcmOptions.Normalize,
+                                   f.discreteChoiceModelOptions.Smoothers);
                 }
 
-                RefreshModels(m.Id, true);
+                RefreshModels(m.Id);
             }
         }
 
@@ -788,55 +720,14 @@ namespace PTL.ATT.GUI
 
         private void models_SelectedIndexChanged(object sender, EventArgs e)
         {
-            DiscreteChoiceModel m = SelectedModel;
-
-            if (m != null)
+            string text = null;
+            if (SelectedModel != null)
             {
-                trainingAreas.SelectedItem = trainingAreas.Items.Cast<Area>().Where(a => a.Id == m.TrainingAreaId).First();
-
-                trainingStart.Value = m.TrainingStart;
-                trainingEnd.Value = m.TrainingEnd;
-
-                RefreshIncidentTypes();
-                RefreshFeatures();
-
-                toolTip.SetToolTip(models, m.GetDetails(0));
+                text = SelectedModel.GetDetails(0);
+                perIncident.Enabled = SelectedModel.IncidentTypes.Count > 1;
             }
-        }
-        #endregion
 
-        #region features
-        public void selectAllFeaturesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            for (int i = 0; i < features.Items.Count; ++i)
-                features.SetSelected(i, true);
-        }
-
-        private void remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (SelectedModel == null)
-                MessageBox.Show("Must select model before remapping.");
-            else if (SelectedFeatures.Count() == 0)
-                MessageBox.Show("Must select features before remapping.");
-            else if (SelectedPredictionArea == null)
-                MessageBox.Show("Must select prediction area before remapping.");
-            else
-            {
-                FeatureRemappingForm f = new FeatureRemappingForm(SelectedFeatures, SelectedModel.GetAvailableFeatures(SelectedPredictionArea));
-                f.ShowDialog();
-
-                _featureRemapKeyTargetPredictionResource.Clear();
-                foreach (Feature feature in features.Items)
-                    _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
-
-                RefreshFeatures();
-            }
-        }
-
-        private void clearFeatureRemappingToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            _featureRemapKeyTargetPredictionResource.Clear();
-            RefreshFeatures();
+            toolTip.SetToolTip(models, text);
         }
         #endregion
 
@@ -845,12 +736,6 @@ namespace PTL.ATT.GUI
         {
             if (SelectedPredictionArea != null)
                 toolTip.SetToolTip(predictionAreas, SelectedPredictionArea.GetDetails(0));
-        }
-
-        public void deletePredictionAreaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (SelectedPredictionArea != null)
-                DeleteArea(SelectedPredictionArea);
         }
         #endregion
 
@@ -921,8 +806,6 @@ namespace PTL.ATT.GUI
 
             if (m == null)
                 MessageBox.Show("Must select a model.");
-            else if (!(models.SelectedItem is KernelDensityDCM) && features.SelectedItems.Count == 0)
-                MessageBox.Show("Must select one or more features.");
             else if (SelectedPredictionArea == null)
                 MessageBox.Show("Must select a prediction area.");
             else if (predictionName == "")
@@ -930,12 +813,14 @@ namespace PTL.ATT.GUI
             else
             {
                 Area predictionArea = SelectedPredictionArea;
-                IEnumerable<Feature> selectedFeatures = SelectedFeatures.ToArray();
                 IEnumerable<string> incidentTypes = m.IncidentTypes.ToArray();
 
                 Thread t = new Thread(new ThreadStart(delegate()
                     {
                         int mostRecentPredictionId = -1;
+
+                        DateTime trainingStart = m.TrainingStart;
+                        DateTime trainingEnd = m.TrainingEnd;
 
                         for (int i = (int)startPrediction.Value - 1; i < numPredictions.Value; ++i)
                         {
@@ -952,8 +837,8 @@ namespace PTL.ATT.GUI
 
                                     try
                                     {
-                                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart.Value + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd.Value + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.TrainingSampleSize, m.PredictionSampleSize, new string[] { incidentType }, m.Smoothers);
-                                        mostRecentPredictionId = m.Run(selectedFeatures, idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.TrainingSampleSize, m.PredictionSampleSize, new string[] { incidentType }, m.Smoothers);
+                                        mostRecentPredictionId = m.Run(idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                         newRun = false;
                                     }
                                     catch (Exception ex)
@@ -972,8 +857,8 @@ namespace PTL.ATT.GUI
                             {
                                 try
                                 {
-                                    m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart.Value + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd.Value + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.TrainingSampleSize, m.PredictionSampleSize, m.IncidentTypes, m.Smoothers);
-                                    mostRecentPredictionId = m.Run(selectedFeatures, idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                    m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.TrainingSampleSize, m.PredictionSampleSize, m.IncidentTypes, m.Smoothers);
+                                    mostRecentPredictionId = m.Run(idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                     newRun = false;
                                 }
                                 catch (Exception ex)
@@ -988,7 +873,7 @@ namespace PTL.ATT.GUI
                             Console.Out.WriteLine("Completed prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
                         }
 
-                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart.Value, trainingEnd.Value, m.TrainingSampleSize, m.PredictionSampleSize, incidentTypes, m.Smoothers);
+                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart, trainingEnd, m.TrainingSampleSize, m.PredictionSampleSize, incidentTypes, m.Smoothers);
                         RefreshPredictions(mostRecentPredictionId);
 
                         if (runFinishedCallback != null)
@@ -1016,8 +901,6 @@ namespace PTL.ATT.GUI
             Func<Prediction, string> grouper;
             if (_groups[groupNum] == groupByModelToolStripMenuItem.Text)
                 grouper = p => "Model:  " + p.Model.Name + " " + p.Model.Id.ToString();
-            else if (_groups[groupNum] == groupByFeaturesToolStripMenuItem.Text)
-                grouper = p => "Features:  " + p.SelectedFeatures.OrderBy(f => f.Description).Select(f => f.Description).Concatenate(", ");
             else if (_groups[groupNum] == groupByIncidentTypesToolStripMenuItem.Text)
                 grouper = p => "Incidents:  " + p.Model.IncidentTypes.OrderBy(i => i).Concatenate(", ");
             else if (_groups[groupNum] == groupByRunToolStripMenuItem.Text)
@@ -1078,19 +961,6 @@ namespace PTL.ATT.GUI
             }
             else
                 _groups.Remove(groupByModelToolStripMenuItem.Text);
-
-            RefreshPredictions(SelectedPredictions.Select(s => s.Id).ToArray());
-        }
-
-        private void groupByFeaturesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-        {
-            if (groupByFeaturesToolStripMenuItem.Checked)
-            {
-                if (!_groups.Contains(groupByFeaturesToolStripMenuItem.Text))
-                    _groups.Add(groupByFeaturesToolStripMenuItem.Text);
-            }
-            else
-                _groups.Remove(groupByFeaturesToolStripMenuItem.Text);
 
             RefreshPredictions(SelectedPredictions.Select(s => s.Id).ToArray());
         }
@@ -1157,7 +1027,7 @@ namespace PTL.ATT.GUI
 
         private void SetPredictionsTooltip(Prediction prediction)
         {
-            if(predictions.InvokeRequired)
+            if (predictions.InvokeRequired)
             {
                 predictions.Invoke(new Action<Prediction>(SetPredictionsTooltip), prediction);
                 return;
@@ -1208,25 +1078,26 @@ namespace PTL.ATT.GUI
                             areaT.Start(p.PredictionArea);
                             threads.Add(areaT);
 
-                            foreach (Feature f in p.SelectedFeatures)
-                            {
-                                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
-                                    {
-                                        Feature feature = o as Feature;
-                                        if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.DistanceShapefile))
+                            if (p.Model is IFeatureBasedDCM)
+                                foreach (Feature f in (p.Model as IFeatureBasedDCM).Features)
+                                {
+                                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                                         {
-                                            Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                            constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());
-                                            NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                            List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(p.PredictionArea.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, pointDistanceThreshold);
-                                            DB.Connection.Return(connection);
-                                            lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, 1 + overlays.Count)); }
-                                        }
-                                    }));
+                                            Feature feature = o as Feature;
+                                            if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.DistanceShapefile))
+                                            {
+                                                Dictionary<string, string> constraints = new Dictionary<string, string>();
+                                                constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());
+                                                NpgsqlConnection connection = DB.Connection.OpenConnection;
+                                                List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(p.PredictionArea.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, pointDistanceThreshold);
+                                                DB.Connection.Return(connection);
+                                                lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, 1 + overlays.Count)); }
+                                            }
+                                        }));
 
-                                t.Start(f);
-                                threads.Add(t);
-                            }
+                                    t.Start(f);
+                                    threads.Add(t);
+                                }
 
                             foreach (Thread t in threads)
                                 t.Join();
@@ -1277,18 +1148,19 @@ namespace PTL.ATT.GUI
 
         private void editPredictionRunToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            List<Prediction> selectedPredictions = SelectedPredictions;
+            if (SelectedPredictions.Count > 0)
+            {
+                string newRunIdStr = GetValue.Show("New run number for " + SelectedPredictions.Count + " prediction(s).");
+                if (newRunIdStr == null)
+                    return;
 
-            string newRunIdStr = GetValue.Show("New run number for " + selectedPredictions.Count + " prediction(s).");
-            if (newRunIdStr == null)
-                return;
+                int newRunId;
+                if (int.TryParse(newRunIdStr, out newRunId))
+                    foreach (Prediction prediction in SelectedPredictions)
+                        prediction.RunId = newRunId;
 
-            int newRunId;
-            if (int.TryParse(newRunIdStr, out newRunId))
-                foreach (Prediction prediction in selectedPredictions)
-                    prediction.RunId = newRunId;
-
-            RefreshPredictions(selectedPredictions.Select(p => p.Id));
+                RefreshPredictions(SelectedPredictions.Select(p => p.Id));
+            }
         }
 
         private void copyPredictionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1341,28 +1213,6 @@ namespace PTL.ATT.GUI
             }
         }
 
-        private void selectFeaturesForPredictionAndRerunToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Set<Prediction> predictions = new Set<Prediction>(SelectedPredictions.Where(p => p.Model is IFeatureBasedDCM).ToArray());
-            if (predictions.Count > 0 && MessageBox.Show("Are you sure you want to select features for " + predictions.Count + " prediction(s) and rerun them? This will erase previous results for these predictions.", "Confirm feature selection", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-            {
-                Thread t = new Thread(new ThreadStart(delegate()
-                    {
-                        foreach (Prediction prediction in predictions)
-                            try { (prediction.Model as IFeatureBasedDCM).SelectFeatures(prediction, true); }
-                            catch (Exception ex) { Console.Out.WriteLine("An error occurred while selecting features for prediction:  " + ex.Message); }
-
-                        if (threatMap.DisplayedPrediction != null && predictions.Contains(threatMap.DisplayedPrediction))
-                        {
-                            RefreshPredictions(threatMap.DisplayedPrediction.Id);
-                            displayPredictionToolStripMenuItem_Click(sender, e);
-                        }
-                    }));
-
-                t.Start();
-            }
-        }
-
         private void smoothPredictionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             List<Prediction> selectedPredictions = SelectedPredictions;
@@ -1392,23 +1242,23 @@ namespace PTL.ATT.GUI
                                     selectedPrediction.UpdateEvaluation();
                                     selectedPrediction.Name = "Smoothed " + selectedPrediction.Name;
 
-                                    #region update prediction log with smoothed threat scores
                                     if (File.Exists(selectedPrediction.PointPredictionLogPath))
                                     {
-                                        Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> oldLog = selectedPrediction.ReadPointPredictionLog();
-                                        Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> newLog = new Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>();
+                                        DiscreteChoiceModel model = selectedPrediction.Model;
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>();
                                         foreach (PointPrediction pointPrediction in selectedPrediction.PointPredictions)
                                         {
                                             List<Tuple<string, double>> smoothedIncidentScore = new List<Tuple<string, double>>();
                                             foreach (string incident in pointPrediction.IncidentScore.Keys)
                                                 smoothedIncidentScore.Add(new Tuple<string, double>(incident, Math.Round(pointPrediction.IncidentScore[incident], 3)));
 
-                                            newLog.Add(pointPrediction.PointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(smoothedIncidentScore, oldLog[pointPrediction.PointId].Item2));
+                                            string logPointId = model.GetPointIdForLog(pointPrediction.PointId, pointPrediction.Time);
+                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
                                         }
 
-                                        selectedPrediction.WritePointPredictionLog(newLog);
+                                        model.WritePointPredictionLog(newLog, selectedPrediction.PointPredictionLogPath);
                                     }
-                                    #endregion
                                 }
 
                                 RefreshPredictions(selectedPredictions.Select(p => p.Id).ToArray());
@@ -1530,7 +1380,7 @@ namespace PTL.ATT.GUI
         {
             foreach (Prediction selectedPrediction in SelectedPredictions)
             {
-                try { Process.Start(selectedPrediction.ModelDirectory); }
+                try { Process.Start(selectedPrediction.Model.ModelDirectory); }
                 catch (Exception ex) { MessageBox.Show("Failed to open prediction model directory:  " + ex.Message); }
             }
         }
@@ -1625,24 +1475,44 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            trainingAreas.Items.Clear();
-            incidentTypes.Items.Clear();
             models.Items.Clear();
-            features.Items.Clear();
             predictions.Nodes.Clear();
             threatMap.Clear();
             assessments.ClearPlots();
 
-            SetIncidentsToolTip();
-
             try
             {
+                RefreshModels(-1);
                 RefreshAreas();
                 RefreshPredictions(-1);
             }
             catch (Exception ex)
             {
                 Console.Out.WriteLine("Failed to refresh information from database:  " + ex.Message + Environment.NewLine + ex.StackTrace);
+            }
+        }
+
+        public void RefreshModels(int modelIdToSelect)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<int>(RefreshModels), modelIdToSelect);
+                return;
+            }
+
+            toolTip.SetToolTip(models, null);
+
+            models.Items.Clear();
+
+            foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetAll(true))
+                models.Items.Add(m);
+
+            if (models.Items.Count > 0)
+            {
+                if (modelIdToSelect < 0)
+                    modelIdToSelect = (models.Items[0] as DiscreteChoiceModel).Id;
+
+                models.SelectedIndex = models.Items.IndexOf(models.Items.Cast<DiscreteChoiceModel>().Where(m => m.Id == modelIdToSelect).First());
             }
         }
 
@@ -1654,15 +1524,7 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            toolTip.SetToolTip(trainingAreas, null);
             toolTip.SetToolTip(predictionAreas, null);
-
-            trainingAreas.Items.Clear();
-            foreach (Area area in Area.GetAll())
-                trainingAreas.Items.Add(area);
-
-            if (trainingAreas.Items.Count > 0)
-                trainingAreas.SelectedIndex = 0;
 
             predictionAreas.Items.Clear();
             foreach (Area area in Area.GetAll())
@@ -1670,89 +1532,6 @@ namespace PTL.ATT.GUI
 
             if (predictionAreas.Items.Count > 0)
                 predictionAreas.SelectedIndex = 0;
-        }
-
-        public void RefreshIncidentTypes()
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(RefreshIncidentTypes));
-                return;
-            }
-
-            _setIncidentsToolTip = false;
-
-            incidentTypes.Items.Clear();
-            if (SelectedTrainingArea != null)
-                foreach (string incidentType in Incident.GetUniqueTypes(trainingStart.Value, trainingEnd.Value, SelectedTrainingArea))
-                    incidentTypes.Items.Add(incidentType);
-
-            if (SelectedModel != null)
-                foreach (string incidentType in SelectedModel.IncidentTypes)
-                {
-                    int index = incidentTypes.Items.IndexOf(incidentType);
-                    if (index >= 0)
-                        incidentTypes.SetSelected(index, true);
-                }
-
-            _setIncidentsToolTip = true;
-
-            SetIncidentsToolTip();
-        }
-
-        public void RefreshModels(int modelIdToSelect, bool refreshFeatures)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action<int, bool>(RefreshModels), modelIdToSelect, refreshFeatures);
-                return;
-            }
-
-            toolTip.SetToolTip(models, null);
-
-            models.Items.Clear();
-
-            if (SelectedTrainingArea != null)
-            {
-                foreach (DiscreteChoiceModel m in DiscreteChoiceModel.GetForArea(SelectedTrainingArea, true))
-                    models.Items.Add(m);
-
-                if (models.Items.Count > 0)
-                {
-                    if (modelIdToSelect < 0)
-                        modelIdToSelect = (models.Items[0] as DiscreteChoiceModel).Id;
-
-                    models.SelectedIndex = models.Items.IndexOf(models.Items.Cast<DiscreteChoiceModel>().Where(m => m.Id == modelIdToSelect).First());
-                }
-
-                if (refreshFeatures)
-                    RefreshFeatures();
-            }
-        }
-
-        public void RefreshFeatures()
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(RefreshFeatures));
-                return;
-            }
-
-            features.Items.Clear();
-
-            DiscreteChoiceModel model = SelectedModel;
-
-            if (model != null)
-            {
-                List<Feature> sortedFeatures = new List<Feature>(model.GetAvailableFeatures(SelectedTrainingArea));
-                sortedFeatures.Sort();
-
-                foreach (Feature f in sortedFeatures)
-                    if (_featureRemapKeyTargetPredictionResource.ContainsKey(f.RemapKey))
-                        f.PredictionResourceId = _featureRemapKeyTargetPredictionResource[f.RemapKey];
-
-                features.Items.AddRange(sortedFeatures.ToArray());
-            }
         }
 
         public void RefreshPredictions(int predictionIdToSelect)
@@ -2005,6 +1784,5 @@ namespace PTL.ATT.GUI
             }
         }
         #endregion
-
     }
 }

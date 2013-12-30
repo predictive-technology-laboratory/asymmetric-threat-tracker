@@ -33,83 +33,30 @@ namespace PTL.ATT.GUI
 {
     public partial class TimeSliceDcmForm : Form
     {
-        public string ModelName
-        {
-            get { return modelName.Text; }
-        }
-
-        public int PointSpacing
-        {
-            get { return (int)pointSpacing.Value; }
-        }
-
-        public int FeatureDistanceThreshold
-        {
-            get { return (int)featureDistanceThreshold.Value; }
-        }
-
-        public bool ClassifyNonZeroVectorsUniformly
-        {
-            get { return classifyNonZeroVectorsUniformly.Checked; }
-        }
-
-        public int TrainingSampleSize
-        {
-            get { return (int)trainingSampleSize.Value; }
-        }
-
-        public int PredictionSampleSize
-        {
-            get { return (int)predictionSampleSize.Value; }
-        }
-
-        public Classifier Classifier
-        {
-            get { return classifiers.SelectedItem as Classifier; }
-        }
-
-        public List<Smoother> Smoothers
-        {
-            get { return smoothers.SelectedItems.Cast<Smoother>().ToList(); }
-        }
-
-        public int TimeSliceHours
-        {
-            get { return (int)timeSliceHours.Value; }
-        }
-
-        public int TimeSlicesPerPeriod
-        {
-            get { return (int)timeSlicesPerPeriod.Value; }
-        }
-
         public TimeSliceDcmForm()
         {
             InitializeComponent();
-            
-            classifiers.Populate(null);
-            smoothers.Populate(null);
+
+            discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += new EventHandler((o, e) =>
+                {
+                    spatialDistanceDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
+                    spatialDistanceDcmOptions.RefreshAll();
+                });
+
+            spatialDistanceDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => TimeSliceDCM.GetAvailableFeatures(a).ToList());
+
+            discreteChoiceModelOptions.RefreshAreas();
         }
 
         public TimeSliceDcmForm(TimeSliceDCM current)
             : this()
         {
-            modelName.Text = current.Name;
-            pointSpacing.Value = current.PointSpacing;
-            featureDistanceThreshold.Value = current.FeatureDistanceThreshold;
-            classifyNonZeroVectorsUniformly.Checked = current.ClassifyNonZeroVectorsUniformly;
-            trainingSampleSize.Value = current.TrainingSampleSize;
-            predictionSampleSize.Value = current.PredictionSampleSize;
-            timeSliceHours.Value = current.TimeSliceHours;
-            timeSlicesPerPeriod.Value = current.PeriodTimeSlices;
-
-            classifiers.Populate(current);
-            smoothers.Populate(current);
+            discreteChoiceModelOptions.DiscreteChoiceModel = spatialDistanceDcmOptions.SpatialDistanceDCM = timeSliceDcmOptions.TimeSliceDCM = current;
         }
 
         private void ok_Click(object sender, EventArgs e)
         {
-            if (classifiers.SelectedItem == null)
+            if (spatialDistanceDcmOptions.Classifier == null)
                 MessageBox.Show("You must select a classifier.");
             else
             {

@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -389,7 +389,7 @@ namespace PTL.ATT.GUI.Visualization
                         PointF drawingPoint = ConvertMetersPointToDrawingPoint(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
                         RectangleF circle = GetCircleBoundingBox(drawingPoint, 5);
                         g.FillEllipse(_brush, circle);
-                        g.DrawEllipse(_pen, circle); 
+                        g.DrawEllipse(_pen, circle);
                     }
                 }
             }
@@ -809,7 +809,7 @@ namespace PTL.ATT.GUI.Visualization
             if (DisplayedPrediction == null)
                 MessageBox.Show("No prediction displayed. Cannot examine regions.");
             else if (!File.Exists(DisplayedPrediction.PointPredictionLogPath))
-                MessageBox.Show("No information available for this prediction.");
+                MessageBox.Show("No point prediction information is available.");
             else if (_highlightedThreatRectangle == Rectangle.Empty || _highlightedThreatRectangleCol == -1 || _highlightedThreatRectangleRow == -1)
                 MessageBox.Show("Must select a region to examine.");
             else
@@ -836,7 +836,14 @@ namespace PTL.ATT.GUI.Visualization
                                                                           new PostGIS.Point(leftMeters + widthMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID),
                                                                           new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID)}, DisplayedPrediction.PredictionArea.SRID);
 
+                    DiscreteChoiceModel model = DisplayedPrediction.Model;
+
                     PointPrediction[] pointPredictions = PointPrediction.GetWithin(threatRectangle, DisplayedPrediction.Id).ToArray();
+
+                    // only get point predictions in current slice if we've got a timeslice model
+                    if (model is TimeSliceDCM)
+                        pointPredictions = pointPredictions.Where(p => (p.Time.Ticks / (model as TimeSliceDCM).TimeSliceTicks) == timeSlice.Value).ToArray();
+
                     if (pointPredictions.Length > 0)
                     {
                         DataGridView dataView = new DataGridView();
@@ -857,30 +864,37 @@ namespace PTL.ATT.GUI.Visualization
 
                         Dictionary<int, int> featureIdCol = new Dictionary<int, int>();
                         Set<int> featureCols = new Set<int>();
-                        foreach (Feature feature in DisplayedPrediction.SelectedFeatures.OrderBy(f => f.ToString()))
+                        if (model is IFeatureBasedDCM)
                         {
-                            string colName = "Feature:  " + feature.ToString();
-                            int featureCol = dataView.Columns.Add(colName, colName);
-                            featureIdCol.Add(feature.Id, featureCol);
-                            featureCols.Add(featureCol);
+                            IFeatureBasedDCM featureBasedModel = DisplayedPrediction.Model as IFeatureBasedDCM;
+                            foreach (Feature feature in featureBasedModel.Features.OrderBy(f => f.ToString()))
+                            {
+                                string colName = "Feature:  " + feature.ToString();
+                                int featureCol = dataView.Columns.Add(colName, colName);
+                                featureIdCol.Add(feature.Id, featureCol);
+                                featureCols.Add(featureCol);
+                            }
                         }
 
                         dataView.Rows.Add(pointPredictions.Length);
 
                         try
                         {
-                            Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointPredictionLog = DisplayedPrediction.ReadPointPredictionLog(new Set<int>(pointPredictions.Select(p => p.PointId).ToArray()));
+                            Set<string> logPointIdsToGet = new Set<string>(pointPredictions.Select(p => model.GetPointIdForLog(p.PointId, p.Time)).ToArray());
+                            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointPredictionLog = model.ReadPointPredictionLog(DisplayedPrediction.PointPredictionLogPath, logPointIdsToGet);
                             for (int i = 0; i < pointPredictions.Length; ++i)
                             {
                                 PointPrediction pointPrediction = pointPredictions[i];
 
                                 dataView[predictionIdCol, i].Value = pointPrediction.PointId;
 
-                                foreach (Tuple<string, double> labelConfidence in pointPredictionLog[pointPrediction.PointId].Item1)
+                                string logPointId = model.GetPointIdForLog(pointPrediction.PointId, pointPrediction.Time);
+
+                                foreach (Tuple<string, double> labelConfidence in pointPredictionLog[logPointId].Item1)
                                     if (labelConfidence.Item1 != PointPrediction.NullLabel)
                                         dataView[incidentProbCol[labelConfidence.Item1], i].Value = Math.Round(labelConfidence.Item2, 3);
 
-                                foreach (Tuple<int, double> featureIdValue in pointPredictionLog[pointPrediction.PointId].Item2)
+                                foreach (Tuple<int, double> featureIdValue in pointPredictionLog[logPointId].Item2)
                                     dataView[featureIdCol[featureIdValue.Item1], i].Value = Math.Round(featureIdValue.Item2, 3);
                             }
                         }

@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,10 +35,11 @@ using PTL.ATT.Evaluation;
 using PTL.ATT.Smoothers;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using PTL.ATT.Exceptions;
 
 namespace PTL.ATT.Models
 {
-    public abstract class DiscreteChoiceModel
+    public abstract class DiscreteChoiceModel : IDiscreteChoiceModel
     {
         #region static members
         public const string Table = "discrete_choice_model";
@@ -52,6 +53,8 @@ namespace PTL.ATT.Models
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string IncidentTypes = "incident_types";
+            [Reflector.Select(true)]
+            public const string ModelDirectory = "model_directory";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Name = "name";
             [Reflector.Insert, Reflector.Select(true)]
@@ -86,6 +89,7 @@ namespace PTL.ATT.Models
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.IncidentTypes + " VARCHAR[] DEFAULT '{}'," +
+                   Columns.ModelDirectory + " VARCHAR," +
                    Columns.Name + " VARCHAR," +
                    Columns.PointSpacing + " INT," +
                    Columns.PredictionSampleSize + " INT," +
@@ -133,7 +137,18 @@ namespace PTL.ATT.Models
                 ConnectionPool.AddParameters(cmd, new Parameter("smoother_" + smootherNum++, NpgsqlDbType.Bytea, ms.ToArray()));
             }
 
-            return Convert.ToInt32(cmd.ExecuteScalar());
+            int dcmId = Convert.ToInt32(cmd.ExecuteScalar());
+
+            string modelDirectory = Path.Combine(Configuration.ModelsDirectory, dcmId.ToString());
+            if (Directory.Exists(modelDirectory))
+                throw new Exception("Model directory \"" + modelDirectory + "\" already exists.");
+            else
+                Directory.CreateDirectory(modelDirectory);
+
+            cmd.CommandText = "UPDATE " + Table + " SET " + Columns.ModelDirectory + "='" + modelDirectory + "' WHERE " + Columns.Id + "=" + dcmId;
+            cmd.ExecuteNonQuery();
+
+            return dcmId;
         }
 
         public static IEnumerable<DiscreteChoiceModel> GetAll(bool excludeThoseCopiedForPredictions)
@@ -200,7 +215,7 @@ namespace PTL.ATT.Models
             return m;
         }
 
-        #region evaluation    
+        #region evaluation
         public static void Evaluate(Prediction prediction, int plotWidth, int plotHeight)
         {
             List<Incident> newIncidents = new List<Incident>();
@@ -303,6 +318,7 @@ namespace PTL.ATT.Models
         private int _trainingSampleSize;
         private int _predictionSampleSize;
         private List<Smoother> _smoothers;
+        private string _modelDirectory;
 
         #region properties
         public int Id
@@ -375,6 +391,11 @@ namespace PTL.ATT.Models
                                                                                 Prediction.Table + "." + Prediction.Columns.Done + "=TRUE"));
             }
         }
+
+        public string ModelDirectory
+        {
+            get { return _modelDirectory; }
+        }
         #endregion
 
         protected virtual void Construct(NpgsqlDataReader reader)
@@ -388,6 +409,7 @@ namespace PTL.ATT.Models
             _trainingEnd = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingEnd]);
             _trainingSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.TrainingSampleSize]);
             _predictionSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.PredictionSampleSize]);
+            _modelDirectory = Convert.ToString(reader[Table + "_" + Columns.ModelDirectory]);
 
             BinaryFormatter bf = new BinaryFormatter();
 
@@ -405,19 +427,18 @@ namespace PTL.ATT.Models
             }
         }
 
-        public abstract IEnumerable<Feature> GetAvailableFeatures(Area area);
-
-        public int Run(IEnumerable<Feature> features, int idOfSpatiotemporallyIdenticalPrediction, Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
+        public int Run(int idOfSpatiotemporallyIdenticalPrediction, Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
             Prediction prediction = null;
             try
             {
-                prediction = new Prediction(Prediction.Create(cmd.Connection, Copy(), newRun, predictionName, predictionArea.Id, startTime, endTime, true));
-                prediction.SelectedFeatures = features;
+                DiscreteChoiceModel copy = DiscreteChoiceModel.Instantiate(Copy());
 
-                Run(prediction, idOfSpatiotemporallyIdenticalPrediction);
+                prediction = new Prediction(Prediction.Create(cmd.Connection, copy.Id, newRun, predictionName, predictionArea.Id, startTime, endTime, true));
+
+                copy.Run(prediction, idOfSpatiotemporallyIdenticalPrediction);
 
                 prediction.Done = true;
 
@@ -441,6 +462,25 @@ namespace PTL.ATT.Models
 
         internal abstract void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction);
 
+        public abstract string GetPointIdForLog(int id, DateTime time);
+
+        /// <summary>
+        /// Reads the point log for this prediction. The key is the point ID, which is mapped to two lists of tuples. The first
+        /// list contains the label confidence scores and the second list contains the feature ID values.
+        /// </summary>
+        /// <param name="pointPredictionLogPath">Path to point prediction log</param>
+        /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
+        /// <returns></returns>
+        public abstract Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null);
+
+        /// <summary>
+        /// Writes the point log for this prediction.
+        /// </summary>
+        /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
+        /// list contains the label confidence scores and the second list contains the feature ID values.</param>
+        /// <param name="pointPredictionLogPath">Path to point prediction log</param>
+        public abstract void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath);
+
         public abstract string GetDetails(Prediction prediction);
 
         public virtual string GetDetails(int indentLevel)
@@ -452,6 +492,7 @@ namespace PTL.ATT.Models
             return (indentLevel > 0 ? Environment.NewLine : "") + indent + "Type:  " + GetType() + Environment.NewLine +
                    indent + "ID:  " + _id + Environment.NewLine +
                    indent + "Name:  " + _name + Environment.NewLine +
+                   (_modelDirectory == "" ? "" : indent + "Model directory:  " + _modelDirectory + Environment.NewLine) +
                    indent + "Incident types:  " + _incidentTypes.Concatenate(",") + Environment.NewLine +
                    indent + "Training start:  " + _trainingStart.ToShortDateString() + " " + _trainingStart.ToShortTimeString() + Environment.NewLine +
                    indent + "Training end:  " + _trainingEnd.ToShortDateString() + " " + _trainingEnd.ToShortTimeString() + Environment.NewLine +
@@ -462,7 +503,7 @@ namespace PTL.ATT.Models
                    indent + "Smoothers:  " + _smoothers.Select(s => s.GetSmoothingDetails()).Concatenate(", ");
         }
 
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, List<Smoother> smoothers)
+        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, IEnumerable<Smoother> smoothers)
         {
             _incidentTypes = new Set<string>(incidentTypes.ToArray());
             _name = name;
@@ -472,8 +513,7 @@ namespace PTL.ATT.Models
             _trainingStart = trainingStart;
             _trainingSampleSize = trainingSampleSize;
             _predictionSampleSize = predictionSampleSize;
-
-            _smoothers = smoothers;
+            _smoothers = smoothers.ToList();
 
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
@@ -507,7 +547,7 @@ namespace PTL.ATT.Models
 
         public abstract int Copy();
 
-        internal abstract void ChangeFeatureIds(Prediction prediction, Dictionary<int, int> oldNewFeatureId);
+        public abstract void UpdateFeatureIdsFrom(DiscreteChoiceModel original);
 
         protected void Smooth(Prediction prediction)
         {
@@ -530,7 +570,15 @@ namespace PTL.ATT.Models
             if (HasMadePredictions)
                 throw new Exception("Cannot delete model without first deleting predictions");
 
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
+            try
+            {
+                if (Directory.Exists(_modelDirectory))
+                    Directory.Delete(_modelDirectory, true);
+            }
+            catch (Exception ex) { Console.Out.WriteLine("Failed to delete model directory:  " + ex.Message); }
+
+            try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
+            catch (Exception ex) { Console.Out.WriteLine("Failed to delete model from table:  " + ex.Message); }
 
             _modelCache.Remove(_id);
         }

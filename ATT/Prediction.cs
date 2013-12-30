@@ -57,8 +57,6 @@ namespace PTL.ATT
             public const string Done = "done";
             [Reflector.Select(true)]
             public const string Id = "id";
-            [Reflector.Select(true)]
-            public const string ModelDirectory = "model_directory";
             [Reflector.Insert, Reflector.Select(true)]
             public const string ModelId = "model_id";
             [Reflector.Insert, Reflector.Select(true)]
@@ -88,7 +86,6 @@ namespace PTL.ATT
                    Columns.AssessmentPlots + " BYTEA," +
                    Columns.Done + " BOOLEAN," +
                    Columns.Id + " SERIAL PRIMARY KEY," +
-                   Columns.ModelDirectory + " VARCHAR," +
                    Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
                    Columns.MostRecentlyEvaluatedIncidentTime + " TIMESTAMP," +
                    Columns.Name + " VARCHAR," +
@@ -123,18 +120,6 @@ namespace PTL.ATT
                                               new Parameter("prediction_end_time", NpgsqlDbType.Timestamp, predictionEndTime));
 
             int id = Convert.ToInt32(cmd.ExecuteScalar());
-
-            string modelDirectory = Path.Combine(Configuration.ModelsDirectory, id.ToString());
-            if (Directory.Exists(modelDirectory))
-                throw new Exception("Model directory \"" + modelDirectory + "\" for prediction already exists. This can happen for two reasons:  either you specified a \"model_directory\" in the ATT configuration that was not empty, or perhaps the database has been manually truncated without also deleting all model directories within \"" + Configuration.ModelsDirectory + "\". To fix this, delete all predictions and set \"model_directory\" to an empty directory.");
-            else
-                Directory.CreateDirectory(modelDirectory);
-
-            cmd.CommandText = "UPDATE " + Table + " " +
-                              "SET " + Columns.ModelDirectory + "='" + modelDirectory + "' " +
-                              "WHERE " + Columns.Id + "=" + id;
-
-            cmd.ExecuteNonQuery();
 
             if (vacuum)
                 VacuumTable();
@@ -195,7 +180,6 @@ namespace PTL.ATT
         private bool _done;
         private int _id;
         private int _runId;
-        private string _modelDirectory;
         private int _modelId;
         private string _name;
         private int _predictionAreaId;
@@ -207,7 +191,6 @@ namespace PTL.ATT
         private string _modelDetails;
         private List<Point> _points;
         private List<PointPrediction> _pointPredictions;
-        private List<Feature> _selectedFeatures;
         private string _smoothing;
 
         public string Smoothing
@@ -254,19 +237,19 @@ namespace PTL.ATT
             }
         }
 
-        public string ModelDirectory
-        {
-            get { return _modelDirectory; }
-        }
-
         public string PointPredictionLogPath
         {
-            get { return Path.Combine(_modelDirectory, "point_predictions.gz"); }
+            get { return Path.Combine(Model.ModelDirectory, "point_predictions.gz"); }
         }
 
         public int ModelId
         {
             get { return _modelId; }
+            set
+            {
+                _modelId = value;
+                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.ModelId + "=" + _modelId + " WHERE " + Columns.Id + "=" + _id);
+            }
         }
 
         public DiscreteChoiceModel Model
@@ -396,49 +379,7 @@ namespace PTL.ATT
 
                 return _pointPredictions;
             }
-        }
-
-        public IEnumerable<Feature> SelectedFeatures
-        {
-            get
-            {
-                if (_selectedFeatures == null)
-                {
-                    _selectedFeatures = new List<Feature>();
-
-                    NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-                    try
-                    {
-                        cmd.CommandText = "SELECT " + Feature.Columns.Select + " FROM " + Feature.Table + " WHERE " + Feature.Columns.PredictionId + "=" + _id + " ORDER BY " + Feature.Columns.Id;
-                        NpgsqlDataReader reader = cmd.ExecuteReader();
-                        while (reader.Read())
-                            _selectedFeatures.Add(new Feature(reader));
-
-                        reader.Close();
-                    }
-                    finally { DB.Connection.Return(cmd.Connection); }
-                }
-
-                return _selectedFeatures;
-            }
-            set
-            {
-                _selectedFeatures = null;
-
-                NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-                try
-                {
-                    cmd.CommandText = "DELETE FROM " + Feature.Table + " WHERE " + Feature.Columns.PredictionId + "=" + _id;
-                    cmd.ExecuteNonQuery();
-
-                    foreach (Feature feature in value.OrderBy(f => f.Id))
-                        Feature.Create(cmd.Connection, feature.Description, feature.EnumType, feature.EnumValue, _id, feature.TrainingResourceId, feature.PredictionResourceId, false);
-
-                    Feature.VacuumTable();
-                }
-                finally { DB.Connection.Return(cmd.Connection); }
-            }
-        }
+        }        
 
         public Prediction(int id)
         {
@@ -460,7 +401,6 @@ namespace PTL.ATT
             _done = Convert.ToBoolean(reader[Table + "_" + Columns.Done]);
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
             _runId = Convert.ToInt32(reader[Table + "_" + Columns.RunId]);
-            _modelDirectory = Convert.ToString(reader[Table + "_" + Columns.ModelDirectory]);
             _modelId = Convert.ToInt32(reader[Table + "_" + Columns.ModelId]);
             _name = Convert.ToString(reader[Table + "_" + Columns.Name]);
             _predictionAreaId = Convert.ToInt32(reader[Table + "_" + Columns.PredictionAreaId]);
@@ -478,9 +418,6 @@ namespace PTL.ATT
                 plotsBytes.Position = 0;
                 _assessmentPlots = bf.Deserialize(plotsBytes) as List<Plot>;
             }
-
-            if (!_modelDirectory.StartsWith(Configuration.ModelsDirectory))
-                throw new ConfigurationException("Prediction model directory \"" + _modelDirectory + "\" is not a child of the configuration model directory \"" + Configuration.ModelsDirectory + "\".");
         }
 
         public override string ToString()
@@ -500,13 +437,6 @@ namespace PTL.ATT
 
             try { PointPrediction.DeleteTable(_id); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete point prediction table:  " + ex.Message); }
-
-            try
-            {
-                if (Directory.Exists(_modelDirectory))
-                    Directory.Delete(_modelDirectory, true);
-            }
-            catch (Exception ex) { Console.Out.WriteLine("Failed to delete model directory:  " + ex.Message); }
 
             try { Model.Delete(); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete model for prediction:  " + ex.Message); }
@@ -533,78 +463,41 @@ namespace PTL.ATT
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
-            int copyId = Create(cmd.Connection, Model.Copy(), newRun, newName, _predictionAreaId, _predictionStartTime, _predictionEndTime, false);
+            Prediction copiedPrediction = null;
 
             try
             {
-                string selectColumns = Point.Columns.GetInsertWithout(new Set<string>(new string[] { Point.Columns.Id }));
+                copiedPrediction = new Prediction(Create(cmd.Connection, Model.Copy(), newRun, newName, _predictionAreaId, _predictionStartTime, _predictionEndTime, false));
 
-                string copiedPointTable = Point.CreateTable(copyId, PredictionArea.SRID);
-                cmd.CommandText = "INSERT INTO " + copiedPointTable + "(" + selectColumns + ") " +
-                                  "SELECT " + selectColumns + " " +
+                string copiedPointTable = Point.CreateTable(copiedPrediction.Id, PredictionArea.SRID);
+                cmd.CommandText = "INSERT INTO " + copiedPointTable + " (" + Point.Columns.Insert + ") " +
+                                  "SELECT " + Point.Columns.Insert + " " +
                                   "FROM " + Point.GetTableName(_id) + " " +
-                                  "ORDER BY " + Point.Columns.Id + " ASC " +
-                                  "RETURNING " + Point.Columns.Id;
+                                  "ORDER BY " + Point.Columns.Id + " ASC";
+                cmd.ExecuteNonQuery();
 
-                List<int> oldPointIds = PointPredictions.Select(p => p.PointId).OrderBy(pointId => pointId).ToList();
-                Dictionary<int, int> oldPointIdNewPointId = new Dictionary<int, int>(oldPointIds.Count);
-                NpgsqlDataReader reader = cmd.ExecuteReader();
-                int pointNum = 0;
-                while (reader.Read())
-                    oldPointIdNewPointId.Add(oldPointIds[pointNum++], Convert.ToInt32(reader[Point.Columns.Id]));
-                reader.Close();
+                string copiedPointPredictionTable = PointPrediction.CreateTable(copiedPrediction.Id);
+                cmd.CommandText = "INSERT INTO " + copiedPointPredictionTable + " (" + PointPrediction.Columns.Insert + ") " +
+                                  "SELECT " + PointPrediction.Columns.Insert + " " +
+                                  "FROM " + PointPrediction.GetTableName(_id) + " " +
+                                  "ORDER BY " + PointPrediction.Columns.Id + " ASC";
+                cmd.ExecuteNonQuery();
 
-                if (pointNum != oldPointIds.Count)
-                    throw new Exception("Mismatch between number of point predictions and number of new point IDs");
+                foreach (string path in Directory.GetFiles(Model.ModelDirectory))
+                    File.Copy(path, Path.Combine(copiedPrediction.Model.ModelDirectory, Path.GetFileName(path)));
 
-                List<Tuple<string, Parameter>> copiedPointPredictionValues = new List<Tuple<string, Parameter>>(oldPointIdNewPointId.Count);
-                foreach (PointPrediction pointPrediction in PointPredictions)
-                {
-                    string labels = "'{" + pointPrediction.IncidentScore.Keys.Where(l => l != PointPrediction.NullLabel).Select(l => "\"" + l + "\"").Concatenate(",") + "}'";
-                    string threats = "'{" + pointPrediction.IncidentScore.Keys.Where(l => l != PointPrediction.NullLabel).Select(l => pointPrediction.IncidentScore[l].ToString()).Concatenate(",") + "}'";
-                    double totalThreat = pointPrediction.IncidentScore.Keys.Where(l => l != PointPrediction.NullLabel).Sum(l => pointPrediction.IncidentScore[l]);
-                    string timeParameterName = "@time_" + pointPrediction.Id;
-                    Parameter timeParameter = new Parameter(timeParameterName, NpgsqlDbType.Timestamp, pointPrediction.Time);
-                    copiedPointPredictionValues.Add(new Tuple<string, Parameter>("(" + labels + "," + oldPointIdNewPointId[pointPrediction.PointId] + "," + threats + "," + timeParameterName + "," + totalThreat + ")", timeParameter));
-                }
+                copiedPrediction.Smoothing = _smoothing;
+                copiedPrediction.Done = true;
 
-                PointPrediction.CreateTable(copyId);
-                PointPrediction.Insert(copiedPointPredictionValues, copyId, true);
-
-                Prediction copy = new Prediction(copyId);
-                copy.Smoothing = _smoothing;
-                copy.SelectedFeatures = SelectedFeatures;
-
-                Dictionary<int, int> oldNewFeatureId = new Dictionary<int, int>();
-                foreach (Tuple<int, int> oldNew in SelectedFeatures.Zip(copy.SelectedFeatures, new Func<Feature, Feature, Tuple<int, int>>((f1, f2) => new Tuple<int, int>(f1.Id, f2.Id))))
-                    oldNewFeatureId.Add(oldNew.Item1, oldNew.Item2);
-
-                foreach (string path in Directory.GetFiles(_modelDirectory))
-                    if (path == PointPredictionLogPath)
-                    {
-                        Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> originalLog = ReadPointPredictionLog();
-                        Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> copiedLog = new Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>(originalLog.Count);
-                        foreach (int originalPointId in originalLog.Keys)
-                        {
-                            List<Tuple<int, double>> copiedFeatureValues = new List<Tuple<int, double>>(originalLog[originalPointId].Item2.Count);
-                            foreach (Tuple<int, double> originalFeatureValue in originalLog[originalPointId].Item2)
-                                copiedFeatureValues.Add(new Tuple<int, double>(oldNewFeatureId[originalFeatureValue.Item1], originalFeatureValue.Item2));
-
-                            copiedLog.Add(oldPointIdNewPointId[originalPointId], new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(originalLog[originalPointId].Item1, copiedFeatureValues));
-                        }
-
-                        copy.WritePointPredictionLog(copiedLog);
-                    }
-                    else
-                        File.Copy(path, Path.Combine(copy.ModelDirectory, Path.GetFileName(path)));
-
-                copy.Model.ChangeFeatureIds(copy, oldNewFeatureId);
-                copy.Done = true;
+                copiedPrediction.Model.UpdateFeatureIdsFrom(Model);
             }
             catch (Exception ex)
             {
-                try { new Prediction(copyId).Delete(); }
-                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete copied prediction:  " + ex2.Message); }
+                Console.Out.WriteLine("Failed to copy prediction:  " + ex.Message);
+
+                if(copiedPrediction != null)
+                    try { copiedPrediction.Delete(); }
+                    catch (Exception ex2) { Console.Out.WriteLine("Failed to delete copied prediction:  " + ex2.Message); }
 
                 throw ex;
             }
@@ -616,14 +509,14 @@ namespace PTL.ATT
                 {
                     try { VacuumTable(); }
                     catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum prediction table:  " + ex.Message); }
-                    try { Point.VacuumTable(copyId); }
-                    catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point table for prediction \"" + copyId + "\":  " + ex.Message); }
-                    try { PointPrediction.VacuumTable(copyId); }
-                    catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point prediction table for prediction \"" + copyId + "\":  " + ex.Message); }
+                    try { Point.VacuumTable(copiedPrediction.Id); }
+                    catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point table for prediction \"" + copiedPrediction.Id + "\":  " + ex.Message); }
+                    try { PointPrediction.VacuumTable(copiedPrediction.Id); }
+                    catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point prediction table for prediction \"" + copiedPrediction.Id + "\":  " + ex.Message); }
                 }
             }
 
-            return copyId;
+            return copiedPrediction.Id;
         }
 
         public string GetDetails(int indentLevel)
@@ -636,8 +529,6 @@ namespace PTL.ATT
                    indent + "Name:  " + _name + Environment.NewLine +
                    indent + "Run:  " + _runId + Environment.NewLine +
                    indent + "Model:  " + Model.GetDetails(indentLevel + 1) + Environment.NewLine +
-                   indent + "Model directory:  " + _modelDirectory + Environment.NewLine +
-                   indent + "Features:  " + SelectedFeatures.Select(f => f.ToString()).Concatenate(",") + Environment.NewLine +
                    indent + "Prediction start:  " + _predictionStartTime.ToShortDateString() + " " + _predictionStartTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Prediction end:  " + _predictionEndTime.ToShortDateString() + " " + _predictionEndTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Smoothing:  " + _smoothing + Environment.NewLine +
@@ -647,91 +538,7 @@ namespace PTL.ATT
         public int CompareTo(Prediction other)
         {
             return _id.CompareTo(other.Id);
-        }
-
-        /// <summary>
-        /// Reads the point log for this prediction. The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.
-        /// </summary>
-        /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
-        /// <returns></returns>
-        public Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> ReadPointPredictionLog(Set<int> pointIds = null)
-        {
-            Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> log = new Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>();
-
-            using (FileStream pointPredictionLogFile = new FileStream(PointPredictionLogPath, FileMode.Open, FileAccess.Read))
-            using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Decompress))
-            using (StreamReader pointPredictionLog = new StreamReader(pointPredictionLogGzip))
-            {
-                string line;
-                while ((line = pointPredictionLog.ReadLine()) != null)
-                {
-                    int pointId = int.Parse(line.Substring(0, line.IndexOf(' ')));
-
-                    if (pointIds == null || pointIds.Contains(pointId))
-                    {
-                        XmlParser pointP = new XmlParser(line.Substring(line.IndexOf(' ') + 1));
-
-                        List<Tuple<string, double>> labelConfidences = new List<Tuple<string, double>>();
-                        XmlParser labelsP = new XmlParser(pointP.OuterXML("ls"));
-                        string labelXML;
-                        while ((labelXML = labelsP.OuterXML("l")) != null)
-                        {
-                            XmlParser labelP = new XmlParser(labelXML);
-                            double confidence = double.Parse(labelP.AttributeValue("l", "c"));
-                            string label = labelP.ElementText("l");
-                            labelConfidences.Add(new Tuple<string, double>(label, confidence));
-                        }
-
-                        List<Tuple<int, double>> featureValues = new List<Tuple<int, double>>();
-                        XmlParser featureValuesP = new XmlParser(pointP.OuterXML("fvs"));
-                        string featureValueXML;
-                        while ((featureValueXML = featureValuesP.OuterXML("fv")) != null)
-                        {
-                            XmlParser featureValueP = new XmlParser(featureValueXML);
-                            featureValues.Add(new Tuple<int, double>(int.Parse(featureValueP.AttributeValue("fv", "id")), double.Parse(featureValueP.ElementText("fv"))));
-                        }
-
-                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(labelConfidences, featureValues));
-
-                        if (pointIds != null)
-                        {
-                            pointIds.Remove(pointId);
-                            if (pointIds.Count == 0)
-                                break;
-                        }
-                    }
-                }
-
-                pointPredictionLog.Close();
-            }
-
-            return log;
-        }
-
-        /// <summary>
-        /// Writes the point log for this prediction.
-        /// </summary>
-        /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.</param>
-        public void WritePointPredictionLog(Dictionary<int, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues)
-        {
-            StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(PointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress));
-            foreach (int pointId in pointIdLabelsFeatureValues.Keys.OrderBy(k => k))
-            {
-                pointPredictionLog.Write(pointId + " <p><ls>");
-                foreach (Tuple<string, double> labelConfidence in pointIdLabelsFeatureValues[pointId].Item1)
-                    pointPredictionLog.Write("<l c=\"" + labelConfidence.Item2 + "\"><![CDATA[" + labelConfidence.Item1 + "]]></l>");
-
-                pointPredictionLog.Write("</ls><fvs>");
-                foreach (Tuple<int, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
-                    pointPredictionLog.Write("<fv id=\"" + featureIdValue.Item1 + "\">" + featureIdValue.Item2 + "</fv>");
-
-                pointPredictionLog.WriteLine("</fvs></p>");
-            }
-
-            pointPredictionLog.Close();
-        }
+        }        
 
         /// <summary>
         /// Releases all data that was lazy-loaded into memory (e.g., points). Often this data can be large and needs to be cleaned up.
@@ -741,7 +548,6 @@ namespace PTL.ATT
             _predictionArea = null;
             _points = null;
             _pointPredictions = null;
-            _selectedFeatures = null;
         }
     }
 }

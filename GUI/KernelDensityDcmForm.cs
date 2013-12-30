@@ -31,53 +31,18 @@ using PTL.ATT.Models;
 namespace PTL.ATT.GUI
 {
     public partial class KernelDensityDcmForm : Form
-    {
-        public string ModelName
-        {
-            get { return modelName.Text; }
-        }
-
-        public int PointSpacing
-        {
-            get { return (int)pointSpacing.Value; }
-        }
-
-        public int TrainingSampleSize
-        {
-            get { return (int)trainingSampleSize.Value; }
-        }
-
-        public int PredictionSampleSize
-        {
-            get { return (int)predictionSampleSize.Value; }
-        }
-
-        public bool Normalize
-        {
-            get { return normalize.Checked; }
-        }
-
-        public List<Smoother> Smoothers
-        {
-            get { return smoothers.SelectedItems.Cast<Smoother>().ToList(); }
-        }
-
+    {      
         public KernelDensityDcmForm()
         {
             InitializeComponent();
 
-            smoothers.Populate(null);
+            discreteChoiceModelOptions.trainingSampleSize.Value = 500;
         }
 
         public KernelDensityDcmForm(KernelDensityDCM current)
             : this()
         {
-            modelName.Text = current.Name;
-            pointSpacing.Value = current.PointSpacing;
-            trainingSampleSize.Value = current.TrainingSampleSize;
-            predictionSampleSize.Value = current.PredictionSampleSize;
-            normalize.Checked = current.Normalize;
-            smoothers.Populate(current);
+            discreteChoiceModelOptions.DiscreteChoiceModel = kernelDensityDcmOptions.KernelDensityDCM = current;
         }
 
         private void ok_Click(object sender, EventArgs e)

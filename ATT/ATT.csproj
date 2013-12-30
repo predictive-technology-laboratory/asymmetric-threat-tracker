@@ -98,6 +98,7 @@
     <Compile Include="Importers\Importer.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
+    <Compile Include="Models\IDiscreteChoiceModel.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />
     <Compile Include="Models\KernelDensityDCM.cs" />
     <Compile Include="Classifiers\LibLinear.cs" />
@@ -110,7 +111,7 @@
     <Compile Include="Models\TimeSliceDCM.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="PointPrediction.cs" />
-    <Compile Include="Feature.cs" />
+    <Compile Include="Models\Feature.cs" />
     <Compile Include="Incident.cs" />
     <Compile Include="PredictionGroup.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

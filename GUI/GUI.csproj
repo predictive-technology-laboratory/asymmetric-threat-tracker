@@ -127,18 +127,42 @@
     <Compile Include="ClassifierList.Designer.cs">
       <DependentUpon>ClassifierList.cs</DependentUpon>
     </Compile>
+    <Compile Include="DiscreteChoiceModelOptions.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DiscreteChoiceModelOptions.Designer.cs">
+      <DependentUpon>DiscreteChoiceModelOptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="FeatureRemappingForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FeatureRemappingForm.Designer.cs">
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="KernelDensityDcmOptions.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="KernelDensityDcmOptions.Designer.cs">
+      <DependentUpon>KernelDensityDcmOptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="LogWriter.cs" />
+    <Compile Include="SpatialDistanceDcmOptions.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SpatialDistanceDcmOptions.Designer.cs">
+      <DependentUpon>SpatialDistanceDcmOptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="Splash.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Splash.Designer.cs">
       <DependentUpon>Splash.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TimeSliceDcmOptions.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TimeSliceDcmOptions.Designer.cs">
+      <DependentUpon>TimeSliceDcmOptions.cs</DependentUpon>
     </Compile>
     <Compile Include="Visualization\SmootherChooser.cs">
       <SubType>Form</SubType>
@@ -244,11 +268,23 @@
     <EmbeddedResource Include="ClassifierList.resx">
       <DependentUpon>ClassifierList.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="DiscreteChoiceModelOptions.resx">
+      <DependentUpon>DiscreteChoiceModelOptions.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FeatureRemappingForm.resx">
       <DependentUpon>FeatureRemappingForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="KernelDensityDcmOptions.resx">
+      <DependentUpon>KernelDensityDcmOptions.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SpatialDistanceDcmOptions.resx">
+      <DependentUpon>SpatialDistanceDcmOptions.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TimeSliceDcmOptions.resx">
+      <DependentUpon>TimeSliceDcmOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Visualization\SmootherChooser.resx">
       <DependentUpon>SmootherChooser.cs</DependentUpon>

@@ -38,7 +38,8 @@ namespace PTL.ATT.Models
     {
         static KernelDensityDCM()
         {
-            R.InstallPackages(R.CheckForMissingPackages(new string[] { "ks" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+            if (Configuration.RCranMirror != null)
+                R.InstallPackages(R.CheckForMissingPackages(new string[] { "ks" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
         private new const string Table = "kernel_density_dcm";
@@ -77,14 +78,14 @@ namespace PTL.ATT.Models
             NpgsqlCommand cmd = DB.Connection.NewCommand("BEGIN");
             cmd.ExecuteNonQuery();
 
-            int id = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, typeof(KernelDensityDCM), trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
+            int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, typeof(KernelDensityDCM), trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
 
-            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + id + "," + normalize + ");COMMIT;";
+            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + dcmId + "," + normalize + ");COMMIT;";
             cmd.ExecuteNonQuery();
 
             DB.Connection.Return(cmd.Connection);
 
-            return id;
+            return dcmId;
         }
 
         public static List<float> GetDensityEstimate(IEnumerable<PostGIS.Point> inputPoints, int inputSampleSize, bool binned, float bGridSizeX, float bGridSizeY, IEnumerable<PostGIS.Point> evalPoints, bool normalize)
@@ -237,12 +238,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             _normalize = Convert.ToBoolean(reader[Table + "_" + Columns.Normalize]);
         }
 
-        public override IEnumerable<Feature> GetAvailableFeatures(Area area)
-        {
-            yield break;
-        }
-
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, bool normalize, List<Smoother> smoothers)
+        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, bool normalize, IEnumerable<Smoother> smoothers)
         {
             base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
 
@@ -255,9 +251,6 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
         internal override void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction)
         {
-            if (prediction.SelectedFeatures.Count() > 0)
-                throw new Exception("KDE models don't use features");
-
             List<PostGIS.Point> nullPoints = new List<PostGIS.Point>();
             Area predictionArea = prediction.PredictionArea;
             double areaMinX = predictionArea.BoundingBox.MinX;
@@ -338,6 +331,10 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             return Create(Name, PointSpacing, TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, _normalize, Smoothers);
         }
 
+        public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
+        {
+        }
+
         public override string ToString()
         {
             return "KDE DCM:  " + Name;
@@ -353,8 +350,19 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                    indent + "Normalize:  " + _normalize;
         }
 
-        internal override void ChangeFeatureIds(Prediction prediction, Dictionary<int, int> oldNewFeatureId)
+        public override string GetPointIdForLog(int id, DateTime time)
         {
+            throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
+        }
+
+        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, LAIR.Collections.Generic.Set<string> pointIds = null)
+        {
+            throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
+        }
+
+        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
+        {
+            throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
         }
     }
 }

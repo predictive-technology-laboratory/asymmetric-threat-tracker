@@ -35,11 +35,10 @@ namespace PTL.ATT.Classifiers
     {
         static RandomForest()
         {
-            R.InstallPackages(R.CheckForMissingPackages(new string[] { "randomForest" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+            if (Configuration.RCranMirror != null)
+                R.InstallPackages(R.CheckForMissingPackages(new string[] { "randomForest" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
-        [NonSerialized]
-        private Prediction _prediction;
         private int _numTrees;
 
         public int NumTrees
@@ -59,27 +58,23 @@ namespace PTL.ATT.Classifiers
             _numTrees = numTrees;
         }
 
-        public override void Initialize(Prediction prediction)
+        public override void Initialize()
         {
-            base.Initialize(prediction);
-
-            StreamWriter trainingFile = new StreamWriter(Path.Combine(prediction.ModelDirectory, "TrainRaw.csv"), true);
+            StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true);
             trainingFile.Write("Class");
-            foreach (Feature f in prediction.SelectedFeatures.OrderBy(i => i.Id))
+            foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                 trainingFile.Write("," + f.Id);
             trainingFile.WriteLine();
             trainingFile.Close();
-
-            _prediction = prediction;
         }
 
-        public override void Consume(FeatureVectorList featureVectors, Prediction prediction)
+        public override void Consume(FeatureVectorList featureVectors)
         {
-            base.Consume(featureVectors, prediction);
+            base.Consume(featureVectors);
 
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                StreamWriter trainingFile = new StreamWriter(Path.Combine(prediction.ModelDirectory, "TrainRaw.csv"), true);
+                StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true);
                 
                 foreach (FeatureVector vector in featureVectors)
                 {
@@ -96,7 +91,7 @@ namespace PTL.ATT.Classifiers
         protected override void BuildModel()
         {
             StringBuilder rCmd = new StringBuilder(@"
-trainRaw=read.csv(""" + Path.Combine(_prediction.ModelDirectory, @"TrainRaw.csv").Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
+trainRaw=read.csv(""" + Path.Combine(Model.ModelDirectory, @"TrainRaw.csv").Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
 trainNorm=trainRaw
 cols=NCOL(trainRaw)
 mxmn <- array(0, dim=c(2,cols-1))
@@ -108,11 +103,11 @@ for(i in 2:cols) {
   mxmn[2,i-1]=cmin
   trainNorm[,i]=(trainRaw[,i]-((cmax+cmin)/2))/((cmax-cmin)/2)
 }
-write.table(data.frame(mxmn), file=""" + Path.Combine(_prediction.ModelDirectory, @"MaxMin.csv").Replace("\\", "/") + @""", row.names=FALSE, col.names=FALSE, sep=',')" + @"
-write.csv(trainNorm, file=""" + Path.Combine(_prediction.ModelDirectory, @"TrainNorm.csv").Replace("\\", "/") + @""")" + @"
+write.table(data.frame(mxmn), file=""" + Path.Combine(Model.ModelDirectory, @"MaxMin.csv").Replace("\\", "/") + @""", row.names=FALSE, col.names=FALSE, sep=',')" + @"
+write.csv(trainNorm, file=""" + Path.Combine(Model.ModelDirectory, @"TrainNorm.csv").Replace("\\", "/") + @""")" + @"
 library(randomForest)
 rf=randomForest(Class ~., data=trainNorm, ntree=" + _numTrees + ", importance=TRUE, seed=99)" + @"
-save(rf, file=""" + Path.Combine(_prediction.ModelDirectory, @"rf.RData").Replace("\\", "/") + @""")" + @"
+save(rf, file=""" + Path.Combine(Model.ModelDirectory, @"rf.RData").Replace("\\", "/") + @""")" + @"
 ");
             R.Execute(rCmd.ToString(), false);
         }
@@ -122,14 +117,14 @@ save(rf, file=""" + Path.Combine(_prediction.ModelDirectory, @"rf.RData").Replac
             throw new NotImplementedException("Feature selection has not been implemented for RandomForest classifiers.");
         }
 
-        public override void Classify(FeatureVectorList featureVectors, Prediction prediction)
+        public override void Classify(FeatureVectorList featureVectors)
         {
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                StreamWriter predictionsFile = new StreamWriter(Path.Combine(prediction.ModelDirectory, "PredRaw.csv"));
+                StreamWriter predictionsFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "PredRaw.csv"));
 
                 predictionsFile.Write("Class");
-                foreach (Feature f in prediction.SelectedFeatures.OrderBy(i => i.Id))
+                foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                     predictionsFile.Write("," + f.Id);
                 predictionsFile.WriteLine();
 
@@ -143,25 +138,25 @@ save(rf, file=""" + Path.Combine(_prediction.ModelDirectory, @"rf.RData").Replac
                 predictionsFile.Close();
 
                 StringBuilder rCmd = new StringBuilder(@"
-predRaw=read.csv(""" + Path.Combine(_prediction.ModelDirectory, @"PredRaw.csv").Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
-mxmn=read.csv(""" + Path.Combine(_prediction.ModelDirectory, @"MaxMin.csv").Replace("\\", "/") + @""", header = FALSE, sep = ',')" + @"
+predRaw=read.csv(""" + Path.Combine(Model.ModelDirectory, @"PredRaw.csv").Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
+mxmn=read.csv(""" + Path.Combine(Model.ModelDirectory, @"MaxMin.csv").Replace("\\", "/") + @""", header = FALSE, sep = ',')" + @"
 predNorm=predRaw
 for(i in 2:NCOL(predRaw)) {
   cmax=mxmn[1,i-1]
   cmin=mxmn[2,i-1]
   predNorm[,i] = (predRaw[,i]-((cmax+cmin)/2))/((cmax-cmin)/2)
 }
-write.csv(predNorm, file=""" + Path.Combine(_prediction.ModelDirectory, @"PredNorm.csv").Replace("\\", "/") + @""")" + @"
+write.csv(predNorm, file=""" + Path.Combine(Model.ModelDirectory, @"PredNorm.csv").Replace("\\", "/") + @""")" + @"
 library(randomForest)
-load(file=""" + Path.Combine(_prediction.ModelDirectory, @"rf.RData").Replace("\\", "/") + @""")" + @"
+load(file=""" + Path.Combine(Model.ModelDirectory, @"rf.RData").Replace("\\", "/") + @""")" + @"
 rf.pred=predict(rf, predNorm, norm.votes=TRUE, type='prob')
 dfp<-data.frame(rf.pred)
 names(dfp)[names(dfp)=='NULL.'] <- 'NULL'
-write.table(dfp, file=""" + Path.Combine(_prediction.ModelDirectory, @"Predictions.csv").Replace("\\", "/") + @""", row.names=FALSE, sep=',')" + @"
+write.table(dfp, file=""" + Path.Combine(Model.ModelDirectory, @"Predictions.csv").Replace("\\", "/") + @""", row.names=FALSE, sep=',')" + @"
 ");
                 R.Execute(rCmd.ToString(), false);
 
-                StreamReader dataReader = new StreamReader(Path.Combine(prediction.ModelDirectory, "Predictions.csv"));
+                StreamReader dataReader = new StreamReader(Path.Combine(Model.ModelDirectory, "Predictions.csv"));
 
                 string[] colnames = dataReader.ReadLine().Split(',');
                 int row = 0;
@@ -189,7 +184,7 @@ write.table(dfp, file=""" + Path.Combine(_prediction.ModelDirectory, @"Predictio
 
         internal override string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation)
         {
-            return "No details available for AdaBoost predictions.";
+            return "No details available for RandomForest predictions.";
         }
 
         public override Classifier Copy()
@@ -197,7 +192,7 @@ write.table(dfp, file=""" + Path.Combine(_prediction.ModelDirectory, @"Predictio
             return new RandomForest(RunFeatureSelection, ModelId, _numTrees);
         }
 
-        internal override void ChangeFeatureIds(Prediction prediction, Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
         {
         }
 

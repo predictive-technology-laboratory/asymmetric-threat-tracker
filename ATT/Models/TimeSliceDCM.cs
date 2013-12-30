@@ -130,6 +130,7 @@ namespace PTL.ATT.Models
                                  IEnumerable<string> incidentTypes,
                                  PTL.ATT.Classifiers.Classifier classifier,
                                  IEnumerable<Smoother> smoothers,
+                                 List<Feature> features,
                                  int timeSliceHours,
                                  int periodTimeSlices)
         {
@@ -147,7 +148,7 @@ namespace PTL.ATT.Models
             if (type == null)
                 type = typeof(TimeSliceDCM);
 
-            int spatialDistanceDcmId = SpatialDistanceDCM.Create(cmd.Connection, name, pointSpacing, featureDistanceThreshold, classifyNonZeroVectorsUniformly, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers);
+            int spatialDistanceDcmId = SpatialDistanceDCM.Create(cmd.Connection, name, pointSpacing, featureDistanceThreshold, classifyNonZeroVectorsUniformly, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
 
             cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + spatialDistanceDcmId + "," + periodTimeSlices + "," + timeSliceHours + ")";
             cmd.ExecuteNonQuery();
@@ -157,13 +158,30 @@ namespace PTL.ATT.Models
                 cmd.CommandText = "COMMIT";
                 cmd.ExecuteNonQuery();
                 DB.Connection.Return(cmd.Connection);
+
+                (SpatialDistanceDCM.Instantiate(spatialDistanceDcmId) as TimeSliceDCM).Features = features;
             }
 
             return spatialDistanceDcmId;
         }
 
+        public new static IEnumerable<Feature> GetAvailableFeatures(Area area)
+        {
+            foreach (Feature f in SpatialDistanceDCM.GetAvailableFeatures(area))
+                yield return f;
+
+            foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
+                yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString());
+
+            FeatureExtractor externalFeatureExtractor;
+            if (Configuration.TryGetFeatureExtractor(typeof(TimeSliceDCM), out externalFeatureExtractor))
+                foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
+                    yield return f;
+        }
+
         private int _timeSliceHours;
         private long _periodTimeSlices;
+        private long _timeSliceTicks;
 
         public int TimeSliceHours
         {
@@ -177,7 +195,7 @@ namespace PTL.ATT.Models
 
         public long TimeSliceTicks
         {
-            get { return new TimeSpan(_timeSliceHours, 0, 0).Ticks; }
+            get { return _timeSliceTicks; }
         }
 
         internal TimeSliceDCM(int id)
@@ -199,23 +217,16 @@ namespace PTL.ATT.Models
 
             _timeSliceHours = Convert.ToInt32(reader[Table + "_" + Columns.TimeSliceHours]);
             _periodTimeSlices = Convert.ToInt32(reader[Table + "_" + Columns.PeriodTimeSlices]);
+            _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
         }
 
-        public override IEnumerable<Feature> GetAvailableFeatures(Area area)
+        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, List<Feature> features, int timeSliceHours, int periodTimeSlices)
         {
-            foreach (Feature f in base.GetAvailableFeatures(area))
-                yield return f;
-
-            foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
-                yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString());
-        }
-
-        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, List<Smoother> smoothers, int timeSliceHours, int periodTimeSlices)
-        {
-            base.Update(name, pointSpacing, featureDistanceThreshold, classifyNonZeroVectorsUniformly, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers);
+            base.Update(name, pointSpacing, featureDistanceThreshold, classifyNonZeroVectorsUniformly, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
 
             _timeSliceHours = timeSliceHours;
             _periodTimeSlices = periodTimeSlices;
+            _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
 
             DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
                                           Columns.TimeSliceHours + "=" + timeSliceHours + "," +
@@ -230,7 +241,7 @@ namespace PTL.ATT.Models
                 Dictionary<TimeSliceFeature, int> featureId = new Dictionary<TimeSliceFeature, int>();
                 Dictionary<TimeSliceFeature, NumericFeature> featureNumeric = new Dictionary<TimeSliceFeature, NumericFeature>();
                 Dictionary<TimeSliceFeature, NominalFeature> featureNominal = new Dictionary<TimeSliceFeature, NominalFeature>();
-                foreach (Feature f in prediction.SelectedFeatures)
+                foreach (Feature f in Features)
                     if (f.EnumType == typeof(TimeSliceFeature))
                     {
                         TimeSliceFeature feature = (TimeSliceFeature)f.EnumValue;
@@ -245,7 +256,7 @@ namespace PTL.ATT.Models
                 long lastSlice = (long)((training ? prediction.Model.TrainingEnd.Ticks : prediction.PredictionEndTime.Ticks) / sliceTicks);
                 int numSlices = (int)(lastSlice - firstSlice + 1);
                 long ticksPerHour = new TimeSpan(1, 0, 0).Ticks;
-                int numFeatures = prediction.SelectedFeatures.Count(f => f.EnumType == typeof(TimeSliceFeature)) + (ExternalFeatureExtractor == null ? 0 : ExternalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
+                int numFeatures = Features.Count(f => f.EnumType == typeof(TimeSliceFeature)) + (ExternalFeatureExtractor == null ? 0 : ExternalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
                 List<TimeSliceFeature> dayIntervals = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
 
                 Console.Out.WriteLine("Extracting " + featureId.Count + " time slice features for " + spatialVectors.Count + " spatial points across " + numSlices + " time slices");
@@ -351,9 +362,15 @@ namespace PTL.ATT.Models
             }
         }
 
+        public override string GetPointIdForLog(int id, DateTime time)
+        {
+            long slice = time.Ticks / _timeSliceTicks;
+            return slice + "-" + id;
+        }
+
         public override int Copy()
         {
-            return Create(null, Name, PointSpacing, FeatureDistanceThreshold, ClassifyNonZeroVectorsUniformly, GetType(), TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, (int)_timeSliceHours, (int)_periodTimeSlices);
+            return Create(null, Name, PointSpacing, FeatureDistanceThreshold, ClassifyNonZeroVectorsUniformly, GetType(), TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, Features.ToList(), (int)_timeSliceHours, (int)_periodTimeSlices);
         }
 
         public override string ToString()

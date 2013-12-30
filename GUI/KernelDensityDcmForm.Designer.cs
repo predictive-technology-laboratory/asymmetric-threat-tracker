@@ -47,241 +47,114 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
-            this.cancel = new System.Windows.Forms.Button();
-            this.ok = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.modelName = new System.Windows.Forms.TextBox();
-            this.pointSpacing = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.predictionSampleSize = new System.Windows.Forms.NumericUpDown();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.trainingSampleSize = new System.Windows.Forms.NumericUpDown();
-            this.label12 = new System.Windows.Forms.Label();
-            this.normalize = new System.Windows.Forms.CheckBox();
-            this.label13 = new System.Windows.Forms.Label();
-            this.smoothers = new PTL.ATT.GUI.SmootherList();
-            ((System.ComponentModel.ISupportInitialize)(this.pointSpacing)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).BeginInit();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.oKToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.discreteChoiceModelOptions = new PTL.ATT.GUI.DiscreteChoiceModelOptions();
+            this.kernelDensityDcmOptions = new PTL.ATT.GUI.KernelDensityDcmOptions();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
+            this.tabPage2.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // cancel
+            // tabControl1
             // 
-            this.cancel.Location = new System.Drawing.Point(165, 250);
-            this.cancel.Name = "cancel";
-            this.cancel.Size = new System.Drawing.Size(75, 23);
-            this.cancel.TabIndex = 6;
-            this.cancel.Text = "Cancel";
-            this.cancel.UseVisualStyleBackColor = true;
-            this.cancel.Click += new System.EventHandler(this.cancel_Click);
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 24);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(584, 542);
+            this.tabControl1.TabIndex = 0;
             // 
-            // ok
+            // tabPage1
             // 
-            this.ok.Location = new System.Drawing.Point(84, 250);
-            this.ok.Name = "ok";
-            this.ok.Size = new System.Drawing.Size(75, 23);
-            this.ok.TabIndex = 5;
-            this.ok.Text = "OK";
-            this.ok.UseVisualStyleBackColor = true;
-            this.ok.Click += new System.EventHandler(this.ok_Click);
+            this.tabPage1.Controls.Add(this.discreteChoiceModelOptions);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(576, 516);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "Discrete Choice Model Options";
+            this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // label2
+            // tabPage2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(79, 24);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(38, 13);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "Name:";
+            this.tabPage2.Controls.Add(this.kernelDensityDcmOptions);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(576, 516);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "Kernel Density DCM Options";
+            this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // modelName
+            // menuStrip1
             // 
-            this.modelName.Location = new System.Drawing.Point(123, 21);
-            this.modelName.Name = "modelName";
-            this.modelName.Size = new System.Drawing.Size(189, 20);
-            this.modelName.TabIndex = 0;
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.oKToolStripMenuItem,
+            this.cancelToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(584, 24);
+            this.menuStrip1.TabIndex = 10;
+            this.menuStrip1.Text = "menuStrip1";
             // 
-            // pointSpacing
+            // oKToolStripMenuItem
             // 
-            this.pointSpacing.Location = new System.Drawing.Point(123, 47);
-            this.pointSpacing.Maximum = new decimal(new int[] {
-            99999,
-            0,
-            0,
-            0});
-            this.pointSpacing.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.pointSpacing.Name = "pointSpacing";
-            this.pointSpacing.Size = new System.Drawing.Size(77, 20);
-            this.pointSpacing.TabIndex = 1;
-            this.pointSpacing.Value = new decimal(new int[] {
-            200,
-            0,
-            0,
-            0});
+            this.oKToolStripMenuItem.Name = "oKToolStripMenuItem";
+            this.oKToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
+            this.oKToolStripMenuItem.Text = "OK";
+            this.oKToolStripMenuItem.Click += new System.EventHandler(this.ok_Click);
             // 
-            // label1
+            // cancelToolStripMenuItem
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(43, 49);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(74, 13);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Point spacing:";
+            this.cancelToolStripMenuItem.Name = "cancelToolStripMenuItem";
+            this.cancelToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
+            this.cancelToolStripMenuItem.Text = "Cancel";
+            this.cancelToolStripMenuItem.Click += new System.EventHandler(this.cancel_Click);
             // 
-            // label5
+            // discreteChoiceModelOptions
             // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(206, 49);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(38, 13);
-            this.label5.TabIndex = 13;
-            this.label5.Text = "meters";
+            this.discreteChoiceModelOptions.DiscreteChoiceModel = null;
+            this.discreteChoiceModelOptions.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.discreteChoiceModelOptions.Location = new System.Drawing.Point(3, 3);
+            this.discreteChoiceModelOptions.MinimumSize = new System.Drawing.Size(367, 470);
+            this.discreteChoiceModelOptions.Name = "discreteChoiceModelOptions";
+            this.discreteChoiceModelOptions.Size = new System.Drawing.Size(570, 510);
+            this.discreteChoiceModelOptions.TabIndex = 0;
             // 
-            // label8
+            // kernelDensityDcmOptions
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(206, 101);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(35, 13);
-            this.label8.TabIndex = 31;
-            this.label8.Text = "points";
-            // 
-            // predictionSampleSize
-            // 
-            this.predictionSampleSize.Location = new System.Drawing.Point(123, 99);
-            this.predictionSampleSize.Maximum = new decimal(new int[] {
-            999999999,
-            0,
-            0,
-            0});
-            this.predictionSampleSize.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.predictionSampleSize.Name = "predictionSampleSize";
-            this.predictionSampleSize.Size = new System.Drawing.Size(77, 20);
-            this.predictionSampleSize.TabIndex = 3;
-            this.predictionSampleSize.Value = new decimal(new int[] {
-            30000,
-            0,
-            0,
-            0});
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(3, 101);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(114, 13);
-            this.label10.TabIndex = 30;
-            this.label10.Text = "Prediction sample size:";
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(206, 75);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(35, 13);
-            this.label11.TabIndex = 28;
-            this.label11.Text = "points";
-            // 
-            // trainingSampleSize
-            // 
-            this.trainingSampleSize.Location = new System.Drawing.Point(123, 73);
-            this.trainingSampleSize.Maximum = new decimal(new int[] {
-            999999999,
-            0,
-            0,
-            0});
-            this.trainingSampleSize.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.trainingSampleSize.Name = "trainingSampleSize";
-            this.trainingSampleSize.Size = new System.Drawing.Size(77, 20);
-            this.trainingSampleSize.TabIndex = 2;
-            this.trainingSampleSize.Value = new decimal(new int[] {
-            500,
-            0,
-            0,
-            0});
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(12, 75);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(105, 13);
-            this.label12.TabIndex = 27;
-            this.label12.Text = "Training sample size:";
-            // 
-            // normalize
-            // 
-            this.normalize.AutoSize = true;
-            this.normalize.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.normalize.Location = new System.Drawing.Point(60, 125);
-            this.normalize.Name = "normalize";
-            this.normalize.Size = new System.Drawing.Size(75, 17);
-            this.normalize.TabIndex = 4;
-            this.normalize.Text = "Normalize:";
-            this.normalize.UseVisualStyleBackColor = true;
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(57, 148);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(60, 13);
-            this.label13.TabIndex = 33;
-            this.label13.Text = "Smoothers:";
-            // 
-            // smoothers
-            // 
-            this.smoothers.FormattingEnabled = true;
-            this.smoothers.Location = new System.Drawing.Point(123, 148);
-            this.smoothers.Name = "smoothers";
-            this.smoothers.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.smoothers.Size = new System.Drawing.Size(189, 95);
-            this.smoothers.Sorted = true;
-            this.smoothers.TabIndex = 34;
+            this.kernelDensityDcmOptions.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.kernelDensityDcmOptions.KernelDensityDCM = null;
+            this.kernelDensityDcmOptions.Location = new System.Drawing.Point(3, 3);
+            this.kernelDensityDcmOptions.Name = "kernelDensityDcmOptions";
+            this.kernelDensityDcmOptions.Size = new System.Drawing.Size(570, 510);
+            this.kernelDensityDcmOptions.TabIndex = 0;
             // 
             // KernelDensityDcmForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(326, 283);
-            this.Controls.Add(this.smoothers);
-            this.Controls.Add(this.label13);
-            this.Controls.Add(this.normalize);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.predictionSampleSize);
-            this.Controls.Add(this.label10);
-            this.Controls.Add(this.label11);
-            this.Controls.Add(this.trainingSampleSize);
-            this.Controls.Add(this.label12);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.pointSpacing);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.modelName);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.cancel);
-            this.Controls.Add(this.ok);
+            this.ClientSize = new System.Drawing.Size(584, 566);
+            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.MainMenuStrip = this.menuStrip1;
             this.Name = "KernelDensityDcmForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Select kernel density DCM options...";
-            ((System.ComponentModel.ISupportInitialize)(this.pointSpacing)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).EndInit();
+            this.Text = "Configure Kernel Density DCM...";
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.tabPage2.ResumeLayout(false);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -289,21 +162,13 @@ namespace PTL.ATT.GUI
 
         #endregion
 
-        private System.Windows.Forms.Button cancel;
-        private System.Windows.Forms.Button ok;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox modelName;
-        private System.Windows.Forms.NumericUpDown pointSpacing;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.NumericUpDown predictionSampleSize;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.NumericUpDown trainingSampleSize;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.CheckBox normalize;
-        private System.Windows.Forms.Label label13;
-        private SmootherList smoothers;
+        public DiscreteChoiceModelOptions discreteChoiceModelOptions;
+        public KernelDensityDcmOptions kernelDensityDcmOptions;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem oKToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cancelToolStripMenuItem;
     }
 }

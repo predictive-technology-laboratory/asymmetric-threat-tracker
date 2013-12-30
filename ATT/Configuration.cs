@@ -25,6 +25,7 @@ using LAIR.XML;
 using System.IO;
 using LAIR.MachineLearning.ClassifierWrappers.LibLinear;
 using LAIR.ResourceAPIs.R;
+using PTL.ATT.Models;
 
 namespace PTL.ATT
 {
@@ -312,9 +313,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
                 DB.Initialize();
         }
 
-        public static bool TryGetFeatureExtractorType(Type modelType, out Type featureExtractorType)
+        public static bool TryGetFeatureExtractor(Type modelType, out FeatureExtractor featureExtractor)
         {
-            return _modelTypeFeatureExtractorType.TryGetValue(modelType, out featureExtractorType);
+            featureExtractor = null;
+
+            Type featureExtractorType;
+            if (_modelTypeFeatureExtractorType.TryGetValue(modelType, out featureExtractorType))
+                featureExtractor = Activator.CreateInstance(featureExtractorType) as FeatureExtractor;
+
+            return featureExtractor != null;
         }
 
         public static Dictionary<string, string> GetFeatureExtractorConfigOptions(Type modelType)
