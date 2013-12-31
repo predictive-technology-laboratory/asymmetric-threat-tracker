@@ -233,7 +233,7 @@ namespace PTL.ATT.GUI.Visualization
                         if (maxY > maxPointY) maxPointY = maxY;
                     }
 
-                    ColoredCheckBox displayPredictionPointsCheckbox = new ColoredCheckBox(false, CheckState.Unchecked, "Display prediction points", _predictionPointColor);
+                    ColoredCheckBox displayPredictionPointsCheckbox = new ColoredCheckBox(false, CheckState.Unchecked, "prediction points", _predictionPointColor);
                     displayPredictionPointsCheckbox.CheckBoxCheckedChanged += new EventHandler(DisplayPredictionPoints_CheckedChanged);
                     displayPredictionPointsCheckbox.LabelClicked += new EventHandler(DisplayPredictionPoints_LabelClicked);
                     overlayCheckBoxes.Controls.Add(displayPredictionPointsCheckbox);
@@ -874,7 +874,7 @@ namespace PTL.ATT.GUI.Visualization
                 int colAbsoluteThreatRectangle = _highlightedThreatRectangleCol + (int)(_panOffset.Width / threatRectanglePixelWidth);
 
                 if (rowAbsoluteThreatRectangle < 0 || colAbsoluteThreatRectangle < 0)
-                    MessageBox.Show("No predictions were made at that location.");
+                    MessageBox.Show("No predictions were made in that region.");
                 else
                 {
                     float widthMeters = threatRectanglePixelWidth / pixelsPerMeter;
@@ -981,7 +981,7 @@ namespace PTL.ATT.GUI.Visualization
                         form.Location = new System.Drawing.Point(0, 0);
                     }
                     else
-                        MessageBox.Show("No predictions were made at that location.");
+                        MessageBox.Show("No predictions were made in that region.");
                 }
             }
         }
