@@ -40,7 +40,8 @@ namespace PTL.ATT.GUI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("An error occurred while running the ATT:  " + ex.Message);
+                MessageBox.Show("An error occurred while running the ATT:  " + ex.Message + Environment.NewLine +
+                                "Stacktrace:  " + ex.StackTrace);
             }
         }
     }
