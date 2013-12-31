@@ -47,6 +47,8 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // SmootherList
@@ -54,11 +56,14 @@ namespace PTL.ATT.GUI
             this.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.Size = new System.Drawing.Size(120, 95);
             this.Sorted = true;
+            this.toolTip.SetToolTip(this, "Right-click to parameterize smoothers");
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.SmootherList_MouseUp);
             this.ResumeLayout(false);
 
         }
 
         #endregion
+
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }

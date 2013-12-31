@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
-
+ 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -56,13 +56,15 @@ namespace PTL.ATT.GUI
 
         private void ok_Click(object sender, EventArgs e)
         {
-            if (spatialDistanceDcmOptions.Classifier == null)
-                MessageBox.Show("You must select a classifier.");
-            else
+            string errors = discreteChoiceModelOptions.ValidateInput() + spatialDistanceDcmOptions.ValidateInput();
+            if (errors != "")
             {
-                DialogResult = System.Windows.Forms.DialogResult.OK;
-                Close();
+                MessageBox.Show(errors);
+                return;
             }
+
+            DialogResult = System.Windows.Forms.DialogResult.OK;
+            Close();
         }
 
         private void cancel_Click(object sender, EventArgs e)

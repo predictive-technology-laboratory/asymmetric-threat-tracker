@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
-
+ 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -642,7 +642,7 @@ namespace PTL.ATT.GUI
         public void editModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (SelectedModel == null)
-                MessageBox.Show("Must select model.");
+                MessageBox.Show("Select model to edit.");
             else
             {
                 DiscreteChoiceModel m = SelectedModel;
@@ -711,7 +711,9 @@ namespace PTL.ATT.GUI
         public void deleteModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DiscreteChoiceModel m = SelectedModel;
-            if (m != null && MessageBox.Show("Are you sure you want to delete model \"" + m.Name + "\"?", "Confirm delete...", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+            if (m == null)
+                MessageBox.Show("Select a model to delete.");
+            else if (MessageBox.Show("Are you sure you want to delete model \"" + m.Name + "\"?", "Confirm delete...", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
                 m.Delete();
                 RefreshAll();
@@ -786,7 +788,7 @@ namespace PTL.ATT.GUI
             DiscreteChoiceModel m = SelectedModel;
 
             if (m == null)
-                MessageBox.Show("Must select a model.");
+                MessageBox.Show("Select a model to run.");
             else
             {
                 string defaultPredictionName = m.Name + " (" + m.GetType().Name + ")" + (!perIncident.Checked ? " " + m.IncidentTypes.Concatenate("+") : "");
@@ -805,11 +807,11 @@ namespace PTL.ATT.GUI
             predictionName = predictionName.Trim();
 
             if (m == null)
-                MessageBox.Show("Must select a model.");
+                MessageBox.Show("Select a model to run.");
             else if (SelectedPredictionArea == null)
-                MessageBox.Show("Must select a prediction area.");
+                MessageBox.Show("Select a prediction area.");
             else if (predictionName == "")
-                MessageBox.Show("Must provide a non-empty prediction name.");
+                MessageBox.Show("Provide a non-empty prediction name.");
             else
             {
                 Area predictionArea = SelectedPredictionArea;
@@ -1114,41 +1116,48 @@ namespace PTL.ATT.GUI
                 }
             }
             else
-                MessageBox.Show("Must select a single prediction to display.");
+                MessageBox.Show("Select a single prediction to display.");
         }
 
         public void editPredictionNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            List<Prediction> selectedPredictions = SelectedPredictions;
-            if (selectedPredictions.Count == 1)
-            {
-                string name = GetValue.Show("New prediction name.", SelectedPrediction.Name);
-                if (name != null && name.Trim() != "")
-                    selectedPredictions[0].Name = name.Trim();
-            }
-            else if (selectedPredictions.Count > 1)
-            {
-                string name = GetValue.Show("Common base name for " + selectedPredictions.Count + " predictions.");
-                if (name != null && name.Trim() != "")
-                    for (int i = 0; i < selectedPredictions.Count; ++i)
-                        selectedPredictions[i].Name = name.Trim() + "-" + i;
-            }
+            if (SelectedPredictions.Count == 0)
+                MessageBox.Show("Select one or more predictions to rename.");
             else
-                return;
-
-            Set<int> selectedIds = new Set<int>(selectedPredictions.Select(p => p.Id).ToArray());
-            if (threatMap.DisplayedPrediction != null && selectedIds.Contains(threatMap.DisplayedPrediction.Id))
             {
-                threatMap.DisplayedPrediction.AssessmentPlots = selectedPredictions.Where(p => p.Id == threatMap.DisplayedPrediction.Id).First().AssessmentPlots;
-                RefreshAssessmentPlots();
-            }
+                List<Prediction> selectedPredictions = SelectedPredictions;
+                if (selectedPredictions.Count == 1)
+                {
+                    string name = GetValue.Show("New prediction name.", SelectedPrediction.Name);
+                    if (name != null && name.Trim() != "")
+                        selectedPredictions[0].Name = name.Trim();
+                }
+                else if (selectedPredictions.Count > 1)
+                {
+                    string name = GetValue.Show("Common base name for " + selectedPredictions.Count + " predictions.");
+                    if (name != null && name.Trim() != "")
+                        for (int i = 0; i < selectedPredictions.Count; ++i)
+                            selectedPredictions[i].Name = name.Trim() + "-" + i;
+                }
+                else
+                    return;
 
-            RefreshPredictions(selectedIds);
+                Set<int> selectedIds = new Set<int>(selectedPredictions.Select(p => p.Id).ToArray());
+                if (threatMap.DisplayedPrediction != null && selectedIds.Contains(threatMap.DisplayedPrediction.Id))
+                {
+                    threatMap.DisplayedPrediction.AssessmentPlots = selectedPredictions.Where(p => p.Id == threatMap.DisplayedPrediction.Id).First().AssessmentPlots;
+                    RefreshAssessmentPlots();
+                }
+
+                RefreshPredictions(selectedIds);
+            }
         }
 
         private void editPredictionRunToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (SelectedPredictions.Count > 0)
+            if (SelectedPredictions.Count == 0)
+                MessageBox.Show("Select one or more predictions to edit run number for.");
+            else
             {
                 string newRunIdStr = GetValue.Show("New run number for " + SelectedPredictions.Count + " prediction(s).");
                 if (newRunIdStr == null)
@@ -1287,7 +1296,9 @@ namespace PTL.ATT.GUI
 
         public void comparePredictionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (TraversePredictionTree().Count(n => n.Checked) > 1)
+            if (TraversePredictionTree().Count(n => n.Checked) <= 1)
+                MessageBox.Show("Select two or more predictions / groups to make a comparison.");
+            else
             {
                 EvaluateSelectedPredictions();
 
@@ -1328,8 +1339,6 @@ namespace PTL.ATT.GUI
                     new ImageViewer(comparisonPlotImages, 0).ShowDialog();
                 }
             }
-            else
-                MessageBox.Show("Select two or more predictions / groups to make a comparison.");
         }
 
         public void showModelDetailsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1360,7 +1369,7 @@ namespace PTL.ATT.GUI
         public void aggregateAndEvaluateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (SelectedPredictions.Count < 2)
-                MessageBox.Show("Select multiple predictions to run an aggregate evaluation.");
+                MessageBox.Show("Select at least two predictions to run an aggregate evaluation.");
             else
             {
                 List<TitledImage> images = new List<TitledImage>();
@@ -1378,45 +1387,45 @@ namespace PTL.ATT.GUI
 
         public void openModelDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            foreach (Prediction selectedPrediction in SelectedPredictions)
-            {
-                try { Process.Start(selectedPrediction.Model.ModelDirectory); }
-                catch (Exception ex) { MessageBox.Show("Failed to open prediction model directory:  " + ex.Message); }
-            }
+            if (SelectedPredictions.Count == 0)
+                MessageBox.Show("Select one or more predictions to view model directories.");
+            else
+                foreach (Prediction selectedPrediction in SelectedPredictions)
+                {
+                    try { Process.Start(selectedPrediction.Model.ModelDirectory); }
+                    catch (Exception ex) { MessageBox.Show("Failed to open prediction model directory:  " + ex.Message); }
+                }
         }
 
         public void deletePredictionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             List<Prediction> selectedPredictions = SelectedPredictions;
-            if (selectedPredictions.Count > 0)
+            if (selectedPredictions.Count == 0)
+                MessageBox.Show("Select one or more predictions to delete.");
+            else if (MessageBox.Show("Are you sure you want to delete " + selectedPredictions.Count + " prediction(s)?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                if (MessageBox.Show("Are you sure you want to delete " + selectedPredictions.Count + " prediction(s)?", "Confirm delete", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                {
-                    Thread t = new Thread(new ThreadStart(delegate()
+                Thread t = new Thread(new ThreadStart(delegate()
+                    {
+                        int predictionNum = 0;
+                        foreach (Prediction prediction in selectedPredictions)
                         {
-                            int predictionNum = 0;
-                            foreach (Prediction prediction in selectedPredictions)
-                            {
-                                Console.Out.WriteLine("Deleting prediction " + ++predictionNum + " of " + selectedPredictions.Count);
-                                prediction.Delete();
-                            }
+                            Console.Out.WriteLine("Deleting prediction " + ++predictionNum + " of " + selectedPredictions.Count);
+                            prediction.Delete();
+                        }
 
-                            try { Prediction.VacuumTable(); }
-                            catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum " + Prediction.Table + ":  " + ex.Message); }
+                        try { Prediction.VacuumTable(); }
+                        catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum " + Prediction.Table + ":  " + ex.Message); }
 
-                            string msg = "Done deleting predictions";
-                            Console.Out.WriteLine(msg);
-                            Notify(msg, "");
+                        string msg = "Done deleting predictions";
+                        Console.Out.WriteLine(msg);
+                        Notify(msg, "");
 
-                            RefreshPredictions(-1);
-                            threatMap.Clear();
-                            Invoke(new Action(() => assessments.ClearPlots()));
-                        }));
-                    t.Start();
-                }
+                        RefreshPredictions(-1);
+                        threatMap.Clear();
+                        Invoke(new Action(() => assessments.ClearPlots()));
+                    }));
+                t.Start();
             }
-            else
-                MessageBox.Show("Must select one or more predictions to delete.");
         }
 
         public void deselectAllToolStripMenuItem_Click(object sender, EventArgs e)

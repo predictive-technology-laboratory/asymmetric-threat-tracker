@@ -1,4 +1,23 @@
-﻿using System;
+﻿#region copyright
+// Copyright 2013 Matthew S. Gerber (gerber.matthew@gmail.com)
+// 
+// This file is part of the Asymmetric Threat Tracker (ATT).
+// 
+// The ATT is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// The ATT is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
+#endregion
+ 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -90,7 +109,11 @@ namespace PTL.ATT.GUI
                 classifyNonZeroVectorsUniformly.Checked = _spatialDistanceDCM.ClassifyNonZeroVectorsUniformly;
 
                 foreach (Feature feature in _spatialDistanceDCM.Features)
-                    features.SetSelected(features.Items.IndexOf(feature), true);
+                {
+                    int index = features.Items.IndexOf(feature);
+                    if (index >= 0)
+                        features.SetSelected(index, true);
+                }
             }
         }
 
@@ -120,21 +143,27 @@ namespace PTL.ATT.GUI
         private void remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (Features.Count == 0)
-                MessageBox.Show("Must select features before remapping.");
+                MessageBox.Show("Must select one or more features before remapping.");
             else
             {
-                DynamicForm df = new DynamicForm("Remapping features...");
-                df.AddDropDown("Prediction area:", Area.GetAll().ToArray(), null, "prediction_area");
-                if (df.ShowDialog() == DialogResult.OK)
+                Area[] predictionAreas = Area.GetAll().ToArray();
+                if (predictionAreas.Length == 0)
+                    MessageBox.Show("No prediction areas available for remapping.");
+                else
                 {
-                    FeatureRemappingForm f = new FeatureRemappingForm(Features, _getFeatures(df.GetValue<Area>("prediction_area")));
-                    f.ShowDialog();
+                    DynamicForm df = new DynamicForm("Remapping features...");
+                    df.AddDropDown("Prediction area:", predictionAreas, null, "prediction_area");
+                    if (df.ShowDialog() == DialogResult.OK)
+                    {
+                        FeatureRemappingForm f = new FeatureRemappingForm(Features, _getFeatures(df.GetValue<Area>("prediction_area")));
+                        f.ShowDialog();
 
-                    _featureRemapKeyTargetPredictionResource.Clear();
-                    foreach (Feature feature in features.Items)
-                        _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
+                        _featureRemapKeyTargetPredictionResource.Clear();
+                        foreach (Feature feature in features.Items)
+                            _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
 
-                    RefreshFeatures();
+                        RefreshFeatures();
+                    }
                 }
             }
         }
@@ -145,5 +174,18 @@ namespace PTL.ATT.GUI
             RefreshFeatures();
         }
         #endregion
+
+        public string ValidateInput()
+        {
+            StringBuilder errors = new StringBuilder();
+
+            if (Classifier == null)
+                errors.AppendLine("A classifier must be selected.");
+
+            if (Features.Count == 0)
+                errors.AppendLine("One or more features must be selected.");
+
+            return errors.ToString();
+        }
     }
 }

@@ -56,13 +56,15 @@ namespace PTL.ATT.GUI
 
         private void ok_Click(object sender, EventArgs e)
         {
-            if (spatialDistanceDcmOptions.Classifier == null)
-                MessageBox.Show("You must select a classifier.");
-            else
+            string errors = discreteChoiceModelOptions.ValidateInput() + spatialDistanceDcmOptions.ValidateInput() + timeSliceDcmOptions.ValidateInput();
+            if (errors != "")
             {
-                DialogResult = System.Windows.Forms.DialogResult.OK;
-                Close();
+                MessageBox.Show(errors);
+                return;
             }
+
+            DialogResult = System.Windows.Forms.DialogResult.OK;
+            Close();
         }
 
         private void cancel_Click(object sender, EventArgs e)

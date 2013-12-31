@@ -47,6 +47,13 @@ namespace PTL.ATT.GUI
 
         private void ok_Click(object sender, EventArgs e)
         {
+            string errors = discreteChoiceModelOptions.ValidateInput() + kernelDensityDcmOptions.ValidateInput();
+            if(errors != "")
+            {
+                MessageBox.Show(errors);
+                return;
+            }
+
             DialogResult = System.Windows.Forms.DialogResult.OK;
             Close();
         }

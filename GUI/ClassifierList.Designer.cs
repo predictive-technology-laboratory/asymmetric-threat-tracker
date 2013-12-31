@@ -47,17 +47,22 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // ClassifierList
             // 
             this.Size = new System.Drawing.Size(120, 95);
             this.Sorted = true;
+            this.toolTip.SetToolTip(this, "Right-click to parameterize classifiers");
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ClassifierList_MouseUp);
             this.ResumeLayout(false);
 
         }
 
         #endregion
+
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }
