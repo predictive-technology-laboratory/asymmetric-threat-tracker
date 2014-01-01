@@ -67,6 +67,9 @@ namespace PTL.ATT.GUI
             this.importShapefilesFromDiskToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importShapefileFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteShapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.areasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.incidentsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.importFromFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importIncidentsFromSocrataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -136,9 +139,6 @@ namespace PTL.ATT.GUI
             this.log = new System.Windows.Forms.RichTextBox();
             this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
-            this.areasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -280,7 +280,7 @@ namespace PTL.ATT.GUI
             this.importShapefileFromSocrataToolStripMenuItem,
             this.deleteShapefilesToolStripMenuItem});
             this.shapefilesToolStripMenuItem1.Name = "shapefilesToolStripMenuItem1";
-            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.shapefilesToolStripMenuItem1.Size = new System.Drawing.Size(127, 22);
             this.shapefilesToolStripMenuItem1.Text = "Shapefiles";
             // 
             // importShapefilesFromDiskToolStripMenuItem
@@ -304,6 +304,29 @@ namespace PTL.ATT.GUI
             this.deleteShapefilesToolStripMenuItem.Text = "Delete shapefiles...";
             this.deleteShapefilesToolStripMenuItem.Click += new System.EventHandler(this.deleteShapefilesToolStripMenuItem_Click);
             // 
+            // areasToolStripMenuItem
+            // 
+            this.areasToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addAreaToolStripMenuItem,
+            this.deleteAreaToolStripMenuItem});
+            this.areasToolStripMenuItem.Name = "areasToolStripMenuItem";
+            this.areasToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            this.areasToolStripMenuItem.Text = "Areas";
+            // 
+            // addAreaToolStripMenuItem
+            // 
+            this.addAreaToolStripMenuItem.Name = "addAreaToolStripMenuItem";
+            this.addAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.addAreaToolStripMenuItem.Text = "Add...";
+            this.addAreaToolStripMenuItem.Click += new System.EventHandler(this.addAreaToolStripMenuItem_Click);
+            // 
+            // deleteAreaToolStripMenuItem
+            // 
+            this.deleteAreaToolStripMenuItem.Name = "deleteAreaToolStripMenuItem";
+            this.deleteAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.deleteAreaToolStripMenuItem.Text = "Delete...";
+            this.deleteAreaToolStripMenuItem.Click += new System.EventHandler(this.deleteAreaToolStripMenuItem_Click);
+            // 
             // incidentsToolStripMenuItem1
             // 
             this.incidentsToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -314,7 +337,7 @@ namespace PTL.ATT.GUI
             this.simulateIncidentsToolStripMenuItem,
             this.clearSimulatedIncidentsToolStripMenuItem});
             this.incidentsToolStripMenuItem1.Name = "incidentsToolStripMenuItem1";
-            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.incidentsToolStripMenuItem1.Size = new System.Drawing.Size(127, 22);
             this.incidentsToolStripMenuItem1.Text = "Incidents";
             // 
             // importFromFileToolStripMenuItem
@@ -435,6 +458,7 @@ namespace PTL.ATT.GUI
             this.label9.Size = new System.Drawing.Size(39, 13);
             this.label9.TabIndex = 72;
             this.label9.Text = "Model:";
+            this.toolTip.SetToolTip(this.label9, "Model to use for making predictions");
             // 
             // run
             // 
@@ -443,6 +467,7 @@ namespace PTL.ATT.GUI
             this.run.Size = new System.Drawing.Size(36, 23);
             this.run.TabIndex = 17;
             this.run.Text = "Run";
+            this.toolTip.SetToolTip(this.run, "Run the prediction as configured");
             this.run.UseVisualStyleBackColor = true;
             this.run.Click += new System.EventHandler(this.run_Click);
             // 
@@ -465,6 +490,7 @@ namespace PTL.ATT.GUI
             this.label1.Size = new System.Drawing.Size(81, 13);
             this.label1.TabIndex = 95;
             this.label1.Text = "Prediction area:";
+            this.toolTip.SetToolTip(this.label1, "Area for which to predict selected model\'s incidents");
             // 
             // predictionEndDate
             // 
@@ -494,6 +520,7 @@ namespace PTL.ATT.GUI
             this.label3.Size = new System.Drawing.Size(80, 13);
             this.label3.TabIndex = 98;
             this.label3.Text = "Prediction start:";
+            this.toolTip.SetToolTip(this.label3, "Temporal start of prediction");
             // 
             // slideTrainingEnd
             // 
@@ -506,6 +533,7 @@ namespace PTL.ATT.GUI
             this.slideTrainingEnd.Size = new System.Drawing.Size(85, 17);
             this.slideTrainingEnd.TabIndex = 16;
             this.slideTrainingEnd.Text = "Training end";
+            this.toolTip.SetToolTip(this.slideTrainingEnd, "Whether or not to slide the training window\'s end position");
             this.slideTrainingEnd.UseVisualStyleBackColor = true;
             this.slideTrainingEnd.CheckedChanged += new System.EventHandler(this.slideTrainingEnd_CheckedChanged);
             // 
@@ -517,6 +545,7 @@ namespace PTL.ATT.GUI
             this.label15.Size = new System.Drawing.Size(33, 13);
             this.label15.TabIndex = 129;
             this.label15.Text = "Slide:";
+            this.toolTip.SetToolTip(this.label15, "For batched predictions, how to slide the training window");
             // 
             // predictions
             // 
@@ -721,6 +750,7 @@ namespace PTL.ATT.GUI
             this.slideTrainingStart.Size = new System.Drawing.Size(87, 17);
             this.slideTrainingStart.TabIndex = 15;
             this.slideTrainingStart.Text = "Training start";
+            this.toolTip.SetToolTip(this.slideTrainingStart, "Whether or not to slide the training window\'s start position");
             this.slideTrainingStart.UseVisualStyleBackColor = true;
             this.slideTrainingStart.CheckedChanged += new System.EventHandler(this.slideTrainingStart_CheckedChanged);
             // 
@@ -755,6 +785,7 @@ namespace PTL.ATT.GUI
             this.label14.Size = new System.Drawing.Size(30, 13);
             this.label14.TabIndex = 127;
             this.label14.Text = "Run:";
+            this.toolTip.SetToolTip(this.label14, "Number of predictions to run in batch mode");
             // 
             // perIncident
             // 
@@ -765,6 +796,8 @@ namespace PTL.ATT.GUI
             this.perIncident.Size = new System.Drawing.Size(82, 17);
             this.perIncident.TabIndex = 14;
             this.perIncident.Text = "Per-incident";
+            this.toolTip.SetToolTip(this.perIncident, "For models with multiple incident types, whether or not to break model into separ" +
+        "ate per-incident models and run per-incident predictions.");
             this.perIncident.UseVisualStyleBackColor = true;
             this.perIncident.EnabledChanged += new System.EventHandler(this.perIncident_EnabledChanged);
             // 
@@ -776,6 +809,7 @@ namespace PTL.ATT.GUI
             this.label8.Size = new System.Drawing.Size(78, 13);
             this.label8.TabIndex = 126;
             this.label8.Text = "Prediction end:";
+            this.toolTip.SetToolTip(this.label8, "Temporal end of prediction");
             // 
             // predictionEndTime
             // 
@@ -841,6 +875,7 @@ namespace PTL.ATT.GUI
             this.label12.Size = new System.Drawing.Size(57, 13);
             this.label12.TabIndex = 118;
             this.label12.Text = "hr(s). apart";
+            this.toolTip.SetToolTip(this.label12, "Temporal spacing of batched predictions");
             // 
             // predictionSpacingHours
             // 
@@ -873,6 +908,7 @@ namespace PTL.ATT.GUI
             this.label6.Size = new System.Drawing.Size(62, 13);
             this.label6.TabIndex = 106;
             this.label6.Text = "Predictions:";
+            this.toolTip.SetToolTip(this.label6, "Previous predictions");
             // 
             // label10
             // 
@@ -882,6 +918,7 @@ namespace PTL.ATT.GUI
             this.label10.Size = new System.Drawing.Size(117, 13);
             this.label10.TabIndex = 127;
             this.label10.Text = "Starting with prediction:";
+            this.toolTip.SetToolTip(this.label10, "Position in batch sequence at which to start");
             // 
             // toolTip
             // 
@@ -1004,29 +1041,6 @@ namespace PTL.ATT.GUI
             this.assessments.Name = "assessments";
             this.assessments.Size = new System.Drawing.Size(718, 214);
             this.assessments.TabIndex = 0;
-            // 
-            // areasToolStripMenuItem
-            // 
-            this.areasToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addAreaToolStripMenuItem,
-            this.deleteAreaToolStripMenuItem});
-            this.areasToolStripMenuItem.Name = "areasToolStripMenuItem";
-            this.areasToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.areasToolStripMenuItem.Text = "Areas";
-            // 
-            // addAreaToolStripMenuItem
-            // 
-            this.addAreaToolStripMenuItem.Name = "addAreaToolStripMenuItem";
-            this.addAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.addAreaToolStripMenuItem.Text = "Add...";
-            this.addAreaToolStripMenuItem.Click += new System.EventHandler(this.addAreaToolStripMenuItem_Click);
-            // 
-            // deleteAreaToolStripMenuItem
-            // 
-            this.deleteAreaToolStripMenuItem.Name = "deleteAreaToolStripMenuItem";
-            this.deleteAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.deleteAreaToolStripMenuItem.Text = "Delete...";
-            this.deleteAreaToolStripMenuItem.Click += new System.EventHandler(this.deleteAreaToolStripMenuItem_Click);
             // 
             // AttForm
             // 

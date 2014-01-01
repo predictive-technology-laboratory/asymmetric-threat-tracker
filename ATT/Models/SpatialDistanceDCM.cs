@@ -63,11 +63,13 @@ namespace PTL.ATT.Models
             [Reflector.Insert, Reflector.Select(true)]
             public const string Classifier = "classifier";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string ClassifyNonZeroVectorsUniformly = "classify_nonzero_uniformly";
-            [Reflector.Insert, Reflector.Select(true)]
             public const string FeatureDistanceThreshold = "feature_distance_threshold";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Id = "id";
+            [Reflector.Insert, Reflector.Select(true)]
+            public const string PredictionSampleSize = "prediction_sample_size";
+            [Reflector.Insert, Reflector.Select(true)]
+            public const string TrainingSampleSize = "training_sample_size";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select { get { return DiscreteChoiceModel.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
@@ -79,16 +81,16 @@ namespace PTL.ATT.Models
         {
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Classifier + " BYTEA," +
-                   Columns.ClassifyNonZeroVectorsUniformly + " BOOLEAN," +
                    Columns.FeatureDistanceThreshold + " INT," +
-                   Columns.Id + " INT PRIMARY KEY REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE);";
+                   Columns.Id + " INT PRIMARY KEY REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
+                   Columns.PredictionSampleSize + " INT," +
+                   Columns.TrainingSampleSize + " INT);";
         }
 
         public static int Create(NpgsqlConnection connection,
                                  string name,
                                  int pointSpacing,
                                  int featureDistanceThreshold,
-                                 bool classifyNonZeroVectorsUniformly,
                                  Type type,
                                  Area trainingArea,
                                  DateTime trainingStart,
@@ -114,7 +116,7 @@ namespace PTL.ATT.Models
             if (type == null)
                 type = typeof(SpatialDistanceDCM);
 
-            int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
+            int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, type, trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
 
             MemoryStream ms = new MemoryStream();
 
@@ -128,9 +130,10 @@ namespace PTL.ATT.Models
             ConnectionPool.AddParameters(cmd, new Parameter("classifier", NpgsqlDbType.Bytea, ms.ToArray()));
 
             cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@classifier," +
-                                                                                          classifyNonZeroVectorsUniformly + "," +
                                                                                           featureDistanceThreshold + "," +
-                                                                                          dcmId + ")";
+                                                                                          dcmId + "," + 
+                                                                                          predictionSampleSize + "," + 
+                                                                                          trainingSampleSize + ")";
             cmd.ExecuteNonQuery();
 
             if (returnConnection)
@@ -187,9 +190,10 @@ namespace PTL.ATT.Models
 
         private PTL.ATT.Classifiers.Classifier _classifier;
         private int _featureDistanceThreshold;
-        private bool _classifyNonZeroVectorsUniformly;
         private FeatureExtractor _externalFeatureExtractor;
         private List<Feature> _features;
+        private int _trainingSampleSize;
+        private int _predictionSampleSize;
 
         public PTL.ATT.Classifiers.Classifier Classifier
         {
@@ -204,11 +208,6 @@ namespace PTL.ATT.Models
         public int FeatureDistanceThreshold
         {
             get { return _featureDistanceThreshold; }
-        }
-
-        public bool ClassifyNonZeroVectorsUniformly
-        {
-            get { return _classifyNonZeroVectorsUniformly; }
         }
 
         public ICollection<Feature> Features
@@ -254,6 +253,16 @@ namespace PTL.ATT.Models
             }
         }
 
+        public int TrainingSampleSize
+        {
+            get { return _trainingSampleSize; }
+        }
+
+        public int PredictionSampleSize
+        {
+            get { return _predictionSampleSize; }
+        }
+
         protected SpatialDistanceDCM() { }
 
         internal SpatialDistanceDCM(int id)
@@ -274,7 +283,8 @@ namespace PTL.ATT.Models
             base.Construct(reader);
 
             _featureDistanceThreshold = Convert.ToInt32(reader[Table + "_" + Columns.FeatureDistanceThreshold]);
-            _classifyNonZeroVectorsUniformly = Convert.ToBoolean(reader[Table + "_" + Columns.ClassifyNonZeroVectorsUniformly]);
+            _trainingSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.TrainingSampleSize]);
+            _predictionSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.PredictionSampleSize]);
 
             if (Configuration.TryGetFeatureExtractor(GetType(), out _externalFeatureExtractor))
                 _externalFeatureExtractor.Initialize(this, Configuration.GetFeatureExtractorConfigOptions(GetType()));
@@ -285,13 +295,14 @@ namespace PTL.ATT.Models
             _classifier = bf.Deserialize(ms) as PTL.ATT.Classifiers.Classifier;
         }
 
-        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, List<Feature> features)
+        public void Update(string name, int pointSpacing, int featureDistanceThreshold, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, List<Feature> features)
         {
-            base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
+            base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
 
-            _classifyNonZeroVectorsUniformly = classifyNonZeroVectorsUniformly;
             _featureDistanceThreshold = featureDistanceThreshold;
             _classifier = classifier;
+            _trainingSampleSize = trainingSampleSize;
+            _predictionSampleSize = predictionSampleSize;
 
             Features = features;
 
@@ -306,8 +317,9 @@ namespace PTL.ATT.Models
 
             DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
                                           Columns.Classifier + "=@classifier," +
-                                          Columns.ClassifyNonZeroVectorsUniformly + "=" + classifyNonZeroVectorsUniformly + "," +
-                                          Columns.FeatureDistanceThreshold + "=" + featureDistanceThreshold + " " +
+                                          Columns.FeatureDistanceThreshold + "=" + _featureDistanceThreshold + "," +
+                                          Columns.TrainingSampleSize + "=" + _trainingSampleSize + "," + 
+                                          Columns.PredictionSampleSize + "=" + _predictionSampleSize + " " + 
                                           "WHERE " + Columns.Id + "=" + Id, new Parameter("classifier", NpgsqlDbType.Bytea, ms.ToArray()));
         }
 
@@ -344,7 +356,7 @@ namespace PTL.ATT.Models
 
             Set<int> incidentPointIndexesInArea = new Set<int>(area.Contains(incidentPoints.Select(p => p.Item1).ToList()).ToArray());
             incidentPoints = incidentPoints.Where((p, i) => incidentPointIndexesInArea.Contains(i)).ToList();
-            int maxSampleSize = training ? TrainingSampleSize : PredictionSampleSize;
+            int maxSampleSize = training ? _trainingSampleSize : _predictionSampleSize;
             int numIncidentsToRemove = (nullPointIds.Count + incidentPoints.Count) - maxSampleSize;
             string sample = training ? "training" : "prediction";
             if (numIncidentsToRemove > 0)
@@ -656,15 +668,6 @@ namespace PTL.ATT.Models
 
                             foreach (FeatureVector vector in featureVectors.OrderBy(v => (v.DerivedFrom as Point).Id))  // sort by point ID so prediction log is sorted
                             {
-                                if (_classifyNonZeroVectorsUniformly)
-                                {
-                                    foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.Keys.ToArray())
-                                        if (label == PointPrediction.NullLabel)
-                                            vector.DerivedFrom.PredictionConfidenceScores[PointPrediction.NullLabel] = 0;
-                                        else
-                                            vector.DerivedFrom.PredictionConfidenceScores[label] = 1 / (float)(vector.DerivedFrom.PredictionConfidenceScores.Count - 1);
-                                }
-
                                 #region log feature values
                                 Point p = vector.DerivedFrom as Point;
                                 if (p == null)
@@ -812,7 +815,7 @@ namespace PTL.ATT.Models
 
         public override int Copy()
         {
-            return Create(null, Name, PointSpacing, _featureDistanceThreshold, _classifyNonZeroVectorsUniformly, GetType(), TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, Features.ToList());
+            return Create(null, Name, PointSpacing, _featureDistanceThreshold, GetType(), TrainingArea, TrainingStart, TrainingEnd, _trainingSampleSize, _predictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, Features.ToList());
         }
 
         public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
@@ -857,7 +860,8 @@ namespace PTL.ATT.Models
                    indent + "Features:  " + Features.Select(f => f.ToString()).Concatenate(",") + Environment.NewLine +
                    indent + "External feature extractor:  " + (_externalFeatureExtractor == null ? "None" : _externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
                    indent + "Feature distance threshold:  " + _featureDistanceThreshold + Environment.NewLine +
-                   indent + "Classify nonzero vectors uniformly:  " + _classifyNonZeroVectorsUniformly;
+                   indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +
+                   indent + "Prediction sample size:  " + _predictionSampleSize;
         }
     }
 }

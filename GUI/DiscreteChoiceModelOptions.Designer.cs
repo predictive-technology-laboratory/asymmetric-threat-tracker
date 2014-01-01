@@ -49,12 +49,6 @@ namespace PTL.ATT.GUI
         {
             this.components = new System.ComponentModel.Container();
             this.label13 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.predictionSampleSize = new System.Windows.Forms.NumericUpDown();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.trainingSampleSize = new System.Windows.Forms.NumericUpDown();
-            this.label12 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.pointSpacing = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
@@ -72,8 +66,6 @@ namespace PTL.ATT.GUI
             this.label6 = new System.Windows.Forms.Label();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.smoothers = new PTL.ATT.GUI.SmootherList();
-            ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pointSpacing)).BeginInit();
             this.incidentTypesMenu.SuspendLayout();
             this.SuspendLayout();
@@ -81,91 +73,12 @@ namespace PTL.ATT.GUI
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(61, 315);
+            this.label13.Location = new System.Drawing.Point(61, 263);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(60, 13);
             this.label13.TabIndex = 46;
             this.label13.Text = "Smoothers:";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(210, 291);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(35, 13);
-            this.label8.TabIndex = 45;
-            this.label8.Text = "points";
-            // 
-            // predictionSampleSize
-            // 
-            this.predictionSampleSize.Location = new System.Drawing.Point(127, 289);
-            this.predictionSampleSize.Maximum = new decimal(new int[] {
-            999999999,
-            0,
-            0,
-            0});
-            this.predictionSampleSize.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.predictionSampleSize.Name = "predictionSampleSize";
-            this.predictionSampleSize.Size = new System.Drawing.Size(77, 20);
-            this.predictionSampleSize.TabIndex = 7;
-            this.predictionSampleSize.Value = new decimal(new int[] {
-            30000,
-            0,
-            0,
-            0});
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(7, 291);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(114, 13);
-            this.label10.TabIndex = 44;
-            this.label10.Text = "Prediction sample size:";
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(210, 265);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(35, 13);
-            this.label11.TabIndex = 43;
-            this.label11.Text = "points";
-            // 
-            // trainingSampleSize
-            // 
-            this.trainingSampleSize.Location = new System.Drawing.Point(127, 263);
-            this.trainingSampleSize.Maximum = new decimal(new int[] {
-            999999999,
-            0,
-            0,
-            0});
-            this.trainingSampleSize.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.trainingSampleSize.Name = "trainingSampleSize";
-            this.trainingSampleSize.Size = new System.Drawing.Size(77, 20);
-            this.trainingSampleSize.TabIndex = 6;
-            this.trainingSampleSize.Value = new decimal(new int[] {
-            30000,
-            0,
-            0,
-            0});
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(16, 265);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(105, 13);
-            this.label12.TabIndex = 42;
-            this.label12.Text = "Training sample size:";
+            this.toolTip.SetToolTip(this.label13, "Smoothers to apply after the prediction is made.");
             // 
             // label5
             // 
@@ -201,11 +114,12 @@ namespace PTL.ATT.GUI
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(47, 58);
+            this.label1.Location = new System.Drawing.Point(-2, 58);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(74, 13);
+            this.label1.Size = new System.Drawing.Size(123, 13);
             this.label1.TabIndex = 40;
-            this.label1.Text = "Point spacing:";
+            this.label1.Text = "Prediction point spacing:";
+            this.toolTip.SetToolTip(this.label1, "How far apart prediction points should be spaced");
             // 
             // modelName
             // 
@@ -224,6 +138,7 @@ namespace PTL.ATT.GUI
             this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 39;
             this.label2.Text = "Name:";
+            this.toolTip.SetToolTip(this.label2, "A descriptive name for this model");
             // 
             // label3
             // 
@@ -233,6 +148,7 @@ namespace PTL.ATT.GUI
             this.label3.Size = new System.Drawing.Size(72, 13);
             this.label3.TabIndex = 119;
             this.label3.Text = "Training area:";
+            this.toolTip.SetToolTip(this.label3, "Area upon which this model is trained");
             // 
             // label7
             // 
@@ -275,6 +191,7 @@ namespace PTL.ATT.GUI
             this.label4.Size = new System.Drawing.Size(76, 13);
             this.label4.TabIndex = 121;
             this.label4.Text = "Incident types:";
+            this.toolTip.SetToolTip(this.label4, "Incident types to model");
             // 
             // trainingEnd
             // 
@@ -324,6 +241,7 @@ namespace PTL.ATT.GUI
             this.label6.Size = new System.Drawing.Size(118, 13);
             this.label6.TabIndex = 120;
             this.label6.Text = "Training start/end date:";
+            this.toolTip.SetToolTip(this.label6, "Date range upon which the model should be trained");
             // 
             // toolTip
             // 
@@ -339,7 +257,7 @@ namespace PTL.ATT.GUI
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.smoothers.FormattingEnabled = true;
-            this.smoothers.Location = new System.Drawing.Point(127, 315);
+            this.smoothers.Location = new System.Drawing.Point(127, 263);
             this.smoothers.Name = "smoothers";
             this.smoothers.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.smoothers.Size = new System.Drawing.Size(231, 147);
@@ -356,26 +274,18 @@ namespace PTL.ATT.GUI
             this.Controls.Add(this.trainingStart);
             this.Controls.Add(this.modelName);
             this.Controls.Add(this.label4);
-            this.Controls.Add(this.trainingSampleSize);
             this.Controls.Add(this.trainingEnd);
-            this.Controls.Add(this.label11);
             this.Controls.Add(this.incidentTypes);
-            this.Controls.Add(this.label12);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.label10);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.smoothers);
-            this.Controls.Add(this.predictionSampleSize);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.pointSpacing);
             this.Controls.Add(this.label13);
-            this.Controls.Add(this.label8);
             this.Controls.Add(this.label1);
-            this.MinimumSize = new System.Drawing.Size(367, 470);
+            this.MinimumSize = new System.Drawing.Size(367, 420);
             this.Name = "DiscreteChoiceModelOptions";
-            this.Size = new System.Drawing.Size(367, 470);
-            ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).EndInit();
+            this.Size = new System.Drawing.Size(367, 420);
             ((System.ComponentModel.ISupportInitialize)(this.pointSpacing)).EndInit();
             this.incidentTypesMenu.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -386,10 +296,6 @@ namespace PTL.ATT.GUI
         #endregion
 
         private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -397,8 +303,6 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label6;
-        public System.Windows.Forms.NumericUpDown predictionSampleSize;
-        public System.Windows.Forms.NumericUpDown trainingSampleSize;
         public System.Windows.Forms.NumericUpDown pointSpacing;
         public System.Windows.Forms.TextBox modelName;
         public System.Windows.Forms.DateTimePicker trainingStart;

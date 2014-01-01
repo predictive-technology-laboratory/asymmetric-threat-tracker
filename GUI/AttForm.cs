@@ -584,8 +584,7 @@ namespace PTL.ATT.GUI
                                                                  f.discreteChoiceModelOptions.TrainingArea,
                                                                  f.discreteChoiceModelOptions.TrainingStart,
                                                                  f.discreteChoiceModelOptions.TrainingEnd,
-                                                                 f.discreteChoiceModelOptions.TrainingSampleSize,
-                                                                 f.discreteChoiceModelOptions.PredictionSampleSize,
+                                                                 f.kernelDensityDcmOptions.TrainingSampleSize,
                                                                  f.discreteChoiceModelOptions.IncidentTypes,
                                                                  f.kernelDensityDcmOptions.Normalize,
                                                                  f.discreteChoiceModelOptions.Smoothers);
@@ -598,13 +597,12 @@ namespace PTL.ATT.GUI
                                                                    f.discreteChoiceModelOptions.ModelName,
                                                                    f.discreteChoiceModelOptions.PointSpacing,
                                                                    f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
-                                                                   f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
                                                                    null,
                                                                    f.discreteChoiceModelOptions.TrainingArea,
                                                                    f.discreteChoiceModelOptions.TrainingStart,
                                                                    f.discreteChoiceModelOptions.TrainingEnd,
-                                                                   f.discreteChoiceModelOptions.TrainingSampleSize,
-                                                                   f.discreteChoiceModelOptions.PredictionSampleSize,
+                                                                   f.spatialDistanceDcmOptions.TrainingSampleSize,
+                                                                   f.spatialDistanceDcmOptions.PredictionSampleSize,
                                                                    f.discreteChoiceModelOptions.IncidentTypes,
                                                                    f.spatialDistanceDcmOptions.Classifier,
                                                                    f.discreteChoiceModelOptions.Smoothers,
@@ -618,13 +616,12 @@ namespace PTL.ATT.GUI
                                                              f.discreteChoiceModelOptions.ModelName,
                                                              f.discreteChoiceModelOptions.PointSpacing,
                                                              f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
-                                                             f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
                                                              null,
                                                              f.discreteChoiceModelOptions.TrainingArea,
                                                              f.discreteChoiceModelOptions.TrainingStart,
                                                              f.discreteChoiceModelOptions.TrainingEnd,
-                                                             f.discreteChoiceModelOptions.TrainingSampleSize,
-                                                             f.discreteChoiceModelOptions.PredictionSampleSize,
+                                                             f.spatialDistanceDcmOptions.TrainingSampleSize,
+                                                             f.spatialDistanceDcmOptions.PredictionSampleSize,
                                                              f.discreteChoiceModelOptions.IncidentTypes,
                                                              f.spatialDistanceDcmOptions.Classifier,
                                                              f.discreteChoiceModelOptions.Smoothers,
@@ -655,12 +652,11 @@ namespace PTL.ATT.GUI
                         ts.Update(f.discreteChoiceModelOptions.ModelName,
                                   f.discreteChoiceModelOptions.PointSpacing,
                                   f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
-                                  f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
                                   f.discreteChoiceModelOptions.TrainingArea,
                                   f.discreteChoiceModelOptions.TrainingStart,
                                   f.discreteChoiceModelOptions.TrainingEnd,
-                                  f.discreteChoiceModelOptions.TrainingSampleSize,
-                                  f.discreteChoiceModelOptions.PredictionSampleSize,
+                                  f.spatialDistanceDcmOptions.TrainingSampleSize,
+                                  f.spatialDistanceDcmOptions.PredictionSampleSize,
                                   f.discreteChoiceModelOptions.IncidentTypes,
                                   f.spatialDistanceDcmOptions.Classifier,
                                   f.discreteChoiceModelOptions.Smoothers,
@@ -676,12 +672,11 @@ namespace PTL.ATT.GUI
                         sd.Update(f.discreteChoiceModelOptions.ModelName,
                                   f.discreteChoiceModelOptions.PointSpacing,
                                   f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
-                                  f.spatialDistanceDcmOptions.ClassifyNonZeroVectorsUniformly,
                                   f.discreteChoiceModelOptions.TrainingArea,
                                   f.discreteChoiceModelOptions.TrainingStart,
                                   f.discreteChoiceModelOptions.TrainingEnd,
-                                  f.discreteChoiceModelOptions.TrainingSampleSize,
-                                  f.discreteChoiceModelOptions.PredictionSampleSize,
+                                  f.spatialDistanceDcmOptions.TrainingSampleSize,
+                                  f.spatialDistanceDcmOptions.PredictionSampleSize,
                                   f.discreteChoiceModelOptions.IncidentTypes,
                                   f.spatialDistanceDcmOptions.Classifier,
                                   f.discreteChoiceModelOptions.Smoothers,
@@ -697,8 +692,7 @@ namespace PTL.ATT.GUI
                                    f.discreteChoiceModelOptions.TrainingArea,
                                    f.discreteChoiceModelOptions.TrainingStart,
                                    f.discreteChoiceModelOptions.TrainingEnd,
-                                   f.discreteChoiceModelOptions.TrainingSampleSize,
-                                   f.discreteChoiceModelOptions.PredictionSampleSize,
+                                   f.kernelDensityDcmOptions.TrainingSampleSize,
                                    f.discreteChoiceModelOptions.IncidentTypes,
                                    f.kernelDensityDcmOptions.Normalize,
                                    f.discreteChoiceModelOptions.Smoothers);
@@ -839,7 +833,7 @@ namespace PTL.ATT.GUI
 
                                     try
                                     {
-                                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.TrainingSampleSize, m.PredictionSampleSize, new string[] { incidentType }, m.Smoothers);
+                                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), new string[] { incidentType }, m.Smoothers);
                                         mostRecentPredictionId = m.Run(idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                         newRun = false;
                                     }
@@ -859,7 +853,7 @@ namespace PTL.ATT.GUI
                             {
                                 try
                                 {
-                                    m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.TrainingSampleSize, m.PredictionSampleSize, m.IncidentTypes, m.Smoothers);
+                                    m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.IncidentTypes, m.Smoothers);
                                     mostRecentPredictionId = m.Run(idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                     newRun = false;
                                 }
@@ -875,7 +869,7 @@ namespace PTL.ATT.GUI
                             Console.Out.WriteLine("Completed prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
                         }
 
-                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart, trainingEnd, m.TrainingSampleSize, m.PredictionSampleSize, incidentTypes, m.Smoothers);
+                        m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart, trainingEnd, incidentTypes, m.Smoothers);
                         RefreshPredictions(mostRecentPredictionId);
 
                         if (runFinishedCallback != null)

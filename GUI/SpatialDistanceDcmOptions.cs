@@ -39,14 +39,19 @@ namespace PTL.ATT.GUI
         private Area _trainingArea;
         private Func<Area, List<Feature>> _getFeatures;
 
+        public int TrainingSampleSize
+        {
+            get { return (int)trainingSampleSize.Value; }
+        }
+
+        public int PredictionSampleSize
+        {
+            get { return (int)predictionSampleSize.Value; }
+        }
+
         public int FeatureDistanceThreshold
         {
             get { return (int)featureDistanceThreshold.Value; }
-        }
-
-        public bool ClassifyNonZeroVectorsUniformly
-        {
-            get { return classifyNonZeroVectorsUniformly.Checked; }
         }
 
         public Classifier Classifier
@@ -97,16 +102,18 @@ namespace PTL.ATT.GUI
             if (_initializing)
                 return;
 
+            trainingSampleSize.Value = 30000;
+            predictionSampleSize.Value = 30000;
             featureDistanceThreshold.Value = 1000;
-            classifyNonZeroVectorsUniformly.Checked = false;
             classifiers.Populate(_spatialDistanceDCM);
 
             RefreshFeatures();
 
             if (_spatialDistanceDCM != null)
             {
+                trainingSampleSize.Value = _spatialDistanceDCM.TrainingSampleSize;
+                predictionSampleSize.Value = _spatialDistanceDCM.PredictionSampleSize;
                 featureDistanceThreshold.Value = _spatialDistanceDCM.FeatureDistanceThreshold;
-                classifyNonZeroVectorsUniformly.Checked = _spatialDistanceDCM.ClassifyNonZeroVectorsUniformly;
 
                 foreach (Feature feature in _spatialDistanceDCM.Features)
                 {

@@ -50,6 +50,8 @@ namespace PTL.ATT.Models
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Normalize = "normalize";
+            [Reflector.Insert, Reflector.Select(true)]
+            public const string TrainingSampleSize = "training_sample_size";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select { get { return DiscreteChoiceModel.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
@@ -61,7 +63,8 @@ namespace PTL.ATT.Models
         {
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                     Columns.Id + " INT PRIMARY KEY REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
-                    Columns.Normalize + " BOOLEAN);";
+                    Columns.Normalize + " BOOLEAN," +
+                    Columns.TrainingSampleSize + " INT);";
         }
 
         public static int Create(string name,
@@ -70,7 +73,6 @@ namespace PTL.ATT.Models
                                  DateTime trainingStart,
                                  DateTime trainingEnd,
                                  int trainingSampleSize,
-                                 int predictionSampleSize,
                                  IEnumerable<string> incidentTypes,
                                  bool normalize,
                                  IEnumerable<Smoother> smoothers)
@@ -78,9 +80,11 @@ namespace PTL.ATT.Models
             NpgsqlCommand cmd = DB.Connection.NewCommand("BEGIN");
             cmd.ExecuteNonQuery();
 
-            int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, typeof(KernelDensityDCM), trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
+            int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, typeof(KernelDensityDCM), trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
 
-            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + dcmId + "," + normalize + ");COMMIT;";
+            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + dcmId + "," + 
+                                                                                              normalize + "," + 
+                                                                                              trainingSampleSize + ");COMMIT;";
             cmd.ExecuteNonQuery();
 
             DB.Connection.Return(cmd.Connection);
@@ -212,10 +216,16 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
         }
 
         private bool _normalize;
+        private int _trainingSampleSize;
 
         public bool Normalize
         {
             get { return _normalize; }
+        }
+
+        public int TrainingSampleSize
+        {
+            get { return _trainingSampleSize; }
         }
 
         internal KernelDensityDCM(int id)
@@ -236,16 +246,19 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             base.Construct(reader);
 
             _normalize = Convert.ToBoolean(reader[Table + "_" + Columns.Normalize]);
+            _trainingSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.TrainingSampleSize]);
         }
 
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, bool normalize, IEnumerable<Smoother> smoothers)
+        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, IEnumerable<string> incidentTypes, bool normalize, IEnumerable<Smoother> smoothers)
         {
-            base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, smoothers);
+            base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
 
             _normalize = normalize;
+            _trainingSampleSize = trainingSampleSize;
 
             DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
-                                          Columns.Normalize + "=" + normalize + " " +
+                                          Columns.Normalize + "=" + _normalize + "," +
+                                          Columns.TrainingSampleSize + "=" + _trainingSampleSize + " " + 
                                           "WHERE " + Columns.Id + "=" + Id);
         }
 
@@ -273,7 +286,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, predictionArea, false, false);
 
                 List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
-                List<float> density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize);
+                List<float> density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, nullPoints, _normalize);
                 Dictionary<int, float> pointIdOverallDensity = new Dictionary<int, float>();
                 int pointNum = 0;
                 foreach (int nullPointId in nullPointIds)
@@ -298,7 +311,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
                         Console.Out.WriteLine("Running KDE for incident \"" + incidentType + "\"");
 
-                        density = GetDensityEstimate(incidentPoints, TrainingSampleSize, false, 0, 0, nullPoints, _normalize);
+                        density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, nullPoints, _normalize);
                         if (density.Count > 0)
                         {
                             pointNum = 0;
@@ -328,7 +341,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
         public override int Copy()
         {
-            return Create(Name, PointSpacing, TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, _normalize, Smoothers);
+            return Create(Name, PointSpacing, TrainingArea, TrainingStart, TrainingEnd, _trainingSampleSize, IncidentTypes, _normalize, Smoothers);
         }
 
         public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
@@ -347,7 +360,8 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 indent += "\t";
 
             return base.GetDetails(indentLevel) + Environment.NewLine +
-                   indent + "Normalize:  " + _normalize;
+                   indent + "Normalize:  " + _normalize + Environment.NewLine +
+                   indent + "Training sample size:  " + _trainingSampleSize;
         }
 
         public override string GetPointIdForLog(int id, DateTime time)

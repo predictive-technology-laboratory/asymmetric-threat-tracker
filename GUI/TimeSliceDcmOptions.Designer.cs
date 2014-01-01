@@ -47,11 +47,13 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.timeSlicesPerPeriod = new System.Windows.Forms.NumericUpDown();
             this.label9 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.timeSliceHours = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.timeSlicesPerPeriod)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeSliceHours)).BeginInit();
             this.SuspendLayout();
@@ -86,6 +88,7 @@ namespace PTL.ATT.GUI
             this.label9.Size = new System.Drawing.Size(112, 13);
             this.label9.TabIndex = 23;
             this.label9.Text = "Time slices per period:";
+            this.toolTip.SetToolTip(this.label9, "Number of time slices (of above duration) that compose a single period");
             // 
             // label7
             // 
@@ -126,6 +129,7 @@ namespace PTL.ATT.GUI
             this.label1.Size = new System.Drawing.Size(57, 13);
             this.label1.TabIndex = 19;
             this.label1.Text = "Time slice:";
+            this.toolTip.SetToolTip(this.label1, "Duration of a single time slice");
             // 
             // TimeSliceDcmOptions
             // 
@@ -152,5 +156,6 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.NumericUpDown timeSliceHours;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }

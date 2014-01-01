@@ -68,16 +68,6 @@ namespace PTL.ATT.GUI
             get { return incidentTypes.SelectedItems.Cast<string>().ToArray(); }
         }
 
-        public int TrainingSampleSize
-        {
-            get { return (int)trainingSampleSize.Value; }
-        }
-
-        public int PredictionSampleSize
-        {
-            get { return (int)predictionSampleSize.Value; }
-        }
-
         public Smoother[] Smoothers
         {
             get { return smoothers.SelectedItems.Cast<Smoother>().ToArray(); }
@@ -189,8 +179,6 @@ namespace PTL.ATT.GUI
             trainingStart.Value = DateTime.Today.Add(new TimeSpan(-7, 0, 0, 0));
             trainingEnd.Value = trainingStart.Value.Add(new TimeSpan(6, 23, 59, 59));
             incidentTypes.Items.Clear();
-            trainingSampleSize.Value = 30000;
-            predictionSampleSize.Value = 30000;
             smoothers.Populate(_discreteChoiceModel);
 
             try
@@ -218,9 +206,6 @@ namespace PTL.ATT.GUI
                     if (index >= 0)
                         incidentTypes.SetSelected(index, true);
                 }
-
-                trainingSampleSize.Value = _discreteChoiceModel.TrainingSampleSize;
-                predictionSampleSize.Value = _discreteChoiceModel.PredictionSampleSize;
             }
 
             SetIncidentsToolTip();

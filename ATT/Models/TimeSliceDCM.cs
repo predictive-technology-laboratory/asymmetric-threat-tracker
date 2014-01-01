@@ -120,7 +120,6 @@ namespace PTL.ATT.Models
                                  string name,
                                  int pointSpacing,
                                  int featureDistanceThreshold,
-                                 bool classifyNonZeroVectorsUniformly,
                                  Type type,
                                  Area trainingArea,
                                  DateTime trainingStart,
@@ -148,7 +147,7 @@ namespace PTL.ATT.Models
             if (type == null)
                 type = typeof(TimeSliceDCM);
 
-            int spatialDistanceDcmId = SpatialDistanceDCM.Create(cmd.Connection, name, pointSpacing, featureDistanceThreshold, classifyNonZeroVectorsUniformly, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
+            int spatialDistanceDcmId = SpatialDistanceDCM.Create(cmd.Connection, name, pointSpacing, featureDistanceThreshold, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
 
             cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + spatialDistanceDcmId + "," + periodTimeSlices + "," + timeSliceHours + ")";
             cmd.ExecuteNonQuery();
@@ -220,9 +219,9 @@ namespace PTL.ATT.Models
             _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
         }
 
-        public void Update(string name, int pointSpacing, int featureDistanceThreshold, bool classifyNonZeroVectorsUniformly, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, List<Feature> features, int timeSliceHours, int periodTimeSlices)
+        public void Update(string name, int pointSpacing, int featureDistanceThreshold, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, List<Feature> features, int timeSliceHours, int periodTimeSlices)
         {
-            base.Update(name, pointSpacing, featureDistanceThreshold, classifyNonZeroVectorsUniformly, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
+            base.Update(name, pointSpacing, featureDistanceThreshold, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
 
             _timeSliceHours = timeSliceHours;
             _periodTimeSlices = periodTimeSlices;
@@ -370,7 +369,7 @@ namespace PTL.ATT.Models
 
         public override int Copy()
         {
-            return Create(null, Name, PointSpacing, FeatureDistanceThreshold, ClassifyNonZeroVectorsUniformly, GetType(), TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, Features.ToList(), (int)_timeSliceHours, (int)_periodTimeSlices);
+            return Create(null, Name, PointSpacing, FeatureDistanceThreshold, GetType(), TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, Features.ToList(), (int)_timeSliceHours, (int)_periodTimeSlices);
         }
 
         public override string ToString()

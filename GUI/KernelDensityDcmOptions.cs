@@ -47,6 +47,11 @@ namespace PTL.ATT.GUI
             }
         }
 
+        public int TrainingSampleSize
+        {
+            get { return (int)trainingSampleSize.Value; }
+        }
+
         public bool Normalize
         {
             get { return normalize.Checked; }
@@ -66,10 +71,14 @@ namespace PTL.ATT.GUI
             if (_initializing)
                 return;
 
+            trainingSampleSize.Value = 500;
             normalize.Checked = false;
 
             if (_kernelDensityDCM != null)
+            {
+                trainingSampleSize.Value = _kernelDensityDCM.TrainingSampleSize;
                 normalize.Checked = _kernelDensityDCM.Normalize;
+            }
         }
 
         public string ValidateInput()

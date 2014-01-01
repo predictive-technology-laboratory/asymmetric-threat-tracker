@@ -36,7 +36,7 @@ namespace PTL.ATT.GUI
         {
             InitializeComponent();
 
-            discreteChoiceModelOptions.trainingSampleSize.Value = 500;
+            kernelDensityDcmOptions.trainingSampleSize.Value = 500;
         }
 
         public KernelDensityDcmForm(KernelDensityDCM current)

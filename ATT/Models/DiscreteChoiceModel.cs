@@ -60,15 +60,11 @@ namespace PTL.ATT.Models
             [Reflector.Insert, Reflector.Select(true)]
             public const string PointSpacing = "point_spacing";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string PredictionSampleSize = "prediction_sample_size";
-            [Reflector.Insert, Reflector.Select(true)]
             public const string Smoothers = "smoothers";
             [Reflector.Insert, Reflector.Select(true)]
             public const string TrainingAreaId = "training_area_id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string TrainingEnd = "training_end";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingSampleSize = "training_sample_size";
             [Reflector.Insert, Reflector.Select(true)]
             public const string TrainingStart = "training_start";
             [Reflector.Insert, Reflector.Select(true)]
@@ -92,12 +88,10 @@ namespace PTL.ATT.Models
                    Columns.ModelDirectory + " VARCHAR," +
                    Columns.Name + " VARCHAR," +
                    Columns.PointSpacing + " INT," +
-                   Columns.PredictionSampleSize + " INT," +
                    Columns.Smoothers + " BYTEA[]," +
                    Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," +
                    Columns.TrainingEnd + " TIMESTAMP," +
                    Columns.TrainingStart + " TIMESTAMP," +
-                   Columns.TrainingSampleSize + " INT," +
                    Columns.Type + " VARCHAR);";
         }
 
@@ -108,19 +102,15 @@ namespace PTL.ATT.Models
                                     Area trainingArea,
                                     DateTime trainingStart,
                                     DateTime trainingEnd,
-                                    int trainingSampleSize,
-                                    int predictionSampleSize,
                                     IEnumerable<string> incidentTypes,
                                     IEnumerable<Smoother> smoothers)
         {
             NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('{" + incidentTypes.Select(i => "\"" + i + "\"").Concatenate(",") + "}'," +
                                                                                                               "'" + name + "'," +
                                                                                                               pointSpacing + "," +
-                                                                                                              predictionSampleSize + "," +
                                                                                                               "ARRAY[" + smoothers.Select((s, i) => "@smoother_" + i).Concatenate(",") + "]::bytea[]," +
                                                                                                               trainingArea.Id + "," +
                                                                                                               "@training_end," +
-                                                                                                              trainingSampleSize + "," +
                                                                                                               "@training_start,'" + type + "') RETURNING " + Columns.Id, connection);
 
 
@@ -315,8 +305,6 @@ namespace PTL.ATT.Models
         private int _trainingAreaId;
         private DateTime _trainingStart;
         private DateTime _trainingEnd;
-        private int _trainingSampleSize;
-        private int _predictionSampleSize;
         private List<Smoother> _smoothers;
         private string _modelDirectory;
 
@@ -361,16 +349,6 @@ namespace PTL.ATT.Models
             get { return _trainingEnd; }
         }
 
-        public int TrainingSampleSize
-        {
-            get { return _trainingSampleSize; }
-        }
-
-        public int PredictionSampleSize
-        {
-            get { return _predictionSampleSize; }
-        }
-
         public List<Smoother> Smoothers
         {
             get { return _smoothers; }
@@ -407,8 +385,6 @@ namespace PTL.ATT.Models
             _trainingAreaId = Convert.ToInt32(reader[Table + "_" + Columns.TrainingAreaId]);
             _trainingStart = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingStart]);
             _trainingEnd = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingEnd]);
-            _trainingSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.TrainingSampleSize]);
-            _predictionSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.PredictionSampleSize]);
             _modelDirectory = Convert.ToString(reader[Table + "_" + Columns.ModelDirectory]);
 
             BinaryFormatter bf = new BinaryFormatter();
@@ -497,13 +473,11 @@ namespace PTL.ATT.Models
                    indent + "Training start:  " + _trainingStart.ToShortDateString() + " " + _trainingStart.ToShortTimeString() + Environment.NewLine +
                    indent + "Training end:  " + _trainingEnd.ToShortDateString() + " " + _trainingEnd.ToShortTimeString() + Environment.NewLine +
                    indent + "Training area:  " + TrainingArea.GetDetails(indentLevel + 1) + Environment.NewLine +
-                   indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +
-                   indent + "Prediction sample size:  " + _predictionSampleSize + Environment.NewLine +
                    indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
                    indent + "Smoothers:  " + _smoothers.Select(s => s.GetSmoothingDetails()).Concatenate(", ");
         }
 
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, IEnumerable<Smoother> smoothers)
+        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, IEnumerable<string> incidentTypes, IEnumerable<Smoother> smoothers)
         {
             _incidentTypes = new Set<string>(incidentTypes.ToArray());
             _name = name;
@@ -511,8 +485,6 @@ namespace PTL.ATT.Models
             _trainingAreaId = trainingArea.Id;
             _trainingEnd = trainingEnd;
             _trainingStart = trainingStart;
-            _trainingSampleSize = trainingSampleSize;
-            _predictionSampleSize = predictionSampleSize;
             _smoothers = smoothers.ToList();
 
             BinaryFormatter bf = new BinaryFormatter();
@@ -537,8 +509,6 @@ namespace PTL.ATT.Models
                                         Columns.TrainingAreaId + "=" + trainingArea.Id + "," +
                                         Columns.TrainingEnd + "=@training_end," +
                                         Columns.TrainingStart + "=@training_start," +
-                                        Columns.TrainingSampleSize + "=" + trainingSampleSize + "," +
-                                        Columns.PredictionSampleSize + "=" + predictionSampleSize + "," +
                                         Columns.Smoothers + "=ARRAY[" + smoothers.Select((s, i) => "@smoother_" + i).Concatenate(",") + "]::bytea[] " +
                                         "WHERE " + Columns.Id + "=" + _id, parameters.ToArray());
 
