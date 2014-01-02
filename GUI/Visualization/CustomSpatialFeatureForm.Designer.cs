@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.createPoints = new System.Windows.Forms.Button();
             this.createLine = new System.Windows.Forms.Button();
             this.createPolygon = new System.Windows.Forms.Button();
@@ -39,6 +40,7 @@
             this.points = new System.Windows.Forms.ListBox();
             this.clearPoints = new System.Windows.Forms.Button();
             this.createConnectedLine = new System.Windows.Forms.Button();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // createPoints
@@ -48,6 +50,8 @@
             this.createPoints.Size = new System.Drawing.Size(121, 23);
             this.createPoints.TabIndex = 0;
             this.createPoints.Text = "Create point(s)";
+            this.toolTip.SetToolTip(this.createPoints, "Creates a feature element containing a single point. If multiple points are used," +
+        " a multi-point is created.");
             this.createPoints.UseVisualStyleBackColor = true;
             this.createPoints.Click += new System.EventHandler(this.createPoints_Click);
             // 
@@ -58,6 +62,7 @@
             this.createLine.Size = new System.Drawing.Size(121, 23);
             this.createLine.TabIndex = 1;
             this.createLine.Text = "Create line";
+            this.toolTip.SetToolTip(this.createLine, "Creates a line from the points");
             this.createLine.UseVisualStyleBackColor = true;
             this.createLine.Click += new System.EventHandler(this.createLine_Click);
             // 
@@ -68,6 +73,8 @@
             this.createPolygon.Size = new System.Drawing.Size(121, 23);
             this.createPolygon.TabIndex = 2;
             this.createPolygon.Text = "Create polygon";
+            this.toolTip.SetToolTip(this.createPolygon, "Creates a polygon formed by the points and a segment joining the last point to th" +
+        "e first point");
             this.createPolygon.UseVisualStyleBackColor = true;
             this.createPolygon.Click += new System.EventHandler(this.createPolygon_Click);
             // 
@@ -83,6 +90,7 @@
             this.elements.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.elements.Size = new System.Drawing.Size(268, 225);
             this.elements.TabIndex = 3;
+            this.toolTip.SetToolTip(this.elements, "Elements used to create a single feature");
             // 
             // label1
             // 
@@ -110,6 +118,7 @@
             this.removeSelectedElements.Size = new System.Drawing.Size(154, 23);
             this.removeSelectedElements.TabIndex = 9;
             this.removeSelectedElements.Text = "Remove selected element(s)";
+            this.toolTip.SetToolTip(this.removeSelectedElements, "Removed selected elements from the list");
             this.removeSelectedElements.UseVisualStyleBackColor = true;
             this.removeSelectedElements.Click += new System.EventHandler(this.removeSelectedElements_Click);
             // 
@@ -121,6 +130,7 @@
             this.createFeature.Size = new System.Drawing.Size(108, 23);
             this.createFeature.TabIndex = 10;
             this.createFeature.Text = "Create feature";
+            this.toolTip.SetToolTip(this.createFeature, "Creates a feature containing all elements listed");
             this.createFeature.UseVisualStyleBackColor = true;
             this.createFeature.Click += new System.EventHandler(this.createFeature_Click);
             // 
@@ -135,16 +145,18 @@
             this.points.SelectionMode = System.Windows.Forms.SelectionMode.None;
             this.points.Size = new System.Drawing.Size(268, 225);
             this.points.TabIndex = 12;
+            this.toolTip.SetToolTip(this.points, "Points used to create a feature element");
             // 
             // clearPoints
             // 
-            this.clearPoints.Location = new System.Drawing.Point(286, 163);
+            this.clearPoints.Location = new System.Drawing.Point(286, 146);
             this.clearPoints.Name = "clearPoints";
             this.clearPoints.Size = new System.Drawing.Size(121, 23);
             this.clearPoints.TabIndex = 13;
             this.clearPoints.Text = "Clear points";
+            this.toolTip.SetToolTip(this.clearPoints, "Clears all points");
             this.clearPoints.UseVisualStyleBackColor = true;
-            this.clearPoints.Click += new System.EventHandler(this.clearData_Click);
+            this.clearPoints.Click += new System.EventHandler(this.clearPoints_Click);
             // 
             // createConnectedLine
             // 
@@ -153,6 +165,8 @@
             this.createConnectedLine.Size = new System.Drawing.Size(121, 23);
             this.createConnectedLine.TabIndex = 14;
             this.createConnectedLine.Text = "Create connected line";
+            this.toolTip.SetToolTip(this.createConnectedLine, "Creates a connected line formed by the points and a segment joining the last poin" +
+        "t to the first point");
             this.createConnectedLine.UseVisualStyleBackColor = true;
             this.createConnectedLine.Click += new System.EventHandler(this.createConnectedLine_Click);
             // 
@@ -193,5 +207,6 @@
         public System.Windows.Forms.ListBox points;
         private System.Windows.Forms.Button clearPoints;
         private System.Windows.Forms.Button createConnectedLine;
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }

@@ -62,7 +62,7 @@ namespace PTL.ATT.GUI.Visualization
             }
         }
 
-        private void clearData_Click(object sender, EventArgs e)
+        private void clearPoints_Click(object sender, EventArgs e)
         {
             points.Items.Clear();
         }
@@ -85,7 +85,7 @@ namespace PTL.ATT.GUI.Visualization
                 {
                     string name = f.GetValue<string>("name").Trim();
                     if (name == "")
-                        MessageBox.Show("Invalid name:  must be non-blank.");
+                        MessageBox.Show("Invalid name:  must not be blank.");
                     else
                     {
                         NpgsqlCommand cmd = DB.Connection.NewCommand(null);
