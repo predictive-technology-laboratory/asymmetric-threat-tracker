@@ -189,6 +189,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "CustomSpatialFeatureForm";
             this.Text = "Define spatial feature...";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 

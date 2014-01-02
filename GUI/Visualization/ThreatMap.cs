@@ -585,6 +585,11 @@ namespace PTL.ATT.GUI.Visualization
                 zoomOutBtn_Click(sender, e);
         }
 
+        private void ThreatMap_MouseEnter(object sender, EventArgs e)
+        {
+            panUpBtn.Focus();
+        }
+
         private void ThreatMap_MouseLeave(object sender, EventArgs e)
         {
             Cursor = Cursors.Default;
@@ -807,8 +812,6 @@ namespace PTL.ATT.GUI.Visualization
                 GetThreatSurfaces(ClientRectangle, false);
             else
                 GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
-
-            panUpBtn.Focus();
         }
 
         private void timeSlice_ValueChanged(object sender, EventArgs e)
