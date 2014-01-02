@@ -61,6 +61,7 @@ namespace PTL.ATT.GUI.Visualization
             this.examinePredictionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportThreatSurfaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setBackgroundColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setPointDrawingDiameterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panDownBtn = new System.Windows.Forms.Button();
             this.resetZoom = new System.Windows.Forms.Button();
             this.resetPan = new System.Windows.Forms.Button();
@@ -69,7 +70,9 @@ namespace PTL.ATT.GUI.Visualization
             this.zoomInBtn = new System.Windows.Forms.Button();
             this.panRightBtn = new System.Windows.Forms.Button();
             this.panUpBtn = new System.Windows.Forms.Button();
-            this.setPointDrawingDiameterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.defineSpatialFeatureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.threatResolution)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeSlice)).BeginInit();
             this.topPanel.SuspendLayout();
@@ -199,11 +202,14 @@ namespace PTL.ATT.GUI.Visualization
             // 
             this.threatMapMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.examinePredictionsToolStripMenuItem,
-            this.exportThreatSurfaceToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.defineSpatialFeatureToolStripMenuItem,
+            this.toolStripSeparator2,
             this.setBackgroundColorToolStripMenuItem,
-            this.setPointDrawingDiameterToolStripMenuItem});
+            this.setPointDrawingDiameterToolStripMenuItem,
+            this.exportThreatSurfaceToolStripMenuItem});
             this.threatMapMenu.Name = "threatSurfaceMenu";
-            this.threatMapMenu.Size = new System.Drawing.Size(303, 114);
+            this.threatMapMenu.Size = new System.Drawing.Size(303, 148);
             // 
             // examinePredictionsToolStripMenuItem
             // 
@@ -225,6 +231,13 @@ namespace PTL.ATT.GUI.Visualization
             this.setBackgroundColorToolStripMenuItem.Size = new System.Drawing.Size(302, 22);
             this.setBackgroundColorToolStripMenuItem.Text = "Set background color...";
             this.setBackgroundColorToolStripMenuItem.Click += new System.EventHandler(this.setBackgroundColorToolStripMenuItem_Click);
+            // 
+            // setPointDrawingDiameterToolStripMenuItem
+            // 
+            this.setPointDrawingDiameterToolStripMenuItem.Name = "setPointDrawingDiameterToolStripMenuItem";
+            this.setPointDrawingDiameterToolStripMenuItem.Size = new System.Drawing.Size(302, 22);
+            this.setPointDrawingDiameterToolStripMenuItem.Text = "Set point drawing diameter...";
+            this.setPointDrawingDiameterToolStripMenuItem.Click += new System.EventHandler(this.setPointDrawingDiameterToolStripMenuItem_Click);
             // 
             // panDownBtn
             // 
@@ -313,12 +326,22 @@ namespace PTL.ATT.GUI.Visualization
             this.panUpBtn.UseVisualStyleBackColor = true;
             this.panUpBtn.Click += new System.EventHandler(this.panUpBtn_Click);
             // 
-            // setPointDrawingDiameterToolStripMenuItem
+            // toolStripSeparator1
             // 
-            this.setPointDrawingDiameterToolStripMenuItem.Name = "setPointDrawingDiameterToolStripMenuItem";
-            this.setPointDrawingDiameterToolStripMenuItem.Size = new System.Drawing.Size(302, 22);
-            this.setPointDrawingDiameterToolStripMenuItem.Text = "Set point drawing diameter...";
-            this.setPointDrawingDiameterToolStripMenuItem.Click += new System.EventHandler(this.setPointDrawingDiameterToolStripMenuItem_Click);
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(299, 6);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(299, 6);
+            // 
+            // defineSpatialFeatureToolStripMenuItem
+            // 
+            this.defineSpatialFeatureToolStripMenuItem.Name = "defineSpatialFeatureToolStripMenuItem";
+            this.defineSpatialFeatureToolStripMenuItem.Size = new System.Drawing.Size(302, 22);
+            this.defineSpatialFeatureToolStripMenuItem.Text = "Define spatial feature...";
+            this.defineSpatialFeatureToolStripMenuItem.Click += new System.EventHandler(this.defineSpatialFeatureToolStripMenuItem_Click);
             // 
             // ThreatMap
             // 
@@ -379,5 +402,8 @@ namespace PTL.ATT.GUI.Visualization
         private System.Windows.Forms.ToolStripMenuItem examinePredictionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem setBackgroundColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem setPointDrawingDiameterToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem defineSpatialFeatureToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
     }
 }
