@@ -82,6 +82,9 @@ namespace PTL.ATT.GUI.Visualization
 
         private int _pointDrawingDiameter;
 
+        private bool _definingSpatialFeature;
+        private CustomSpatialFeatureForm _spatialFeatureForm;
+
         private Bitmap CurrentThreatSurface
         {
             get
@@ -144,6 +147,8 @@ namespace PTL.ATT.GUI.Visualization
             _predictionPointColor = Color.Black;
 
             _pointDrawingDiameter = 5;
+
+            _definingSpatialFeature = false;
         }
 
         public override void Display(Prediction prediction, IEnumerable<Overlay> overlays)
@@ -475,9 +480,17 @@ namespace PTL.ATT.GUI.Visualization
             if (e.Button == System.Windows.Forms.MouseButtons.Left)
             {
                 _dragging = true;
-                _draggingStart = new System.Drawing.Point(e.X, e.Y);
 
-                UpdateHighlightedThreatRectangle(e.Location);
+                if (ModifierKeys.HasFlag(Keys.Control))
+                {
+                    if (_definingSpatialFeature)
+                        _spatialFeatureForm.points.Items.Add(GetPostGisPoint(e.Location));
+                }
+                else
+                {
+                    _draggingStart = new System.Drawing.Point(e.X, e.Y);
+                    UpdateHighlightedThreatRectangle(e.Location);
+                }
             }
         }
 
@@ -494,22 +507,30 @@ namespace PTL.ATT.GUI.Visualization
 
             if (_dragging)
             {
-                ChangeCursor(Resources.ClosedHand);
-
-                _panOffset.Width += (int)((_draggingStart.X - e.X) / ZoomFactor);
-                _panOffset.Height += (int)((_draggingStart.Y - e.Y) / ZoomFactor);
-
-                Invalidate();
-
-                _draggingStart = e.Location;
-
-                if (_highlightedThreatRectangle != Rectangle.Empty)
+                if (ModifierKeys.HasFlag(Keys.Control))
                 {
-                    Rectangle toInvalidate = _highlightedThreatRectangle;
-                    toInvalidate.Inflate(10, 10);
-                    _highlightedThreatRectangle = Rectangle.Empty;
-                    _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
-                    Invalidate(toInvalidate);
+                    if (_definingSpatialFeature)
+                        _spatialFeatureForm.points.Items.Add(GetPostGisPoint(e.Location));
+                }
+                else
+                {
+                    ChangeCursor(Resources.ClosedHand);
+
+                    _panOffset.Width += (int)((_draggingStart.X - e.X) / ZoomFactor);
+                    _panOffset.Height += (int)((_draggingStart.Y - e.Y) / ZoomFactor);
+
+                    Invalidate();
+
+                    _draggingStart = e.Location;
+
+                    if (_highlightedThreatRectangle != Rectangle.Empty)
+                    {
+                        Rectangle toInvalidate = _highlightedThreatRectangle;
+                        toInvalidate.Inflate(10, 10);
+                        _highlightedThreatRectangle = Rectangle.Empty;
+                        _highlightedThreatRectangleCol = _highlightedThreatRectangleRow = -1;
+                        Invalidate(toInvalidate);
+                    }
                 }
             }
 
@@ -562,6 +583,11 @@ namespace PTL.ATT.GUI.Visualization
                 zoomInBtn_Click(sender, e);
             else
                 zoomOutBtn_Click(sender, e);
+        }
+
+        private void ThreatMap_MouseEnter(object sender, EventArgs e)
+        {
+            panUpBtn.Focus();
         }
 
         private void ThreatMap_MouseLeave(object sender, EventArgs e)
@@ -786,8 +812,6 @@ namespace PTL.ATT.GUI.Visualization
                 GetThreatSurfaces(ClientRectangle, false);
             else
                 GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
-
-            panUpBtn.Focus();
         }
 
         private void timeSlice_ValueChanged(object sender, EventArgs e)
@@ -986,6 +1010,23 @@ namespace PTL.ATT.GUI.Visualization
             }
         }
 
+        private void defineSpatialFeatureToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (DisplayedPrediction != null)
+            {
+                defineSpatialFeatureToolStripMenuItem.Enabled = false;
+                _definingSpatialFeature = true;
+                _spatialFeatureForm = new CustomSpatialFeatureForm();
+                _spatialFeatureForm.FormClosed += new FormClosedEventHandler(new Action<object, FormClosedEventArgs>((s, args) =>
+                {
+                    _definingSpatialFeature = false;
+                    defineSpatialFeatureToolStripMenuItem.Enabled = true;
+                }));
+
+                _spatialFeatureForm.Show();
+            }
+        }
+
         private void setBackgroundColorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ColorDialog cd = new ColorDialog();
@@ -1006,6 +1047,18 @@ namespace PTL.ATT.GUI.Visualization
                     GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false);
                 }
             }
+        }
+
+        private PostGIS.Point GetPostGisPoint(System.Drawing.Point point)
+        {
+            float pixelsPerMeter;
+            float threatRectanglePixelWidth;
+            GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);
+
+            double xMeters = _regionBottomLeftInMeters.X + (point.X + _panOffset.Width) / pixelsPerMeter;
+            double yMeters = _regionBottomLeftInMeters.Y + (_regionSizeInMeters.Height - (point.Y + _panOffset.Height) / pixelsPerMeter);
+
+            return new PostGIS.Point(xMeters, yMeters, DisplayedPrediction.PredictionArea.SRID);
         }
     }
 }

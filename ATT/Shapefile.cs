@@ -68,7 +68,7 @@ namespace PTL.ATT
                    "CREATE INDEX ON " + Table + " (" + Columns.Type + ");");
         }
 
-        private static int Create(NpgsqlConnection connection, string name, int srid, ShapefileType type)
+        public static int Create(NpgsqlConnection connection, string name, int srid, ShapefileType type)
         {
             return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
@@ -221,7 +221,22 @@ namespace PTL.ATT
         }
         #endregion
 
+        public Shapefile(int id)
+        {
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Id + "=" + id);
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            reader.Read();
+            Construct(reader);
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
+        }
+
         private Shapefile(NpgsqlDataReader reader)
+        {
+            Construct(reader);
+        }
+
+        private void Construct(NpgsqlDataReader reader)
         {
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
             _name = Convert.ToString(reader[Table + "_" + Columns.Name]);

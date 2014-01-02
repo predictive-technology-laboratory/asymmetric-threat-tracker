@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +25,7 @@ using System.Text;
 using LAIR.ResourceAPIs.PostgreSQL;
 using Npgsql;
 using LAIR.Collections.Generic;
+using LAIR.ResourceAPIs.PostGIS;
 
 namespace PTL.ATT
 {
@@ -44,7 +45,7 @@ namespace PTL.ATT
         public static string GetTableName(int srid)
         {
             return "shapefile_geometry_" + srid;
-        }        
+        }
 
         internal static List<int> Create(NpgsqlConnection connection, int shapefileId, int srid, string geometryTable, string geometryColumn)
         {
@@ -61,7 +62,7 @@ namespace PTL.ATT
 
             List<int> ids = new List<int>();
             NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + tableName + " (" + Columns.Insert + ") " +
-                                                  "SELECT " + geometryColumn + "," + shapefileId + " " + 
+                                                  "SELECT " + geometryColumn + "," + shapefileId + " " +
                                                   "FROM " + geometryTable + " RETURNING " + Columns.Id, connection);
 
             NpgsqlDataReader reader = cmd.ExecuteReader();
@@ -69,6 +70,59 @@ namespace PTL.ATT
                 ids.Add(Convert.ToInt32(reader[0]));
 
             reader.Close();
+
+            return ids;
+        }
+
+        public static List<int> Create(NpgsqlConnection connection, int shapefileId, List<Geometry> geometries)
+        {
+            if (geometries.Count == 0)
+                return new List<int>();
+
+            int srid = geometries[0].SRID;
+            string tableName = GetTableName(srid);
+
+            if (!DB.Connection.TableExists(tableName))
+                DB.Connection.ExecuteNonQuery(
+                    "CREATE TABLE " + tableName + " (" +
+                    Columns.Geometry + " GEOMETRY(GEOMETRY," + srid + ")," +
+                    Columns.Id + " SERIAL PRIMARY KEY," +
+                    Columns.ShapefileId + " INTEGER REFERENCES " + Shapefile.Table + " ON DELETE CASCADE);" +
+                    "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
+                    "CREATE INDEX ON " + tableName + " (" + Columns.ShapefileId + ");");
+
+            StringBuilder cmdTxt = new StringBuilder();
+            List<int> ids = new List<int>();
+            int numPerBatch = 1000;
+            int num = 0;
+            foreach (Geometry geometry in geometries)
+            {
+                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + geometry.StGeometryFromText + "," + shapefileId + ")");
+
+                if (++num == numPerBatch)
+                {
+                    NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString() + " RETURNING " + Columns.Id, connection);
+                    NpgsqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                        ids.Add(Convert.ToInt32(reader[Columns.Id]));
+
+                    reader.Close();
+                    cmdTxt.Clear();
+                    num = 0;
+                }
+            }
+
+            if (num > 0)
+            {
+                NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString() + " RETURNING " + Columns.Id, connection);
+                NpgsqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                    ids.Add(Convert.ToInt32(reader[Columns.Id]));
+
+                reader.Close();
+                cmdTxt.Clear();
+                num = 0;
+            }
 
             return ids;
         }

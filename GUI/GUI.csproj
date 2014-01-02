@@ -165,6 +165,12 @@
     <Compile Include="TimeSliceDcmOptions.Designer.cs">
       <DependentUpon>TimeSliceDcmOptions.cs</DependentUpon>
     </Compile>
+    <Compile Include="Visualization\CustomSpatialFeatureForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Visualization\CustomSpatialFeatureForm.Designer.cs">
+      <DependentUpon>CustomSpatialFeatureForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Visualization\SmootherChooser.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -286,6 +292,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TimeSliceDcmOptions.resx">
       <DependentUpon>TimeSliceDcmOptions.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Visualization\CustomSpatialFeatureForm.resx">
+      <DependentUpon>CustomSpatialFeatureForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Visualization\SmootherChooser.resx">
       <DependentUpon>SmootherChooser.cs</DependentUpon>

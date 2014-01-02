@@ -85,7 +85,8 @@ namespace PTL.ATT.GUI
             // 
             // features
             // 
-            this.features.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.features.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.features.ContextMenuStrip = this.featuresMenu;
             this.features.FormattingEnabled = true;
@@ -105,31 +106,31 @@ namespace PTL.ATT.GUI
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem,
             this.clearFeatureRemappingToolStripMenuItem});
             this.featuresMenu.Name = "featuresMenu";
-            this.featuresMenu.Size = new System.Drawing.Size(307, 76);
+            this.featuresMenu.Size = new System.Drawing.Size(290, 76);
             // 
             // selectAllFeaturesToolStripMenuItem
             // 
             this.selectAllFeaturesToolStripMenuItem.Name = "selectAllFeaturesToolStripMenuItem";
-            this.selectAllFeaturesToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.selectAllFeaturesToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
             this.selectAllFeaturesToolStripMenuItem.Text = "Select all";
             this.selectAllFeaturesToolStripMenuItem.Click += new System.EventHandler(this.selectAllFeaturesToolStripMenuItem_Click);
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(303, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(286, 6);
             // 
             // remapSelectedFeaturesDuringPredictionToolStripMenuItem
             // 
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Name = "remapSelectedFeaturesDuringPredictionToolStripMenuItem";
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Text = "Remap selected features during prediction...";
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Click += new System.EventHandler(this.remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click);
             // 
             // clearFeatureRemappingToolStripMenuItem
             // 
             this.clearFeatureRemappingToolStripMenuItem.Name = "clearFeatureRemappingToolStripMenuItem";
-            this.clearFeatureRemappingToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.clearFeatureRemappingToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
             this.clearFeatureRemappingToolStripMenuItem.Text = "Clear feature remapping";
             this.clearFeatureRemappingToolStripMenuItem.Click += new System.EventHandler(this.clearFeatureRemappingToolStripMenuItem_Click);
             // 

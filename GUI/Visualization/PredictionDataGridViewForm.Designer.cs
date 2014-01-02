@@ -59,6 +59,7 @@ namespace PTL.ATT.GUI.Visualization
             this.Name = "PredictionDataGridViewForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Prediction summary";
+            this.TopMost = true;
             this.ResumeLayout(false);
 
         }
