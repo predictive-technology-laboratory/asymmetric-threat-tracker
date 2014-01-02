@@ -1,4 +1,5 @@
-﻿Store threat surfaces
+﻿Allow user to place a virtual physical object on the map as a reference point for a new feature (e.g., to indicate the city center, from which a distance calculation can be made)
+Store threat surfaces
 Instead of using distance to nearest spatial entity, we could create a density map of the entities and then use the value of the density function.
 Allow user to generate a simple density estimate/map for one or more crime types without having to go through the entire prediction pipeline.
 Multiple kernel learning
