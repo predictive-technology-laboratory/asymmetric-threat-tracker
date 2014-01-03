@@ -1,24 +1,12 @@
-﻿Allow user to place a virtual physical object on the map as a reference point for a new feature (e.g., to indicate the city center, from which a distance calculation can be made)
-Store threat surfaces
+﻿Store threat surfaces
 Instead of using distance to nearest spatial entity, we could create a density map of the entities and then use the value of the density function.
-Allow user to generate a simple density estimate/map for one or more crime types without having to go through the entire prediction pipeline.
 Multiple kernel learning
   * http://www2.csie.ntu.edu.tw/~b95028/software/liblinear-mkl/index.php
   * http://research.microsoft.com/en-us/um/people/manik/code/GMKL/download.html
 Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
-Add raster feature ingest
-Improve remapping of features for prediction - currently clumsy.
+Add raster feature support
 Incident collapsing
-Make sure buttons in all forms are consistently named / ordered
-Wrap all StreamWriter instances with a "using" statement.
-Different assessment plot export types
 Forecast counts
 Intelligently handle spacing around positive points when selecting negative points
 Analysis for KDE models
-Indent log messages per task
 SVM rank feature selection
-GUI configuration editor
-Improve color handling
-Save coloring scheme
-Name shape files on import
-Make UI robust to user interaction
