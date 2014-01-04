@@ -52,9 +52,7 @@ namespace PTL.ATT.GUI
             this.features = new System.Windows.Forms.ListBox();
             this.featuresMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.selectAllFeaturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.clearFeatureRemappingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label4 = new System.Windows.Forms.Label();
             this.featureDistanceThreshold = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
@@ -102,37 +100,23 @@ namespace PTL.ATT.GUI
             // 
             this.featuresMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.selectAllFeaturesToolStripMenuItem,
-            this.toolStripSeparator5,
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem,
-            this.clearFeatureRemappingToolStripMenuItem});
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem});
             this.featuresMenu.Name = "featuresMenu";
-            this.featuresMenu.Size = new System.Drawing.Size(290, 76);
+            this.featuresMenu.Size = new System.Drawing.Size(307, 70);
             // 
             // selectAllFeaturesToolStripMenuItem
             // 
             this.selectAllFeaturesToolStripMenuItem.Name = "selectAllFeaturesToolStripMenuItem";
-            this.selectAllFeaturesToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.selectAllFeaturesToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
             this.selectAllFeaturesToolStripMenuItem.Text = "Select all";
             this.selectAllFeaturesToolStripMenuItem.Click += new System.EventHandler(this.selectAllFeaturesToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator5
-            // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(286, 6);
             // 
             // remapSelectedFeaturesDuringPredictionToolStripMenuItem
             // 
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Name = "remapSelectedFeaturesDuringPredictionToolStripMenuItem";
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Text = "Remap selected features during prediction...";
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Click += new System.EventHandler(this.remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click);
-            // 
-            // clearFeatureRemappingToolStripMenuItem
-            // 
-            this.clearFeatureRemappingToolStripMenuItem.Name = "clearFeatureRemappingToolStripMenuItem";
-            this.clearFeatureRemappingToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
-            this.clearFeatureRemappingToolStripMenuItem.Text = "Clear feature remapping";
-            this.clearFeatureRemappingToolStripMenuItem.Click += new System.EventHandler(this.clearFeatureRemappingToolStripMenuItem_Click);
             // 
             // label4
             // 
@@ -321,9 +305,7 @@ namespace PTL.ATT.GUI
         public System.Windows.Forms.ListBox features;
         private System.Windows.Forms.ContextMenuStrip featuresMenu;
         private System.Windows.Forms.ToolStripMenuItem selectAllFeaturesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem remapSelectedFeaturesDuringPredictionToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem clearFeatureRemappingToolStripMenuItem;
         public System.Windows.Forms.NumericUpDown trainingSampleSize;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label12;

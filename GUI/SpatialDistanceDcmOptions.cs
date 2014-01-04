@@ -82,7 +82,14 @@ namespace PTL.ATT.GUI
                 _spatialDistanceDCM = value;
 
                 if (_spatialDistanceDCM != null)
+                {
+                    _featureRemapKeyTargetPredictionResource.Clear();
+                    foreach (Feature feature in _spatialDistanceDCM.Features)
+                        if (feature.PredictionResourceId != feature.TrainingResourceId)
+                            _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
+
                     RefreshAll();
+                }
             }
         }
 
@@ -116,11 +123,7 @@ namespace PTL.ATT.GUI
                 featureDistanceThreshold.Value = _spatialDistanceDCM.FeatureDistanceThreshold;
 
                 foreach (Feature feature in _spatialDistanceDCM.Features)
-                {
-                    int index = features.Items.IndexOf(feature);
-                    if (index >= 0)
-                        features.SetSelected(index, true);
-                }
+                    features.SetSelected(features.Items.IndexOf(feature), true);
             }
         }
 
@@ -162,23 +165,22 @@ namespace PTL.ATT.GUI
                     df.AddDropDown("Prediction area:", predictionAreas, null, "prediction_area");
                     if (df.ShowDialog() == DialogResult.OK)
                     {
-                        FeatureRemappingForm f = new FeatureRemappingForm(Features, _getFeatures(df.GetValue<Area>("prediction_area")));
+                        List<Feature> selectedFeatures = Features;
+                        FeatureRemappingForm f = new FeatureRemappingForm(selectedFeatures, _getFeatures(df.GetValue<Area>("prediction_area")));
                         f.ShowDialog();
 
                         _featureRemapKeyTargetPredictionResource.Clear();
-                        foreach (Feature feature in features.Items)
-                            _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
+                        foreach (Feature feature in selectedFeatures)
+                            if (feature.PredictionResourceId != feature.TrainingResourceId)
+                                _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
 
                         RefreshFeatures();
+
+                        foreach (Feature feature in selectedFeatures)
+                            features.SetSelected(features.Items.IndexOf(feature), true);
                     }
                 }
             }
-        }
-
-        private void clearFeatureRemappingToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            _featureRemapKeyTargetPredictionResource.Clear();
-            RefreshFeatures();
         }
         #endregion
 

@@ -148,6 +148,7 @@ namespace PTL.ATT.GUI
             this.Name = "ImportShapefileForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Import shape file(s)...";
+            this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();
 

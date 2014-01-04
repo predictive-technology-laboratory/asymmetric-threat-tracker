@@ -1,10 +1,8 @@
 ﻿Allow user to generate a simple density estimate/map for one or more crime types without having to go through the entire prediction pipeline.
 Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
-Improve remapping of features for prediction - currently clumsy.
 Make sure buttons in all forms are consistently named / ordered
 Wrap all StreamWriter instances with a "using" statement.
 Different assessment plot export types
-Indent log messages per task
 Configuration editor
 Improve color handling
 Save coloring scheme

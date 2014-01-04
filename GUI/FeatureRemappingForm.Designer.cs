@@ -51,13 +51,15 @@ namespace PTL.ATT.GUI
             this.prediction = new System.Windows.Forms.ListBox();
             this.ok = new System.Windows.Forms.Button();
             this.reset = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // training
             // 
             this.training.FormattingEnabled = true;
             this.training.HorizontalScrollbar = true;
-            this.training.Location = new System.Drawing.Point(12, 12);
+            this.training.Location = new System.Drawing.Point(12, 33);
             this.training.Name = "training";
             this.training.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.training.Size = new System.Drawing.Size(266, 290);
@@ -67,7 +69,7 @@ namespace PTL.ATT.GUI
             // 
             this.prediction.FormattingEnabled = true;
             this.prediction.HorizontalScrollbar = true;
-            this.prediction.Location = new System.Drawing.Point(284, 12);
+            this.prediction.Location = new System.Drawing.Point(284, 33);
             this.prediction.Name = "prediction";
             this.prediction.Size = new System.Drawing.Size(266, 290);
             this.prediction.TabIndex = 1;
@@ -75,7 +77,7 @@ namespace PTL.ATT.GUI
             // 
             // ok
             // 
-            this.ok.Location = new System.Drawing.Point(475, 308);
+            this.ok.Location = new System.Drawing.Point(475, 329);
             this.ok.Name = "ok";
             this.ok.Size = new System.Drawing.Size(75, 23);
             this.ok.TabIndex = 2;
@@ -85,7 +87,7 @@ namespace PTL.ATT.GUI
             // 
             // reset
             // 
-            this.reset.Location = new System.Drawing.Point(394, 308);
+            this.reset.Location = new System.Drawing.Point(394, 329);
             this.reset.Name = "reset";
             this.reset.Size = new System.Drawing.Size(75, 23);
             this.reset.TabIndex = 3;
@@ -93,11 +95,31 @@ namespace PTL.ATT.GUI
             this.reset.UseVisualStyleBackColor = true;
             this.reset.Click += new System.EventHandler(this.reset_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(9, 17);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(84, 13);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Training feature:";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(281, 17);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(93, 13);
+            this.label2.TabIndex = 5;
+            this.label2.Text = "Prediction feature:";
+            // 
             // FeatureRemappingForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(560, 341);
+            this.ClientSize = new System.Drawing.Size(560, 362);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.reset);
             this.Controls.Add(this.ok);
             this.Controls.Add(this.prediction);
@@ -107,6 +129,7 @@ namespace PTL.ATT.GUI
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Remap features during prediction...";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -116,5 +139,7 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ListBox prediction;
         private System.Windows.Forms.Button ok;
         private System.Windows.Forms.Button reset;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
     }
 }
