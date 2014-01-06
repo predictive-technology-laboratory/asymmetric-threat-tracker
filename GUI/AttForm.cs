@@ -295,11 +295,16 @@ namespace PTL.ATT.GUI
 
                             Download(uri, downloadPath);
 
+                            Console.Out.WriteLine("Unzipping \"" + downloadPath + "\" to \"" + unzipDir + "\"...");
                             ZipFile.ExtractToDirectory(downloadPath, unzipDir);
 
                             string shapefileFileName = Path.GetFileNameWithoutExtension(Directory.GetFiles(unzipDir).First());
-                            File.WriteAllText(Path.Combine(unzipDir, shapefileFileName + ".srid"), f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid"));
-                            Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), name, f.GetValue<Shapefile.ShapefileType>("type"));
+                            StreamWriter shapefileInfoFile = new StreamWriter(Path.Combine(unzipDir, shapefileFileName + ".att"));
+                            shapefileInfoFile.Write("reprojection=" + f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid") + Environment.NewLine +
+                                                    "name=" + name);
+                            shapefileInfoFile.Close();
+
+                            Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), f.GetValue<Shapefile.ShapefileType>("type"), null);
                         }
                         catch (Exception ex)
                         {

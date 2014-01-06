@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +33,14 @@ namespace PTL.ATT
 {
     public class Shapefile
     {
+        /// <summary>
+        /// Gets shapefile information
+        /// </summary>
+        /// <param name="shapefilePath">Path to shapefile being imported</param>
+        /// <param name="optionValuesToGet">Options for which a value is needed</param>
+        /// <param name="optionValue">Dictionary in which to place retrieved option-value pairs</param>
+        public delegate void GetShapefileInfoDelegate(string shapefilePath, List<string> optionValuesToGet, Dictionary<string, string> optionValue);
+
         public enum ShapefileType
         {
             Area,
@@ -73,14 +81,14 @@ namespace PTL.ATT
             return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
         }
 
-        public static void ImportShapefile(string shapefilePath, string name, ShapefileType type)
+        public static void ImportShapefile(string shapefilePath, ShapefileType type, GetShapefileInfoDelegate getShapefileInfo)
         {
-            ImportShapefiles(new Tuple<string, string>[] { new Tuple<string, string>(shapefilePath, name) }, type);
+            ImportShapefiles(new string[] { shapefilePath }, type, getShapefileInfo);
         }
 
-        public static void ImportShapefiles(Tuple<string, string>[] shapefilePathsAndNames, ShapefileType type)
+        public static void ImportShapefiles(string[] shapefilePaths, ShapefileType type, GetShapefileInfoDelegate getShapefileInfo)
         {
-            Console.Out.WriteLine("Importing " + shapefilePathsAndNames.Length + " shapefile(s)");
+            Console.Out.WriteLine("Importing " + shapefilePaths.Length + " shapefile(s)");
 
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
             int shapefileId = -1;
@@ -88,35 +96,57 @@ namespace PTL.ATT
             {
                 Regex reprojectionRE = new Regex("(?<from>[0-9]+):(?<to>[0-9]+)");
 
-                foreach (Tuple<string, string> shapefilePathName in shapefilePathsAndNames)
+                foreach (string shapefilePath in shapefilePaths)
                 {
-                    string reprojectionPath = Path.Combine(Path.GetDirectoryName(shapefilePathName.Item1), Path.GetFileNameWithoutExtension(shapefilePathName.Item1) + ".srid");
-                    if (!File.Exists(reprojectionPath))
-                        throw new Exception("Could not find SRID file at \"" + reprojectionPath + "\"");
+                    Dictionary<string, string> optionValue = new Dictionary<string, string>();
 
-                    string reprojection = File.ReadAllText(reprojectionPath);
+                    string importInfoPath = Path.Combine(Path.GetDirectoryName(shapefilePath), Path.GetFileNameWithoutExtension(shapefilePath) + ".att");
+                    if (File.Exists(importInfoPath))
+                        foreach (string line in File.ReadLines(importInfoPath))
+                        {
+                            string[] parts = line.Split('=');
+                            optionValue.Add(parts[0].Trim(), parts[1].Trim());
+                        }
+
+                    List<string> neededValues = new List<string>();
+                    if (!optionValue.ContainsKey("reprojection")) neededValues.Add("reprojection");
+                    if (!optionValue.ContainsKey("name")) neededValues.Add("name");
+                    if (neededValues.Count > 0)
+                        getShapefileInfo(shapefilePath, neededValues, optionValue);
+
+                    string reprojection = optionValue["reprojection"];
                     Match reprojectionMatch = reprojectionRE.Match(reprojection);
                     if (!reprojectionMatch.Success)
-                        throw new Exception("Invalid shapefile reprojection \"" + reprojection + "\". Must be in 1234:1234 format.");
+                    {
+                        Console.Out.WriteLine("Invalid shapefile reprojection \"" + reprojection + "\". Must be in 1234:1234 format. Skipping.");
+                        continue;
+                    }
 
                     int fromSRID = int.Parse(reprojectionMatch.Groups["from"].Value);
                     int toSRID = int.Parse(reprojectionMatch.Groups["to"].Value);
                     if (fromSRID == toSRID)
                         reprojection = fromSRID.ToString();
 
+                    string name = optionValue["name"];
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        Console.Out.WriteLine("Empty name given for shapefile \"" + shapefilePath + "\". Skipping.");
+                        continue;
+                    }
+
                     string sql;
                     string error;
                     using (Process process = new Process())
                     {
                         process.StartInfo.FileName = Configuration.Shp2PgsqlPath;
-                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapefilePathName.Item1 + "\" temp";
+                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapefilePath + "\" temp";
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = false;
                         process.StartInfo.RedirectStandardError = true;
                         process.StartInfo.RedirectStandardOutput = true;
                         process.Start();
 
-                        Console.Out.WriteLine("Converting shapefile \"" + shapefilePathName.Item2 + "\".");
+                        Console.Out.WriteLine("Converting shapefile \"" + shapefilePath + "\".");
 
                         sql = process.StandardOutput.ReadToEnd().Replace("BEGIN;", "").Replace("COMMIT;", "");
                         error = process.StandardError.ReadToEnd().Trim().Replace(Environment.NewLine, "; ").Replace("\n", "; ");
@@ -130,7 +160,7 @@ namespace PTL.ATT
                     cmd.ExecuteNonQuery();
 
                     Console.Out.WriteLine("Importing shapefile into database");
-                    shapefileId = Create(cmd.Connection, shapefilePathName.Item2, toSRID, type);
+                    shapefileId = Create(cmd.Connection, name, toSRID, type);
                     ShapefileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
 
                     cmd.CommandText = "DROP TABLE temp";
@@ -160,7 +190,7 @@ namespace PTL.ATT
                 DB.Connection.Return(cmd.Connection);
             }
 
-            Console.Out.WriteLine("Imported " + shapefilePathsAndNames.Length + " shapefile(s) successfully.");
+            Console.Out.WriteLine("Shapefile import finished.");
         }
 
         public static IEnumerable<Shapefile> GetAll()

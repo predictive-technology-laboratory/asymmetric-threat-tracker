@@ -47,6 +47,7 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.shapefileDir = new System.Windows.Forms.Button();
             this.shapefilePath = new System.Windows.Forms.TextBox();
@@ -55,12 +56,13 @@ namespace PTL.ATT.GUI
             this.importShp = new System.Windows.Forms.Button();
             this.close = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 26);
+            this.label1.Location = new System.Drawing.Point(70, 19);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(123, 13);
             this.label1.TabIndex = 17;
@@ -68,7 +70,7 @@ namespace PTL.ATT.GUI
             // 
             // shapefileDir
             // 
-            this.shapefileDir.Location = new System.Drawing.Point(517, 21);
+            this.shapefileDir.Location = new System.Drawing.Point(575, 14);
             this.shapefileDir.Name = "shapefileDir";
             this.shapefileDir.Size = new System.Drawing.Size(75, 23);
             this.shapefileDir.TabIndex = 2;
@@ -78,14 +80,14 @@ namespace PTL.ATT.GUI
             // 
             // shapefilePath
             // 
-            this.shapefilePath.Location = new System.Drawing.Point(141, 23);
+            this.shapefilePath.Location = new System.Drawing.Point(199, 16);
             this.shapefilePath.Name = "shapefilePath";
             this.shapefilePath.Size = new System.Drawing.Size(289, 20);
             this.shapefilePath.TabIndex = 0;
             // 
             // shapefileFile
             // 
-            this.shapefileFile.Location = new System.Drawing.Point(436, 21);
+            this.shapefileFile.Location = new System.Drawing.Point(494, 14);
             this.shapefileFile.Name = "shapefileFile";
             this.shapefileFile.Size = new System.Drawing.Size(75, 23);
             this.shapefileFile.TabIndex = 1;
@@ -97,14 +99,14 @@ namespace PTL.ATT.GUI
             // 
             this.shapefileType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.shapefileType.FormattingEnabled = true;
-            this.shapefileType.Location = new System.Drawing.Point(141, 49);
+            this.shapefileType.Location = new System.Drawing.Point(199, 42);
             this.shapefileType.Name = "shapefileType";
             this.shapefileType.Size = new System.Drawing.Size(289, 21);
             this.shapefileType.TabIndex = 5;
             // 
             // importShp
             // 
-            this.importShp.Location = new System.Drawing.Point(224, 87);
+            this.importShp.Location = new System.Drawing.Point(254, 79);
             this.importShp.Name = "importShp";
             this.importShp.Size = new System.Drawing.Size(75, 23);
             this.importShp.TabIndex = 6;
@@ -114,7 +116,7 @@ namespace PTL.ATT.GUI
             // 
             // close
             // 
-            this.close.Location = new System.Drawing.Point(305, 87);
+            this.close.Location = new System.Drawing.Point(335, 79);
             this.close.Name = "close";
             this.close.Size = new System.Drawing.Size(75, 23);
             this.close.TabIndex = 7;
@@ -125,7 +127,7 @@ namespace PTL.ATT.GUI
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(58, 52);
+            this.label2.Location = new System.Drawing.Point(116, 45);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(77, 13);
             this.label2.TabIndex = 18;
@@ -135,7 +137,7 @@ namespace PTL.ATT.GUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(605, 121);
+            this.ClientSize = new System.Drawing.Size(664, 117);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.close);
             this.Controls.Add(this.label1);
@@ -164,6 +166,7 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.Button importShp;
         private System.Windows.Forms.Button close;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ToolTip toolTip;
 
     }
 }

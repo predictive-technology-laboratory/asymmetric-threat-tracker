@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -68,31 +68,48 @@ namespace PTL.ATT.GUI
 
         private void importShp_Click(object sender, EventArgs e)
         {
-            string[] shapeFilePaths;
+            string[] shapefilePaths;
             if (File.Exists(shapefilePath.Text))
-                shapeFilePaths = new string[] { shapefilePath.Text };
+                shapefilePaths = new string[] { shapefilePath.Text };
             else if (Directory.Exists(shapefilePath.Text))
-                shapeFilePaths = Directory.GetFiles(shapefilePath.Text, "*.shp").ToArray();
+                shapefilePaths = Directory.GetFiles(shapefilePath.Text, "*.shp").ToArray();
             else
             {
                 MessageBox.Show("Path \"" + shapefilePath.Text + "\" does not exist.");
                 return;
             }
 
-            if (shapeFilePaths.Length == 0)
+            if (shapefilePaths.Length == 0)
                 MessageBox.Show("No shapefile(s) found at \"" + shapefilePath.Text + "\".");
             else
             {
                 try
                 {
                     Shapefile.ShapefileType selectedShapefileType = (Shapefile.ShapefileType)shapefileType.SelectedItem;
-
+                    importShp.Enabled = false;
                     Thread t = new Thread(new ThreadStart(delegate()
                         {
                             try
                             {
-                                Shapefile.ImportShapefiles(shapeFilePaths.Select(path => new Tuple<string, string>(path, Path.GetFileNameWithoutExtension(path))).ToArray(), selectedShapefileType);
-                                Console.Out.WriteLine("Shapefile import succeeded");
+                                Shapefile.ImportShapefiles(shapefilePaths, selectedShapefileType, new Shapefile.GetShapefileInfoDelegate(new Action<string, List<string>, Dictionary<string, string>>((path, options, optionValue) =>
+                                    {
+                                        if (options.Count > 0)
+                                        {
+                                            DynamicForm f = new DynamicForm("Enter shapefile information...");
+                                            foreach (string option in options)
+                                                f.AddTextBox(option + ":", null, 50, option);
+
+                                            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                                                foreach (string option in options)
+                                                    optionValue.Add(option, f.GetValue<string>(option));
+                                        }
+                                    })));
+
+                                if (!IsDisposed)
+                                    Invoke(new Action(() =>
+                                        {
+                                            importShp.Enabled = true;
+                                        }));
                             }
                             catch (Exception ex)
                             {
