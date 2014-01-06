@@ -6,5 +6,4 @@ Different assessment plot export types
 Configuration editor
 Improve color handling
 Save coloring scheme
-Name shape files on import
 Make UI robust to user interaction
