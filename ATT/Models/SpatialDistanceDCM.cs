@@ -173,18 +173,12 @@ namespace PTL.ATT.Models
 
         internal static IEnumerable<Tuple<string, Parameter>> GetPointPredictionValues(FeatureVectorList featureVectors)
         {
-            int pointNum = 0;
+            int pointNum = 0; // must use this because point IDs get repeated for the timeslice model
             foreach (FeatureVector featureVector in featureVectors)
             {
                 Point point = featureVector.DerivedFrom as Point;
-
-                string labels = "'{" + point.PredictionConfidenceScores.Keys.Where(l => l != PointPrediction.NullLabel).Select(l => "\"" + l + "\"").Concatenate(",") + "}'";
-                string threats = "'{" + point.PredictionConfidenceScores.Keys.Where(l => l != PointPrediction.NullLabel).Select(l => point.PredictionConfidenceScores[l].ToString()).Concatenate(",") + "}'";
-                double totalThreat = point.PredictionConfidenceScores.Keys.Where(l => l != PointPrediction.NullLabel).Sum(l => point.PredictionConfidenceScores[l]);
                 string timeParameterName = "@time_" + pointNum++;
-                Parameter timeParameter = new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time);
-
-                yield return new Tuple<string, Parameter>("(" + labels + "," + point.Id + "," + threats + "," + timeParameterName + "," + totalThreat + ")", timeParameter);
+                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, point.PredictionConfidenceScores.Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value))), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time));
             }
         }
 

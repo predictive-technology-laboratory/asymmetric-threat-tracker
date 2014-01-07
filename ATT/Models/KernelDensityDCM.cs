@@ -191,27 +191,12 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             }
         }
 
-        private static IEnumerable<Tuple<string, Parameter>> GetPointPredictionValues(Dictionary<int, float> pointIdOverallDensity, Dictionary<int, Dictionary<string, float>> pointIdIncidentDensity)
+        private static IEnumerable<Tuple<string, Parameter>> GetPointPredictionValues(Dictionary<int, float> pointIdOverallDensity, Dictionary<int, Dictionary<string, double>> pointIdIncidentDensity)
         {
             foreach (int pointId in pointIdIncidentDensity.Keys)
             {
-                StringBuilder labels = new StringBuilder();
-                StringBuilder threats = new StringBuilder();
-                foreach (string label in pointIdIncidentDensity[pointId].Keys)
-                {
-                    labels.Append((labels.Length == 0 ? "'{" : ",") + "\"" + label + "\"");
-                    threats.Append((threats.Length == 0 ? "'{" : ",") + pointIdIncidentDensity[pointId][label]);
-                }
-
-                labels.Append("}'");
-                threats.Append("}'");
-
-                float totalThreat = pointIdOverallDensity[pointId];
-
                 string timeParameterName = "@time_" + pointId;
-                Parameter p = new Parameter(timeParameterName, NpgsqlDbType.Timestamp, DateTime.MinValue);
-
-                yield return new Tuple<string, Parameter>("(" + labels + "," + pointId + "," + threats + "," + timeParameterName + "," + totalThreat + ")", p);
+                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(pointId, timeParameterName, pointIdIncidentDensity[pointId]), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, DateTime.MinValue));
             }
         }
 
@@ -292,14 +277,14 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 foreach (int nullPointId in nullPointIds)
                     pointIdOverallDensity.Add(nullPointId, density[pointNum++]);
 
-                Dictionary<int, Dictionary<string, float>> pointIdIncidentDensity = new Dictionary<int, Dictionary<string, float>>();
+                Dictionary<int, Dictionary<string, double>> pointIdIncidentDensity = new Dictionary<int,Dictionary<string,double>>();
 
                 if (IncidentTypes.Count == 1)
                 {
                     string incident = IncidentTypes.First();
                     foreach (int pointId in pointIdOverallDensity.Keys)
                     {
-                        Dictionary<string, float> incidentDensity = new Dictionary<string, float>();
+                        Dictionary<string, double> incidentDensity = new Dictionary<string, double>();
                         incidentDensity.Add(incident, pointIdOverallDensity[pointId]);
                         pointIdIncidentDensity.Add(pointId, incidentDensity);
                     }

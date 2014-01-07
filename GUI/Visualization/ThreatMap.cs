@@ -38,6 +38,7 @@ using System.Threading;
 using System.Drawing.Imaging;
 using PTL.ATT.Smoothers;
 using PTL.ATT.GUI.Properties;
+using System.Diagnostics;
 
 namespace PTL.ATT.GUI.Visualization
 {
@@ -255,7 +256,7 @@ namespace PTL.ATT.GUI.Visualization
                 }));
         }
 
-        private void GetThreatSurfaces(Rectangle bitmapDimensions, bool displayFirstSlice)
+        private void GetThreatSurfaces(Rectangle bitmapDimensions, bool displayFirstSlice, Dictionary<long, List<Tuple<RectangleF, double, string>>> sliceSquareThreatType = null)
         {
             if (_sliceIncidentPointScores == null)
                 return;
@@ -296,12 +297,12 @@ namespace PTL.ATT.GUI.Visualization
                         }
             }
 
-            Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, Color>>>> sliceRowColScoreColor = new Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, Color>>>>();
+            Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>> sliceRowColScoreColor = new Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>>();
             double minScore = double.MaxValue;
             double maxScore = double.MinValue;
             foreach (long slice in sliceRowColIncidentScores.Keys)
             {
-                Dictionary<int, Dictionary<int, Tuple<double, Color>>> rowColScoreColor = new Dictionary<int, Dictionary<int, Tuple<double, Color>>>();
+                Dictionary<int, Dictionary<int, Tuple<double, string>>> rowColScoreIncident = new Dictionary<int, Dictionary<int, Tuple<double, string>>>();
 
                 foreach (int row in sliceRowColIncidentScores[slice].Keys)
                     foreach (int col in sliceRowColIncidentScores[slice][row].Keys)
@@ -321,11 +322,11 @@ namespace PTL.ATT.GUI.Visualization
                         if (max < minScore) minScore = max;
                         if (max > maxScore) maxScore = max;
 
-                        rowColScoreColor.EnsureContainsKey(row, typeof(Dictionary<int, Tuple<double, Color>>));
-                        rowColScoreColor[row].Add(col, new Tuple<double, Color>(max, _incidentColor[mostLikelyIncident]));
+                        rowColScoreIncident.EnsureContainsKey(row, typeof(Dictionary<int, Tuple<double, string>>));
+                        rowColScoreIncident[row].Add(col, new Tuple<double, string>(max, mostLikelyIncident));
                     }
 
-                sliceRowColScoreColor.Add(slice, rowColScoreColor);
+                sliceRowColScoreColor.Add(slice, rowColScoreIncident);
             }
 
             double scoreRange = maxScore - minScore;
@@ -340,17 +341,24 @@ namespace PTL.ATT.GUI.Visualization
                 foreach (int row in sliceRowColScoreColor[slice].Keys)
                     foreach (int col in sliceRowColScoreColor[slice][row].Keys)
                     {
-                        Tuple<double, Color> scoreColor = sliceRowColScoreColor[slice][row][col];
-                        double scaledScore = (scoreColor.Item1 - minScore) / scoreRange;
+                        Tuple<double, string> scoreIncident = sliceRowColScoreColor[slice][row][col];
+                        double scaledScore = (scoreIncident.Item1 - minScore) / scoreRange;
                         double portionBackground = 1 - scaledScore;
-                        Color color = scoreColor.Item2;
+                        Color color = _incidentColor[scoreIncident.Item2];
 
                         byte red = (byte)(scaledScore * color.R + portionBackground * BackColor.R);
                         byte green = (byte)(scaledScore * color.G + portionBackground * BackColor.G);
                         byte blue = (byte)(scaledScore * color.B + portionBackground * BackColor.B);
                         _brush.Color = Color.FromArgb(red, green, blue);
 
-                        g.FillRectangle(_brush, col * threatRectanglePixelWidth, row * threatRectanglePixelWidth, threatRectanglePixelWidth, threatRectanglePixelWidth);
+                        RectangleF threatSquare = new RectangleF(col * threatRectanglePixelWidth, row * threatRectanglePixelWidth, threatRectanglePixelWidth, threatRectanglePixelWidth);
+                        g.FillRectangle(_brush, threatSquare);
+
+                        if (sliceSquareThreatType != null)
+                        {
+                            sliceSquareThreatType.EnsureContainsKey(slice, typeof(List<Tuple<RectangleF, double, string>>));
+                            sliceSquareThreatType[slice].Add(new Tuple<RectangleF, double, string>(threatSquare, scaledScore, scoreIncident.Item2));
+                        }
                     }
 
                 foreach (Overlay overlay in Overlays)
@@ -861,22 +869,132 @@ namespace PTL.ATT.GUI.Visualization
                     nameFormat.Add(format.ToString().ToLower(), format);
                 }
 
+                filter.Append((filter.Length == 0 ? "" : "|") + "ESRI shapefiles (*.shp)|*.shp");
+
                 string path = LAIR.IO.File.PromptForSavePath("Select export location...", filter.ToString());
-                ImageFormat selectedFormat;
-                try { selectedFormat = nameFormat[Path.GetExtension(path).Trim('.').ToLower()]; }
-                catch (Exception)
-                {
-                    MessageBox.Show("Invalid file extension. Must be one of:  " + nameFormat.Keys.Concatenate(",") + ".");
-                    return;
-                }
+                string extension = Path.GetExtension(path).Trim('.').ToLower();
 
-                if (path != null)
+                if (nameFormat.ContainsKey(extension))
                 {
-                    if (File.Exists(path))
-                        File.Delete(path);
+                    ImageFormat selectedFormat;
+                    try { selectedFormat = nameFormat[extension]; }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Invalid file extension. Must be one of:  " + nameFormat.Keys.Concatenate(",") + ".");
+                        return;
+                    }
 
-                    CurrentThreatSurface.Save(path, selectedFormat);
+                    if (path != null)
+                    {
+                        if (File.Exists(path))
+                            File.Delete(path);
+
+                        CurrentThreatSurface.Save(path, selectedFormat);
+                    }
                 }
+                else if (extension == "shp")
+                {
+                    NpgsqlCommand cmd = DB.Connection.NewCommand(null);
+                    try
+                    {
+                        cmd.CommandText = "CREATE TABLE temp (" +
+                                          "id SERIAL PRIMARY KEY," +
+                                          "threat_square GEOMETRY(POLYGON," + DisplayedPrediction.PredictionArea.SRID + ")," +
+                                          "threat_level DOUBLE PRECISION," +
+                                          "threat_type VARCHAR)";
+                        cmd.ExecuteNonQuery();
+
+                        Dictionary<long, List<Tuple<RectangleF, double, string>>> sliceSquareThreatType = new Dictionary<long, List<Tuple<RectangleF, double, string>>>();
+                        GetThreatSurfaces(new Rectangle(0, 0, CurrentThreatSurface.Width, CurrentThreatSurface.Height), false, sliceSquareThreatType);
+                        string basePath = path;
+                        foreach (long slice in sliceSquareThreatType.Keys)
+                        {
+                            if (slice != -1)
+                                path = Path.Combine(Path.GetDirectoryName(basePath), Path.GetFileNameWithoutExtension(basePath), "_" + slice, Path.GetExtension(basePath));
+
+                            cmd.CommandText = "DELETE FROM temp";
+                            cmd.ExecuteNonQuery();
+
+                            int insertNum = 0;
+                            int insertsPerBatch = 500;
+                            StringBuilder cmdTxt = new StringBuilder();
+                            foreach (Tuple<RectangleF, double, string> squareThreatType in sliceSquareThreatType[slice])
+                            {
+                                float bottom = squareThreatType.Item1.Bottom;
+                                float left = squareThreatType.Item1.Left;
+                                float top = squareThreatType.Item1.Top;
+                                float right = squareThreatType.Item1.Right;
+                                PostGIS.Polygon polygon = new PostGIS.Polygon(new PostGIS.Point[]{
+                                    GetPostGisPoint(new PointF(left, bottom)),
+                                    GetPostGisPoint(new PointF(left, top)),
+                                    GetPostGisPoint(new PointF(right, top)),
+                                    GetPostGisPoint(new PointF(right, bottom)),
+                                    GetPostGisPoint(new PointF(left, bottom))}, DisplayedPrediction.PredictionArea.SRID);
+
+                                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO temp (threat_square,threat_level,threat_type) VALUES " : ",") + "(" + polygon.StGeometryFromText + "," +
+                                                                                                                                                       squareThreatType.Item2 + "," +
+                                                                                                                                                       "'" + squareThreatType.Item3 + "')");
+                                if ((insertNum++ % insertsPerBatch) == 0)
+                                {
+                                    cmd.CommandText = cmdTxt.ToString();
+                                    cmd.ExecuteNonQuery();
+                                    cmdTxt.Clear();
+                                }
+                            }
+
+                            if (cmdTxt.Length > 0)
+                            {
+                                cmd.CommandText = cmdTxt.ToString();
+                                cmd.ExecuteNonQuery();
+                                cmdTxt.Clear();
+                            }
+
+                            using (Process process = new Process())
+                            {
+                                process.StartInfo.FileName = ATT.Configuration.Pgsql2ShpPath;
+                                process.StartInfo.Arguments = "-f \"" + path + "\" " +
+                                                              "-h " + ATT.Configuration.PostgresHost + " " +
+                                                              "-u " + ATT.Configuration.PostgresUser + " " +
+                                                              "-P " + ATT.Configuration.PostgresPassword + " " +
+                                                              ATT.Configuration.PostgresDatabase + " " +
+                                                              "temp";
+
+                                process.StartInfo.CreateNoWindow = true;
+                                process.StartInfo.UseShellExecute = false;
+                                process.StartInfo.RedirectStandardError = true;
+                                process.StartInfo.RedirectStandardOutput = true;
+                                process.Start();
+
+                                Console.Out.WriteLine("Exporting threat surface to shapefile \"" + path + "\".");
+
+                                string output = process.StandardOutput.ReadToEnd().Trim();
+                                string error = process.StandardError.ReadToEnd().Trim();
+
+                                process.WaitForExit();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Out.WriteLine("Error while exporting threat surface as shapefile:  " + ex.Message);
+                        throw ex;
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            cmd.CommandText = "DROP TABLE temp";
+                            cmd.ExecuteNonQuery();
+                        }
+                        catch (Exception ex) { Console.Out.WriteLine("Failed to drop temp table for threat surface export:  " + ex.Message); }
+
+                        DB.Connection.Return(cmd.Connection);
+                    }
+                }
+                else
+                    MessageBox.Show("The file extension \"" + extension + "\" is not a supported export type.");
+
+                Console.Out.WriteLine("Export finished.");
             }
         }
 
@@ -1049,7 +1167,7 @@ namespace PTL.ATT.GUI.Visualization
             }
         }
 
-        private PostGIS.Point GetPostGisPoint(System.Drawing.Point point)
+        private PostGIS.Point GetPostGisPoint(System.Drawing.PointF point)
         {
             float pixelsPerMeter;
             float threatRectanglePixelWidth;

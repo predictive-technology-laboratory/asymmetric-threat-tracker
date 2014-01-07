@@ -90,6 +90,35 @@ namespace PTL.ATT
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
         }
 
+        public static string GetValue(int pointId, string timeParameterName, IEnumerable<KeyValuePair<string, double>> incidentScore)
+        {
+            string labels, scores;
+            double totalThreat;
+            GetLabelsScoresTotalThreatSQL(incidentScore, out labels, out scores, out totalThreat);
+
+            return "(" + labels + "," + pointId + "," + scores + "," + timeParameterName + "," + totalThreat + ")";
+        }
+
+        public static void GetLabelsScoresTotalThreatSQL(IEnumerable<KeyValuePair<string, double>> incidentScores, out string labels, out string scores, out double totalThreat)
+        {
+            StringBuilder labelsBuilder = new StringBuilder();
+            StringBuilder scoresBuilder = new StringBuilder();
+            totalThreat = 0;
+            foreach (KeyValuePair<string, double> incidentScore in incidentScores.OrderBy(kvp => kvp.Key))
+                if (incidentScore.Key != PointPrediction.NullLabel)
+                {
+                    labelsBuilder.Append((labelsBuilder.Length == 0 ? "'{" : ",") + "\"" + incidentScore.Key + "\"");
+                    scoresBuilder.Append((scoresBuilder.Length == 0 ? "'{" : ",") + incidentScore.Value);
+                    totalThreat += incidentScore.Value;
+                }
+
+            labelsBuilder.Append("}'");
+            scoresBuilder.Append("}'");
+
+            labels = labelsBuilder.ToString();
+            scores = scoresBuilder.ToString();
+        }
+
         internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, int predictionId, bool vacuum)
         {
             Set<Thread> threads = new Set<Thread>();
@@ -174,25 +203,14 @@ namespace PTL.ATT
                         int pointNum = 0;
                         NpgsqlCommand cmd = DB.Connection.NewCommand("");
                         StringBuilder cmdText = new StringBuilder();
-                        StringBuilder labels = new StringBuilder();
-                        StringBuilder scores = new StringBuilder();
                         string table = GetTableName(predictionId);
                         foreach (PointPrediction pointPrediction in pointPredictions)
                             if (skip-- <= 0)
                             {
-                                labels.Clear();
-                                scores.Clear();
-                                double totalThreat = 0;
-                                foreach (string incident in pointPrediction.IncidentScore.Keys)
-                                {
-                                    labels.Append((labels.Length == 0 ? "'{" : ",") + "\"" + incident + "\"");
-                                    scores.Append((scores.Length == 0 ? "'{" : ",") + pointPrediction.IncidentScore[incident]);
-                                    totalThreat += pointPrediction.IncidentScore[incident];
-                                }
-
-                                labels.Append("}'");
-                                scores.Append("}'");
-
+                                string labels, scores;
+                                double totalThreat;
+                                GetLabelsScoresTotalThreatSQL(pointPrediction.IncidentScore, out labels, out scores, out totalThreat);
+                                
                                 cmdText.Append("UPDATE " + table + " " +
                                                "SET " + Columns.Labels + "=" + labels + "," +
                                                         Columns.ThreatScores + "=" + scores + "," +

@@ -109,11 +109,18 @@ namespace PTL.ATT
 
         #region postgis
         private static string _shp2pgsqlPath;
+        private static string _pgsql2shpPath;
 
         public static string Shp2PgsqlPath
         {
             get { return _shp2pgsqlPath; }
             set { _shp2pgsqlPath = value; }
+        }
+
+        public static string Pgsql2ShpPath
+        {
+            get { return _pgsql2shpPath; }
+            set { _pgsql2shpPath = value; }
         }
         #endregion
 
@@ -226,9 +233,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
             XmlParser postgisP = new XmlParser(p.OuterXML("postgis"));
             _shp2pgsqlPath = postgisP.ElementText("shp2pgsql");
+            _pgsql2shpPath = postgisP.ElementText("pgsql2shp");
 
             if (string.IsNullOrWhiteSpace(_shp2pgsqlPath) || !File.Exists(_shp2pgsqlPath))
                 throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");
+
+            if (!string.IsNullOrWhiteSpace(_pgsql2shpPath) && !File.Exists(_pgsql2shpPath))
+                throw new FileNotFoundException("The pgsql2shp executable cannot be found at \"" + _pgsql2shpPath + ". Check configuration.");
 
             XmlParser rP = new XmlParser(p.OuterXML("r"));
 
