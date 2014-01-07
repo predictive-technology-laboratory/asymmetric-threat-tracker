@@ -275,7 +275,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
 
             XmlParser modelingP = new XmlParser(p.OuterXML("modeling"));
             _modelsDirectory = modelingP.ElementText("model_directory");
-            if (!string.IsNullOrWhiteSpace(_modelsDirectory) && !Directory.Exists(_modelsDirectory))
+            if (string.IsNullOrWhiteSpace(_modelsDirectory))
+                _modelsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "att", "models");
+
+            if (!Directory.Exists(_modelsDirectory))
                 Directory.CreateDirectory(_modelsDirectory);
 
             _modelTypeFeatureExtractorType = new Dictionary<Type, Type>();

@@ -191,7 +191,7 @@ namespace PTL.ATT.GUI
 
             string applicationDataDirectory = p.ElementText("application_data_directory");
             if (string.IsNullOrWhiteSpace(applicationDataDirectory))
-                applicationDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "asymmetric_threat_tracker");
+                applicationDataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "att");
 
             if(!Directory.Exists(applicationDataDirectory))
                 Directory.CreateDirectory(applicationDataDirectory);
