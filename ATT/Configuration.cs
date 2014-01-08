@@ -238,8 +238,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.";
             if (string.IsNullOrWhiteSpace(_shp2pgsqlPath) || !File.Exists(_shp2pgsqlPath))
                 throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");
 
-            if (!string.IsNullOrWhiteSpace(_pgsql2shpPath) && !File.Exists(_pgsql2shpPath))
-                throw new FileNotFoundException("The pgsql2shp executable cannot be found at \"" + _pgsql2shpPath + ". Check configuration.");
+            if (string.IsNullOrWhiteSpace(_pgsql2shpPath) || !File.Exists(_pgsql2shpPath))
+                throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");
 
             XmlParser rP = new XmlParser(p.OuterXML("r"));
 
