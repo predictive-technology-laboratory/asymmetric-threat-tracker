@@ -30,6 +30,6 @@ namespace PTL.ATT.Models
 
         void SelectFeatures(Prediction prediction, bool runPredictionAfterSelect);
 
-        int Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction, bool train, bool runFeatureSelection, bool predict);
+        int Run(Prediction prediction, bool train, bool runFeatureSelection, bool predict);
     }
 }

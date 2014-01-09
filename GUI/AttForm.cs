@@ -795,11 +795,11 @@ namespace PTL.ATT.GUI
                 if (predictionName == null)
                     return;
 
-                Run(true, predictionName, -1, null);
+                Run(true, predictionName, null);
             }
         }
 
-        public void Run(bool newRun, string predictionName, int idOfSpatiotemporallyIdenticalPrediction, Action<int> runFinishedCallback)
+        public void Run(bool newRun, string predictionName, Action<int> runFinishedCallback)
         {
             DiscreteChoiceModel m = SelectedModel;
 
@@ -831,7 +831,6 @@ namespace PTL.ATT.GUI
 
                             if (perIncident.Checked)
                             {
-                                idOfSpatiotemporallyIdenticalPrediction = -1;
                                 foreach (string incidentType in incidentTypes)
                                 {
                                     Console.Out.WriteLine("Running per-incident prediction \"" + incidentType + "\"");
@@ -839,7 +838,7 @@ namespace PTL.ATT.GUI
                                     try
                                     {
                                         m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), new string[] { incidentType }, m.Smoothers);
-                                        mostRecentPredictionId = m.Run(idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                        mostRecentPredictionId = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                         newRun = false;
                                     }
                                     catch (Exception ex)
@@ -849,9 +848,6 @@ namespace PTL.ATT.GUI
                                         Console.Out.WriteLine(msg);
                                         Notify("Error", msg);
                                     }
-
-                                    if (idOfSpatiotemporallyIdenticalPrediction == -1)
-                                        idOfSpatiotemporallyIdenticalPrediction = mostRecentPredictionId;
                                 }
                             }
                             else
@@ -859,7 +855,7 @@ namespace PTL.ATT.GUI
                                 try
                                 {
                                     m.Update(m.Name, m.PointSpacing, m.TrainingArea, trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L)), trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L)), m.IncidentTypes, m.Smoothers);
-                                    mostRecentPredictionId = m.Run(idOfSpatiotemporallyIdenticalPrediction, predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                    mostRecentPredictionId = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                     newRun = false;
                                 }
                                 catch (Exception ex)

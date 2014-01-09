@@ -233,9 +233,9 @@ namespace PTL.ATT.Models
                                           "WHERE " + Columns.Id + "=" + Id);
         }
 
-        protected override IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, int idOfSpatiotemporallyIdenticalPrediction)
+        protected override IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
         {
-            foreach (FeatureVectorList spatialVectors in base.ExtractFeatureVectors(prediction, training, idOfSpatiotemporallyIdenticalPrediction))
+            foreach (FeatureVectorList spatialVectors in base.ExtractFeatureVectors(prediction, training))
             {
                 Dictionary<TimeSliceFeature, int> featureId = new Dictionary<TimeSliceFeature, int>();
                 Dictionary<TimeSliceFeature, NumericFeature> featureNumeric = new Dictionary<TimeSliceFeature, NumericFeature>();
@@ -353,7 +353,7 @@ namespace PTL.ATT.Models
                 {
                     Console.Out.WriteLine("Running external feature extractor for " + typeof(TimeSliceDCM));
 
-                    foreach (FeatureVectorList featureVectors in ExternalFeatureExtractor.ExtractFeatures(typeof(TimeSliceDCM), prediction, timeSliceVectors, training, idOfSpatiotemporallyIdenticalPrediction))
+                    foreach (FeatureVectorList featureVectors in ExternalFeatureExtractor.ExtractFeatures(typeof(TimeSliceDCM), prediction, timeSliceVectors, training))
                         yield return featureVectors;
                 }
                 else

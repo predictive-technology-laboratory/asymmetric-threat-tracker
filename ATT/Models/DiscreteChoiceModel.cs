@@ -403,7 +403,7 @@ namespace PTL.ATT.Models
             }
         }
 
-        public int Run(int idOfSpatiotemporallyIdenticalPrediction, Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
+        public int Run(Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
@@ -414,7 +414,7 @@ namespace PTL.ATT.Models
 
                 prediction = new Prediction(Prediction.Create(cmd.Connection, copy.Id, newRun, predictionName, predictionArea.Id, startTime, endTime, true));
 
-                copy.Run(prediction, idOfSpatiotemporallyIdenticalPrediction);
+                copy.Run(prediction);
 
                 prediction.Done = true;
 
@@ -436,7 +436,7 @@ namespace PTL.ATT.Models
             }
         }
 
-        internal abstract void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction);
+        internal abstract void Run(Prediction prediction);
 
         public abstract string GetPointIdForLog(int id, DateTime time);
 

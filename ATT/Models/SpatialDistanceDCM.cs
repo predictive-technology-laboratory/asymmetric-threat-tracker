@@ -372,7 +372,7 @@ namespace PTL.ATT.Models
             Point.Insert(connection, incidentPoints, prediction.Id, area, false, vacuum);
         }
 
-        protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, int idOfSpatiotemporallyIdenticalPrediction)
+        protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
         {
             int numFeatures = Features.Count(f => f.EnumType == typeof(SpatialDistanceFeature)) + (_externalFeatureExtractor == null ? 0 : _externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(SpatialDistanceDCM)));
 
@@ -556,7 +556,7 @@ namespace PTL.ATT.Models
             {
                 Console.Out.WriteLine("Running external feature extractor for " + typeof(SpatialDistanceDCM));
 
-                foreach (FeatureVectorList featureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(SpatialDistanceDCM), prediction, mergedVectors, training, idOfSpatiotemporallyIdenticalPrediction))
+                foreach (FeatureVectorList featureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(SpatialDistanceDCM), prediction, mergedVectors, training))
                     yield return featureVectors;
             }
             else
@@ -577,18 +577,18 @@ namespace PTL.ATT.Models
                 PointPrediction.DeleteTable(prediction.Id);
                 Point.DeleteTable(prediction.Id);
                 prediction.ReleaseLazyLoadedData();
-                Run(prediction, -1, true, false, true);
+                Run(prediction, true, false, true);
                 prediction.MostRecentlyEvaluatedIncidentTime = DateTime.MinValue;
                 prediction.UpdateEvaluation();
             }
         }
 
-        internal override void Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction)
+        internal override void Run(Prediction prediction)
         {
-            Run(prediction, idOfSpatiotemporallyIdenticalPrediction, true, _classifier.RunFeatureSelection, true);
+            Run(prediction, true, _classifier.RunFeatureSelection, true);
         }
 
-        public int Run(Prediction prediction, int idOfSpatiotemporallyIdenticalPrediction, bool train, bool runFeatureSelection, bool predict)
+        public int Run(Prediction prediction, bool train, bool runFeatureSelection, bool predict)
         {
             if (Features.Count == 0)
                 throw new Exception("Must select one or more features.");
@@ -618,19 +618,16 @@ namespace PTL.ATT.Models
                     {
                         Console.Out.WriteLine("Running feature selection");
 
-                        foreach (FeatureVectorList vectors in ExtractFeatureVectors(prediction, true, idOfSpatiotemporallyIdenticalPrediction))
+                        foreach (FeatureVectorList vectors in ExtractFeatureVectors(prediction, true))
                             _classifier.Consume(vectors);
 
                         _classifier.Train();
 
                         SelectFeatures(prediction, false);
-
-                        if (idOfSpatiotemporallyIdenticalPrediction == -1)
-                            idOfSpatiotemporallyIdenticalPrediction = prediction.Id;  // we've already run feature extraction and so should be able to reuse data from here on out
                     }
                     #endregion
 
-                    foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, true, idOfSpatiotemporallyIdenticalPrediction))
+                    foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, true))
                         _classifier.Consume(featureVectors);
 
                     Console.Out.WriteLine("Training model");
@@ -654,7 +651,7 @@ namespace PTL.ATT.Models
                     using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Compress))
                     using (StreamWriter pointPredictionLog = new StreamWriter(pointPredictionLogGzip))
                     {
-                        foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, false, idOfSpatiotemporallyIdenticalPrediction))
+                        foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, false))
                         {
                             Console.Out.WriteLine("Making predictions");
 

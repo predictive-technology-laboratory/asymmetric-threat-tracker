@@ -31,7 +31,7 @@ namespace PTL.ATT.Models
 
         public abstract void Initialize(DiscreteChoiceModel model, Dictionary<string, string> configurationOptions);
 
-        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Type callingType, Prediction prediction, FeatureVectorList vectors, bool training, int idOfSpatiotemporallyIdenticalPrediction);
+        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Type callingType, Prediction prediction, FeatureVectorList vectors, bool training);
 
         public abstract string GetDetails(int indentLevel);
 
