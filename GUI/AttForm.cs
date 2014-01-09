@@ -1319,11 +1319,14 @@ namespace PTL.ATT.GUI
                         foreach (string series in selectedPlot.SeriesPoints.Keys)
                             if (series != DiscreteChoiceModel.OptimalSeriesName)
                             {
-                                string seriesTitle = plotTitle;
+                                string baseSeriesTitle = plotTitle;
                                 if (series == DiscreteChoiceModel.OptimalSeriesName)
-                                    seriesTitle = DiscreteChoiceModel.OptimalSeriesName + " " + seriesTitle;
+                                    baseSeriesTitle = DiscreteChoiceModel.OptimalSeriesName + " " + baseSeriesTitle;
 
-                                seriesTitle = seriesPoints.ContainsKey(seriesTitle) ? seriesTitle + " " + seriesPoints.Keys.Count(k => k == seriesTitle) : seriesTitle;
+                                string seriesTitle = baseSeriesTitle;
+                                int dupNameNum = 2;
+                                while (seriesPoints.Keys.Count(k => k == seriesTitle) > 0)
+                                    seriesTitle = baseSeriesTitle + " " + dupNameNum++;
 
                                 seriesPoints.Add(seriesTitle, selectedPlot.SeriesPoints[series]);
                             }
