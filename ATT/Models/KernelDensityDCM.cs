@@ -196,7 +196,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             foreach (int pointId in pointIdIncidentDensity.Keys)
             {
                 string timeParameterName = "@time_" + pointId;
-                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(pointId, timeParameterName, pointIdIncidentDensity[pointId]), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, DateTime.MinValue));
+                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(pointId, timeParameterName, pointIdIncidentDensity[pointId], pointIdOverallDensity[pointId]), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, DateTime.MinValue));
             }
         }
 
@@ -302,7 +302,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                             pointNum = 0;
                             foreach (int nullPointId in nullPointIds)
                             {
-                                pointIdIncidentDensity.EnsureContainsKey(nullPointId, typeof(Dictionary<string, float>));
+                                pointIdIncidentDensity.EnsureContainsKey(nullPointId, typeof(Dictionary<string, double>));
                                 pointIdIncidentDensity[nullPointId].Add(incidentType, density[pointNum++]);
                             }
                         }

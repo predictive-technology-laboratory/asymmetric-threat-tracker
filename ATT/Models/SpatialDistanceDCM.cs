@@ -178,7 +178,8 @@ namespace PTL.ATT.Models
             {
                 Point point = featureVector.DerivedFrom as Point;
                 string timeParameterName = "@time_" + pointNum++;
-                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, point.PredictionConfidenceScores.Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value))), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time));
+                IEnumerable<KeyValuePair<string, double>> incidentScore = point.PredictionConfidenceScores.Where(kvp => kvp.Key != PointPrediction.NullLabel).Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value));
+                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, incidentScore, incidentScore.Sum(kvp => kvp.Value)), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time));
             }
         }
 

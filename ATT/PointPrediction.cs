@@ -90,26 +90,23 @@ namespace PTL.ATT
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
         }
 
-        public static string GetValue(int pointId, string timeParameterName, IEnumerable<KeyValuePair<string, double>> incidentScore)
+        public static string GetValue(int pointId, string timeParameterName, IEnumerable<KeyValuePair<string, double>> incidentScore, double totalThreat)
         {
             string labels, scores;
-            double totalThreat;
-            GetLabelsScoresTotalThreatSQL(incidentScore, out labels, out scores, out totalThreat);
+            GetLabelsScoresTotalThreatSQL(incidentScore, out labels, out scores);
 
             return "(" + labels + "," + pointId + "," + scores + "," + timeParameterName + "," + totalThreat + ")";
         }
 
-        public static void GetLabelsScoresTotalThreatSQL(IEnumerable<KeyValuePair<string, double>> incidentScores, out string labels, out string scores, out double totalThreat)
+        public static void GetLabelsScoresTotalThreatSQL(IEnumerable<KeyValuePair<string, double>> incidentScores, out string labels, out string scores)
         {
             StringBuilder labelsBuilder = new StringBuilder();
             StringBuilder scoresBuilder = new StringBuilder();
-            totalThreat = 0;
             foreach (KeyValuePair<string, double> incidentScore in incidentScores.OrderBy(kvp => kvp.Key))
                 if (incidentScore.Key != PointPrediction.NullLabel)
                 {
                     labelsBuilder.Append((labelsBuilder.Length == 0 ? "'{" : ",") + "\"" + incidentScore.Key + "\"");
                     scoresBuilder.Append((scoresBuilder.Length == 0 ? "'{" : ",") + incidentScore.Value);
-                    totalThreat += incidentScore.Value;
                 }
 
             labelsBuilder.Append("}'");
@@ -208,13 +205,12 @@ namespace PTL.ATT
                             if (skip-- <= 0)
                             {
                                 string labels, scores;
-                                double totalThreat;
-                                GetLabelsScoresTotalThreatSQL(pointPrediction.IncidentScore, out labels, out scores, out totalThreat);
+                                GetLabelsScoresTotalThreatSQL(pointPrediction.IncidentScore, out labels, out scores);
                                 
                                 cmdText.Append("UPDATE " + table + " " +
                                                "SET " + Columns.Labels + "=" + labels + "," +
                                                         Columns.ThreatScores + "=" + scores + "," +
-                                                        Columns.TotalThreat + "=" + totalThreat + " " +
+                                                        Columns.TotalThreat + "=" + pointPrediction.IncidentScore.Values.Sum() + " " +
                                                "WHERE " + Columns.Id + "=" + pointPrediction.Id + ";");
 
                                 if (++pointNum >= pointsPerBatch)
