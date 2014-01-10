@@ -779,21 +779,23 @@ namespace PTL.ATT.Models
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
         public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
         {
-            StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(pointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress));
-            foreach (string pointId in pointIdLabelsFeatureValues.Keys.OrderBy(k => k))
+            using (StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(pointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress)))
             {
-                pointPredictionLog.Write(pointId + " <p><ls>");
-                foreach (Tuple<string, double> labelConfidence in pointIdLabelsFeatureValues[pointId].Item1)
-                    pointPredictionLog.Write("<l c=\"" + labelConfidence.Item2 + "\"><![CDATA[" + labelConfidence.Item1 + "]]></l>");
+                foreach (string pointId in pointIdLabelsFeatureValues.Keys.OrderBy(k => k))
+                {
+                    pointPredictionLog.Write(pointId + " <p><ls>");
+                    foreach (Tuple<string, double> labelConfidence in pointIdLabelsFeatureValues[pointId].Item1)
+                        pointPredictionLog.Write("<l c=\"" + labelConfidence.Item2 + "\"><![CDATA[" + labelConfidence.Item1 + "]]></l>");
 
-                pointPredictionLog.Write("</ls><fvs>");
-                foreach (Tuple<int, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
-                    pointPredictionLog.Write("<fv id=\"" + featureIdValue.Item1 + "\">" + featureIdValue.Item2 + "</fv>");
+                    pointPredictionLog.Write("</ls><fvs>");
+                    foreach (Tuple<int, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
+                        pointPredictionLog.Write("<fv id=\"" + featureIdValue.Item1 + "\">" + featureIdValue.Item2 + "</fv>");
 
-                pointPredictionLog.WriteLine("</fvs></p>");
+                    pointPredictionLog.WriteLine("</fvs></p>");
+                }
+
+                pointPredictionLog.Close();
             }
-
-            pointPredictionLog.Close();
         }
 
         public override string GetDetails(Prediction prediction)

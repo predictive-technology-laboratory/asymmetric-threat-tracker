@@ -60,12 +60,14 @@ namespace PTL.ATT.Classifiers
 
         public override void Initialize()
         {
-            StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true);
-            trainingFile.Write("Class");
-            foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
-                trainingFile.Write("," + f.Id);
-            trainingFile.WriteLine();
-            trainingFile.Close();
+            using (StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true))
+            {
+                trainingFile.Write("Class");
+                foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
+                    trainingFile.Write("," + f.Id);
+                trainingFile.WriteLine();
+                trainingFile.Close();
+            }
         }
 
         public override void Consume(FeatureVectorList featureVectors)
@@ -74,17 +76,18 @@ namespace PTL.ATT.Classifiers
 
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true);
-                
-                foreach (FeatureVector vector in featureVectors)
+                using (StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true))
                 {
-                    trainingFile.Write(vector.DerivedFrom.TrueClass);
-                    foreach (LAIR.MachineLearning.Feature f in vector.OrderBy(i => int.Parse(i.Name)))
-                        trainingFile.Write("," + vector[f]);
-                    trainingFile.WriteLine();
-                }
+                    foreach (FeatureVector vector in featureVectors)
+                    {
+                        trainingFile.Write(vector.DerivedFrom.TrueClass);
+                        foreach (LAIR.MachineLearning.Feature f in vector.OrderBy(i => int.Parse(i.Name)))
+                            trainingFile.Write("," + vector[f]);
+                        trainingFile.WriteLine();
+                    }
 
-                trainingFile.Close();
+                    trainingFile.Close();
+                }
             }
         }
         
@@ -121,21 +124,22 @@ save(rf, file=""" + Path.Combine(Model.ModelDirectory, @"rf.RData").Replace("\\"
         {
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                StreamWriter predictionsFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "PredRaw.csv"));
-
-                predictionsFile.Write("Class");
-                foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
-                    predictionsFile.Write("," + f.Id);
-                predictionsFile.WriteLine();
-
-                foreach (FeatureVector vector in featureVectors)
+                using (StreamWriter predictionsFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "PredRaw.csv")))
                 {
-                    predictionsFile.Write(vector.DerivedFrom.TrueClass);
-                    foreach (LAIR.MachineLearning.Feature f in vector.OrderBy(i => int.Parse(i.Name)))
-                        predictionsFile.Write("," + vector[f]);
+                    predictionsFile.Write("Class");
+                    foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
+                        predictionsFile.Write("," + f.Id);
                     predictionsFile.WriteLine();
+
+                    foreach (FeatureVector vector in featureVectors)
+                    {
+                        predictionsFile.Write(vector.DerivedFrom.TrueClass);
+                        foreach (LAIR.MachineLearning.Feature f in vector.OrderBy(i => int.Parse(i.Name)))
+                            predictionsFile.Write("," + vector[f]);
+                        predictionsFile.WriteLine();
+                    }
+                    predictionsFile.Close();
                 }
-                predictionsFile.Close();
 
                 StringBuilder rCmd = new StringBuilder(@"
 predRaw=read.csv(""" + Path.Combine(Model.ModelDirectory, @"PredRaw.csv").Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
@@ -156,29 +160,30 @@ write.table(dfp, file=""" + Path.Combine(Model.ModelDirectory, @"Predictions.csv
 ");
                 R.Execute(rCmd.ToString(), false);
 
-                StreamReader dataReader = new StreamReader(Path.Combine(Model.ModelDirectory, "Predictions.csv"));
-
-                string[] colnames = dataReader.ReadLine().Split(',');
-                int row = 0;
-                string line;
-
-                while ((line = dataReader.ReadLine()) != null)
+                using (StreamReader dataReader = new StreamReader(Path.Combine(Model.ModelDirectory, "Predictions.csv")))
                 {
-                    string[] lines = line.Split(',');
+                    string[] colnames = dataReader.ReadLine().Split(',');
+                    int row = 0;
+                    string line;
 
-                    for (int i = 0; i < colnames.Length; i++)
+                    while ((line = dataReader.ReadLine()) != null)
                     {
-                        string label = colnames[i].Replace("\"", @"");
-                        label = label.Replace(".", " ");
-                        float prob = float.Parse(lines[i]);
-                        featureVectors[row].DerivedFrom.PredictionConfidenceScores.Add(label, prob);
-                    }
-                    row++;
-                }
-                predictionsFile.Close();
+                        string[] lines = line.Split(',');
 
-                if (row != featureVectors.Count)
-                    throw new Exception("Number of predictions doesn't match number of input vectors");
+                        for (int i = 0; i < colnames.Length; i++)
+                        {
+                            string label = colnames[i].Replace("\"", @"");
+                            label = label.Replace(".", " ");
+                            float prob = float.Parse(lines[i]);
+                            featureVectors[row].DerivedFrom.PredictionConfidenceScores.Add(label, prob);
+                        }
+                        row++;
+                    }
+                    dataReader.Close();
+
+                    if (row != featureVectors.Count)
+                        throw new Exception("Number of predictions doesn't match number of input vectors");
+                }
             }
         }
 

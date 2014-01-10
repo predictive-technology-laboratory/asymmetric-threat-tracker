@@ -186,19 +186,21 @@ namespace PTL.ATT.Classifiers
             }
 
             string groupNamePath = Path.GetTempFileName();
-            StreamWriter groupNameFile = new StreamWriter(groupNamePath);
             Dictionary<string, int> groupNameFeatureId = new Dictionary<string, int>();
-            foreach (PTL.ATT.Models.Feature feature in Model.Features)
+            using (StreamWriter groupNameFile = new StreamWriter(groupNamePath))
             {
-                int featureNumber;
-                if (_libLinear.TryGetFeatureNumber(feature.Id.ToString(), out featureNumber))
+                foreach (PTL.ATT.Models.Feature feature in Model.Features)
                 {
-                    string groupName = feature.ToString().ReplacePunctuation(" ").RemoveRepeatedWhitespace().Replace(' ', '_').Trim('_');
-                    groupNameFile.WriteLine(featureNumber + " " + groupName);
-                    groupNameFeatureId.Add(groupName, feature.Id);
+                    int featureNumber;
+                    if (_libLinear.TryGetFeatureNumber(feature.Id.ToString(), out featureNumber))
+                    {
+                        string groupName = feature.ToString().ReplacePunctuation(" ").RemoveRepeatedWhitespace().Replace(' ', '_').Trim('_');
+                        groupNameFile.WriteLine(featureNumber + " " + groupName);
+                        groupNameFeatureId.Add(groupName, feature.Id);
+                    }
                 }
+                groupNameFile.Close();
             }
-            groupNameFile.Close();
 
             Options featureSelectionOptions = new Options();
             featureSelectionOptions.Add(FeatureSelector.Option.ExitOnErrorAction, FeatureSelector.ExitOnErrorAction.ThrowException.ToString());

@@ -91,15 +91,17 @@ namespace PTL.ATT.Classifiers
                 Area trainingArea = model.TrainingArea;
                 long timeSliceTicks = model is TimeSliceDCM ? (model as TimeSliceDCM).TimeSliceTicks : -1;
 
-                StreamWriter instanceLocationsFile = new StreamWriter(TrainingInstanceLocationsPath, true);
-                foreach (Point point in featureVectors.Select(v => v.DerivedFrom as Point))
+                using (StreamWriter instanceLocationsFile = new StreamWriter(TrainingInstanceLocationsPath, true))
                 {
-                    long slice = timeSliceTicks > 0 ? point.Time.Ticks / timeSliceTicks : 1;
-                    int row = (int)((point.Location.Y - trainingArea.BoundingBox.MinY) / model.PointSpacing);
-                    int col = (int)((point.Location.X - trainingArea.BoundingBox.MinX) / model.PointSpacing);
-                    instanceLocationsFile.WriteLine(slice + " " + row + " " + col);
+                    foreach (Point point in featureVectors.Select(v => v.DerivedFrom as Point))
+                    {
+                        long slice = timeSliceTicks > 0 ? point.Time.Ticks / timeSliceTicks : 1;
+                        int row = (int)((point.Location.Y - trainingArea.BoundingBox.MinY) / model.PointSpacing);
+                        int col = (int)((point.Location.X - trainingArea.BoundingBox.MinX) / model.PointSpacing);
+                        instanceLocationsFile.WriteLine(slice + " " + row + " " + col);
+                    }
+                    instanceLocationsFile.Close();
                 }
-                instanceLocationsFile.Close();
             }
         }
 

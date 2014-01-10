@@ -100,10 +100,13 @@ namespace PTL.ATT.Classifiers
         {
             int maxCount = File.ReadLines(_svmRank.TrainingInstancesPath).Max(l => int.Parse(l.Substring(0, l.IndexOf(' '))));
             string tempPath = Path.GetTempFileName();
-            StreamWriter tempFile = new StreamWriter(tempPath);
-            foreach (string line in File.ReadLines(_svmRank.TrainingInstancesPath))
-                tempFile.WriteLine((maxCount - int.Parse(line.Substring(0, line.IndexOf(' '))) + 1) + line.Substring(line.IndexOf(' ')));
-            tempFile.Close();
+            using (StreamWriter tempFile = new StreamWriter(tempPath))
+            {
+                foreach (string line in File.ReadLines(_svmRank.TrainingInstancesPath))
+                    tempFile.WriteLine((maxCount - int.Parse(line.Substring(0, line.IndexOf(' '))) + 1) + line.Substring(line.IndexOf(' ')));
+                tempFile.Close();
+            }
+
             File.Delete(_svmRank.TrainingInstancesPath);
             File.Move(tempPath, _svmRank.TrainingInstancesPath);
 

@@ -255,25 +255,27 @@ namespace PTL.ATT.Evaluation
                 if (series1.Count != series2.Count)
                     throw new Exception("Cannot plot series difference if series have differing numbers of points");
 
-                StreamWriter diffSeriesFile = new StreamWriter(diffSeriesPath);
-                foreach (PointF diffPoint in series1.Zip(series2, (p1, p2) =>
-                    {
-                        if (p1.X != p2.X)
-                            throw new Exception("Differing x values in series comparison");
-
-                        return new PointF(p1.X, p2.Y - p1.Y);
-                    }))
+                using (StreamWriter diffSeriesFile = new StreamWriter(diffSeriesPath))
                 {
-                    diffSeriesFile.WriteLine(diffPoint.X + "," + diffPoint.Y);
+                    foreach (PointF diffPoint in series1.Zip(series2, (p1, p2) =>
+                        {
+                            if (p1.X != p2.X)
+                                throw new Exception("Differing x values in series comparison");
 
-                    if (diffPeak == PointF.Empty || diffPoint.Y > diffPeak.Y)
-                        diffPeak = diffPoint;
+                            return new PointF(p1.X, p2.Y - p1.Y);
+                        }))
+                    {
+                        diffSeriesFile.WriteLine(diffPoint.X + "," + diffPoint.Y);
 
-                    if (diffValley == PointF.Empty || diffPoint.Y < diffValley.Y)
-                        diffValley = diffPoint;
+                        if (diffPeak == PointF.Empty || diffPoint.Y > diffPeak.Y)
+                            diffPeak = diffPoint;
+
+                        if (diffValley == PointF.Empty || diffPoint.Y < diffValley.Y)
+                            diffValley = diffPoint;
+                    }
+
+                    diffSeriesFile.Close();
                 }
-
-                diffSeriesFile.Close();
             }
             #endregion
 
@@ -305,10 +307,13 @@ main.title = paste(title.lines, sep=""\n"")");
             foreach (string series in SeriesPoints.Keys.OrderBy(k => k))
             {
                 string pointsInputPath = Path.GetTempFileName();
-                StreamWriter pointFile = new StreamWriter(pointsInputPath);
-                foreach (PointF point in SeriesPoints[series])
-                    pointFile.WriteLine(point.X + "," + point.Y);
-                pointFile.Close();
+                using (StreamWriter pointFile = new StreamWriter(pointsInputPath))
+                {
+                    foreach (PointF point in SeriesPoints[series])
+                        pointFile.WriteLine(point.X + "," + point.Y);
+                    pointFile.Close();
+                }
+
                 tmpPaths.Add(pointsInputPath);
 
                 string plotCharacterVector = "c(" + plotCharacters[seriesNum] + ",rep(NA_integer_," + (SeriesPoints[series].Count / 10) + "))";  // show 10 plot characters for series

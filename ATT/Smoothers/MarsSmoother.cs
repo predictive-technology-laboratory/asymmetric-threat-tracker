@@ -78,22 +78,26 @@ namespace PTL.ATT.Smoothers
                 string evalPointsPath = Path.GetTempFileName();
                 string outputPath = Path.GetTempFileName();
 
-                StreamWriter evalPointsFile = new StreamWriter(evalPointsPath);
-                foreach (PostGIS.Point p in pointPredictions.Select(p => idPoint[p.PointId].Location))
-                    evalPointsFile.WriteLine(p.X + "," + p.Y);
-                evalPointsFile.Close();
+                using (StreamWriter evalPointsFile = new StreamWriter(evalPointsPath))
+                {
+                    foreach (PostGIS.Point p in pointPredictions.Select(p => idPoint[p.PointId].Location))
+                        evalPointsFile.WriteLine(p.X + "," + p.Y);
+                    evalPointsFile.Close();
+                }
 
                 foreach (string incident in pointPredictions[0].IncidentScore.Keys.ToArray())
                     if (incident != PointPrediction.NullLabel)
                     {
-                        StreamWriter inputPointsFile = new StreamWriter(inputPointsPath);
-                        inputPointsFile.WriteLine("threat,x,y");
-                        foreach (PointPrediction pointPrediction in pointPredictions)
+                        using (StreamWriter inputPointsFile = new StreamWriter(inputPointsPath))
                         {
-                            PostGIS.Point location = idPoint[pointPrediction.PointId].Location;
-                            inputPointsFile.WriteLine(pointPrediction.IncidentScore[incident] + "," + location.X + "," + location.Y);
+                            inputPointsFile.WriteLine("threat,x,y");
+                            foreach (PointPrediction pointPrediction in pointPredictions)
+                            {
+                                PostGIS.Point location = idPoint[pointPrediction.PointId].Location;
+                                inputPointsFile.WriteLine(pointPrediction.IncidentScore[incident] + "," + location.X + "," + location.Y);
+                            }
+                            inputPointsFile.Close();
                         }
-                        inputPointsFile.Close();
 
                         R.Execute(@"
 library(earth)

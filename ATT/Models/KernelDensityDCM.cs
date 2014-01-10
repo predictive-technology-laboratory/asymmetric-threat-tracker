@@ -114,21 +114,27 @@ namespace PTL.ATT.Models
             }
 
             string inputPointsPath = Path.GetTempFileName();
-            StreamWriter inputPointsFile = new StreamWriter(inputPointsPath);
-            foreach (PostGIS.Point inputPoint in inputPoints)
-                inputPointsFile.Write(inputPoint.X + "," + inputPoint.Y + "\n");
-            inputPointsFile.Close();
+            using (StreamWriter inputPointsFile = new StreamWriter(inputPointsPath))
+            {
+                foreach (PostGIS.Point inputPoint in inputPoints)
+                    inputPointsFile.Write(inputPoint.X + "," + inputPoint.Y + "\n");
+                inputPointsFile.Close();
+            }
+
             inputPoints = null;
 
             string evalPointsPath = Path.GetTempFileName();
-            StreamWriter evalPointsFile = new StreamWriter(evalPointsPath);
             int numEvalPoints = 0;
-            foreach (PostGIS.Point evalPoint in evalPoints)
+            using (StreamWriter evalPointsFile = new StreamWriter(evalPointsPath))
             {
-                evalPointsFile.Write(evalPoint.X + "," + evalPoint.Y + "\n");
-                ++numEvalPoints;
+                foreach (PostGIS.Point evalPoint in evalPoints)
+                {
+                    evalPointsFile.Write(evalPoint.X + "," + evalPoint.Y + "\n");
+                    ++numEvalPoints;
+                }
+                evalPointsFile.Close();
             }
-            evalPointsFile.Close();
+
             evalPoints = null;
 
             string bGridSizes = "c(" + bGridSizeX + "," + bGridSizeY + ")";
@@ -321,7 +327,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
         public override string GetDetails(Prediction prediction)
         {
-            return "";
+            return "No information is available for " + typeof(KernelDensityDCM).Name + " models.";
         }
 
         public override int Copy()

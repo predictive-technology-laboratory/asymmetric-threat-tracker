@@ -50,9 +50,11 @@ namespace PTL.ATT.GUI
             string path = LAIR.IO.File.PromptForSavePath("Select save path...");
             if (path != null)
             {
-                StreamWriter file = new StreamWriter(path);
-                file.Write(modelDetails.Text);
-                file.Close();
+                using (StreamWriter file = new StreamWriter(path))
+                {
+                    file.Write(modelDetails.Text);
+                    file.Close();
+                }
             }
         }
 

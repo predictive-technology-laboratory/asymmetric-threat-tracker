@@ -6,7 +6,5 @@ Multiple kernel learning
 Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
 Add raster feature support
 Incident collapsing
-Forecast counts
 Intelligently handle spacing around positive points when selecting negative points
-Analysis for KDE models
 SVM rank feature selection
