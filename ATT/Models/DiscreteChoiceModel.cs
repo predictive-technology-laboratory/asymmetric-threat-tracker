@@ -128,12 +128,13 @@ namespace PTL.ATT.Models
             }
 
             int dcmId = Convert.ToInt32(cmd.ExecuteScalar());
-
+        
             string modelDirectory = Path.Combine(Configuration.ModelsDirectory, dcmId.ToString());
+
             if (Directory.Exists(modelDirectory))
-                throw new Exception("Model directory \"" + modelDirectory + "\" already exists.");
-            else
-                Directory.CreateDirectory(modelDirectory);
+                Directory.Delete(modelDirectory);
+
+            Directory.CreateDirectory(modelDirectory);
 
             cmd.CommandText = "UPDATE " + Table + " SET " + Columns.ModelDirectory + "='" + modelDirectory + "' WHERE " + Columns.Id + "=" + dcmId;
             cmd.ExecuteNonQuery();
