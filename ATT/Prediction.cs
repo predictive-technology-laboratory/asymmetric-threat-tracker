@@ -43,8 +43,6 @@ namespace PTL.ATT
 {
     public class Prediction : IComparable<Prediction>
     {
-        public static event Action<Prediction> OnPredictionDeleted;
-
         public const string Table = "prediction";
 
         public class Columns
@@ -440,9 +438,6 @@ namespace PTL.ATT
 
             try { Model.Delete(); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete model for prediction:  " + ex.Message); }
-
-            if (OnPredictionDeleted != null)
-                OnPredictionDeleted(this);
         }
 
         public void UpdateEvaluation()
