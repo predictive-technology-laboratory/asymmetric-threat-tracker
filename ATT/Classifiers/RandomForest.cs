@@ -47,6 +47,16 @@ namespace PTL.ATT.Classifiers
             set { _numTrees = value; }
         }
 
+        private string RawTrainPath { get { return Path.Combine(Model.ModelDirectory, "TrainRaw.csv"); } }
+
+        private string ColumnMaxMinPath { get { return Path.Combine(Model.ModelDirectory, "MaxMin.csv"); } }
+
+        private string RandomForestModelPath { get { return Path.Combine(Model.ModelDirectory, @"rf.RData"); } }
+
+        private string RawPredictionInstancesPath { get { return Path.Combine(Model.ModelDirectory, "PredRaw.csv"); } }
+
+        private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, @"Predictions.csv"); } }
+
         public RandomForest()
             : this(false, -1, 500)
         {
@@ -60,7 +70,7 @@ namespace PTL.ATT.Classifiers
 
         public override void Initialize()
         {
-            using (StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true))
+            using (StreamWriter trainingFile = new StreamWriter(RawTrainPath, true))
             {
                 trainingFile.Write("Class");
                 foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
@@ -76,13 +86,19 @@ namespace PTL.ATT.Classifiers
 
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                using (StreamWriter trainingFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "TrainRaw.csv"), true))
+                using (StreamWriter trainingFile = new StreamWriter(RawTrainPath, true))
                 {
                     foreach (FeatureVector vector in featureVectors)
                     {
                         trainingFile.Write(vector.DerivedFrom.TrueClass);
-                        foreach (LAIR.MachineLearning.Feature f in vector.OrderBy(i => int.Parse(i.Name)))
-                            trainingFile.Write("," + vector[f]);
+                        foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
+                        {
+                            object value;
+                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                                trainingFile.Write("," + value);
+                            else
+                                trainingFile.Write(",0");
+                        }
                         trainingFile.WriteLine();
                     }
 
@@ -94,7 +110,7 @@ namespace PTL.ATT.Classifiers
         protected override void BuildModel()
         {
             StringBuilder rCmd = new StringBuilder(@"
-trainRaw=read.csv(""" + Path.Combine(Model.ModelDirectory, @"TrainRaw.csv").Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
+trainRaw=read.csv(""" + RawTrainPath.Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
 trainNorm=trainRaw
 cols=NCOL(trainRaw)
 mxmn <- array(0, dim=c(2,cols-1))
@@ -106,13 +122,15 @@ for(i in 2:cols) {
   mxmn[2,i-1]=cmin
   trainNorm[,i]=(trainRaw[,i]-((cmax+cmin)/2))/((cmax-cmin)/2)
 }
-write.table(data.frame(mxmn), file=""" + Path.Combine(Model.ModelDirectory, @"MaxMin.csv").Replace("\\", "/") + @""", row.names=FALSE, col.names=FALSE, sep=',')" + @"
-write.csv(trainNorm, file=""" + Path.Combine(Model.ModelDirectory, @"TrainNorm.csv").Replace("\\", "/") + @""")" + @"
+trainNorm[is.na(trainNorm)]=0
+write.table(data.frame(mxmn), file=""" + ColumnMaxMinPath.Replace("\\", "/") + @""", row.names=FALSE, col.names=FALSE, sep=',')" + @"
 library(randomForest)
 rf=randomForest(Class ~., data=trainNorm, ntree=" + _numTrees + ", importance=TRUE, seed=99)" + @"
-save(rf, file=""" + Path.Combine(Model.ModelDirectory, @"rf.RData").Replace("\\", "/") + @""")" + @"
+save(rf, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
 ");
             R.Execute(rCmd.ToString(), false);
+
+            File.Delete(RawTrainPath);
         }
 
         public override IEnumerable<int> SelectFeatures(Prediction prediction)
@@ -124,7 +142,7 @@ save(rf, file=""" + Path.Combine(Model.ModelDirectory, @"rf.RData").Replace("\\"
         {
             if (featureVectors != null && featureVectors.Count > 0)
             {
-                using (StreamWriter predictionsFile = new StreamWriter(Path.Combine(Model.ModelDirectory, "PredRaw.csv")))
+                using (StreamWriter predictionsFile = new StreamWriter(RawPredictionInstancesPath))
                 {
                     predictionsFile.Write("Class");
                     foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
@@ -134,39 +152,45 @@ save(rf, file=""" + Path.Combine(Model.ModelDirectory, @"rf.RData").Replace("\\"
                     foreach (FeatureVector vector in featureVectors)
                     {
                         predictionsFile.Write(vector.DerivedFrom.TrueClass);
-                        foreach (LAIR.MachineLearning.Feature f in vector.OrderBy(i => int.Parse(i.Name)))
-                            predictionsFile.Write("," + vector[f]);
+                        foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
+                        {
+                            object value;
+                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                                predictionsFile.Write("," + value);
+                            else
+                                predictionsFile.Write(",0");
+                        }
                         predictionsFile.WriteLine();
                     }
                     predictionsFile.Close();
                 }
 
                 StringBuilder rCmd = new StringBuilder(@"
-predRaw=read.csv(""" + Path.Combine(Model.ModelDirectory, @"PredRaw.csv").Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
-mxmn=read.csv(""" + Path.Combine(Model.ModelDirectory, @"MaxMin.csv").Replace("\\", "/") + @""", header = FALSE, sep = ',')" + @"
+predRaw=read.csv(""" + RawPredictionInstancesPath.Replace("\\", "/") + @""", header = TRUE, sep = ',')" + @"
+mxmn=read.csv(""" + ColumnMaxMinPath.Replace("\\", "/") + @""", header = FALSE, sep = ',')" + @"
 predNorm=predRaw
 for(i in 2:NCOL(predRaw)) {
   cmax=mxmn[1,i-1]
   cmin=mxmn[2,i-1]
   predNorm[,i] = (predRaw[,i]-((cmax+cmin)/2))/((cmax-cmin)/2)
 }
-write.csv(predNorm, file=""" + Path.Combine(Model.ModelDirectory, @"PredNorm.csv").Replace("\\", "/") + @""")" + @"
+predNorm[is.na(predNorm)]=0
 library(randomForest)
-load(file=""" + Path.Combine(Model.ModelDirectory, @"rf.RData").Replace("\\", "/") + @""")" + @"
+load(file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
 rf.pred=predict(rf, predNorm, norm.votes=TRUE, type='prob')
 dfp<-data.frame(rf.pred)
 names(dfp)[names(dfp)=='NULL.'] <- 'NULL'
-write.table(dfp, file=""" + Path.Combine(Model.ModelDirectory, @"Predictions.csv").Replace("\\", "/") + @""", row.names=FALSE, sep=',')" + @"
+write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names=FALSE, sep=',')" + @"
 ");
                 R.Execute(rCmd.ToString(), false);
 
-                using (StreamReader dataReader = new StreamReader(Path.Combine(Model.ModelDirectory, "Predictions.csv")))
+                using (StreamReader predictionsFile = new StreamReader(PredictionsPath))
                 {
-                    string[] colnames = dataReader.ReadLine().Split(',');
+                    string[] colnames = predictionsFile.ReadLine().Split(',');
                     int row = 0;
                     string line;
 
-                    while ((line = dataReader.ReadLine()) != null)
+                    while ((line = predictionsFile.ReadLine()) != null)
                     {
                         string[] lines = line.Split(',');
 
@@ -179,11 +203,17 @@ write.table(dfp, file=""" + Path.Combine(Model.ModelDirectory, @"Predictions.csv
                         }
                         row++;
                     }
-                    dataReader.Close();
+
+                    predictionsFile.Close();
 
                     if (row != featureVectors.Count)
                         throw new Exception("Number of predictions doesn't match number of input vectors");
                 }
+
+                File.Delete(ColumnMaxMinPath);
+                File.Delete(RandomForestModelPath);
+                File.Delete(RawPredictionInstancesPath);
+                File.Delete(PredictionsPath);
             }
         }
 
