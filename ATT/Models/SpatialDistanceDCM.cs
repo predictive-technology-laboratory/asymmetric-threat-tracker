@@ -151,13 +151,13 @@ namespace PTL.ATT.Models
 
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
-            foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID))
+            foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                 if (shapefile.Type == Shapefile.ShapefileType.DistanceFeature)
                     yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapefile, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
 
             foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
                 if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
-                    foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area))
+                    foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
                         yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, incidentType, "KDE \"" + incidentType + "\"");
                 else if (f != SpatialDistanceFeature.DistanceShapefile)
                     yield return new Feature(typeof(SpatialDistanceFeature), f, null, null, f.ToString());
@@ -849,9 +849,11 @@ namespace PTL.ATT.Models
             for (int i = 0; i < indentLevel; ++i)
                 indent += "\t";
 
+            int featuresToDisplay = 10; // can have hundreds of features, which makes the tooltip excrutiatingly slow
+
             return base.GetDetails(indentLevel) + Environment.NewLine +
                    indent + "Classifier:  " + _classifier.GetDetails(indentLevel + 1) + Environment.NewLine +
-                   indent + "Features:  " + Features.Select(f => f.ToString()).Concatenate(",") + Environment.NewLine +
+                   indent + "Features:  " + Features.Where((f, i) => i < featuresToDisplay).Select(f => f.ToString()).Concatenate(",") + (Features.Count > featuresToDisplay ? " ... (" + (Features.Count - featuresToDisplay) + " not shown)" : "") + Environment.NewLine +
                    indent + "External feature extractor:  " + (_externalFeatureExtractor == null ? "None" : _externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
                    indent + "Feature distance threshold:  " + _featureDistanceThreshold + Environment.NewLine +
                    indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +

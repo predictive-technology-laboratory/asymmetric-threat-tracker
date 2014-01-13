@@ -93,7 +93,6 @@ namespace PTL.ATT.GUI
             this.features.Name = "features";
             this.features.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.features.Size = new System.Drawing.Size(228, 147);
-            this.features.Sorted = true;
             this.features.TabIndex = 3;
             // 
             // featuresMenu
@@ -102,7 +101,7 @@ namespace PTL.ATT.GUI
             this.selectAllFeaturesToolStripMenuItem,
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem});
             this.featuresMenu.Name = "featuresMenu";
-            this.featuresMenu.Size = new System.Drawing.Size(307, 70);
+            this.featuresMenu.Size = new System.Drawing.Size(307, 48);
             // 
             // selectAllFeaturesToolStripMenuItem
             // 

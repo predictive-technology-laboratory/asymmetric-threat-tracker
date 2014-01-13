@@ -1054,7 +1054,7 @@ namespace PTL.ATT.GUI.Visualization
                         if (model is IFeatureBasedDCM)
                         {
                             IFeatureBasedDCM featureBasedModel = DisplayedPrediction.Model as IFeatureBasedDCM;
-                            foreach (Feature feature in featureBasedModel.Features.OrderBy(f => f.ToString()))
+                            foreach (Feature feature in featureBasedModel.Features.OrderBy(f => f.Id))
                             {
                                 string colName = "Feature:  " + feature.ToString();
                                 int featureCol = dataView.Columns.Add(colName, colName);
