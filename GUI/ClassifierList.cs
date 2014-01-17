@@ -58,59 +58,55 @@ namespace PTL.ATT.GUI
 
         private void ClassifierList_MouseUp(object sender, MouseEventArgs e)
         {
-            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+            if (e.Button == System.Windows.Forms.MouseButtons.Right && SelectedItem != null)
             {
-                int clickedIndex = IndexFromPoint(e.Location);
-                if (clickedIndex >= 0)
+                Classifier classifier = SelectedItem as Classifier;
+                if (classifier == null)
+                    throw new NullReferenceException("Failed to cast classifier item from list");
+
+                string updateWindowTitle = "Updating " + classifier.GetType().Name + "...";
+
+                if (classifier is LibLinear)
                 {
-                    Classifier classifier = Items[clickedIndex] as Classifier;
-                    if (classifier == null)
-                        throw new NullReferenceException("Failed to cast classifier item from list");
-
-                    string updateWindowTitle = "Updating " + classifier.GetType().Name + "...";
-
-                    if (classifier is LibLinear)
+                    LibLinear liblinear = classifier as LibLinear;
+                    DynamicForm f = new DynamicForm("Set LibLinear parameters");
+                    f.AddCheckBox("Run feature selection:", ContentAlignment.MiddleRight, liblinear.RunFeatureSelection, "run_feature_selection");
+                    f.AddDropDown("Positive weighting:", Enum.GetValues(typeof(LibLinear.PositiveClassWeighting)), liblinear.Weighting, "positive_weighting");
+                    if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LibLinear liblinear = classifier as LibLinear;
-                        DynamicForm f = new DynamicForm("Set LibLinear parameters");
-                        f.AddCheckBox("Run feature selection:", ContentAlignment.MiddleRight, liblinear.RunFeatureSelection, "run_feature_selection");
-                        f.AddDropDown("Positive weighting:", Enum.GetValues(typeof(LibLinear.PositiveClassWeighting)), liblinear.Weighting, "positive_weighting");
-                        if (f.ShowDialog() == DialogResult.OK)
-                        {
-                            liblinear.RunFeatureSelection = f.GetValue<bool>("run_feature_selection");
-                            liblinear.Weighting = f.GetValue<LibLinear.PositiveClassWeighting>("positive_weighting");
-                        }
+                        liblinear.RunFeatureSelection = f.GetValue<bool>("run_feature_selection");
+                        liblinear.Weighting = f.GetValue<LibLinear.PositiveClassWeighting>("positive_weighting");
                     }
-                    else if (classifier is SvmRank)
+                }
+                else if (classifier is SvmRank)
+                {
+                    SvmRank svmRank = classifier as SvmRank;
+                    DynamicForm f = new DynamicForm("Set SvmRank parameters");
+                    f.AddNumericUpdown("c:", (decimal)svmRank.C, 3, decimal.MinValue, decimal.MaxValue, (decimal)0.01, "c");
+                    if (f.ShowDialog() == DialogResult.OK)
                     {
-                        SvmRank svmRank = classifier as SvmRank;
-                        DynamicForm f = new DynamicForm("Set SvmRank parameters");
-                        f.AddNumericUpdown("c:", (decimal)svmRank.C, 3, decimal.MinValue, decimal.MaxValue, (decimal)0.01, "c");
-                        if (f.ShowDialog() == DialogResult.OK)
-                        {
-                            try { svmRank.C = Convert.ToSingle(f.GetValue<decimal>("c")); }
-                            catch (Exception ex) { MessageBox.Show("Invalid value for C:  " + ex.Message); }
-                        }
+                        try { svmRank.C = Convert.ToSingle(f.GetValue<decimal>("c")); }
+                        catch (Exception ex) { MessageBox.Show("Invalid value for C:  " + ex.Message); }
                     }
-                    else if (classifier is RandomForest)
+                }
+                else if (classifier is RandomForest)
+                {
+                    RandomForest randomForest = classifier as RandomForest;
+                    DynamicForm f = new DynamicForm("Set RandomForest parameters");
+                    f.AddNumericUpdown("Number of trees:", randomForest.NumTrees, 0, 1, decimal.MaxValue, 1, "ntree");
+                    if (f.ShowDialog() == DialogResult.OK)
                     {
-                        RandomForest randomForest = classifier as RandomForest;
-                        DynamicForm f = new DynamicForm("Set RandomForest parameters");
-                        f.AddNumericUpdown("Number of trees:", randomForest.NumTrees, 0, 1, decimal.MaxValue, 1, "ntree");
-                        if (f.ShowDialog() == DialogResult.OK)
-                        {
-                            randomForest.NumTrees = Convert.ToInt32(f.GetValue<decimal>("ntree"));
-                        }
+                        randomForest.NumTrees = Convert.ToInt32(f.GetValue<decimal>("ntree"));
                     }
-                    else if (classifier is AdaBoost)
+                }
+                else if (classifier is AdaBoost)
+                {
+                    AdaBoost adaBoost = classifier as AdaBoost;
+                    DynamicForm f = new DynamicForm("Set AdaBoost parameters");
+                    f.AddNumericUpdown("Number of iterations:", adaBoost.Iterations, 0, 1, decimal.MaxValue, 1, "iterations");
+                    if (f.ShowDialog() == DialogResult.OK)
                     {
-                        AdaBoost adaBoost = classifier as AdaBoost;
-                        DynamicForm f = new DynamicForm("Set AdaBoost parameters");
-                        f.AddNumericUpdown("Number of iterations:", adaBoost.Iterations, 0, 1, decimal.MaxValue, 1, "iterations");
-                        if (f.ShowDialog() == DialogResult.OK)
-                        {
-                            adaBoost.Iterations = Convert.ToInt32(f.GetValue<decimal>("iterations"));
-                        }
+                        adaBoost.Iterations = Convert.ToInt32(f.GetValue<decimal>("iterations"));
                     }
                 }
             }
