@@ -1,10 +1,10 @@
-﻿Store threat surfaces
-Instead of using distance to nearest spatial entity, we could create a density map of the entities and then use the value of the density function.
+﻿Instead of using distance to nearest spatial entity, we could create a density map of the entities and then use the value of the density function.
 Multiple kernel learning
   * http://www2.csie.ntu.edu.tw/~b95028/software/liblinear-mkl/index.php
   * http://research.microsoft.com/en-us/um/people/manik/code/GMKL/download.html
 Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
 Add raster feature support
+Add feature support for files with point events that have a time, location, and perhaps a value
 Incident collapsing
 Intelligently handle spacing around positive points when selecting negative points
 SVM rank feature selection
