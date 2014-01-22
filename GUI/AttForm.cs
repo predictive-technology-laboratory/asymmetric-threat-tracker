@@ -1105,26 +1105,37 @@ namespace PTL.ATT.GUI
                             threads.Add(areaT);
 
                             if (p.Model is IFeatureBasedDCM)
-                                foreach (Feature f in (p.Model as IFeatureBasedDCM).Features)
+                            {
+                                ICollection<Feature> features = (p.Model as IFeatureBasedDCM).Features;
+                                if (features.Count > 0)
                                 {
-                                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
-                                        {
-                                            Feature feature = o as Feature;
-                                            if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && (feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.GeometryDensity) ||
-                                                                                                                          feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.MinimumDistanceToGeometry)))
-                                            {
-                                                Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                                constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());
-                                                NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(p.PredictionArea.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, pointDistanceThreshold);
-                                                DB.Connection.Return(connection);
-                                                lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, 1 + overlays.Count)); }
-                                            }
-                                        }));
+                                    Dictionary<int, int> featureIdViewPriority = new Dictionary<int, int>();
+                                    foreach (Feature f in features.OrderBy(f => f.Id))
+                                        featureIdViewPriority.Add(f.Id, featureIdViewPriority.Count + 1);
 
-                                    t.Start(f);
-                                    threads.Add(t);
+                                    int minId = features.Min(f => f.Id);
+                                    foreach (Feature f in features)
+                                    {
+                                        Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                                            {
+                                                Feature feature = o as Feature;
+                                                if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && (feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.GeometryDensity) ||
+                                                                                                                              feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.MinimumDistanceToGeometry)))
+                                                {
+                                                    Dictionary<string, string> constraints = new Dictionary<string, string>();
+                                                    constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());
+                                                    NpgsqlConnection connection = DB.Connection.OpenConnection;
+                                                    List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(p.PredictionArea.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, pointDistanceThreshold);
+                                                    DB.Connection.Return(connection);
+                                                    lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
+                                                }
+                                            }));
+
+                                        t.Start(f);
+                                        threads.Add(t);
+                                    }
                                 }
+                            }
 
                             foreach (Thread t in threads)
                                 t.Join();

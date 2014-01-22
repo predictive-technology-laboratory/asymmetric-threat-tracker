@@ -162,13 +162,13 @@ namespace PTL.ATT.Models
                 {
                     foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                         if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
+                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " - min. dist.");
                 }
                 else if (f == SpatialDistanceFeature.GeometryDensity)
                 {
                     foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                         if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
+                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " - density");
                 }
                 else if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
                     foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
