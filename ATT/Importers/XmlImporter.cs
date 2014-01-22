@@ -42,15 +42,15 @@ namespace PTL.ATT.Importers
 
         public class IncidentXmlRowInserter : XmlRowInserter
         {
-            private Dictionary<string, string> _dbColSocrataCol;
+            private Dictionary<string, string> _dbColInputCol;
             private Area _importArea;
             private int _hourOffset;
             private int _sourceSRID;
             private Set<int> _existingNativeIDs;
 
-            public IncidentXmlRowInserter(Dictionary<string, string> dbColSocrataCol, Area importArea, int hourOffset, int sourceSRID, Set<int> existingNativeIDs)
+            public IncidentXmlRowInserter(Dictionary<string, string> dbColInputCol, Area importArea, int hourOffset, int sourceSRID, Set<int> existingNativeIDs)
             {
-                _dbColSocrataCol = dbColSocrataCol;
+                _dbColInputCol = dbColInputCol;
                 _importArea = importArea;
                 _hourOffset = hourOffset;
                 _sourceSRID = sourceSRID;
@@ -59,21 +59,21 @@ namespace PTL.ATT.Importers
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser rowXmlParser)
             {
-                int nativeId = int.Parse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.NativeId])); rowXmlParser.Reset();
+                int nativeId = int.Parse(rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.NativeId])); rowXmlParser.Reset();
 
                 if (_existingNativeIDs.Add(nativeId))
                 {
-                    DateTime time = DateTime.Parse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.Time])) + new TimeSpan(_hourOffset, 0, 0); rowXmlParser.Reset();
-                    string type = rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.Type]); rowXmlParser.Reset();
+                    DateTime time = DateTime.Parse(rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.Time])) + new TimeSpan(_hourOffset, 0, 0); rowXmlParser.Reset();
+                    string type = rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.Type]); rowXmlParser.Reset();
 
                     double x;
-                    if (!double.TryParse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.X(_importArea)]), out x))
+                    if (!double.TryParse(rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.X(_importArea)]), out x))
                         return null;
 
                     rowXmlParser.Reset();
 
                     double y;
-                    if (!double.TryParse(rowXmlParser.ElementText(_dbColSocrataCol[Incident.Columns.Y(_importArea)]), out y))
+                    if (!double.TryParse(rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.Y(_importArea)]), out y))
                         return null;
 
                     rowXmlParser.Reset();
@@ -88,21 +88,47 @@ namespace PTL.ATT.Importers
                     return null;
             }
         }
+
+        public class PointfileXmlRowInserter : XmlRowInserter
+        {
+            private Dictionary<string, string> _dbColInputCol;
+            private int _sourceSRID;
+
+            public PointfileXmlRowInserter(Dictionary<string, string> dbColSocrataCol, int sourceSRID)
+            {
+                _dbColInputCol = dbColSocrataCol;
+                _sourceSRID = sourceSRID;
+            }
+
+            public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser)
+            {
+                throw new NotImplementedException();
+            }
+        }
         #endregion
 
         public static string[] GetColumnNames(string path, string rootElementName, string rowElementName)
         {
+            Console.Out.WriteLine("Scanning \"" + path + "\" for input field names...");
+
             using (FileStream file = new FileStream(path, FileMode.Open))
             {
                 XmlParser p = new XmlParser(file);
                 p.SkipToElement(rootElementName);
-                p.MoveToElementNode(false);
-                string rowXML = p.OuterXML(rowElementName);
-                XmlParser rowP = new XmlParser(rowXML);
-                rowP.MoveToElementNode(true);
-                List<string> columnNames = new List<string>();
-                while (rowP.MoveToElementNode(false) != null)
-                    columnNames.Add(rowP.CurrentName);
+                Set<string> columnNames = new Set<string>(false);
+                while (true)
+                {
+                    p.MoveToElementNode(false);
+                    string rowXML = p.OuterXML(rowElementName);
+                    if (rowXML == null)
+                        break;
+
+                    XmlParser rowP = new XmlParser(rowXML);
+                    rowP.MoveToElementNode(true);
+
+                    while (rowP.MoveToElementNode(false) != null)
+                        columnNames.Add(rowP.CurrentName);
+                }
 
                 return columnNames.ToArray();
             }
@@ -112,14 +138,15 @@ namespace PTL.ATT.Importers
         private string _rootElementName;
         private string _rowElementName;
 
-        public XmlImporter(XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
+        public XmlImporter(string table, string insertColumns, XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
+            : base(table, insertColumns)
         {
             _xmlRowInserter = xmlRowInserter;
             _rootElementName = rootElementName;
             _rowElementName = rowElementName;
         }
 
-        public override void Import(string path, string table, string columns)
+        public override void Import(string path)
         {
             using (FileStream file = new FileStream(path, FileMode.Open))
             {
@@ -145,7 +172,7 @@ namespace PTL.ATT.Importers
                             ++skippedRows;
                         else
                         {
-                            cmdTxt.Append((batchCount == 0 ? "INSERT INTO " + table + " (" + columns + ") VALUES " : ",") + "(" + valueParameters.Item1 + ")");
+                            cmdTxt.Append((batchCount == 0 ? "INSERT INTO " + Table + " (" + InsertColumns + ") VALUES " : ",") + "(" + valueParameters.Item1 + ")");
 
                             if (valueParameters.Item2.Count > 0)
                                 ConnectionPool.AddParameters(insertCmd, valueParameters.Item2);
@@ -175,7 +202,7 @@ namespace PTL.ATT.Importers
                     }
 
                     Console.Out.WriteLine("Cleaning up database after import");
-                    DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + table);
+                    DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
 
                     Console.Out.WriteLine("Import from \"" + path + "\" was successful.  Imported " + totalImported + " rows of " + totalRows + " total in the file (" + skippedRows + " rows were skipped)");
                 }

@@ -66,12 +66,12 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region incidents
-        private static string _incidentsDataDirectory;
+        private static string _incidentsImportDirectory;
 
-        public static string IncidentsDataDirectory
+        public static string IncidentsImportDirectory
         {
-            get { return Configuration._incidentsDataDirectory; }
-            set { Configuration._incidentsDataDirectory = value; }
+            get { return Configuration._incidentsImportDirectory; }
+            set { Configuration._incidentsImportDirectory = value; }
         }
         #endregion
 
@@ -214,7 +214,7 @@ namespace PTL.ATT.GUI
             _loggingEditor = loggingP.ElementText("editor");
 
             XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
-            _incidentsDataDirectory = incidentsP.ElementText("data_directory");
+            _incidentsImportDirectory = incidentsP.ElementText("import_directory");
 
             _pluginTypes = new Set<Plugin>();
             XmlParser pluginsP = new XmlParser(p.OuterXML("plugins"));

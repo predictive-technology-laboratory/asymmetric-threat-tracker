@@ -179,7 +179,7 @@ namespace PTL.ATT.Models
         public override string ToString()
         {
             string enumStr = _enumType.ToString();
-            enumStr = enumStr.Substring(enumStr.LastIndexOf("+") + 1);
+            enumStr = enumStr.Substring(enumStr.LastIndexOf("+") + 1) + "." + _enumValue;
             return _description + " (" + enumStr + ")" + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
         }
 

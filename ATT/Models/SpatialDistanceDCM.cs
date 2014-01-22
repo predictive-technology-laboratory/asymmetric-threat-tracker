@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +38,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO.Compression;
 using PTL.ATT.Exceptions;
 using LAIR.XML;
+using LAIR.ResourceAPIs.PostGIS;
 
 namespace PTL.ATT.Models
 {
@@ -46,9 +47,14 @@ namespace PTL.ATT.Models
         public enum SpatialDistanceFeature
         {
             /// <summary>
-            /// Shortest distance to entities in a shapefile
+            /// Shortest distance to geometries in a shapefile
             /// </summary>
-            DistanceShapefile,
+            MinimumDistanceToGeometry,
+
+            /// <summary>
+            /// Density of geometries in a shapefile
+            /// </summary>
+            GeometryDensity,
 
             /// <summary>
             /// Value of incident density derived from the training incidents
@@ -131,8 +137,8 @@ namespace PTL.ATT.Models
 
             cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@classifier," +
                                                                                           featureDistanceThreshold + "," +
-                                                                                          dcmId + "," + 
-                                                                                          predictionSampleSize + "," + 
+                                                                                          dcmId + "," +
+                                                                                          predictionSampleSize + "," +
                                                                                           trainingSampleSize + ")";
             cmd.ExecuteNonQuery();
 
@@ -151,15 +157,23 @@ namespace PTL.ATT.Models
 
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
-            foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
-                if (shapefile.Type == Shapefile.ShapefileType.DistanceFeature)
-                    yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.DistanceShapefile, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
-
             foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
-                if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
+                if (f == SpatialDistanceFeature.MinimumDistanceToGeometry)
+                {
+                    foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
+                        if (shapefile.Type == Shapefile.ShapefileType.Feature)
+                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
+                }
+                else if (f == SpatialDistanceFeature.GeometryDensity)
+                {
+                    foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
+                        if (shapefile.Type == Shapefile.ShapefileType.Feature)
+                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name);
+                }
+                else if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
                     foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
                         yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, incidentType, "KDE \"" + incidentType + "\"");
-                else if (f != SpatialDistanceFeature.DistanceShapefile)
+                else
                     yield return new Feature(typeof(SpatialDistanceFeature), f, null, null, f.ToString());
 
             FeatureExtractor externalFeatureExtractor;
@@ -313,8 +327,8 @@ namespace PTL.ATT.Models
             DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
                                           Columns.Classifier + "=@classifier," +
                                           Columns.FeatureDistanceThreshold + "=" + _featureDistanceThreshold + "," +
-                                          Columns.TrainingSampleSize + "=" + _trainingSampleSize + "," + 
-                                          Columns.PredictionSampleSize + "=" + _predictionSampleSize + " " + 
+                                          Columns.TrainingSampleSize + "=" + _trainingSampleSize + "," +
+                                          Columns.PredictionSampleSize + "=" + _predictionSampleSize + " " +
                                           "WHERE " + Columns.Id + "=" + Id, new Parameter("classifier", NpgsqlDbType.Bytea, ms.ToArray()));
         }
 
@@ -382,13 +396,13 @@ namespace PTL.ATT.Models
                 idFeature.Add(f.Id, new NumericFeature(f.Id.ToString()));
 
             Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
+            Set<Thread> threads = new Set<Thread>();
 
             #region spatial distance features
             Console.Out.WriteLine("Extracting spatial distance feature values");
 
             List<Dictionary<int, FeatureVector>> corePointIdFeatureVector = new List<Dictionary<int, FeatureVector>>(Configuration.ProcessorCount);
             float featureValueWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2));
-            Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
@@ -406,9 +420,9 @@ namespace PTL.ATT.Models
                                                                      "INTO " + pointFeatureTable + " " +
 
                                                                      // cross points with features
-                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.ModelId + "=" + Id + " AND " +                        // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
-                                                                                                                                                           "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +         // distance features
-                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.DistanceShapefile + "' " +  // as opposed to raster shapefiles
+                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.ModelId + "=" + Id + " AND " +                                                // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
+                                                                                                                                                           "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +                 // distance features
+                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.MinimumDistanceToGeometry + "' " +  // as opposed to raster shapefiles
                                                                      // only process points associated with the current core                                                                                         
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
@@ -491,6 +505,53 @@ namespace PTL.ATT.Models
             foreach (FeatureVector vector in mergedVectors)
                 foreach (LAIR.MachineLearning.Feature f in vector)
                     f.UpdateRange(vector[f]);
+            #endregion
+
+            #region spatial density features
+            threads.Clear();
+            List<PostGIS.Point> densityEvalPoints = mergedVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
+            Dictionary<int, List<float>> featureIdDensityValues = new Dictionary<int, List<float>>(Configuration.ProcessorCount);
+            for (int i = 0; i < Configuration.ProcessorCount; ++i)
+            {
+                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    {
+                        int skip = (int)o;
+
+                        NpgsqlConnection connection = DB.Connection.OpenConnection;
+                        foreach (Feature f in Features)
+                            if (f.EnumType == typeof(SpatialDistanceFeature) && f.EnumValue.Equals(SpatialDistanceFeature.GeometryDensity))
+                                if (skip-- == 0)
+                                {
+                                    Shapefile shapefile = new Shapefile(int.Parse(training ? f.TrainingResourceId : f.PredictionResourceId));
+                                    Console.Out.WriteLine("Computing spatial density of shapefile \"" + shapefile.Name + "\".");
+
+                                    Dictionary<string, string> constraints = new Dictionary<string, string>();
+                                    constraints.Add(ShapefileGeometry.Columns.ShapefileId, shapefile.Id.ToString());
+                                    List<PostGIS.Point> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(area.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
+
+                                    List<float> densityValues = KernelDensityDCM.GetDensityEstimate(points, 1000, false, -1, -1, densityEvalPoints, false);
+                                    if (densityValues.Count == mergedVectors.Count)
+                                        lock (featureIdDensityValues) { featureIdDensityValues.Add(f.Id, densityValues); }
+
+                                    skip = Configuration.ProcessorCount - 1;
+                                }
+
+                        DB.Connection.Return(connection);
+                    }));
+
+                t.Start(i);
+                threads.Add(t);
+            }
+
+            foreach (Thread t in threads)
+                t.Join();
+
+            foreach (int featureId in featureIdDensityValues.Keys)
+            {
+                List<float> densityValues = featureIdDensityValues[featureId];
+                for (int i = 0; i < densityValues.Count; ++i)
+                    mergedVectors[i].Add(idFeature[featureId], densityValues[i]);
+            }
             #endregion
 
             #region kde
@@ -594,9 +655,10 @@ namespace PTL.ATT.Models
             if (Features.Count == 0)
                 throw new Exception("Must select one or more features.");
 
-            // all features must reference a shapefile that is valid for the prediction area's SRID
+            // all features must reference a shapefile that is valid for the prediction area's SRID -- might not be the case because we allow remapping
             Set<int> shapefilesInPredictionSRID = new Set<int>(Shapefile.GetForSRID(prediction.PredictionArea.SRID).Select(s => s.Id).ToArray());
-            string badFeatures = Features.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.DistanceShapefile) && !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
+            string badFeatures = Features.Where(f => (f.EnumValue.Equals(SpatialDistanceFeature.MinimumDistanceToGeometry) || f.EnumValue.Equals(SpatialDistanceFeature.GeometryDensity)) && 
+                                                     !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
             if (badFeatures.Length > 0)
                 throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction.");
 
