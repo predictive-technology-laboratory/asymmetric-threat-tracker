@@ -178,9 +178,9 @@ namespace PTL.ATT.Models
 
         public override string ToString()
         {
-            string enumStr = _enumType.ToString();
-            enumStr = enumStr.Substring(enumStr.LastIndexOf("+") + 1);
-            return _description + " (" + enumStr + ")" + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
+            string enumTypeStr = _enumType.ToString();
+            enumTypeStr = enumTypeStr.Substring(enumTypeStr.LastIndexOf("+") + 1);
+            return _description + " (" + enumTypeStr + ")" + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
         }
 
         public override bool Equals(object obj)

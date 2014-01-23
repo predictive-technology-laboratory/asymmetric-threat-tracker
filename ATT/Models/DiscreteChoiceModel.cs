@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -128,7 +128,7 @@ namespace PTL.ATT.Models
             }
 
             int dcmId = Convert.ToInt32(cmd.ExecuteScalar());
-        
+
             string modelDirectory = Path.Combine(Configuration.ModelsDirectory, dcmId.ToString());
 
             if (Directory.Exists(modelDirectory))
@@ -408,15 +408,13 @@ namespace PTL.ATT.Models
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
+            DiscreteChoiceModel modelCopy = null;
             Prediction prediction = null;
             try
             {
-                DiscreteChoiceModel copy = DiscreteChoiceModel.Instantiate(Copy());
-
-                prediction = new Prediction(Prediction.Create(cmd.Connection, copy.Id, newRun, predictionName, predictionArea.Id, startTime, endTime, true));
-
-                copy.Run(prediction);
-
+                modelCopy = DiscreteChoiceModel.Instantiate(Copy());
+                prediction = new Prediction(Prediction.Create(cmd.Connection, modelCopy.Id, newRun, predictionName, predictionArea.Id, startTime, endTime, true));
+                modelCopy.Run(prediction);
                 prediction.Done = true;
 
                 return prediction.Id;
@@ -428,6 +426,9 @@ namespace PTL.ATT.Models
 
                 try { prediction.Delete(); }
                 catch (Exception ex2) { Console.Out.WriteLine("Failed to delete prediction:  " + ex2.Message); }
+
+                try { modelCopy.Delete(); }
+                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete model:  " + ex2.Message); }
 
                 throw ex;
             }

@@ -111,8 +111,8 @@ namespace PTL.ATT.GUI.Visualization
                         int shapefileId = -1;
                         try
                         {
-                            shapefileId = Shapefile.Create(cmd.Connection, name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.DistanceFeature);
-                            ShapefileGeometry.Create(cmd.Connection, shapefileId, elements.Items.Cast<Geometry>().ToList());
+                            shapefileId = Shapefile.Create(cmd.Connection, name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.Feature);
+                            ShapefileGeometry.Create(cmd.Connection, shapefileId, elements.Items.Cast<Geometry>().Select(g => new Tuple<Geometry, DateTime>(g, DateTime.MinValue)).ToList());
                             MessageBox.Show("Shapefile \"" + name + "\" created.");
                             elements.Items.Clear();
                             points.Items.Clear();

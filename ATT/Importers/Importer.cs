@@ -29,6 +29,25 @@ namespace PTL.ATT.Importers
 {
     public abstract class Importer
     {
-        public abstract void Import(string path, string table, string columns);
+        private string _table;
+        private string _insertColumns;
+
+        public string Table
+        {
+            get { return _table; }
+        }
+
+        public string InsertColumns
+        {
+            get { return _insertColumns; }
+        }
+
+        public Importer(string table, string insertColumns)
+        {
+            _table = table;
+            _insertColumns = insertColumns;
+        }
+
+        public abstract void Import(string path);
     }
 }

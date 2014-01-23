@@ -1,4 +1,4 @@
-﻿Instead of using distance to nearest spatial entity, we could create a density map of the entities and then use the value of the density function.
+﻿Handle shapefile density features appropriately for timeslice model
 Multiple kernel learning
   * http://www2.csie.ntu.edu.tw/~b95028/software/liblinear-mkl/index.php
   * http://research.microsoft.com/en-us/um/people/manik/code/GMKL/download.html
