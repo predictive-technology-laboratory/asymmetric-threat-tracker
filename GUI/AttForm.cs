@@ -325,10 +325,44 @@ namespace PTL.ATT.GUI
 
         private void importPointfileFromDiskToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ImportPointfile(ImportSource.LocalFile);
         }
 
         private void importPointfileFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ImportPointfile(ImportSource.URI);
+        }
+
+        private void ImportPointfile(ImportSource importSource)
+        {
+            Import(importSource,
+                   Configuration.EventsImportDirectory,
+                   Configuration.EventsImportDirectory,
+                   new Action<DynamicForm>(f => f.AddTextBox("Import name:", null, 30, "name")),
+                   new Func<Area, string[]>(importArea => new string[] { XmlImporter.PointfileXmlRowInserter.Columns.Id,
+                                                                         XmlImporter.PointfileXmlRowInserter.Columns.X, 
+                                                                         XmlImporter.PointfileXmlRowInserter.Columns.Y,
+                                                                         XmlImporter.PointfileXmlRowInserter.Columns.Time }),
+                   new Func<Type[]>(() => Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray()),
+                   new Func<Dictionary<string, string>, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, importArea, sourceSRID, rowInserterType, importerForm) =>
+                   {
+                       string table = ShapefileGeometry.GetTableName(importArea.SRID);
+                       string name = importerForm.GetValue<string>("name").Trim();
+                       if (name == "")
+                           name = Path.GetFileNameWithoutExtension(importerForm.GetValue<string>("path"));
+
+                       NpgsqlConnection connection = DB.Connection.OpenConnection;
+                       int shapefileId = Shapefile.Create(connection, name, importArea.SRID, Shapefile.ShapefileType.Feature);
+
+                       XmlImporter.XmlRowInserter rowInserter;
+                       if (rowInserterType == typeof(XmlImporter.PointfileXmlRowInserter))
+                           rowInserter = new XmlImporter.PointfileXmlRowInserter(dbColInputCol, sourceSRID, importArea, shapefileId);
+                       else
+                           throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
+
+                       return new XmlImporter(table, ShapefileGeometry.Columns.Insert, rowInserter, "row", "row");
+                   }
+            ));
         }
 
         private void deleteGeographicDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -345,10 +379,19 @@ namespace PTL.ATT.GUI
                     Shapefile[] selected = f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("shapefiles").Cast<Shapefile>().ToArray();
                     if (selected.Length > 0 && MessageBox.Show("Are you sure you want to delete " + selected.Length + " item(s)?", "Confirm delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
                     {
+                        int deleted = 0;
                         foreach (Shapefile shapefile in selected)
-                            shapefile.Delete();
+                        {
+                            if (DiscreteChoiceModel.GetAll(false).Where(m => m is IFeatureBasedDCM).SelectMany(m => (m as IFeatureBasedDCM).Features).Any(feat => feat.TrainingResourceId == shapefile.Id.ToString() || feat.PredictionResourceId == shapefile.Id.ToString()))
+                                Console.Out.WriteLine("Cannot delete shapefile \"" + shapefile.Name + "\" because it is used in a model.");
+                            else
+                            {
+                                shapefile.Delete();
+                                ++deleted;
+                            }
+                        }
 
-                        Console.Out.WriteLine("Deleted " + selected.Length + " item(s)");
+                        Console.Out.WriteLine("Deleted " + deleted + " item(s)");
                     }
                 }
             }
@@ -1811,7 +1854,8 @@ namespace PTL.ATT.GUI
             using (Stream responseStream = response.GetResponseStream())
             {
                 long totalBytesRead = 0;
-                long bytesUntilUpdate = 5 * (long)Math.Pow(2, 20);  // update every 5MB
+                long bytesInMB = (long)Math.Pow(2, 20);
+                long bytesUntilUpdate = 5 * bytesInMB;
                 byte[] buffer = new byte[1024 * 64];
                 int bytesRead;
                 while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
@@ -1821,8 +1865,8 @@ namespace PTL.ATT.GUI
                     bytesUntilUpdate -= bytesRead;
                     if (bytesUntilUpdate <= 0)
                     {
-                        bytesUntilUpdate = 5 * (long)Math.Pow(2, 20);
-                        Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesUntilUpdate) + " MB...");
+                        bytesUntilUpdate = 5 * bytesInMB;
+                        Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesInMB) + " MB...");
                     }
                 }
                 downloadFile.Close();

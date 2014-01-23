@@ -523,13 +523,13 @@ namespace PTL.ATT.Models
                                 if (skip-- == 0)
                                 {
                                     Shapefile shapefile = new Shapefile(int.Parse(training ? f.TrainingResourceId : f.PredictionResourceId));
-                                    Console.Out.WriteLine("Computing spatial density of shapefile \"" + shapefile.Name + "\".");
+                                    Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
 
                                     Dictionary<string, string> constraints = new Dictionary<string, string>();
                                     constraints.Add(ShapefileGeometry.Columns.ShapefileId, shapefile.Id.ToString());
                                     List<PostGIS.Point> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(area.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
 
-                                    List<float> densityValues = KernelDensityDCM.GetDensityEstimate(points, 1000, false, -1, -1, densityEvalPoints, false);
+                                    List<float> densityValues = KernelDensityDCM.GetDensityEstimate(points, 1000, false, -1, -1, densityEvalPoints, true);
                                     if (densityValues.Count == mergedVectors.Count)
                                         lock (featureIdDensityValues) { featureIdDensityValues.Add(f.Id, densityValues); }
 

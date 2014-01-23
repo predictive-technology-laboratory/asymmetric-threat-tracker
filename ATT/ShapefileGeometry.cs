@@ -41,7 +41,7 @@ namespace PTL.ATT
             [Reflector.Insert]
             public const string Time = "time";
 
-            internal static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
+            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
         }
 
         public static string GetTableName(int srid)
@@ -87,7 +87,7 @@ namespace PTL.ATT
             foreach (Tuple<Geometry, DateTime> geometryTime in geometryTimes)
             {
                 string timeParamName = "time_" + num;
-                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + geometryTime.Item1.StGeometryFromText + "," + shapefileId + ",@" + timeParamName + ")");
+                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + GetValue(geometryTime.Item1, srid, shapefileId, timeParamName) + ")");
                 cmdParams.Add(new Parameter(timeParamName, NpgsqlTypes.NpgsqlDbType.Timestamp, geometryTime.Item2));
 
                 if (++num == numPerBatch)
@@ -133,6 +133,11 @@ namespace PTL.ATT
                     Columns.Time + " TIMESTAMP);" +
                     "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
                     "CREATE INDEX ON " + tableName + " (" + Columns.ShapefileId + ");");
+        }
+
+        public static string GetValue(Geometry geometry, int targetSRID, int shapefileId, string timeParamName)
+        {
+            return (geometry.SRID == targetSRID ? geometry.StGeometryFromText : "st_transform(" + geometry.StGeometryFromText + "," + targetSRID + ")") + "," + shapefileId + ",@" + timeParamName;
         }
     }
 }

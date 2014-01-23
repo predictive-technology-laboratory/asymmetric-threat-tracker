@@ -75,6 +75,17 @@ namespace PTL.ATT.GUI
         }
         #endregion
 
+        #region events
+        private static string _eventsImportDirectory;
+
+        public static string EventsImportDirectory
+        {
+            get { return Configuration._eventsImportDirectory; }
+            set { Configuration._eventsImportDirectory = value; }
+        }
+
+        #endregion
+
         #region plugins
         private static Set<Plugin> _pluginTypes;
 
@@ -215,6 +226,9 @@ namespace PTL.ATT.GUI
 
             XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
             _incidentsImportDirectory = incidentsP.ElementText("import_directory");
+
+            XmlParser eventsP = new XmlParser(p.OuterXML("events"));
+            _eventsImportDirectory = eventsP.ElementText("import_directory");
 
             _pluginTypes = new Set<Plugin>();
             XmlParser pluginsP = new XmlParser(p.OuterXML("plugins"));

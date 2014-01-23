@@ -91,18 +91,54 @@ namespace PTL.ATT.Importers
 
         public class PointfileXmlRowInserter : XmlRowInserter
         {
+            public static class Columns
+            {
+                public const string Id = "Id";
+                public const string X = "X";
+                public const string Y = "Y";
+                public const string Time = "Time";
+            }
+
             private Dictionary<string, string> _dbColInputCol;
             private int _sourceSRID;
+            private Area _importArea;
+            private int _shapefileId;
 
-            public PointfileXmlRowInserter(Dictionary<string, string> dbColSocrataCol, int sourceSRID)
+            public PointfileXmlRowInserter(Dictionary<string, string> dbColSocrataCol, int sourceSRID, Area importArea, int shapefileId)
             {
                 _dbColInputCol = dbColSocrataCol;
                 _sourceSRID = sourceSRID;
+                _importArea = importArea;
+                _shapefileId = shapefileId;
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser)
             {
-                throw new NotImplementedException();
+                int id;
+                if (!int.TryParse(xmlRowParser.ElementText(_dbColInputCol[Columns.Id]), out id))
+                    return null;
+
+                xmlRowParser.Reset();
+
+                double x;
+                if (!double.TryParse(xmlRowParser.ElementText(_dbColInputCol[Columns.X]), out x))
+                    return null;
+
+                xmlRowParser.Reset();
+
+                double y;
+                if (!double.TryParse(xmlRowParser.ElementText(_dbColInputCol[Columns.Y]), out y))
+                    return null;
+
+                xmlRowParser.Reset();
+
+                DateTime time;
+                if (!DateTime.TryParse(xmlRowParser.ElementText(_dbColInputCol[Columns.Time]), out time))
+                    return null;
+
+                string timeParamName = "time_" + id;
+                List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter(timeParamName, NpgsqlDbType.Timestamp, time) });
+                return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.SRID, _shapefileId, timeParamName), parameters);
             }
         }
         #endregion

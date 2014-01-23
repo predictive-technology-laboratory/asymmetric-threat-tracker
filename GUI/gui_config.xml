@@ -4,7 +4,7 @@
   <application_data_directory></application_data_directory> <!-- Path to application data directory. If left blank, the default local application data directory will be used. -->
   
   <postgis>
-    <shapefile_directory></shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., the Shapefiles sub-directory of the ATT/Data/Shapefiles installation directory). -->
+    <shapefile_directory></shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., ATT/Data/Shapefiles). -->
   </postgis>
 
   <logging>
@@ -12,8 +12,12 @@
   </logging>
 
   <incidents>
-    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for incidents to import (e.g., the Crimes sub-directory of the ATT/Data/Crimes installation directory). -->
+    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for incidents to import (e.g., ATT/Data/Crimes). -->
   </incidents>
+
+  <events>
+    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for events to import (e.g., ATT/Data/Events). -->
+  </events>  
 
   <plugins>
     <!-- Each element within <plugins> should have the form <plugin>typename</plugin>, where typename is the type of the plugin.  -->
