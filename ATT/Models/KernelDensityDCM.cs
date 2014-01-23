@@ -253,7 +253,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                                           "WHERE " + Columns.Id + "=" + Id);
         }
 
-        internal override void Run(Prediction prediction)
+        protected override void Run(Prediction prediction)
         {
             List<PostGIS.Point> nullPoints = new List<PostGIS.Point>();
             Area predictionArea = prediction.PredictionArea;

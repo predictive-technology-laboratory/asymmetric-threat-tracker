@@ -27,9 +27,5 @@ namespace PTL.ATT.Models
     public interface IFeatureBasedDCM : IDiscreteChoiceModel
     {
         ICollection<Feature> Features { get; }
-
-        void SelectFeatures(Prediction prediction, bool runPredictionAfterSelect);
-
-        int Run(Prediction prediction, bool train, bool runFeatureSelection, bool predict);
     }
 }

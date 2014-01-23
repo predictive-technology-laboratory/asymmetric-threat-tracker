@@ -438,7 +438,7 @@ namespace PTL.ATT.Models
             }
         }
 
-        internal abstract void Run(Prediction prediction);
+        protected abstract void Run(Prediction prediction);
 
         public abstract string GetPointIdForLog(int id, DateTime time);
 

@@ -162,13 +162,13 @@ namespace PTL.ATT.Models
                 {
                     foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                         if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " - min. dist.");
+                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (DISTANCE)");
                 }
                 else if (f == SpatialDistanceFeature.GeometryDensity)
                 {
                     foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                         if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " - density");
+                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (DENSITY)");
                 }
                 else if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
                     foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
@@ -508,72 +508,60 @@ namespace PTL.ATT.Models
             #endregion
 
             #region spatial density features
-            threads.Clear();
-            List<PostGIS.Point> densityEvalPoints = mergedVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
-            Dictionary<int, List<float>> featureIdDensityValues = new Dictionary<int, List<float>>(Configuration.ProcessorCount);
-            for (int i = 0; i < Configuration.ProcessorCount; ++i)
+            List<Feature> spatialDensityFeatures = Features.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.GeometryDensity)).ToList();
+            if (spatialDensityFeatures.Count > 0)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
-                    {
-                        int skip = (int)o;
-
-                        NpgsqlConnection connection = DB.Connection.OpenConnection;
-                        foreach (Feature f in Features)
-                            if (f.EnumType == typeof(SpatialDistanceFeature) && f.EnumValue.Equals(SpatialDistanceFeature.GeometryDensity))
+                threads.Clear();
+                List<PostGIS.Point> densityEvalPoints = mergedVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
+                Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(spatialDensityFeatures.Count);
+                for (int i = 0; i < Configuration.ProcessorCount; ++i)
+                {
+                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                        {
+                            int skip = (int)o;
+                            NpgsqlConnection connection = DB.Connection.OpenConnection;
+                            foreach (Feature spatialDensityFeature in spatialDensityFeatures)
                                 if (skip-- == 0)
                                 {
-                                    Shapefile shapefile = new Shapefile(int.Parse(training ? f.TrainingResourceId : f.PredictionResourceId));
+                                    Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                     Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
 
                                     Dictionary<string, string> constraints = new Dictionary<string, string>();
                                     constraints.Add(ShapefileGeometry.Columns.ShapefileId, shapefile.Id.ToString());
-                                    List<PostGIS.Point> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(area.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
-
-                                    List<float> densityValues = KernelDensityDCM.GetDensityEstimate(points, 1000, false, -1, -1, densityEvalPoints, true);
-                                    if (densityValues.Count == mergedVectors.Count)
-                                        lock (featureIdDensityValues) { featureIdDensityValues.Add(f.Id, densityValues); }
+                                    List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(area.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
+                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 1000, false, -1, -1, densityEvalPoints, true);
+                                    if (densityEstimates.Count == densityEvalPoints.Count)
+                                        lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
 
                                     skip = Configuration.ProcessorCount - 1;
                                 }
 
-                        DB.Connection.Return(connection);
-                    }));
+                            DB.Connection.Return(connection);
+                        }));
 
-                t.Start(i);
-                threads.Add(t);
-            }
+                    t.Start(i);
+                    threads.Add(t);
+                }
 
-            foreach (Thread t in threads)
-                t.Join();
+                foreach (Thread t in threads)
+                    t.Join();
 
-            foreach (int featureId in featureIdDensityValues.Keys)
-            {
-                List<float> densityValues = featureIdDensityValues[featureId];
-                for (int i = 0; i < densityValues.Count; ++i)
-                    mergedVectors[i].Add(idFeature[featureId], densityValues[i]);
+                foreach (int featureId in featureIdDensityEstimates.Keys)
+                {
+                    List<float> densityEstimates = featureIdDensityEstimates[featureId];
+                    for (int i = 0; i < densityEstimates.Count; ++i)
+                        mergedVectors[i].Add(idFeature[featureId], densityEstimates[i]);
+                }
             }
             #endregion
 
             #region kde
-            // all density features should have events in the area
-            if (Features.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.IncidentKernelDensityEstimate)).Any(f => Incident.Count(TrainingStart, TrainingEnd, area, training ? f.TrainingResourceId : f.PredictionResourceId) == 0))
-                Console.Out.WriteLine("WARNING:  One or more density features reference incident types that are not present in the area \"" + area.Name + "\". This can happen when predicting on an area that is different from the training area. In such cases, the features can be remapped during prediction.");
-
             List<Feature> kdeFeatures = Features.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.IncidentKernelDensityEstimate)).ToList();
             if (kdeFeatures.Count > 0)
             {
-                List<PostGIS.Point> kdeEvalPoints = new List<PostGIS.Point>(mergedVectors.Count);
-                foreach (FeatureVector mergedVector in mergedVectors)
-                {
-                    Point p = mergedVector.DerivedFrom as Point;
-                    if (p == null)
-                        throw new NullReferenceException("Expected Point object");
-                    else
-                        kdeEvalPoints.Add(p.Location);
-                }
-
-                Dictionary<Feature, List<float>> kdeFeatureDensityEstimates = new Dictionary<Feature, List<float>>(kdeFeatures.Count);
-                threads = new Set<Thread>(Configuration.ProcessorCount);
+                threads.Clear();
+                List<PostGIS.Point> densityEvalPoints = mergedVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
+                Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(kdeFeatures.Count);
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
                     Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
@@ -587,11 +575,9 @@ namespace PTL.ATT.Models
                                     Console.Out.WriteLine("Computing spatial density of \"" + incident + "\"");
 
                                     IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(TrainingStart, TrainingEnd, area, incident).Select(inc => inc.Location);
-                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 500, false, 0, 0, kdeEvalPoints, true);
-                                    lock (kdeFeatureDensityEstimates)
-                                    {
-                                        kdeFeatureDensityEstimates.Add(kdeFeature, densityEstimates);
-                                    }
+                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 500, false, 0, 0, densityEvalPoints, true);
+                                    if (densityEstimates.Count == densityEvalPoints.Count)
+                                        lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
 
                                     skip = Configuration.ProcessorCount - 1;
                                 }
@@ -604,12 +590,11 @@ namespace PTL.ATT.Models
                 foreach (Thread t in threads)
                     t.Join();
 
-                foreach (Feature kdeFeature in kdeFeatureDensityEstimates.Keys)
+                foreach (int featureId in featureIdDensityEstimates.Keys)
                 {
-                    int vecNum = 0;
-                    NumericFeature numericFeature = new NumericFeature(kdeFeature.Id.ToString());
-                    foreach (float densityEstimate in kdeFeatureDensityEstimates[kdeFeature])
-                        mergedVectors[vecNum++].Add(numericFeature, densityEstimate);
+                    List<float> densityEstimates = featureIdDensityEstimates[featureId];
+                    for (int i = 0; i < densityEstimates.Count; ++i)
+                        mergedVectors[i].Add(idFeature[featureId], densityEstimates[i]);
                 }
             }
             #endregion
@@ -645,12 +630,12 @@ namespace PTL.ATT.Models
             }
         }
 
-        internal override void Run(Prediction prediction)
+        protected override void Run(Prediction prediction)
         {
             Run(prediction, true, _classifier.RunFeatureSelection, true);
         }
 
-        public int Run(Prediction prediction, bool train, bool runFeatureSelection, bool predict)
+        private int Run(Prediction prediction, bool train, bool runFeatureSelection, bool predict)
         {
             if (Features.Count == 0)
                 throw new Exception("Must select one or more features.");
@@ -660,7 +645,7 @@ namespace PTL.ATT.Models
             string badFeatures = Features.Where(f => (f.EnumValue.Equals(SpatialDistanceFeature.MinimumDistanceToGeometry) || f.EnumValue.Equals(SpatialDistanceFeature.GeometryDensity)) && 
                                                      !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
             if (badFeatures.Length > 0)
-                throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction.");
+                throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction (or perhaps they were remapped incorrectly).");
 
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
