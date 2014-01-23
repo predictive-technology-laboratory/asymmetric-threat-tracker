@@ -93,7 +93,6 @@ namespace PTL.ATT.Importers
         {
             public static class Columns
             {
-                public const string Id = "Id";
                 public const string X = "X";
                 public const string Y = "Y";
                 public const string Time = "Time";
@@ -103,6 +102,7 @@ namespace PTL.ATT.Importers
             private int _sourceSRID;
             private Area _importArea;
             private int _shapefileId;
+            private int _rowNum;
 
             public PointfileXmlRowInserter(Dictionary<string, string> dbColSocrataCol, int sourceSRID, Area importArea, int shapefileId)
             {
@@ -110,16 +110,11 @@ namespace PTL.ATT.Importers
                 _sourceSRID = sourceSRID;
                 _importArea = importArea;
                 _shapefileId = shapefileId;
+                _rowNum = 0;
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser)
             {
-                int id;
-                if (!int.TryParse(xmlRowParser.ElementText(_dbColInputCol[Columns.Id]), out id))
-                    return null;
-
-                xmlRowParser.Reset();
-
                 double x;
                 if (!double.TryParse(xmlRowParser.ElementText(_dbColInputCol[Columns.X]), out x))
                     return null;
@@ -136,7 +131,7 @@ namespace PTL.ATT.Importers
                 if (!DateTime.TryParse(xmlRowParser.ElementText(_dbColInputCol[Columns.Time]), out time))
                     return null;
 
-                string timeParamName = "time_" + id;
+                string timeParamName = "time_" + _rowNum++;
                 List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter(timeParamName, NpgsqlDbType.Timestamp, time) });
                 return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.SRID, _shapefileId, timeParamName), parameters);
             }
