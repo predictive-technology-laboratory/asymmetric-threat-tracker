@@ -19,7 +19,7 @@
  
 namespace PTL.ATT.GUI
 {
-    partial class SpatialDistanceDcmOptions
+    partial class FeatureBasedDcmOptions
     {
         /// <summary> 
         /// Required designer variable.
@@ -64,6 +64,7 @@ namespace PTL.ATT.GUI
             this.predictionSampleSize = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.parameterizeFeatureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.classifiers = new PTL.ATT.GUI.ClassifierList();
             this.featuresMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.featureDistanceThreshold)).BeginInit();
@@ -94,14 +95,16 @@ namespace PTL.ATT.GUI
             this.features.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.features.Size = new System.Drawing.Size(228, 147);
             this.features.TabIndex = 3;
+            this.features.MouseUp += new System.Windows.Forms.MouseEventHandler(this.features_MouseUp);
             // 
             // featuresMenu
             // 
             this.featuresMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.selectAllFeaturesToolStripMenuItem,
+            this.parameterizeFeatureToolStripMenuItem,
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem});
             this.featuresMenu.Name = "featuresMenu";
-            this.featuresMenu.Size = new System.Drawing.Size(307, 48);
+            this.featuresMenu.Size = new System.Drawing.Size(307, 70);
             // 
             // selectAllFeaturesToolStripMenuItem
             // 
@@ -254,6 +257,13 @@ namespace PTL.ATT.GUI
             this.label8.TabIndex = 51;
             this.label8.Text = "points";
             // 
+            // parameterizeFeatureToolStripMenuItem
+            // 
+            this.parameterizeFeatureToolStripMenuItem.Name = "parameterizeFeatureToolStripMenuItem";
+            this.parameterizeFeatureToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.parameterizeFeatureToolStripMenuItem.Text = "Parameterize feature";
+            this.parameterizeFeatureToolStripMenuItem.Click += new System.EventHandler(this.parameterizeFeatureToolStripMenuItem_Click);
+            // 
             // classifiers
             // 
             this.classifiers.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -265,7 +275,7 @@ namespace PTL.ATT.GUI
             this.classifiers.Sorted = true;
             this.classifiers.TabIndex = 2;
             // 
-            // SpatialDistanceDcmOptions
+            // FeatureBasedDcmOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -282,7 +292,7 @@ namespace PTL.ATT.GUI
             this.Controls.Add(this.featureDistanceThreshold);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label11);
-            this.Name = "SpatialDistanceDcmOptions";
+            this.Name = "FeatureBasedDcmOptions";
             this.Size = new System.Drawing.Size(302, 392);
             this.featuresMenu.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.featureDistanceThreshold)).EndInit();
@@ -312,5 +322,6 @@ namespace PTL.ATT.GUI
         public System.Windows.Forms.NumericUpDown predictionSampleSize;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ToolTip toolTip;
+        private System.Windows.Forms.ToolStripMenuItem parameterizeFeatureToolStripMenuItem;
     }
 }

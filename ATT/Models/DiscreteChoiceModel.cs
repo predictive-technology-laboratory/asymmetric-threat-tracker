@@ -150,7 +150,7 @@ namespace PTL.ATT.Models
             while (reader.Read())
             {
                 DiscreteChoiceModel model = Instantiate(reader);
-                if (!excludeThoseCopiedForPredictions || !model.HasMadePredictions)
+                if (!excludeThoseCopiedForPredictions || (!model.HasMadePredictions && !model.IsMakingAPrediction))
                     models.Add(model);
             }
 
@@ -368,6 +368,17 @@ namespace PTL.ATT.Models
                                                                      "FROM " + Prediction.Table + " " +
                                                                      "WHERE " + Prediction.Table + "." + Prediction.Columns.ModelId + "=" + _id + " AND " +
                                                                                 Prediction.Table + "." + Prediction.Columns.Done + "=TRUE"));
+            }
+        }
+
+        public bool IsMakingAPrediction
+        {
+            get
+            {
+                return Convert.ToBoolean(DB.Connection.ExecuteScalar("SELECT COUNT(*) > 0 " +
+                                                                     "FROM " + Prediction.Table + " " +
+                                                                     "WHERE " + Prediction.Table + "." + Prediction.Columns.ModelId + "=" + _id + " AND " +
+                                                                                Prediction.Table + "." + Prediction.Columns.Done + "=FALSE"));
             }
         }
 

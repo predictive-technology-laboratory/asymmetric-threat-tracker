@@ -107,7 +107,7 @@
     <Compile Include="DB.cs" />
     <Compile Include="Evaluation\Plot.cs" />
     <Compile Include="Evaluation\SurveillancePlot.cs" />
-    <Compile Include="Models\SpatialDistanceDCM.cs" />
+    <Compile Include="Models\FeatureBasedDCM.cs" />
     <Compile Include="Models\DiscreteChoiceModel.cs" />
     <Compile Include="Models\TimeSliceDCM.cs" />
     <Compile Include="Point.cs" />

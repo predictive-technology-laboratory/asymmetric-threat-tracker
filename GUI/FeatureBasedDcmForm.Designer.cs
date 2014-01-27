@@ -19,7 +19,7 @@
  
 namespace PTL.ATT.GUI
 {
-    partial class SpatialDistanceDcmForm
+    partial class FeatureBasedDcmForm
     {
         /// <summary>
         /// Required designer variable.
@@ -47,38 +47,19 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
-            this.discreteChoiceModelOptions = new PTL.ATT.GUI.DiscreteChoiceModelOptions();
-            this.spatialDistanceDcmOptions = new PTL.ATT.GUI.SpatialDistanceDcmOptions();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.oKToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.discreteChoiceModelOptions = new PTL.ATT.GUI.DiscreteChoiceModelOptions();
+            this.featureBasedDcmOptions = new PTL.ATT.GUI.FeatureBasedDcmOptions();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // discreteChoiceModelOptions
-            // 
-            this.discreteChoiceModelOptions.DiscreteChoiceModel = null;
-            this.discreteChoiceModelOptions.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.discreteChoiceModelOptions.Location = new System.Drawing.Point(3, 3);
-            this.discreteChoiceModelOptions.MinimumSize = new System.Drawing.Size(367, 470);
-            this.discreteChoiceModelOptions.Name = "discreteChoiceModelOptions";
-            this.discreteChoiceModelOptions.Size = new System.Drawing.Size(570, 510);
-            this.discreteChoiceModelOptions.TabIndex = 0;
-            // 
-            // spatialDistanceDcmOptions
-            // 
-            this.spatialDistanceDcmOptions.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spatialDistanceDcmOptions.Location = new System.Drawing.Point(3, 3);
-            this.spatialDistanceDcmOptions.Name = "spatialDistanceDcmOptions";
-            this.spatialDistanceDcmOptions.Size = new System.Drawing.Size(570, 510);
-            this.spatialDistanceDcmOptions.SpatialDistanceDCM = null;
-            this.spatialDistanceDcmOptions.TabIndex = 0;
             // 
             // tabControl1
             // 
@@ -104,13 +85,13 @@ namespace PTL.ATT.GUI
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.spatialDistanceDcmOptions);
+            this.tabPage2.Controls.Add(this.featureBasedDcmOptions);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(576, 516);
             this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Spatial Distance DCM Options";
+            this.tabPage2.Text = "Feature-based DCM Options";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // menuStrip1
@@ -138,7 +119,26 @@ namespace PTL.ATT.GUI
             this.cancelToolStripMenuItem.Text = "Cancel";
             this.cancelToolStripMenuItem.Click += new System.EventHandler(this.cancel_Click);
             // 
-            // SpatialDistanceDcmForm
+            // discreteChoiceModelOptions
+            // 
+            this.discreteChoiceModelOptions.DiscreteChoiceModel = null;
+            this.discreteChoiceModelOptions.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.discreteChoiceModelOptions.Location = new System.Drawing.Point(3, 3);
+            this.discreteChoiceModelOptions.MinimumSize = new System.Drawing.Size(367, 470);
+            this.discreteChoiceModelOptions.Name = "discreteChoiceModelOptions";
+            this.discreteChoiceModelOptions.Size = new System.Drawing.Size(570, 510);
+            this.discreteChoiceModelOptions.TabIndex = 0;
+            // 
+            // featureBasedDcmOptions
+            // 
+            this.featureBasedDcmOptions.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.featureBasedDcmOptions.FeatureBasedDCM = null;
+            this.featureBasedDcmOptions.Location = new System.Drawing.Point(3, 3);
+            this.featureBasedDcmOptions.Name = "featureBasedDcmOptions";
+            this.featureBasedDcmOptions.Size = new System.Drawing.Size(570, 510);
+            this.featureBasedDcmOptions.TabIndex = 0;
+            // 
+            // FeatureBasedDcmForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -147,9 +147,9 @@ namespace PTL.ATT.GUI
             this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.MainMenuStrip = this.menuStrip1;
-            this.Name = "SpatialDistanceDcmForm";
+            this.Name = "FeatureBasedDcmForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Configure Spatial Distance DCM...";
+            this.Text = "Configure Feature-based DCM...";
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -163,7 +163,7 @@ namespace PTL.ATT.GUI
         #endregion
 
         public DiscreteChoiceModelOptions discreteChoiceModelOptions;
-        public SpatialDistanceDcmOptions spatialDistanceDcmOptions;
+        public FeatureBasedDcmOptions featureBasedDcmOptions;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;

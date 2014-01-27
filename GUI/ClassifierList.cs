@@ -38,7 +38,7 @@ namespace PTL.ATT.GUI
             InitializeComponent();
         }
 
-        public void Populate(SpatialDistanceDCM m)
+        public void Populate(FeatureBasedDCM m)
         {
             Items.Clear();
 

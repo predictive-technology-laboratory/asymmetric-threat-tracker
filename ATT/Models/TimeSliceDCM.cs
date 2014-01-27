@@ -36,7 +36,7 @@ using PTL.ATT.Smoothers;
 
 namespace PTL.ATT.Models
 {
-    public class TimeSliceDCM : SpatialDistanceDCM
+    public class TimeSliceDCM : FeatureBasedDCM
     {
         public enum TimeSliceFeature
         {
@@ -103,15 +103,15 @@ namespace PTL.ATT.Models
             public const string TimeSliceHours = "time_slice_hours";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return SpatialDistanceDCM.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
-            public static string JoinSpatialDistanceDCM { get { return SpatialDistanceDCM.Columns.JoinDiscreteChoiceModel + " JOIN " + Table + " ON " + SpatialDistanceDCM.Table + "." + SpatialDistanceDCM.Columns.Id + "=" + Table + "." + Columns.Id; } }
+            public static string Select { get { return FeatureBasedDCM.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
+            public static string JoinFeatureBasedDCM { get { return FeatureBasedDCM.Columns.JoinDiscreteChoiceModel + " JOIN " + Table + " ON " + FeatureBasedDCM.Table + "." + FeatureBasedDCM.Columns.Id + "=" + Table + "." + Columns.Id; } }
         }
 
-        [ConnectionPool.CreateTable(typeof(SpatialDistanceDCM))]
+        [ConnectionPool.CreateTable(typeof(FeatureBasedDCM))]
         private static string CreateTable(ConnectionPool connection)
         {
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                   Columns.Id + " INT PRIMARY KEY REFERENCES " + SpatialDistanceDCM.Table + " ON DELETE CASCADE," +
+                   Columns.Id + " INT PRIMARY KEY REFERENCES " + FeatureBasedDCM.Table + " ON DELETE CASCADE," +
                    Columns.PeriodTimeSlices + " INT," +
                    Columns.TimeSliceHours + " INT);";
         }
@@ -147,9 +147,9 @@ namespace PTL.ATT.Models
             if (type == null)
                 type = typeof(TimeSliceDCM);
 
-            int spatialDistanceDcmId = SpatialDistanceDCM.Create(cmd.Connection, name, pointSpacing, featureDistanceThreshold, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
+            int featureBasedDcmId = FeatureBasedDCM.Create(cmd.Connection, name, pointSpacing, featureDistanceThreshold, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
 
-            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + spatialDistanceDcmId + "," + periodTimeSlices + "," + timeSliceHours + ")";
+            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + featureBasedDcmId + "," + periodTimeSlices + "," + timeSliceHours + ")";
             cmd.ExecuteNonQuery();
 
             if (returnConnection)
@@ -158,19 +158,19 @@ namespace PTL.ATT.Models
                 cmd.ExecuteNonQuery();
                 DB.Connection.Return(cmd.Connection);
 
-                (SpatialDistanceDCM.Instantiate(spatialDistanceDcmId) as TimeSliceDCM).Features = features;
+                (FeatureBasedDCM.Instantiate(featureBasedDcmId) as TimeSliceDCM).Features = features;
             }
 
-            return spatialDistanceDcmId;
+            return featureBasedDcmId;
         }
 
         public new static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
-            foreach (Feature f in SpatialDistanceDCM.GetAvailableFeatures(area))
+            foreach (Feature f in FeatureBasedDCM.GetAvailableFeatures(area))
                 yield return f;
 
             foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
-                yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString());
+                yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString(), null);
 
             FeatureExtractor externalFeatureExtractor;
             if (Configuration.TryGetFeatureExtractor(typeof(TimeSliceDCM), out externalFeatureExtractor))
@@ -200,7 +200,7 @@ namespace PTL.ATT.Models
         internal TimeSliceDCM(int id)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
-                                                         "FROM " + Columns.JoinSpatialDistanceDCM + " " +
+                                                         "FROM " + Columns.JoinFeatureBasedDCM + " " +
                                                          "WHERE " + Table + "." + Columns.Id + "=" + id);
 
             NpgsqlDataReader reader = cmd.ExecuteReader();
@@ -235,7 +235,7 @@ namespace PTL.ATT.Models
 
         protected override IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
         {
-            foreach (FeatureVectorList spatialVectors in base.ExtractFeatureVectors(prediction, training))
+            foreach (FeatureVectorList vectors in base.ExtractFeatureVectors(prediction, training))
             {
                 Dictionary<TimeSliceFeature, int> featureId = new Dictionary<TimeSliceFeature, int>();
                 Dictionary<TimeSliceFeature, NumericFeature> featureNumeric = new Dictionary<TimeSliceFeature, NumericFeature>();
@@ -258,7 +258,7 @@ namespace PTL.ATT.Models
                 int numFeatures = Features.Count(f => f.EnumType == typeof(TimeSliceFeature)) + (ExternalFeatureExtractor == null ? 0 : ExternalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
                 List<TimeSliceFeature> dayIntervals = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
 
-                Console.Out.WriteLine("Extracting " + featureId.Count + " time slice features for " + spatialVectors.Count + " spatial points across " + numSlices + " time slices");
+                Console.Out.WriteLine("Extracting " + featureId.Count + " time slice features for " + vectors.Count + " spatial points across " + numSlices + " time slices");
 
                 List<FeatureVectorList> coreFeatureVectors = new List<FeatureVectorList>(Configuration.ProcessorCount);
                 int slicesPerCore = (numSlices / Configuration.ProcessorCount) + 1;
@@ -269,7 +269,7 @@ namespace PTL.ATT.Models
                         {
                             Tuple<long, long> startEnd = o as Tuple<long, long>;
 
-                            FeatureVectorList featureVectors = new FeatureVectorList(slicesPerCore * spatialVectors.Count);
+                            FeatureVectorList featureVectors = new FeatureVectorList(slicesPerCore * vectors.Count);
                             for (long slice = startEnd.Item1; slice <= startEnd.Item2 && slice <= lastSlice; ++slice)
                             {
                                 DateTime sliceStart = new DateTime(slice * sliceTicks);
@@ -295,9 +295,9 @@ namespace PTL.ATT.Models
                                 }
                                 #endregion
 
-                                foreach (FeatureVector spatialVector in spatialVectors)
+                                foreach (FeatureVector vector in vectors)
                                 {
-                                    Point spatialPoint = spatialVector.DerivedFrom as Point;
+                                    Point spatialPoint = vector.DerivedFrom as Point;
 
                                     Point timeSlicePoint;
                                     if (spatialPoint.Time == DateTime.MinValue)
@@ -309,7 +309,7 @@ namespace PTL.ATT.Models
 
                                     FeatureVector timeSliceVector = new FeatureVector(timeSlicePoint, numFeatures);
                                     timeSliceVector.DerivedFrom.TrueClass = spatialPoint.TrueClass;
-                                    timeSliceVector.Add(spatialVector);
+                                    timeSliceVector.Add(vector);
 
                                     foreach (LAIR.MachineLearning.Feature feature in intervalFeatures)
                                         timeSliceVector.Add(feature, 1);
@@ -353,8 +353,8 @@ namespace PTL.ATT.Models
                 {
                     Console.Out.WriteLine("Running external feature extractor for " + typeof(TimeSliceDCM));
 
-                    foreach (FeatureVectorList featureVectors in ExternalFeatureExtractor.ExtractFeatures(typeof(TimeSliceDCM), prediction, timeSliceVectors, training))
-                        yield return featureVectors;
+                    foreach (FeatureVectorList externalVectors in ExternalFeatureExtractor.ExtractFeatures(typeof(TimeSliceDCM), prediction, timeSliceVectors, training))
+                        yield return externalVectors;
                 }
                 else
                     yield return timeSliceVectors;

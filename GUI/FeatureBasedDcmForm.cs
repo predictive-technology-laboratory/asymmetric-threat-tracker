@@ -31,32 +31,32 @@ using PTL.ATT.Classifiers;
 
 namespace PTL.ATT.GUI
 {
-    public partial class SpatialDistanceDcmForm : Form
+    public partial class FeatureBasedDcmForm : Form
     {
-        public SpatialDistanceDcmForm()
+        public FeatureBasedDcmForm()
         {
             InitializeComponent();
 
             discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += new EventHandler((o, e) =>
                 {
-                    spatialDistanceDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
-                    spatialDistanceDcmOptions.RefreshAll();
+                    featureBasedDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
+                    featureBasedDcmOptions.RefreshAll();
                 });
 
-            spatialDistanceDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => SpatialDistanceDCM.GetAvailableFeatures(a).ToList());
+            featureBasedDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => FeatureBasedDCM.GetAvailableFeatures(a).ToList());
 
             discreteChoiceModelOptions.RefreshAreas();
         }
 
-        public SpatialDistanceDcmForm(SpatialDistanceDCM current)
+        public FeatureBasedDcmForm(FeatureBasedDCM current)
             : this()
         {
-            discreteChoiceModelOptions.DiscreteChoiceModel = spatialDistanceDcmOptions.SpatialDistanceDCM = current;
+            discreteChoiceModelOptions.DiscreteChoiceModel = featureBasedDcmOptions.FeatureBasedDCM = current;
         }
 
         private void ok_Click(object sender, EventArgs e)
         {
-            string errors = discreteChoiceModelOptions.ValidateInput() + spatialDistanceDcmOptions.ValidateInput();
+            string errors = discreteChoiceModelOptions.ValidateInput() + featureBasedDcmOptions.ValidateInput();
             if (errors != "")
             {
                 MessageBox.Show(errors);

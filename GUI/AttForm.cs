@@ -665,24 +665,24 @@ namespace PTL.ATT.GUI
                                                                  f.kernelDensityDcmOptions.Normalize,
                                                                  f.discreteChoiceModelOptions.Smoothers);
                     }
-                    else if (modelType == typeof(SpatialDistanceDCM))
+                    else if (modelType == typeof(FeatureBasedDCM))
                     {
-                        SpatialDistanceDcmForm f = new SpatialDistanceDcmForm();
+                        FeatureBasedDcmForm f = new FeatureBasedDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            newModelId = SpatialDistanceDCM.Create(null,
-                                                                   f.discreteChoiceModelOptions.ModelName,
-                                                                   f.discreteChoiceModelOptions.PointSpacing,
-                                                                   f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
-                                                                   null,
-                                                                   f.discreteChoiceModelOptions.TrainingArea,
-                                                                   f.discreteChoiceModelOptions.TrainingStart,
-                                                                   f.discreteChoiceModelOptions.TrainingEnd,
-                                                                   f.spatialDistanceDcmOptions.TrainingSampleSize,
-                                                                   f.spatialDistanceDcmOptions.PredictionSampleSize,
-                                                                   f.discreteChoiceModelOptions.IncidentTypes,
-                                                                   f.spatialDistanceDcmOptions.Classifier,
-                                                                   f.discreteChoiceModelOptions.Smoothers,
-                                                                   f.spatialDistanceDcmOptions.Features);
+                            newModelId = FeatureBasedDCM.Create(null,
+                                                                f.discreteChoiceModelOptions.ModelName,
+                                                                f.discreteChoiceModelOptions.PointSpacing,
+                                                                f.featureBasedDcmOptions.FeatureDistanceThreshold,
+                                                                null,
+                                                                f.discreteChoiceModelOptions.TrainingArea,
+                                                                f.discreteChoiceModelOptions.TrainingStart,
+                                                                f.discreteChoiceModelOptions.TrainingEnd,
+                                                                f.featureBasedDcmOptions.TrainingSampleSize,
+                                                                f.featureBasedDcmOptions.PredictionSampleSize,
+                                                                f.discreteChoiceModelOptions.IncidentTypes,
+                                                                f.featureBasedDcmOptions.Classifier,
+                                                                f.discreteChoiceModelOptions.Smoothers,
+                                                                f.featureBasedDcmOptions.Features);
                     }
                     else if (modelType == typeof(TimeSliceDCM))
                     {
@@ -691,17 +691,17 @@ namespace PTL.ATT.GUI
                             newModelId = TimeSliceDCM.Create(null,
                                                              f.discreteChoiceModelOptions.ModelName,
                                                              f.discreteChoiceModelOptions.PointSpacing,
-                                                             f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
+                                                             f.featureBasedDcmOptions.FeatureDistanceThreshold,
                                                              null,
                                                              f.discreteChoiceModelOptions.TrainingArea,
                                                              f.discreteChoiceModelOptions.TrainingStart,
                                                              f.discreteChoiceModelOptions.TrainingEnd,
-                                                             f.spatialDistanceDcmOptions.TrainingSampleSize,
-                                                             f.spatialDistanceDcmOptions.PredictionSampleSize,
+                                                             f.featureBasedDcmOptions.TrainingSampleSize,
+                                                             f.featureBasedDcmOptions.PredictionSampleSize,
                                                              f.discreteChoiceModelOptions.IncidentTypes,
-                                                             f.spatialDistanceDcmOptions.Classifier,
+                                                             f.featureBasedDcmOptions.Classifier,
                                                              f.discreteChoiceModelOptions.Smoothers,
-                                                             f.spatialDistanceDcmOptions.Features,
+                                                             f.featureBasedDcmOptions.Features,
                                                              f.timeSliceDcmOptions.TimeSliceHours,
                                                              f.timeSliceDcmOptions.TimeSlicesPerPeriod);
                     }
@@ -727,36 +727,36 @@ namespace PTL.ATT.GUI
                     if (f.ShowDialog() == DialogResult.OK)
                         ts.Update(f.discreteChoiceModelOptions.ModelName,
                                   f.discreteChoiceModelOptions.PointSpacing,
-                                  f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
+                                  f.featureBasedDcmOptions.FeatureDistanceThreshold,
                                   f.discreteChoiceModelOptions.TrainingArea,
                                   f.discreteChoiceModelOptions.TrainingStart,
                                   f.discreteChoiceModelOptions.TrainingEnd,
-                                  f.spatialDistanceDcmOptions.TrainingSampleSize,
-                                  f.spatialDistanceDcmOptions.PredictionSampleSize,
+                                  f.featureBasedDcmOptions.TrainingSampleSize,
+                                  f.featureBasedDcmOptions.PredictionSampleSize,
                                   f.discreteChoiceModelOptions.IncidentTypes,
-                                  f.spatialDistanceDcmOptions.Classifier,
+                                  f.featureBasedDcmOptions.Classifier,
                                   f.discreteChoiceModelOptions.Smoothers,
-                                  f.spatialDistanceDcmOptions.Features,
+                                  f.featureBasedDcmOptions.Features,
                                   f.timeSliceDcmOptions.TimeSliceHours,
                                   f.timeSliceDcmOptions.TimeSlicesPerPeriod);
                 }
-                else if (m is SpatialDistanceDCM)
+                else if (m is FeatureBasedDCM)
                 {
-                    SpatialDistanceDCM sd = m as SpatialDistanceDCM;
-                    SpatialDistanceDcmForm f = new SpatialDistanceDcmForm(sd);
+                    FeatureBasedDCM fb = m as FeatureBasedDCM;
+                    FeatureBasedDcmForm f = new FeatureBasedDcmForm(fb);
                     if (f.ShowDialog() == DialogResult.OK)
-                        sd.Update(f.discreteChoiceModelOptions.ModelName,
+                        fb.Update(f.discreteChoiceModelOptions.ModelName,
                                   f.discreteChoiceModelOptions.PointSpacing,
-                                  f.spatialDistanceDcmOptions.FeatureDistanceThreshold,
+                                  f.featureBasedDcmOptions.FeatureDistanceThreshold,
                                   f.discreteChoiceModelOptions.TrainingArea,
                                   f.discreteChoiceModelOptions.TrainingStart,
                                   f.discreteChoiceModelOptions.TrainingEnd,
-                                  f.spatialDistanceDcmOptions.TrainingSampleSize,
-                                  f.spatialDistanceDcmOptions.PredictionSampleSize,
+                                  f.featureBasedDcmOptions.TrainingSampleSize,
+                                  f.featureBasedDcmOptions.PredictionSampleSize,
                                   f.discreteChoiceModelOptions.IncidentTypes,
-                                  f.spatialDistanceDcmOptions.Classifier,
+                                  f.featureBasedDcmOptions.Classifier,
                                   f.discreteChoiceModelOptions.Smoothers,
-                                  f.spatialDistanceDcmOptions.Features);
+                                  f.featureBasedDcmOptions.Features);
                 }
                 else if (m is KernelDensityDCM)
                 {
@@ -1161,8 +1161,8 @@ namespace PTL.ATT.GUI
                                         Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                                             {
                                                 Feature feature = o as Feature;
-                                                if (feature.EnumType == typeof(SpatialDistanceDCM.SpatialDistanceFeature) && (feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.GeometryDensity) ||
-                                                                                                                              feature.EnumValue.Equals(SpatialDistanceDCM.SpatialDistanceFeature.MinimumDistanceToGeometry)))
+                                                if (feature.EnumType == typeof(FeatureBasedDCM.FeatureType) && (feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.MinimumDistanceToGeometry) ||
+                                                                                                                feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryDensity)))
                                                 {
                                                     Dictionary<string, string> constraints = new Dictionary<string, string>();
                                                     constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());

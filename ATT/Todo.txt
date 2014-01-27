@@ -1,4 +1,5 @@
-﻿Handle shapefile density features appropriately for timeslice model
+﻿Parameterized features (e.g., for spatial density KDE sample size)
+Handle shapefile density features appropriately for timeslice model
 Multiple kernel learning
   * http://www2.csie.ntu.edu.tw/~b95028/software/liblinear-mkl/index.php
   * http://research.microsoft.com/en-us/um/people/manik/code/GMKL/download.html

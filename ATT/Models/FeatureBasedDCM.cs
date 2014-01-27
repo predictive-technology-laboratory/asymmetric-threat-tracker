@@ -42,15 +42,10 @@ using LAIR.ResourceAPIs.PostGIS;
 
 namespace PTL.ATT.Models
 {
-    public class SpatialDistanceDCM : DiscreteChoiceModel, IFeatureBasedDCM
+    public class FeatureBasedDCM : DiscreteChoiceModel, IFeatureBasedDCM
     {
-        public enum SpatialDistanceFeature
+        public enum FeatureType
         {
-            /// <summary>
-            /// Shortest distance to geometries in a shapefile
-            /// </summary>
-            MinimumDistanceToGeometry,
-
             /// <summary>
             /// Density of geometries in a shapefile
             /// </summary>
@@ -59,10 +54,15 @@ namespace PTL.ATT.Models
             /// <summary>
             /// Value of incident density derived from the training incidents
             /// </summary>
-            IncidentKernelDensityEstimate
+            IncidentKernelDensityEstimate,
+
+            /// <summary>
+            /// Shortest distance to geometries in a shapefile
+            /// </summary>
+            MinimumDistanceToGeometry
         }
 
-        public new const string Table = "spatial_distance_dcm";
+        public new const string Table = "feature_based_dcm";
 
         public new class Columns
         {
@@ -120,7 +120,7 @@ namespace PTL.ATT.Models
             }
 
             if (type == null)
-                type = typeof(SpatialDistanceDCM);
+                type = typeof(FeatureBasedDCM);
 
             int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, type, trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
 
@@ -148,8 +148,8 @@ namespace PTL.ATT.Models
                 cmd.ExecuteNonQuery();
                 DB.Connection.Return(cmd.Connection);
 
-                SpatialDistanceDCM spatialDistanceDCM = SpatialDistanceDCM.Instantiate(dcmId) as SpatialDistanceDCM;
-                spatialDistanceDCM.Features = features;
+                FeatureBasedDCM featureBasedDCM = FeatureBasedDCM.Instantiate(dcmId) as FeatureBasedDCM;
+                featureBasedDCM.Features = features;
             }
 
             return dcmId;
@@ -157,29 +157,29 @@ namespace PTL.ATT.Models
 
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
-            foreach (SpatialDistanceFeature f in Enum.GetValues(typeof(SpatialDistanceFeature)))
-                if (f == SpatialDistanceFeature.MinimumDistanceToGeometry)
+            foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
+                if (shapefile.Type == Shapefile.ShapefileType.Feature)
+                    yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", null);
+
+            foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
+                if (shapefile.Type == Shapefile.ShapefileType.Feature)
                 {
-                    foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
-                        if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (DISTANCE)");
+                    Dictionary<string, string> parameterValue = new Dictionary<string, string>();
+                    parameterValue.Add("Sample size", "500");
+                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameterValue);
                 }
-                else if (f == SpatialDistanceFeature.GeometryDensity)
-                {
-                    foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
-                        if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                            yield return new Feature(typeof(SpatialDistanceFeature), SpatialDistanceFeature.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (DENSITY)");
-                }
-                else if (f == SpatialDistanceFeature.IncidentKernelDensityEstimate)
-                    foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
-                        yield return new Feature(typeof(SpatialDistanceFeature), f, incidentType, incidentType, "KDE \"" + incidentType + "\"");
-                else
-                    yield return new Feature(typeof(SpatialDistanceFeature), f, null, null, f.ToString());
+
+            foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
+            {
+                Dictionary<string, string> parameterValue = new Dictionary<string, string>();
+                parameterValue.Add("Sample size", "500");
+                yield return new Feature(typeof(FeatureType), FeatureType.IncidentKernelDensityEstimate, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValue);
+            }
 
             FeatureExtractor externalFeatureExtractor;
-            if (Configuration.TryGetFeatureExtractor(typeof(SpatialDistanceDCM), out externalFeatureExtractor))
+            if (Configuration.TryGetFeatureExtractor(typeof(FeatureBasedDCM), out externalFeatureExtractor))
             {
-                externalFeatureExtractor.Initialize(null, Configuration.GetFeatureExtractorConfigOptions(typeof(SpatialDistanceDCM)));
+                externalFeatureExtractor.Initialize(null, Configuration.GetFeatureExtractorConfigOptions(typeof(FeatureBasedDCM)));
                 foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
                     yield return f;
             }
@@ -254,7 +254,7 @@ namespace PTL.ATT.Models
 
                     if (value != null)
                         foreach (Feature feature in value.OrderBy(f => f.Id))
-                            Feature.Create(cmd.Connection, feature.Description, feature.EnumType, feature.EnumValue, this, feature.TrainingResourceId, feature.PredictionResourceId, false);
+                            Feature.Create(cmd.Connection, feature.Description, feature.EnumType, feature.EnumValue, this, feature.TrainingResourceId, feature.PredictionResourceId, feature.ParameterValue, false);
 
                     Feature.VacuumTable();
                 }
@@ -272,9 +272,9 @@ namespace PTL.ATT.Models
             get { return _predictionSampleSize; }
         }
 
-        protected SpatialDistanceDCM() { }
+        protected FeatureBasedDCM() { }
 
-        internal SpatialDistanceDCM(int id)
+        internal FeatureBasedDCM(int id)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
                                                          "FROM " + Columns.JoinDiscreteChoiceModel + " " +
@@ -389,7 +389,7 @@ namespace PTL.ATT.Models
 
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
         {
-            int numFeatures = Features.Count(f => f.EnumType == typeof(SpatialDistanceFeature)) + (_externalFeatureExtractor == null ? 0 : _externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(SpatialDistanceDCM)));
+            int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (_externalFeatureExtractor == null ? 0 : _externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
 
             Dictionary<int, NumericFeature> idFeature = new Dictionary<int, NumericFeature>();
             foreach (Feature f in Features)
@@ -420,9 +420,9 @@ namespace PTL.ATT.Models
                                                                      "INTO " + pointFeatureTable + " " +
 
                                                                      // cross points with features
-                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.ModelId + "=" + Id + " AND " +                                                // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
-                                                                                                                                                           "f." + Feature.Columns.EnumType + "='" + typeof(SpatialDistanceFeature) + "' AND " +                 // distance features
-                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + SpatialDistanceFeature.MinimumDistanceToGeometry + "' " +  // as opposed to raster shapefiles
+                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.ModelId + "=" + Id + " AND " +                                     // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
+                                                                                                                                                           "f." + Feature.Columns.EnumType + "='" + typeof(FeatureType) + "' AND " +                 // distance features
+                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + FeatureType.MinimumDistanceToGeometry + "' " +  // as opposed to raster shapefiles
                                                                      // only process points associated with the current core                                                                                         
                                                                      "WHERE p." + Point.Columns.Core + "=" + core + ";" +
 
@@ -508,7 +508,7 @@ namespace PTL.ATT.Models
             #endregion
 
             #region spatial density features
-            List<Feature> spatialDensityFeatures = Features.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.GeometryDensity)).ToList();
+            List<Feature> spatialDensityFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.GeometryDensity)).ToList();
             if (spatialDensityFeatures.Count > 0)
             {
                 threads.Clear();
@@ -529,7 +529,8 @@ namespace PTL.ATT.Models
                                     Dictionary<string, string> constraints = new Dictionary<string, string>();
                                     constraints.Add(ShapefileGeometry.Columns.ShapefileId, shapefile.Id.ToString());
                                     List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(area.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
-                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 1000, false, -1, -1, densityEvalPoints, true);
+                                    int sampleSize = int.Parse(spatialDensityFeature.ParameterValue["Sample size"]);
+                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, true);
                                     if (densityEstimates.Count == densityEvalPoints.Count)
                                         lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
 
@@ -556,7 +557,7 @@ namespace PTL.ATT.Models
             #endregion
 
             #region kde
-            List<Feature> kdeFeatures = Features.Where(f => f.EnumValue.Equals(SpatialDistanceFeature.IncidentKernelDensityEstimate)).ToList();
+            List<Feature> kdeFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.IncidentKernelDensityEstimate)).ToList();
             if (kdeFeatures.Count > 0)
             {
                 threads.Clear();
@@ -575,7 +576,8 @@ namespace PTL.ATT.Models
                                     Console.Out.WriteLine("Computing spatial density of \"" + incident + "\"");
 
                                     IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(TrainingStart, TrainingEnd, area, incident).Select(inc => inc.Location);
-                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, 500, false, 0, 0, densityEvalPoints, true);
+                                    int sampleSize = int.Parse(kdeFeature.ParameterValue["Sample size"]);
+                                    List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, true);
                                     if (densityEstimates.Count == densityEvalPoints.Count)
                                         lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
 
@@ -601,9 +603,9 @@ namespace PTL.ATT.Models
 
             if (_externalFeatureExtractor != null)
             {
-                Console.Out.WriteLine("Running external feature extractor for " + typeof(SpatialDistanceDCM));
+                Console.Out.WriteLine("Running external feature extractor for " + typeof(FeatureBasedDCM));
 
-                foreach (FeatureVectorList featureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(SpatialDistanceDCM), prediction, mergedVectors, training))
+                foreach (FeatureVectorList featureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(FeatureBasedDCM), prediction, mergedVectors, training))
                     yield return featureVectors;
             }
             else
@@ -642,7 +644,7 @@ namespace PTL.ATT.Models
 
             // all features must reference a shapefile that is valid for the prediction area's SRID -- might not be the case because we allow remapping
             Set<int> shapefilesInPredictionSRID = new Set<int>(Shapefile.GetForSRID(prediction.PredictionArea.SRID).Select(s => s.Id).ToArray());
-            string badFeatures = Features.Where(f => (f.EnumValue.Equals(SpatialDistanceFeature.MinimumDistanceToGeometry) || f.EnumValue.Equals(SpatialDistanceFeature.GeometryDensity)) && 
+            string badFeatures = Features.Where(f => (f.EnumValue.Equals(FeatureType.MinimumDistanceToGeometry) || f.EnumValue.Equals(FeatureType.GeometryDensity)) && 
                                                      !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
             if (badFeatures.Length > 0)
                 throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction (or perhaps they were remapped incorrectly).");
@@ -861,9 +863,9 @@ namespace PTL.ATT.Models
 
         public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
         {
-            SpatialDistanceDCM originalSpatialDistanceDCM = original as SpatialDistanceDCM;
+            FeatureBasedDCM originalFeatureBasedDCM = original as FeatureBasedDCM;
             Dictionary<int, int> oldNewFeatureId = new Dictionary<int, int>();
-            foreach (Tuple<int, int> oldNew in originalSpatialDistanceDCM.Features.Zip(Features, new Func<Feature, Feature, Tuple<int, int>>((f1, f2) => new Tuple<int, int>(f1.Id, f2.Id))))
+            foreach (Tuple<int, int> oldNew in originalFeatureBasedDCM.Features.Zip(Features, new Func<Feature, Feature, Tuple<int, int>>((f1, f2) => new Tuple<int, int>(f1.Id, f2.Id))))
                 oldNewFeatureId.Add(oldNew.Item1, oldNew.Item2);
 
             foreach (Prediction prediction in Prediction.GetForModel(this))

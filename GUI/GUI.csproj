@@ -147,11 +147,11 @@
       <DependentUpon>KernelDensityDcmOptions.cs</DependentUpon>
     </Compile>
     <Compile Include="LogWriter.cs" />
-    <Compile Include="SpatialDistanceDcmOptions.cs">
+    <Compile Include="FeatureBasedDcmOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="SpatialDistanceDcmOptions.Designer.cs">
-      <DependentUpon>SpatialDistanceDcmOptions.cs</DependentUpon>
+    <Compile Include="FeatureBasedDcmOptions.Designer.cs">
+      <DependentUpon>FeatureBasedDcmOptions.cs</DependentUpon>
     </Compile>
     <Compile Include="Splash.cs">
       <SubType>Form</SubType>
@@ -208,11 +208,11 @@
     <Compile Include="SmootherList.Designer.cs">
       <DependentUpon>SmootherList.cs</DependentUpon>
     </Compile>
-    <Compile Include="SpatialDistanceDcmForm.cs">
+    <Compile Include="FeatureBasedDcmForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SpatialDistanceDcmForm.Designer.cs">
-      <DependentUpon>SpatialDistanceDcmForm.cs</DependentUpon>
+    <Compile Include="FeatureBasedDcmForm.Designer.cs">
+      <DependentUpon>FeatureBasedDcmForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ImportShapefileForm.cs">
       <SubType>Form</SubType>
@@ -284,8 +284,8 @@
     <EmbeddedResource Include="KernelDensityDcmOptions.resx">
       <DependentUpon>KernelDensityDcmOptions.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SpatialDistanceDcmOptions.resx">
-      <DependentUpon>SpatialDistanceDcmOptions.cs</DependentUpon>
+    <EmbeddedResource Include="FeatureBasedDcmOptions.resx">
+      <DependentUpon>FeatureBasedDcmOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>
@@ -314,8 +314,8 @@
     <EmbeddedResource Include="SmootherList.resx">
       <DependentUpon>SmootherList.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SpatialDistanceDcmForm.resx">
-      <DependentUpon>SpatialDistanceDcmForm.cs</DependentUpon>
+    <EmbeddedResource Include="FeatureBasedDcmForm.resx">
+      <DependentUpon>FeatureBasedDcmForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ImportShapefileForm.resx">
       <DependentUpon>ImportShapefileForm.cs</DependentUpon>

@@ -60,6 +60,8 @@ namespace PTL.ATT.GUI
             // 
             this.normalize.AutoSize = true;
             this.normalize.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.normalize.Checked = true;
+            this.normalize.CheckState = System.Windows.Forms.CheckState.Checked;
             this.normalize.Location = new System.Drawing.Point(52, 29);
             this.normalize.Name = "normalize";
             this.normalize.Size = new System.Drawing.Size(75, 17);

@@ -25,6 +25,7 @@ using Npgsql;
 using LAIR.ResourceAPIs.PostgreSQL;
 using PTL.ATT.Models;
 using LAIR.Collections.Generic;
+using LAIR.Extensions;
 
 namespace PTL.ATT.Models
 {
@@ -45,6 +46,8 @@ namespace PTL.ATT.Models
             [Reflector.Insert, Reflector.Select(true)]
             public const string ModelId = "model_id";
             [Reflector.Insert, Reflector.Select(true)]
+            public const string ParameterValues = "parameter_values";
+            [Reflector.Insert, Reflector.Select(true)]
             public const string PredictionResourceId = "prediction_resource_id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string TrainingResourceId = "training_resource_id";
@@ -62,6 +65,7 @@ namespace PTL.ATT.Models
                     Columns.EnumValue + " VARCHAR," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
                     Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
+                    Columns.ParameterValues + " VARCHAR[]," + 
                     Columns.PredictionResourceId + " VARCHAR," + 
                     Columns.TrainingResourceId + " VARCHAR);" + 
                     (connection.TableExists(Table) ? "" :
@@ -72,9 +76,9 @@ namespace PTL.ATT.Models
                     "CREATE INDEX ON " + Table + " (" + Columns.TrainingResourceId + ");");
         }
 
-        public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, DiscreteChoiceModel model, string trainingResourceId, string predictionResourceId, bool vacuum)
+        public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, DiscreteChoiceModel model, string trainingResourceId, string predictionResourceId, Dictionary<string, string> parameterValues, bool vacuum)
         {
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + model.Id + "," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + ") RETURNING " + Columns.Id, connection);
+            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + model.Id + ",'{" + parameterValues.Select(kvp => "\"" + kvp.Key + "\",\"" + kvp.Value + "\"").Concatenate(",") + "}'," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + ") RETURNING " + Columns.Id, connection);
             int id = Convert.ToInt32(cmd.ExecuteScalar());
 
             if (vacuum)
@@ -95,6 +99,7 @@ namespace PTL.ATT.Models
         private int _modelId;
         private string _trainingResourceId;
         private string _predictionResourceId;
+        private Dictionary<string, string> _parameterValue;
 
         public int Id
         {
@@ -137,6 +142,12 @@ namespace PTL.ATT.Models
             }
         }
 
+        public Dictionary<string, string> ParameterValue
+        {
+            get { return _parameterValue; }
+            set { _parameterValue = value; }
+        }
+
         public string RemapKey
         {
             get { return _enumType + "-" + _enumValue + "-" + _trainingResourceId; }
@@ -147,14 +158,19 @@ namespace PTL.ATT.Models
             Construct(reader);
         }
 
-        public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description)
+        public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, Dictionary<string, string> parameterValue)
         {
-            Construct(-1, -1, enumType, enumValue, trainingResourceId, predictionResourceId, description);
+            Construct(-1, -1, enumType, enumValue, trainingResourceId, predictionResourceId, description, parameterValue);
         }
 
         private void Construct(NpgsqlDataReader reader)
         {
             Type enumType = Reflection.GetType(Convert.ToString(reader[Table + "_" + Columns.EnumType]));
+
+            Dictionary<string, string> parameterValue = new Dictionary<string, string>();
+            string[] paramValueParts = reader[Table + "_" + Columns.ParameterValues] as string[];
+            for (int i = 0; i < paramValueParts.Length; i += 2)
+                parameterValue.Add(paramValueParts[i], paramValueParts[i + 1]);
 
             Construct(Convert.ToInt32(reader[Table + "_" + Columns.Id]),
                       Convert.ToInt32(reader[Table + "_" + Columns.ModelId]),
@@ -162,10 +178,11 @@ namespace PTL.ATT.Models
                       (Enum)Enum.Parse(enumType, Convert.ToString(reader[Table + "_" + Columns.EnumValue])),
                       Convert.ToString(reader[Table + "_" + Columns.TrainingResourceId]),
                       Convert.ToString(reader[Table + "_" + Columns.PredictionResourceId]),
-                      Convert.ToString(reader[Table + "_" + Columns.Description]));
+                      Convert.ToString(reader[Table + "_" + Columns.Description]),
+                      parameterValue);
         }
 
-        private void Construct(int id, int modelId, Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description)
+        private void Construct(int id, int modelId, Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, Dictionary<string, string> parameterValue)
         {
             _id = id;
             _modelId = modelId;
@@ -174,13 +191,15 @@ namespace PTL.ATT.Models
             _description = description;
             _trainingResourceId = trainingResourceId == null ? "" : trainingResourceId;
             _predictionResourceId = predictionResourceId == null ? "" : predictionResourceId;
+            _parameterValue = parameterValue;
+
+            if (_parameterValue == null)
+                _parameterValue = new Dictionary<string, string>();
         }
 
         public override string ToString()
         {
-            string enumTypeStr = _enumType.ToString();
-            enumTypeStr = enumTypeStr.Substring(enumTypeStr.LastIndexOf("+") + 1);
-            return _description + " (" + enumTypeStr + ")" + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
+            return _description + " " + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
         }
 
         public override bool Equals(object obj)

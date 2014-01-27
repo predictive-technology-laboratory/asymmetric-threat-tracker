@@ -49,7 +49,7 @@ namespace PTL.ATT.GUI
         {
             this.timeSliceDcmOptions = new PTL.ATT.GUI.TimeSliceDcmOptions();
             this.discreteChoiceModelOptions = new PTL.ATT.GUI.DiscreteChoiceModelOptions();
-            this.spatialDistanceDcmOptions = new PTL.ATT.GUI.SpatialDistanceDcmOptions();
+            this.featureBasedDcmOptions = new PTL.ATT.GUI.FeatureBasedDcmOptions();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
@@ -83,14 +83,14 @@ namespace PTL.ATT.GUI
             this.discreteChoiceModelOptions.Size = new System.Drawing.Size(570, 510);
             this.discreteChoiceModelOptions.TabIndex = 0;
             // 
-            // spatialDistanceDcmOptions
+            // featureBasedDcmOptions
             // 
-            this.spatialDistanceDcmOptions.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.spatialDistanceDcmOptions.Location = new System.Drawing.Point(3, 3);
-            this.spatialDistanceDcmOptions.Name = "spatialDistanceDcmOptions";
-            this.spatialDistanceDcmOptions.Size = new System.Drawing.Size(570, 510);
-            this.spatialDistanceDcmOptions.SpatialDistanceDCM = null;
-            this.spatialDistanceDcmOptions.TabIndex = 0;
+            this.featureBasedDcmOptions.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.featureBasedDcmOptions.FeatureBasedDCM = null;
+            this.featureBasedDcmOptions.Location = new System.Drawing.Point(3, 3);
+            this.featureBasedDcmOptions.Name = "featureBasedDcmOptions";
+            this.featureBasedDcmOptions.Size = new System.Drawing.Size(570, 510);
+            this.featureBasedDcmOptions.TabIndex = 0;
             // 
             // tabControl1
             // 
@@ -117,13 +117,13 @@ namespace PTL.ATT.GUI
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.spatialDistanceDcmOptions);
+            this.tabPage2.Controls.Add(this.featureBasedDcmOptions);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(576, 516);
             this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Spatial Distance DCM Options";
+            this.tabPage2.Text = "Feature-based DCM Options";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // tabPage3
@@ -187,7 +187,7 @@ namespace PTL.ATT.GUI
 
         #endregion
 
-        public SpatialDistanceDcmOptions spatialDistanceDcmOptions;
+        public FeatureBasedDcmOptions featureBasedDcmOptions;
         public DiscreteChoiceModelOptions discreteChoiceModelOptions;
         public TimeSliceDcmOptions timeSliceDcmOptions;
         private System.Windows.Forms.TabControl tabControl1;

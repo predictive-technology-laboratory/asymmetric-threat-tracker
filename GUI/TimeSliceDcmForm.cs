@@ -39,11 +39,11 @@ namespace PTL.ATT.GUI
 
             discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += new EventHandler((o, e) =>
                 {
-                    spatialDistanceDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
-                    spatialDistanceDcmOptions.RefreshAll();
+                    featureBasedDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
+                    featureBasedDcmOptions.RefreshAll();
                 });
 
-            spatialDistanceDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => TimeSliceDCM.GetAvailableFeatures(a).ToList());
+            featureBasedDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => TimeSliceDCM.GetAvailableFeatures(a).ToList());
 
             discreteChoiceModelOptions.RefreshAreas();
         }
@@ -51,12 +51,12 @@ namespace PTL.ATT.GUI
         public TimeSliceDcmForm(TimeSliceDCM current)
             : this()
         {
-            discreteChoiceModelOptions.DiscreteChoiceModel = spatialDistanceDcmOptions.SpatialDistanceDCM = timeSliceDcmOptions.TimeSliceDCM = current;
+            discreteChoiceModelOptions.DiscreteChoiceModel = featureBasedDcmOptions.FeatureBasedDCM = timeSliceDcmOptions.TimeSliceDCM = current;
         }
 
         private void ok_Click(object sender, EventArgs e)
         {
-            string errors = discreteChoiceModelOptions.ValidateInput() + spatialDistanceDcmOptions.ValidateInput() + timeSliceDcmOptions.ValidateInput();
+            string errors = discreteChoiceModelOptions.ValidateInput() + featureBasedDcmOptions.ValidateInput() + timeSliceDcmOptions.ValidateInput();
             if (errors != "")
             {
                 MessageBox.Show(errors);

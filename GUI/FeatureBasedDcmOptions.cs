@@ -31,13 +31,14 @@ using PTL.ATT.Models;
 
 namespace PTL.ATT.GUI
 {
-    public partial class SpatialDistanceDcmOptions : UserControl
+    public partial class FeatureBasedDcmOptions : UserControl
     {
-        private SpatialDistanceDCM _spatialDistanceDCM;
+        private FeatureBasedDCM _featureBasedDCM;
         private Dictionary<string, string> _featureRemapKeyTargetPredictionResource;
         private bool _initializing;
         private Area _trainingArea;
         private Func<Area, List<Feature>> _getFeatures;
+        private Feature _parameterizeFeature;
 
         public int TrainingSampleSize
         {
@@ -74,17 +75,17 @@ namespace PTL.ATT.GUI
             set { _trainingArea = value; }
         }
 
-        public SpatialDistanceDCM SpatialDistanceDCM
+        public FeatureBasedDCM FeatureBasedDCM
         {
-            get { return _spatialDistanceDCM; }
+            get { return _featureBasedDCM; }
             set
             {
-                _spatialDistanceDCM = value;
+                _featureBasedDCM = value;
 
-                if (_spatialDistanceDCM != null)
+                if (_featureBasedDCM != null)
                 {
                     _featureRemapKeyTargetPredictionResource.Clear();
-                    foreach (Feature feature in _spatialDistanceDCM.Features)
+                    foreach (Feature feature in _featureBasedDCM.Features)
                         if (feature.PredictionResourceId != feature.TrainingResourceId)
                             _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
 
@@ -93,7 +94,7 @@ namespace PTL.ATT.GUI
             }
         }
 
-        public SpatialDistanceDcmOptions()
+        public FeatureBasedDcmOptions()
         {
             _initializing = true;
             InitializeComponent();
@@ -112,18 +113,23 @@ namespace PTL.ATT.GUI
             trainingSampleSize.Value = 30000;
             predictionSampleSize.Value = 30000;
             featureDistanceThreshold.Value = 1000;
-            classifiers.Populate(_spatialDistanceDCM);
+            classifiers.Populate(_featureBasedDCM);
 
             RefreshFeatures();
 
-            if (_spatialDistanceDCM != null)
+            if (_featureBasedDCM != null)
             {
-                trainingSampleSize.Value = _spatialDistanceDCM.TrainingSampleSize;
-                predictionSampleSize.Value = _spatialDistanceDCM.PredictionSampleSize;
-                featureDistanceThreshold.Value = _spatialDistanceDCM.FeatureDistanceThreshold;
+                trainingSampleSize.Value = _featureBasedDCM.TrainingSampleSize;
+                predictionSampleSize.Value = _featureBasedDCM.PredictionSampleSize;
+                featureDistanceThreshold.Value = _featureBasedDCM.FeatureDistanceThreshold;
 
-                foreach (Feature feature in _spatialDistanceDCM.Features)
-                    features.SetSelected(features.Items.IndexOf(feature), true);
+                foreach (Feature feature in _featureBasedDCM.Features)
+                {
+                    int index = features.Items.IndexOf(feature);
+                    Feature featureInList = features.Items[index] as Feature;
+                    features.SetSelected(index, true);
+                    featureInList.ParameterValue = feature.ParameterValue;
+                }
             }
         }
 
@@ -195,6 +201,34 @@ namespace PTL.ATT.GUI
                 errors.AppendLine("One or more features must be selected.");
 
             return errors.ToString();
+        }
+
+        private void features_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+            {
+                int index = features.IndexFromPoint(e.Location);
+                if (index != -1)
+                {
+                    _parameterizeFeature = features.Items[index] as Feature;
+                    parameterizeFeatureToolStripMenuItem.Text = "Parameterize \"" + _parameterizeFeature.Description + "\"...";
+                    parameterizeFeatureToolStripMenuItem.Enabled = _parameterizeFeature.ParameterValue.Count > 0;
+                }
+            }
+        }
+
+        private void parameterizeFeatureToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_parameterizeFeature != null && _parameterizeFeature.ParameterValue.Count > 0)
+            {
+                DynamicForm f = new DynamicForm("Parameterize \"" + _parameterizeFeature.Description + "\"...", MessageBoxButtons.OKCancel);
+                foreach (string parameter in _parameterizeFeature.ParameterValue.Keys.OrderBy(k => k))
+                    f.AddTextBox(parameter + ":", _parameterizeFeature.ParameterValue[parameter], 20, parameter);
+
+                if (f.ShowDialog() == DialogResult.OK)
+                    foreach (string parameter in _parameterizeFeature.ParameterValue.Keys.OrderBy(k => k))
+                        _parameterizeFeature.ParameterValue[parameter] = f.GetValue<string>(parameter);
+            }
         }
     }
 }
