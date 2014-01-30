@@ -345,21 +345,21 @@ namespace PTL.ATT.GUI
                    new Func<Type[]>(() => Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray()),
                    new Func<Dictionary<string, string>, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, importArea, sourceSRID, rowInserterType, importerForm) =>
                    {
-                       string table = ShapefileGeometry.GetTableName(importArea.SRID);
                        string name = importerForm.GetValue<string>("name").Trim();
                        if (name == "")
                            name = Path.GetFileNameWithoutExtension(importerForm.GetValue<string>("path"));
 
                        NpgsqlConnection connection = DB.Connection.OpenConnection;
-                       int shapefileId = Shapefile.Create(connection, name, importArea.SRID, Shapefile.ShapefileType.Feature);
+                       Shapefile shapefile = new Shapefile(Shapefile.Create(connection, name, importArea.SRID, Shapefile.ShapefileType.Feature));
+                       DB.Connection.Return(connection);
 
                        XmlImporter.XmlRowInserter rowInserter;
                        if (rowInserterType == typeof(XmlImporter.PointfileXmlRowInserter))
-                           rowInserter = new XmlImporter.PointfileXmlRowInserter(dbColInputCol, sourceSRID, importArea, shapefileId);
+                           rowInserter = new XmlImporter.PointfileXmlRowInserter(dbColInputCol, sourceSRID, importArea);
                        else
                            throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
-
-                       return new XmlImporter(table, ShapefileGeometry.Columns.Insert, rowInserter, "row", "row");
+                       
+                       return new XmlImporter(ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Insert, rowInserter, "row", "row");
                    }
             ));
         }
@@ -385,8 +385,12 @@ namespace PTL.ATT.GUI
                                 Console.Out.WriteLine("Cannot delete shapefile \"" + shapefile.Name + "\" because it is used in a model.");
                             else
                             {
-                                shapefile.Delete();
-                                ++deleted;
+                                try
+                                {
+                                    shapefile.Delete();
+                                    ++deleted;
+                                }
+                                catch (Exception ex) { Console.Out.WriteLine("Error deleting shapefile \"" + shapefile.Name + "\":  " + ex.Message); }
                             }
                         }
 
@@ -1164,10 +1168,9 @@ namespace PTL.ATT.GUI
                                                 if (feature.EnumType == typeof(FeatureBasedDCM.FeatureType) && (feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.MinimumDistanceToGeometry) ||
                                                                                                                 feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryDensity)))
                                                 {
-                                                    Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                                    constraints.Add(ShapefileGeometry.Columns.ShapefileId, feature.PredictionResourceId.ToString());
+                                                    Shapefile shapefile = new Shapefile(int.Parse(feature.PredictionResourceId));
                                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                    List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(p.PredictionArea.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, pointDistanceThreshold);
+                                                    List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, null, pointDistanceThreshold);
                                                     DB.Connection.Return(connection);
                                                     lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }

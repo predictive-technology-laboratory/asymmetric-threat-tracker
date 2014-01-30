@@ -101,15 +101,13 @@ namespace PTL.ATT.Importers
             private Dictionary<string, string> _dbColInputCol;
             private int _sourceSRID;
             private Area _importArea;
-            private int _shapefileId;
             private int _rowNum;
 
-            public PointfileXmlRowInserter(Dictionary<string, string> dbColSocrataCol, int sourceSRID, Area importArea, int shapefileId)
+            public PointfileXmlRowInserter(Dictionary<string, string> dbColSocrataCol, int sourceSRID, Area importArea)
             {
                 _dbColInputCol = dbColSocrataCol;
                 _sourceSRID = sourceSRID;
                 _importArea = importArea;
-                _shapefileId = shapefileId;
                 _rowNum = 0;
             }
 
@@ -133,7 +131,7 @@ namespace PTL.ATT.Importers
 
                 string timeParamName = "time_" + _rowNum++;
                 List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter(timeParamName, NpgsqlDbType.Timestamp, time) });
-                return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.SRID, _shapefileId, timeParamName), parameters);
+                return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.SRID, timeParamName), parameters);
             }
         }
         #endregion
@@ -239,7 +237,7 @@ namespace PTL.ATT.Importers
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("An import error occurred. You can safely restart the import from the same file. Message:  " + ex.Message);
+                    throw new Exception("An import error occurred:  " + ex.Message);
                 }
                 finally
                 {

@@ -34,7 +34,7 @@ namespace PTL.ATT
     {
         public class Columns
         {
-            [Reflector.Insert]
+            [Reflector.Insert, Reflector.Select(true)]
             public const string Core = "core";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Id = "id";
@@ -89,10 +89,10 @@ namespace PTL.ATT
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
         }
 
-        internal static List<int> Insert(NpgsqlConnection connection, 
-                                         IEnumerable<Tuple<PostGIS.Point, string, DateTime>> points, 
-                                         int predictionId, 
-                                         Area area, 
+        internal static List<int> Insert(NpgsqlConnection connection,
+                                         IEnumerable<Tuple<PostGIS.Point, string, DateTime>> points,
+                                         int predictionId,
+                                         Area area,
                                          bool onlyInsertPointsInArea,
                                          bool vacuum)
         {
@@ -177,9 +177,9 @@ namespace PTL.ATT
                                   "FROM temp " +
                                   "WHERE EXISTS (SELECT 1 " +
                                                 "FROM " + areaGeometryTable + "," + areaBoundingBoxesTable + " " +
-                                                "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + area.Id + " AND " + 
-                                                           areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.AreaId + "=" + area.Id + " AND " + 
-                                                           "(" + 
+                                                "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + area.Id + " AND " +
+                                                           areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.AreaId + "=" + area.Id + " AND " +
+                                                           "(" +
                                                              "(" +
                                                                 areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
                                                                 "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
@@ -190,8 +190,8 @@ namespace PTL.ATT
                                                                 "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
                                                                 "st_intersects(temp." + Columns.Location + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
                                                              ")" +
-                                                           ")" + 
-                                                ") " + 
+                                                           ")" +
+                                                ") " +
                                   "RETURNING " + Columns.Id + ";" +
                                   "DROP TABLE temp;";
 
@@ -209,6 +209,7 @@ namespace PTL.ATT
         }
 
         private int _id;
+        private int _core;
         private string _incidentType;
         private PostGIS.Point _location;
         private DateTime _time;
@@ -216,6 +217,11 @@ namespace PTL.ATT
         public int Id
         {
             get { return _id; }
+        }
+
+        public int Core
+        {
+            get { return _core; }
         }
 
         public string IncidentType
@@ -238,22 +244,24 @@ namespace PTL.ATT
             Construct(reader, table);
         }
 
-        internal Point(int id, string incidentType, PostGIS.Point location, DateTime time)
+        internal Point(int id, int core, string incidentType, PostGIS.Point location, DateTime time)
         {
-            Construct(id, incidentType, location, time);
+            Construct(id, core, incidentType, location, time);
         }
 
         private void Construct(NpgsqlDataReader reader, string table)
         {
             Construct(Convert.ToInt32(reader[table + "_" + Columns.Id]),
+                      Convert.ToInt32(reader[table + "_" + Columns.Core]),
                       Convert.ToString(reader[table + "_" + Columns.IncidentType]),
                       new PostGIS.Point(Convert.ToDouble(reader[Columns.X(table)]), Convert.ToDouble(reader[Columns.Y(table)]), Convert.ToInt32(reader[Columns.SRID(table)])),
                       Convert.ToDateTime(reader[table + "_" + Columns.Time]));
         }
 
-        private void Construct(int id, string incidentType, PostGIS.Point location, DateTime time)
+        private void Construct(int id, int core, string incidentType, PostGIS.Point location, DateTime time)
         {
             _id = id;
+            _core = core;
             _incidentType = incidentType;
             _location = location;
             _time = time;

@@ -37,68 +37,49 @@ namespace PTL.ATT
             public const string Geometry = "geom";
             public const string Id = "id";
             [Reflector.Insert]
-            public const string ShapefileId = "shapefile_id";
-            [Reflector.Insert]
             public const string Time = "time";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
         }
 
-        public static string GetTableName(int srid)
+        public static string GetTableName(Shapefile shapefile)
         {
-            return "shapefile_geometry_" + srid;
+            return "shapefile_geometry_" + shapefile.Id;
         }
 
-        internal static List<int> Create(NpgsqlConnection connection, int shapefileId, int srid, string geometryTable, string geometryColumn)
+        internal static void Create(NpgsqlConnection connection, Shapefile shapefile, string geometryTable, string geometryColumn)
         {
-            string tableName = GetTableName(srid);
+            string tableName = GetTableName(shapefile);
 
-            CreateTable(tableName, srid);
-
-            List<int> ids = new List<int>();
             NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + tableName + " (" + Columns.Insert + ") " +
-                                                  "SELECT " + geometryColumn + "," + shapefileId + ",'-infinity' " +
-                                                  "FROM " + geometryTable + " RETURNING " + Columns.Id, connection);
+                                                  "SELECT " + geometryColumn + ",'-infinity' " +
+                                                  "FROM " + geometryTable, connection);
 
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                ids.Add(Convert.ToInt32(reader[0]));
-
-            reader.Close();
-
-            return ids;
+            cmd.ExecuteNonQuery();
         }
 
-        public static List<int> Create(NpgsqlConnection connection, int shapefileId, List<Tuple<Geometry, DateTime>> geometryTimes)
+        public static void Create(NpgsqlConnection connection, Shapefile shapefile, List<Tuple<Geometry, DateTime>> geometryTimes)
         {
             if (geometryTimes.Count == 0)
-                return new List<int>();
+                return;
 
-            int srid = geometryTimes[0].Item1.SRID;
-            string tableName = GetTableName(srid);
-
-            CreateTable(tableName, srid);
+            string tableName = GetTableName(shapefile);
 
             int numPerBatch = 1000;
             int num = 0;
             StringBuilder cmdTxt = new StringBuilder();
             List<Parameter> cmdParams = new List<Parameter>(numPerBatch);
-            List<int> ids = new List<int>();
             foreach (Tuple<Geometry, DateTime> geometryTime in geometryTimes)
             {
                 string timeParamName = "time_" + num;
-                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + GetValue(geometryTime.Item1, srid, shapefileId, timeParamName) + ")");
+                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + GetValue(geometryTime.Item1, shapefile.SRID, timeParamName) + ")");
                 cmdParams.Add(new Parameter(timeParamName, NpgsqlTypes.NpgsqlDbType.Timestamp, geometryTime.Item2));
 
                 if (++num == numPerBatch)
                 {
-                    NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString() + " RETURNING " + Columns.Id, connection);
+                    NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString(), connection);
                     ConnectionPool.AddParameters(cmd, cmdParams);
-                    NpgsqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                        ids.Add(Convert.ToInt32(reader[Columns.Id]));
-
-                    reader.Close();
+                    cmd.ExecuteNonQuery();
                     cmdTxt.Clear();
                     cmdParams.Clear();
                     num = 0;
@@ -107,37 +88,30 @@ namespace PTL.ATT
 
             if (num > 0)
             {
-                NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString() + " RETURNING " + Columns.Id, connection);
+                NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString(), connection);
                 ConnectionPool.AddParameters(cmd, cmdParams);
-                NpgsqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                    ids.Add(Convert.ToInt32(reader[Columns.Id]));
-
-                reader.Close();
+                cmd.ExecuteNonQuery();
                 cmdTxt.Clear();
                 cmdParams.Clear();
                 num = 0;
             }
-
-            return ids;
         }
 
-        private static void CreateTable(string tableName, int srid)
+        internal static void CreateTable(string tableName, int srid)
         {
             if (!DB.Connection.TableExists(tableName))
                 DB.Connection.ExecuteNonQuery(
                     "CREATE TABLE " + tableName + " (" +
                     Columns.Geometry + " GEOMETRY(GEOMETRY," + srid + ")," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
-                    Columns.ShapefileId + " INTEGER REFERENCES " + Shapefile.Table + " ON DELETE CASCADE," +
                     Columns.Time + " TIMESTAMP);" +
                     "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
-                    "CREATE INDEX ON " + tableName + " (" + Columns.ShapefileId + ");");
+                    "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");");
         }
 
-        public static string GetValue(Geometry geometry, int targetSRID, int shapefileId, string timeParamName)
+        public static string GetValue(Geometry geometry, int targetSRID, string timeParamName)
         {
-            return (geometry.SRID == targetSRID ? geometry.StGeometryFromText : "st_transform(" + geometry.StGeometryFromText + "," + targetSRID + ")") + "," + shapefileId + ",@" + timeParamName;
+            return (geometry.SRID == targetSRID ? geometry.StGeometryFromText : "st_transform(" + geometry.StGeometryFromText + "," + targetSRID + ")") + ",@" + timeParamName;
         }
     }
 }

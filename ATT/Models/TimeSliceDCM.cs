@@ -301,9 +301,9 @@ namespace PTL.ATT.Models
 
                                     Point timeSlicePoint;
                                     if (spatialPoint.Time == DateTime.MinValue)
-                                        timeSlicePoint = new Point(spatialPoint.Id, spatialPoint.IncidentType, spatialPoint.Location, sliceMid);
+                                        timeSlicePoint = new Point(spatialPoint.Id, spatialPoint.Core, spatialPoint.IncidentType, spatialPoint.Location, sliceMid);
                                     else if ((long)(spatialPoint.Time.Ticks / sliceTicks) == slice)
-                                        timeSlicePoint = new Point(spatialPoint.Id, spatialPoint.IncidentType, spatialPoint.Location, spatialPoint.Time);
+                                        timeSlicePoint = new Point(spatialPoint.Id, spatialPoint.Core, spatialPoint.IncidentType, spatialPoint.Location, spatialPoint.Time);
                                     else
                                         continue;
 

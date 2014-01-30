@@ -408,90 +408,56 @@ namespace PTL.ATT.Models
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
                         int core = (int)o;
-                        string pointFeatureTable = "temp_" + core;
-                        NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT p." + Point.Columns.Id + " as point_id," +
-                                                                            "p." + Point.Columns.IncidentType + " as point_incident_type," +
-                                                                            "p." + Point.Columns.Location + " as point_location," +
-                                                                            "p." + Point.Columns.Time + " as point_time," +
-                                                                            "st_expand(p." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as point_bounding_box," +  // get a bounding box around the point to limit the minimum distance calculation time. any distance beyond the threshold will receive a fixed distance value.
-                                                                            "CASE WHEN f." + Feature.Columns.Id + " IS NULL THEN -1 ELSE f." + Feature.Columns.Id + " END as feature_id," +  // can't have a null feature ID, since we're using this column as our primary key. the null can happen since we're doing a left-join on the features, and there's no requirement to define features for a prediction. in such cases, -1 for feature ID will be fine since shapefile ID will be null, thus not matching anything in the left-join below.
-                                                                            "f." + (training ? Feature.Columns.TrainingResourceId : Feature.Columns.PredictionResourceId) + "::integer as shapefile_id " +
 
-                                                                     "INTO " + pointFeatureTable + " " +
-
-                                                                     // cross points with features
-                                                                     "FROM " + Point.GetTableName(prediction.Id) + " p LEFT JOIN " + Feature.Table + " f ON f." + Feature.Columns.ModelId + "=" + Id + " AND " +                                     // cross all points with all features for the current prediction (left-join in case there are no features to extract here and we just want the points for further feature extraction)
-                                                                                                                                                           "f." + Feature.Columns.EnumType + "='" + typeof(FeatureType) + "' AND " +                 // distance features
-                                                                                                                                                           "f." + Feature.Columns.EnumValue + "='" + FeatureType.MinimumDistanceToGeometry + "' " +  // as opposed to raster shapefiles
-                                                                     // only process points associated with the current core                                                                                         
-                                                                     "WHERE p." + Point.Columns.Core + "=" + core + ";" +
-
-                                                                     "ALTER TABLE " + pointFeatureTable + " ADD PRIMARY KEY (point_id,feature_id);" + // this is required in order to write a clean grouping statement below. if we don't have this, then we need to also group by the selected columns below.
-
-                                                                     // create some indexes
-                                                                     "CREATE INDEX ON " + pointFeatureTable + " (point_id);" +
-                                                                     "CREATE INDEX ON " + pointFeatureTable + " USING GIST (point_bounding_box);" +
-                                                                     "CREATE INDEX ON " + pointFeatureTable + " (feature_id);" +
-                                                                     "CREATE INDEX ON " + pointFeatureTable + " (shapefile_id);");
-
-                        cmd.ExecuteNonQuery();
-                        cmd.CommandText = "VACUUM ANALYZE " + pointFeatureTable;
-                        cmd.ExecuteNonQuery();
-
-                        cmd.CommandText = "SELECT " + pointFeatureTable + ".point_id as " + pointFeatureTable + "_" + Point.Columns.Id + "," +
-                                                      pointFeatureTable + ".point_incident_type as " + pointFeatureTable + "_" + Point.Columns.IncidentType + "," +
-                                                      "st_x(" + pointFeatureTable + ".point_location) as " + Point.Columns.X(pointFeatureTable) + "," +
-                                                      "st_y(" + pointFeatureTable + ".point_location) as " + Point.Columns.Y(pointFeatureTable) + "," +
-                                                      "st_srid(" + pointFeatureTable + ".point_location) as " + Point.Columns.SRID(pointFeatureTable) + "," +
-                                                      pointFeatureTable + ".point_time as " + pointFeatureTable + "_" + Point.Columns.Time + "," +
-                                                      pointFeatureTable + ".feature_id," +
-
-                                                      // the feature value for a point is the minimum distance from the point to an object associated with the feature
-                                                     "CASE WHEN COUNT(sfg." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + featureValueWhenBeyondThreshold + " " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box. 
-                                                     "ELSE min(st_distance(st_closestpoint(sfg." + ShapefileGeometry.Columns.Geometry + "," + pointFeatureTable + ".point_location)," + pointFeatureTable + ".point_location)) " +
-                                                     "END as feature_value " +
-
-                                          "FROM " + pointFeatureTable + " LEFT JOIN " + ShapefileGeometry.GetTableName(area.SRID) + " sfg ON " + pointFeatureTable + ".shapefile_id=sfg." + ShapefileGeometry.Columns.ShapefileId + " AND sfg." + ShapefileGeometry.Columns.Geometry + " && " + pointFeatureTable + ".point_bounding_box " + // only calculate distance for spatial objects that are within the point's bounding box
-
-                                          // group all distance calculations by point and feature -- we're going to then find the minimum value
-                                          "GROUP BY " + pointFeatureTable + ".point_id," +
-                                                        pointFeatureTable + ".feature_id;";
-
-                        NpgsqlDataReader reader = cmd.ExecuteReader();
                         Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>();
-                        while (reader.Read())
-                        {
-                            int pointId = Convert.ToInt32(reader[pointFeatureTable + "_" + Point.Columns.Id]);
-
-                            FeatureVector vector;
-                            if (!pointIdFeatureVector.TryGetValue(pointId, out vector))
+                        foreach (Point point in prediction.Points)
+                            if (point.Core == core)
                             {
-                                Point p = new Point(reader, pointFeatureTable);
-                                p.TrueClass = p.IncidentType;
-                                vector = new FeatureVector(p, numFeatures);
-                                pointIdFeatureVector.Add(pointId, vector);
+                                point.TrueClass = point.IncidentType;
+                                pointIdFeatureVector.Add(point.Id, new FeatureVector(point, numFeatures));
                             }
 
-                            int featureId = Convert.ToInt32(reader["feature_id"]);
-                            if (featureId != -1) // we can get -1 back if no objects for a feature were within the point's bounding box or if no features were defined (we did a left-join with the feature)
+                        NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
+                        string pointTableName = Point.GetTableName(prediction.Id);
+
+                        foreach (Feature feature in Features)
+                            if (feature.EnumType == typeof(FeatureType) && feature.EnumValue.Equals(FeatureType.MinimumDistanceToGeometry))
                             {
-                                double value = Convert.ToDouble(reader["feature_value"]);
+                                Shapefile shapefile = new Shapefile(int.Parse(training ? feature.TrainingResourceId : feature.PredictionResourceId));
+                                string shapefileGeometryTableName = ShapefileGeometry.GetTableName(shapefile);
+                                NpgsqlCommand cmd = new NpgsqlCommand("SELECT points." + Point.Columns.Id + " as points_" + Point.Columns.Id + "," +
+                                                                             "CASE WHEN COUNT(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + featureValueWhenBeyondThreshold + " " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box. 
+                                                                             "ELSE min(st_distance(st_closestpoint(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ",points." + Point.Columns.Location + "),points." + Point.Columns.Location + ")) " +
+                                                                             "END as feature_value " +
 
-                                // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again and reset appropriately
-                                if (value > featureValueWhenBeyondThreshold)
-                                    value = featureValueWhenBeyondThreshold;
+                                                                      "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " + 
+                                                                            "FROM " + pointTableName + " " + 
+                                                                            "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + ") points " +
 
-                                vector.Add(idFeature[featureId], value, false);
+                                                                            "LEFT JOIN " + shapefileGeometryTableName + " " +
+
+                                                                            "ON points.bounding_box && " + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + " " +
+
+                                                                      "GROUP BY points." + Point.Columns.Id, threadConnection);
+
+                                NpgsqlDataReader reader = cmd.ExecuteReader();
+                                while (reader.Read())
+                                {
+                                    FeatureVector vector = pointIdFeatureVector[Convert.ToInt32(reader["points_" + Point.Columns.Id])];
+                                    double value = Convert.ToDouble(reader["feature_value"]);
+
+                                    // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again and reset appropriately
+                                    if (value > featureValueWhenBeyondThreshold)
+                                        value = featureValueWhenBeyondThreshold;
+
+                                    vector.Add(idFeature[feature.Id], value, false);
+                                }
+                                reader.Close();
                             }
-                        }
-                        reader.Close();
 
                         lock (corePointIdFeatureVector) { corePointIdFeatureVector.Add(pointIdFeatureVector); }
 
-                        cmd.CommandText = "DROP TABLE " + pointFeatureTable;
-                        cmd.ExecuteNonQuery();
-
-                        DB.Connection.Return(cmd.Connection);
+                        DB.Connection.Return(threadConnection);
                     }));
 
                 t.Start(i);
@@ -526,9 +492,7 @@ namespace PTL.ATT.Models
                                     Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                     Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
 
-                                    Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                    constraints.Add(ShapefileGeometry.Columns.ShapefileId, shapefile.Id.ToString());
-                                    List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(area.SRID), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, constraints, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
+                                    List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, null, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
                                     int sampleSize = int.Parse(spatialDensityFeature.ParameterValue["Sample size"]);
                                     List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, true);
                                     if (densityEstimates.Count == densityEvalPoints.Count)
@@ -644,7 +608,7 @@ namespace PTL.ATT.Models
 
             // all features must reference a shapefile that is valid for the prediction area's SRID -- might not be the case because we allow remapping
             Set<int> shapefilesInPredictionSRID = new Set<int>(Shapefile.GetForSRID(prediction.PredictionArea.SRID).Select(s => s.Id).ToArray());
-            string badFeatures = Features.Where(f => (f.EnumValue.Equals(FeatureType.MinimumDistanceToGeometry) || f.EnumValue.Equals(FeatureType.GeometryDensity)) && 
+            string badFeatures = Features.Where(f => (f.EnumValue.Equals(FeatureType.MinimumDistanceToGeometry) || f.EnumValue.Equals(FeatureType.GeometryDensity)) &&
                                                      !shapefilesInPredictionSRID.Contains(int.Parse(f.PredictionResourceId))).Select(f => f.ToString()).Concatenate(",");
             if (badFeatures.Length > 0)
                 throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction (or perhaps they were remapped incorrectly).");

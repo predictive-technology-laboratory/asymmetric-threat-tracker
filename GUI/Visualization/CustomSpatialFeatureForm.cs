@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
- 
+
 using LAIR.ResourceAPIs.PostGIS;
 using Npgsql;
 using System;
@@ -108,11 +108,11 @@ namespace PTL.ATT.GUI.Visualization
                     else
                     {
                         NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-                        int shapefileId = -1;
+                        Shapefile shapefile = null;
                         try
                         {
-                            shapefileId = Shapefile.Create(cmd.Connection, name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.Feature);
-                            ShapefileGeometry.Create(cmd.Connection, shapefileId, elements.Items.Cast<Geometry>().Select(g => new Tuple<Geometry, DateTime>(g, DateTime.MinValue)).ToList());
+                            shapefile = new Shapefile(Shapefile.Create(cmd.Connection, name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.Feature));
+                            ShapefileGeometry.Create(cmd.Connection, shapefile, elements.Items.Cast<Geometry>().Select(g => new Tuple<Geometry, DateTime>(g, DateTime.MinValue)).ToList());
                             MessageBox.Show("Shapefile \"" + name + "\" created.");
                             elements.Items.Clear();
                             points.Items.Clear();
@@ -121,7 +121,7 @@ namespace PTL.ATT.GUI.Visualization
                         {
                             Console.Out.WriteLine("Failed to create shapefile:  " + ex.Message);
 
-                            try { new Shapefile(shapefileId).Delete(); }
+                            try { shapefile.Delete(); }
                             catch (Exception ex2) { Console.Out.WriteLine("Failed to delete failed shapefile:  " + ex2.Message); }
                         }
                         finally

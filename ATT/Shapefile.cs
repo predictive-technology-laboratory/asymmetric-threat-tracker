@@ -78,7 +78,9 @@ namespace PTL.ATT
 
         public static int Create(NpgsqlConnection connection, string name, int srid, ShapefileType type)
         {
-            return Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar());
+            Shapefile shapefile = new Shapefile(Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar()));
+            ShapefileGeometry.CreateTable(ShapefileGeometry.GetTableName(shapefile), srid);
+            return shapefile.Id;
         }
 
         public static void ImportShapefile(string shapefilePath, ShapefileType type, GetShapefileInfoDelegate getShapefileInfo)
@@ -160,8 +162,8 @@ namespace PTL.ATT
                     cmd.ExecuteNonQuery();
 
                     Console.Out.WriteLine("Importing shapefile into database");
-                    shapefileId = Create(cmd.Connection, name, toSRID, type);
-                    ShapefileGeometry.Create(cmd.Connection, shapefileId, toSRID, "temp", "geom");
+                    Shapefile shapefile = new Shapefile(Create(cmd.Connection, name, toSRID, type));
+                    ShapefileGeometry.Create(cmd.Connection, shapefile, "temp", "geom");
 
                     cmd.CommandText = "DROP TABLE temp";
                     cmd.ExecuteNonQuery();
@@ -289,7 +291,11 @@ namespace PTL.ATT
 
         public void Delete()
         {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
+            try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
+            catch (Exception ex) { Console.Out.WriteLine("Error deleting shapefile:  " + ex.Message); }
+
+            try { DB.Connection.ExecuteNonQuery("DROP TABLE " + ShapefileGeometry.GetTableName(this)); }
+            catch (Exception ex) { Console.Out.WriteLine("Error dropping shapefile table:  " + ex.Message); }
         }
     }
 }

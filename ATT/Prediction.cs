@@ -341,17 +341,20 @@ namespace PTL.ATT
         {
             get
             {
-                if (_points == null)
+                lock (this)
                 {
-                    _points = new List<Point>();
-                    string pointTable = Point.GetTableName(_id);
-                    NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Point.Columns.Select(pointTable) + " FROM " + pointTable);
-                    NpgsqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                        _points.Add(new Point(reader, pointTable));
+                    if (_points == null)
+                    {
+                        _points = new List<Point>();
+                        string pointTable = Point.GetTableName(_id);
+                        NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Point.Columns.Select(pointTable) + " FROM " + pointTable);
+                        NpgsqlDataReader reader = cmd.ExecuteReader();
+                        while (reader.Read())
+                            _points.Add(new Point(reader, pointTable));
 
-                    reader.Close();
-                    DB.Connection.Return(cmd.Connection);
+                        reader.Close();
+                        DB.Connection.Return(cmd.Connection);
+                    }
                 }
 
                 return _points;
