@@ -395,31 +395,29 @@ namespace PTL.ATT.Models
             foreach (Feature f in Features)
                 idFeature.Add(f.Id, new NumericFeature(f.Id.ToString()));
 
+            FeatureVectorList featureVectors = new FeatureVectorList(prediction.Points.Count);
+            Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>(prediction.Points.Count);
+            foreach (Point point in prediction.Points)
+            {
+                point.TrueClass = point.IncidentType;
+                FeatureVector vector = new FeatureVector(point, numFeatures);
+                featureVectors.Add(vector);
+                pointIdFeatureVector.Add(point.Id, vector);
+            }
+
             Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
             Set<Thread> threads = new Set<Thread>();
 
             #region spatial distance features
             Console.Out.WriteLine("Extracting spatial distance feature values");
-
-            List<Dictionary<int, FeatureVector>> corePointIdFeatureVector = new List<Dictionary<int, FeatureVector>>(Configuration.ProcessorCount);
             float featureValueWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2));
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
                         int core = (int)o;
-
-                        Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>();
-                        foreach (Point point in prediction.Points)
-                            if (point.Core == core)
-                            {
-                                point.TrueClass = point.IncidentType;
-                                pointIdFeatureVector.Add(point.Id, new FeatureVector(point, numFeatures));
-                            }
-
                         NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
                         string pointTableName = Point.GetTableName(prediction.Id);
-
                         foreach (Feature feature in Features)
                             if (feature.EnumType == typeof(FeatureType) && feature.EnumValue.Equals(FeatureType.MinimumDistanceToGeometry))
                             {
@@ -430,8 +428,8 @@ namespace PTL.ATT.Models
                                                                              "ELSE min(st_distance(st_closestpoint(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ",points." + Point.Columns.Location + "),points." + Point.Columns.Location + ")) " +
                                                                              "END as feature_value " +
 
-                                                                      "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " + 
-                                                                            "FROM " + pointTableName + " " + 
+                                                                      "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " +
+                                                                            "FROM " + pointTableName + " " +
                                                                             "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + ") points " +
 
                                                                             "LEFT JOIN " + shapefileGeometryTableName + " " +
@@ -455,8 +453,6 @@ namespace PTL.ATT.Models
                                 reader.Close();
                             }
 
-                        lock (corePointIdFeatureVector) { corePointIdFeatureVector.Add(pointIdFeatureVector); }
-
                         DB.Connection.Return(threadConnection);
                     }));
 
@@ -467,8 +463,7 @@ namespace PTL.ATT.Models
             foreach (Thread t in threads)
                 t.Join();
 
-            FeatureVectorList mergedVectors = new FeatureVectorList(corePointIdFeatureVector.SelectMany(l => l.Values), corePointIdFeatureVector.Sum(l => l.Count));
-            foreach (FeatureVector vector in mergedVectors)
+            foreach (FeatureVector vector in featureVectors)
                 foreach (LAIR.MachineLearning.Feature f in vector)
                     f.UpdateRange(vector[f]);
             #endregion
@@ -478,7 +473,7 @@ namespace PTL.ATT.Models
             if (spatialDensityFeatures.Count > 0)
             {
                 threads.Clear();
-                List<PostGIS.Point> densityEvalPoints = mergedVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
+                List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
                 Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(spatialDensityFeatures.Count);
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
@@ -515,7 +510,7 @@ namespace PTL.ATT.Models
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        mergedVectors[i].Add(idFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(idFeature[featureId], densityEstimates[i]);
                 }
             }
             #endregion
@@ -525,7 +520,7 @@ namespace PTL.ATT.Models
             if (kdeFeatures.Count > 0)
             {
                 threads.Clear();
-                List<PostGIS.Point> densityEvalPoints = mergedVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
+                List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
                 Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(kdeFeatures.Count);
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
@@ -560,7 +555,7 @@ namespace PTL.ATT.Models
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        mergedVectors[i].Add(idFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(idFeature[featureId], densityEstimates[i]);
                 }
             }
             #endregion
@@ -568,12 +563,11 @@ namespace PTL.ATT.Models
             if (_externalFeatureExtractor != null)
             {
                 Console.Out.WriteLine("Running external feature extractor for " + typeof(FeatureBasedDCM));
-
-                foreach (FeatureVectorList featureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(FeatureBasedDCM), prediction, mergedVectors, training))
-                    yield return featureVectors;
+                foreach (FeatureVectorList externalFeatureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(FeatureBasedDCM), prediction, featureVectors, training))
+                    yield return externalFeatureVectors;
             }
             else
-                yield return mergedVectors;
+                yield return featureVectors;
         }
 
         public void SelectFeatures(Prediction prediction, bool runPredictionAfterSelect)
@@ -649,6 +643,7 @@ namespace PTL.ATT.Models
                     _classifier.Train();
 
                     Point.DeleteTable(prediction.Id);
+                    prediction.ReleaseLazyLoadedData();
                 }
                 #endregion
 

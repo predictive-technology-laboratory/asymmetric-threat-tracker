@@ -79,7 +79,7 @@ namespace PTL.ATT
         public static int Create(NpgsqlConnection connection, string name, int srid, ShapefileType type)
         {
             Shapefile shapefile = new Shapefile(Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar()));
-            ShapefileGeometry.CreateTable(ShapefileGeometry.GetTableName(shapefile), srid);
+            ShapefileGeometry.CreateTable(shapefile);
             return shapefile.Id;
         }
 
@@ -291,11 +291,12 @@ namespace PTL.ATT
 
         public void Delete()
         {
-            try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
+            try
+            {
+                DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
+                DB.Connection.ExecuteNonQuery("DROP TABLE " + ShapefileGeometry.GetTableName(this));
+            }
             catch (Exception ex) { Console.Out.WriteLine("Error deleting shapefile:  " + ex.Message); }
-
-            try { DB.Connection.ExecuteNonQuery("DROP TABLE " + ShapefileGeometry.GetTableName(this)); }
-            catch (Exception ex) { Console.Out.WriteLine("Error dropping shapefile table:  " + ex.Message); }
         }
     }
 }

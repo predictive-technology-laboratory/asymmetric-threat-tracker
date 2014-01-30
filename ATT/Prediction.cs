@@ -294,8 +294,11 @@ namespace PTL.ATT
         {
             get
             {
-                if (_predictionArea == null)
-                    _predictionArea = new Area(_predictionAreaId);
+                lock (this)
+                {
+                    if (_predictionArea == null)
+                        _predictionArea = new Area(_predictionAreaId);
+                }
 
                 return _predictionArea;
             }
@@ -337,7 +340,7 @@ namespace PTL.ATT
             }
         }
 
-        public IEnumerable<Point> Points
+        public List<Point> Points
         {
             get
             {
@@ -361,21 +364,24 @@ namespace PTL.ATT
             }
         }
 
-        public IEnumerable<PointPrediction> PointPredictions
+        public List<PointPrediction> PointPredictions
         {
             get
             {
-                if (_pointPredictions == null)
+                lock (this)
                 {
-                    _pointPredictions = new List<PointPrediction>();
-                    string pointPredictionTable = PointPrediction.GetTableName(_id);
-                    NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + PointPrediction.Columns.Select(pointPredictionTable) + " FROM " + pointPredictionTable);
-                    NpgsqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                        _pointPredictions.Add(new PointPrediction(reader, pointPredictionTable));
+                    if (_pointPredictions == null)
+                    {
+                        _pointPredictions = new List<PointPrediction>();
+                        string pointPredictionTable = PointPrediction.GetTableName(_id);
+                        NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + PointPrediction.Columns.Select(pointPredictionTable) + " FROM " + pointPredictionTable);
+                        NpgsqlDataReader reader = cmd.ExecuteReader();
+                        while (reader.Read())
+                            _pointPredictions.Add(new PointPrediction(reader, pointPredictionTable));
 
-                    reader.Close();
-                    DB.Connection.Return(cmd.Connection);
+                        reader.Close();
+                        DB.Connection.Return(cmd.Connection);
+                    }
                 }
 
                 return _pointPredictions;

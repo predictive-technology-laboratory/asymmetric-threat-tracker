@@ -1,4 +1,4 @@
-﻿Parameterized features (e.g., for spatial density KDE sample size)
+﻿Separate AreaBoundingBoxes table for each area
 Handle shapefile density features appropriately for timeslice model
 Multiple kernel learning
   * http://www2.csie.ntu.edu.tw/~b95028/software/liblinear-mkl/index.php

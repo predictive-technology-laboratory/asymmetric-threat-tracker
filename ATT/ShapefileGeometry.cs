@@ -97,16 +97,16 @@ namespace PTL.ATT
             }
         }
 
-        internal static void CreateTable(string tableName, int srid)
+        internal static void CreateTable(Shapefile shapefile)
         {
-            if (!DB.Connection.TableExists(tableName))
-                DB.Connection.ExecuteNonQuery(
-                    "CREATE TABLE " + tableName + " (" +
-                    Columns.Geometry + " GEOMETRY(GEOMETRY," + srid + ")," +
-                    Columns.Id + " SERIAL PRIMARY KEY," +
-                    Columns.Time + " TIMESTAMP);" +
-                    "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
-                    "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");");
+            string tableName = GetTableName(shapefile);
+            DB.Connection.ExecuteNonQuery(
+                "CREATE TABLE " + tableName + " (" +
+                Columns.Geometry + " GEOMETRY(GEOMETRY," + shapefile.SRID + ")," +
+                Columns.Id + " SERIAL PRIMARY KEY," +
+                Columns.Time + " TIMESTAMP);" +
+                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
+                "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");");
         }
 
         public static string GetValue(Geometry geometry, int targetSRID, string timeParamName)

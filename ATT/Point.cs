@@ -34,7 +34,7 @@ namespace PTL.ATT
     {
         public class Columns
         {
-            [Reflector.Insert, Reflector.Select(true)]
+            [Reflector.Insert]
             public const string Core = "core";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Id = "id";
@@ -209,7 +209,6 @@ namespace PTL.ATT
         }
 
         private int _id;
-        private int _core;
         private string _incidentType;
         private PostGIS.Point _location;
         private DateTime _time;
@@ -217,11 +216,6 @@ namespace PTL.ATT
         public int Id
         {
             get { return _id; }
-        }
-
-        public int Core
-        {
-            get { return _core; }
         }
 
         public string IncidentType
@@ -244,24 +238,22 @@ namespace PTL.ATT
             Construct(reader, table);
         }
 
-        internal Point(int id, int core, string incidentType, PostGIS.Point location, DateTime time)
+        internal Point(int id, string incidentType, PostGIS.Point location, DateTime time)
         {
-            Construct(id, core, incidentType, location, time);
+            Construct(id, incidentType, location, time);
         }
 
         private void Construct(NpgsqlDataReader reader, string table)
         {
             Construct(Convert.ToInt32(reader[table + "_" + Columns.Id]),
-                      Convert.ToInt32(reader[table + "_" + Columns.Core]),
                       Convert.ToString(reader[table + "_" + Columns.IncidentType]),
                       new PostGIS.Point(Convert.ToDouble(reader[Columns.X(table)]), Convert.ToDouble(reader[Columns.Y(table)]), Convert.ToInt32(reader[Columns.SRID(table)])),
                       Convert.ToDateTime(reader[table + "_" + Columns.Time]));
         }
 
-        private void Construct(int id, int core, string incidentType, PostGIS.Point location, DateTime time)
+        private void Construct(int id, string incidentType, PostGIS.Point location, DateTime time)
         {
             _id = id;
-            _core = core;
             _incidentType = incidentType;
             _location = location;
             _time = time;
