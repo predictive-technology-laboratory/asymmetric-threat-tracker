@@ -184,31 +184,34 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
 ");
                 R.Execute(rCmd.ToString(), false);
 
-                using (StreamReader predictionsFile = new StreamReader(PredictionsPath))
-                {
-                    string[] colnames = predictionsFile.ReadLine().Split(',');
-                    int row = 0;
-                    string line;
-
-                    while ((line = predictionsFile.ReadLine()) != null)
+                if (File.Exists(PredictionsPath))
+                    using (StreamReader predictionsFile = new StreamReader(PredictionsPath))
                     {
-                        string[] lines = line.Split(',');
+                        string[] colnames = predictionsFile.ReadLine().Split(',');
+                        int row = 0;
+                        string line;
 
-                        for (int i = 0; i < colnames.Length; i++)
+                        while ((line = predictionsFile.ReadLine()) != null)
                         {
-                            string label = colnames[i].Replace("\"", @"");
-                            label = label.Replace(".", " ");
-                            float prob = float.Parse(lines[i]);
-                            featureVectors[row].DerivedFrom.PredictionConfidenceScores.Add(label, prob);
+                            string[] lines = line.Split(',');
+
+                            for (int i = 0; i < colnames.Length; i++)
+                            {
+                                string label = colnames[i].Replace("\"", @"");
+                                label = label.Replace(".", " ");
+                                float prob = float.Parse(lines[i]);
+                                featureVectors[row].DerivedFrom.PredictionConfidenceScores.Add(label, prob);
+                            }
+                            row++;
                         }
-                        row++;
+
+                        predictionsFile.Close();
+
+                        if (row != featureVectors.Count)
+                            throw new Exception("Number of predictions doesn't match number of input vectors");
                     }
-
-                    predictionsFile.Close();
-
-                    if (row != featureVectors.Count)
-                        throw new Exception("Number of predictions doesn't match number of input vectors");
-                }
+                else
+                    Console.Out.WriteLine("WARNING:  RandomForest failed to classify points. See previous messages for hints.");
 
                 File.Delete(ColumnMaxMinPath);
                 File.Delete(RandomForestModelPath);

@@ -93,20 +93,22 @@ namespace PTL.ATT
         public static string GetValue(int pointId, string timeParameterName, IEnumerable<KeyValuePair<string, double>> incidentScore, double totalThreat)
         {
             string labels, scores;
-            GetLabelsScoresTotalThreatSQL(incidentScore, out labels, out scores);
+            GetLabelsScoresSQL(incidentScore, out labels, out scores);
 
             return "(" + labels + "," + pointId + "," + scores + "," + timeParameterName + "," + totalThreat + ")";
         }
 
-        public static void GetLabelsScoresTotalThreatSQL(IEnumerable<KeyValuePair<string, double>> incidentScores, out string labels, out string scores)
+        public static void GetLabelsScoresSQL(IEnumerable<KeyValuePair<string, double>> incidentScores, out string labels, out string scores)
         {
-            StringBuilder labelsBuilder = new StringBuilder();
-            StringBuilder scoresBuilder = new StringBuilder();
+            StringBuilder labelsBuilder = new StringBuilder("'{");
+            StringBuilder scoresBuilder = new StringBuilder("'{");
+            int i = 0;
             foreach (KeyValuePair<string, double> incidentScore in incidentScores.OrderBy(kvp => kvp.Key))
                 if (incidentScore.Key != PointPrediction.NullLabel)
                 {
-                    labelsBuilder.Append((labelsBuilder.Length == 0 ? "'{" : ",") + "\"" + incidentScore.Key + "\"");
-                    scoresBuilder.Append((scoresBuilder.Length == 0 ? "'{" : ",") + incidentScore.Value);
+                    labelsBuilder.Append((i == 0 ? "" : ",") + "\"" + incidentScore.Key + "\"");
+                    scoresBuilder.Append((i == 0 ? "" : ",") + incidentScore.Value);
+                    ++i;
                 }
 
             labelsBuilder.Append("}'");
@@ -205,7 +207,7 @@ namespace PTL.ATT
                             if (skip-- <= 0)
                             {
                                 string labels, scores;
-                                GetLabelsScoresTotalThreatSQL(pointPrediction.IncidentScore, out labels, out scores);
+                                GetLabelsScoresSQL(pointPrediction.IncidentScore, out labels, out scores);
                                 
                                 cmdText.Append("UPDATE " + table + " " +
                                                "SET " + Columns.Labels + "=" + labels + "," +

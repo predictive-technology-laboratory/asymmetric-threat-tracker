@@ -94,8 +94,6 @@
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Classifiers\SvmRank.cs" />
-    <Compile Include="Exceptions\ConfigurationException.cs" />
-    <Compile Include="Exceptions\ZeroPositivePointsException.cs" />
     <Compile Include="Importers\Importer.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
@@ -147,6 +145,7 @@
   <ItemGroup>
     <None Include="ATT.licenseheader" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

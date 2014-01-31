@@ -35,7 +35,6 @@ using PTL.ATT.Evaluation;
 using PTL.ATT.Smoothers;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
-using PTL.ATT.Exceptions;
 
 namespace PTL.ATT.Models
 {

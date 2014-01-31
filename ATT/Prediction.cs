@@ -37,7 +37,6 @@ using LAIR.XML;
 using System.IO.Compression;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
-using PTL.ATT.Exceptions;
 
 namespace PTL.ATT
 {

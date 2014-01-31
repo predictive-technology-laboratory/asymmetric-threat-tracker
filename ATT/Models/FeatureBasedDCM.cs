@@ -36,7 +36,6 @@ using System.IO;
 using PTL.ATT.Smoothers;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO.Compression;
-using PTL.ATT.Exceptions;
 using LAIR.XML;
 using LAIR.ResourceAPIs.PostGIS;
 
@@ -344,8 +343,8 @@ namespace PTL.ATT.Models
                 incidentLocations.Add(new Tuple<double, double>(i.Location.X, i.Location.Y));
             }
 
-            if (training && incidentPoints.Count == 0)
-                throw new ZeroPositivePointsException("Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
+            Set<int> incidentPointIndexesInArea = new Set<int>(area.Contains(incidentPoints.Select(p => p.Item1).ToList()).ToArray());
+            incidentPoints = incidentPoints.Where((p, i) => incidentPointIndexesInArea.Contains(i)).ToList();
 
             List<Tuple<PostGIS.Point, string, DateTime>> nullPoints = new List<Tuple<PostGIS.Point, string, DateTime>>();
             double areaMinX = area.BoundingBox.MinX;
@@ -363,8 +362,6 @@ namespace PTL.ATT.Models
 
             List<int> nullPointIds = Point.Insert(connection, nullPoints, prediction.Id, area, true, vacuum);
 
-            Set<int> incidentPointIndexesInArea = new Set<int>(area.Contains(incidentPoints.Select(p => p.Item1).ToList()).ToArray());
-            incidentPoints = incidentPoints.Where((p, i) => incidentPointIndexesInArea.Contains(i)).ToList();
             int maxSampleSize = training ? _trainingSampleSize : _predictionSampleSize;
             int numIncidentsToRemove = (nullPointIds.Count + incidentPoints.Count) - maxSampleSize;
             string sample = training ? "training" : "prediction";
@@ -372,17 +369,18 @@ namespace PTL.ATT.Models
                 if (incidentPoints.Count > 0)
                 {
                     numIncidentsToRemove = Math.Min(incidentPoints.Count, numIncidentsToRemove);
-
-                    Console.Out.WriteLine("WARNING:  the " + sample + " sample size is too small. We are forced to remove " + numIncidentsToRemove + " random incidents in order to meet the required sample size. In order to use all incidents, increase the sample size to " + (nullPointIds.Count + incidentPoints.Count));
-
-                    incidentPoints.Randomize(new Random(1240894));
-                    incidentPoints.RemoveRange(0, numIncidentsToRemove);
+                    if (numIncidentsToRemove > 0)
+                    {
+                        Console.Out.WriteLine("WARNING:  the " + sample + " sample size is too large. We are forced to remove " + numIncidentsToRemove + " random incidents in order to meet the required sample size. In order to use all incidents, increase the sample size to " + (nullPointIds.Count + incidentPoints.Count));
+                        incidentPoints.Randomize(new Random(1240894));
+                        incidentPoints.RemoveRange(0, numIncidentsToRemove);
+                    }
                 }
                 else
                     Console.Out.WriteLine("WARNING:  we are using " + nullPointIds.Count + " points, but the maximum " + sample + " sample size is " + maxSampleSize + ". Be aware that this could be going beyond the memory limits of your machine.");
 
             if (training && incidentPoints.Count == 0)
-                throw new ZeroPositivePointsException("Zero positive incident points inserted into point sample for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\"." + (numIncidentsToRemove > 0 ? " This is due to sample size restrictions. Either increase the training sample size to " + (maxSampleSize + numIncidentsToRemove) + " to include all incidents or increase the point spacing to reduce the number of null points." : ""));
+                Console.Out.WriteLine("WARNING:  Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
 
             Point.Insert(connection, incidentPoints, prediction.Id, area, false, vacuum);
         }
@@ -409,19 +407,22 @@ namespace PTL.ATT.Models
             Set<Thread> threads = new Set<Thread>();
 
             #region spatial distance features
-            Console.Out.WriteLine("Extracting spatial distance feature values");
-            float featureValueWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2));
-            for (int i = 0; i < Configuration.ProcessorCount; ++i)
+            List<Feature> spatialDistanceFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.MinimumDistanceToGeometry)).ToList();
+            if (spatialDistanceFeatures.Count > 0)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
-                    {
-                        int core = (int)o;
-                        NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
-                        string pointTableName = Point.GetTableName(prediction.Id);
-                        foreach (Feature feature in Features)
-                            if (feature.EnumType == typeof(FeatureType) && feature.EnumValue.Equals(FeatureType.MinimumDistanceToGeometry))
+                Console.Out.WriteLine("Extracting spatial distance feature values");
+                float featureValueWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2));
+                threads.Clear();
+                for (int i = 0; i < Configuration.ProcessorCount; ++i)
+                {
+                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                        {
+                            int core = (int)o;
+                            NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
+                            string pointTableName = Point.GetTableName(prediction.Id);
+                            foreach (Feature spatialDistanceFeature in spatialDistanceFeatures)
                             {
-                                Shapefile shapefile = new Shapefile(int.Parse(training ? feature.TrainingResourceId : feature.PredictionResourceId));
+                                Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDistanceFeature.TrainingResourceId : spatialDistanceFeature.PredictionResourceId));
                                 string shapefileGeometryTableName = ShapefileGeometry.GetTableName(shapefile);
                                 NpgsqlCommand cmd = new NpgsqlCommand("SELECT points." + Point.Columns.Id + " as points_" + Point.Columns.Id + "," +
                                                                              "CASE WHEN COUNT(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + featureValueWhenBeyondThreshold + " " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box. 
@@ -448,33 +449,34 @@ namespace PTL.ATT.Models
                                     if (value > featureValueWhenBeyondThreshold)
                                         value = featureValueWhenBeyondThreshold;
 
-                                    vector.Add(idFeature[feature.Id], value, false);
+                                    vector.Add(idFeature[spatialDistanceFeature.Id], value, false);
                                 }
                                 reader.Close();
                             }
 
-                        DB.Connection.Return(threadConnection);
-                    }));
+                            DB.Connection.Return(threadConnection);
+                        }));
 
-                t.Start(i);
-                threads.Add(t);
+                    t.Start(i);
+                    threads.Add(t);
+                }
+
+                foreach (Thread t in threads)
+                    t.Join();
+
+                foreach (FeatureVector vector in featureVectors)
+                    foreach (LAIR.MachineLearning.Feature f in vector)
+                        f.UpdateRange(vector[f]);
             }
-
-            foreach (Thread t in threads)
-                t.Join();
-
-            foreach (FeatureVector vector in featureVectors)
-                foreach (LAIR.MachineLearning.Feature f in vector)
-                    f.UpdateRange(vector[f]);
             #endregion
 
             #region spatial density features
             List<Feature> spatialDensityFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.GeometryDensity)).ToList();
             if (spatialDensityFeatures.Count > 0)
             {
-                threads.Clear();
                 List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
                 Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(spatialDensityFeatures.Count);
+                threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
                     Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
@@ -519,9 +521,9 @@ namespace PTL.ATT.Models
             List<Feature> kdeFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.IncidentKernelDensityEstimate)).ToList();
             if (kdeFeatures.Count > 0)
             {
-                threads.Clear();
                 List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
                 Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(kdeFeatures.Count);
+                threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
                     Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
