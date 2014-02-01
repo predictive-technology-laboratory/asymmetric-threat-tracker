@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the ATT.  If not, see <http://www.gnu.org/licenses/>.
 #endregion
-
+ 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -1750,38 +1750,38 @@ namespace PTL.ATT.GUI
             t.Start();
         }
 
-        private void encryptStringToolStripMenuItem_Click(object sender, EventArgs e)
+        private void encryptTextToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string password = null;
+            string textToEncrypt = null;
 
             while (true)
             {
-                DynamicForm f = new DynamicForm("Enter password");
-                f.AddTextBox("Password:", null, 20, "password", '*', true);
-                f.AddTextBox("Confirm password:", null, 20, "confirmed", '*', true);
+                DynamicForm f = new DynamicForm("Encrypt text...", MessageBoxButtons.OKCancel);
+                f.AddTextBox("Text:", null, 20, "text", '*', true);
+                f.AddTextBox("Confirm text:", null, 20, "confirmed", '*', true);
 
-                if (f.ShowDialog() == DialogResult.Cancel)
-                    break;
-
-                string pass = f.GetValue<string>("password").Trim();
-                string confirmed = f.GetValue<string>("confirmed").Trim();
-                if (pass != confirmed)
-                    MessageBox.Show("Entries do not match.");
-                else
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    password = pass;
-                    break;
+                    textToEncrypt = f.GetValue<string>("text").Trim();
+                    string confirmedText = f.GetValue<string>("confirmed").Trim();
+                    if (textToEncrypt.Length == 0)
+                        MessageBox.Show("Empty text is not allowed.");
+                    else if (textToEncrypt != confirmedText)
+                        MessageBox.Show("Entries do not match.");
+                    else
+                        break;
                 }
+                else
+                    return;
             }
 
-            if (password != null && password.Length > 0)
-                try
-                {
-                    DynamicForm showEncrypted = new DynamicForm("Encrypted password", MessageBoxButtons.OK);
-                    showEncrypted.AddTextBox("Result:", password.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), -1, "encrypted");
-                    showEncrypted.ShowDialog();
-                }
-                catch (Exception ex) { MessageBox.Show("Error getting encrypted password:  " + ex.Message); }
+            try
+            {
+                DynamicForm showEncrypted = new DynamicForm("Encrypted text", MessageBoxButtons.OK);
+                showEncrypted.AddTextBox("Result:", textToEncrypt.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), -1, "encrypted");
+                showEncrypted.ShowDialog();
+            }
+            catch (Exception ex) { MessageBox.Show("Error getting encrypted text:  " + ex.Message); }
         }
         #endregion
 

@@ -55,7 +55,7 @@ namespace PTL.ATT.GUI
             this.sendNotificationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendTestNotificationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
-            this.encryptStringToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.encryptTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetEncryptionKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.viewLogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -182,7 +182,7 @@ namespace PTL.ATT.GUI
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.notificationsToolStripMenuItem,
             this.toolStripSeparator8,
-            this.encryptStringToolStripMenuItem,
+            this.encryptTextToolStripMenuItem,
             this.resetEncryptionKeyToolStripMenuItem,
             this.toolStripSeparator7,
             this.viewLogToolStripMenuItem,
@@ -222,12 +222,12 @@ namespace PTL.ATT.GUI
             this.toolStripSeparator8.Name = "toolStripSeparator8";
             this.toolStripSeparator8.Size = new System.Drawing.Size(180, 6);
             // 
-            // encryptStringToolStripMenuItem
+            // encryptTextToolStripMenuItem
             // 
-            this.encryptStringToolStripMenuItem.Name = "encryptStringToolStripMenuItem";
-            this.encryptStringToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
-            this.encryptStringToolStripMenuItem.Text = "Encrypt string...";
-            this.encryptStringToolStripMenuItem.Click += new System.EventHandler(this.encryptStringToolStripMenuItem_Click);
+            this.encryptTextToolStripMenuItem.Name = "encryptTextToolStripMenuItem";
+            this.encryptTextToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.encryptTextToolStripMenuItem.Text = "Encrypt text...";
+            this.encryptTextToolStripMenuItem.Click += new System.EventHandler(this.encryptTextToolStripMenuItem_Click);
             // 
             // resetEncryptionKeyToolStripMenuItem
             // 
@@ -348,14 +348,14 @@ namespace PTL.ATT.GUI
             // addAreaToolStripMenuItem
             // 
             this.addAreaToolStripMenuItem.Name = "addAreaToolStripMenuItem";
-            this.addAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.addAreaToolStripMenuItem.Text = "Add...";
             this.addAreaToolStripMenuItem.Click += new System.EventHandler(this.addAreaToolStripMenuItem_Click);
             // 
             // deleteAreaToolStripMenuItem
             // 
             this.deleteAreaToolStripMenuItem.Name = "deleteAreaToolStripMenuItem";
-            this.deleteAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.deleteAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.deleteAreaToolStripMenuItem.Text = "Delete...";
             this.deleteAreaToolStripMenuItem.Click += new System.EventHandler(this.deleteAreaToolStripMenuItem_Click);
             // 
@@ -1180,7 +1180,7 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem editPredictionRunToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewLogToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteLogToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem encryptStringToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem encryptTextToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resetEncryptionKeyToolStripMenuItem;
         public Visualization.ThreatMap threatMap;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
