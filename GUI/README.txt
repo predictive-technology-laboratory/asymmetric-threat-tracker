@@ -8,12 +8,8 @@
 * Compile the ATT project as described in README.txt in the ATT project.
 
 * Copy att_config.xml from the ATT project into Config within the GUI project.
-  After copying, select the file and, within the Properties window, set 
-  "Copy to Output Directory" to "Copy always" if it isn't already set.
 
 * Copy gui_config.xml from the GUI project into Config within the GUI project.
-  After copying, select the file and, within the Properties window, set 
-  "Copy to Output Directory" to "Copy always" if it isn't already set.
 
 * Right-click on the GUI project and select "Build".
 

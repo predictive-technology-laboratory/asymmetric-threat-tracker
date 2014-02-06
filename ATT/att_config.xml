@@ -14,9 +14,9 @@
     <max_pool_size>50</max_pool_size>                  <!-- Maximum number of open connections to maintain. The upper limit is system dependent, and even the default value may cause problems for you. If it does, decrease this value. -->
   </postgres>
 
-  <postgis>                                               <!-- Requires PostGIS 2.0 or higher. Install using the PostgreSQL Application Stack Builder. -->
-    <shp2pgsql></shp2pgsql>                               <!-- Path to shp2pgsql executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
-    <pgsql2shp></pgsql2shp>                               <!-- Path to pgsql2shp executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
+  <postgis>                 <!-- Requires PostGIS 2.0 or higher. Install using the PostgreSQL Application Stack Builder. -->
+    <shp2pgsql></shp2pgsql> <!-- Path to shp2pgsql executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
+    <pgsql2shp></pgsql2shp> <!-- Path to pgsql2shp executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
   </postgis>
 
   <r>                                                       <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). The following packages are required:  "ada", "randomForest", "zoo", "ks", "earth". If the following options are configured correctly (and if you have an Internet connection), any missing packages will be installed automatically. -->
