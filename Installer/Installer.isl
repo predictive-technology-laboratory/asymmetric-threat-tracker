@@ -1921,7 +1921,6 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ATT\att_config.xml</td><td>1</td><td/></row>
-		<row><td>building_violations_jan_mar_</td><td>ISX_DEFAULTCOMPONENT11</td><td>BUILDI~1.XML|building_violations_jan-mar_2013.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Events\building_violations_jan-mar_2013.xml</td><td>1</td><td/></row>
 		<row><td>building_violations_jan_mar_1</td><td>ISX_DEFAULTCOMPONENT11</td><td>BUILDI~1.ZIP|building_violations_jan-mar_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Events\building_violations_jan-mar_2013.zip</td><td>1</td><td/></row>
 		<row><td>chicago_bike_racks.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_bike_racks.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.att</td><td>1</td><td/></row>
 		<row><td>chicago_bike_racks.dbf1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.DBF|chicago_bike_racks.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.dbf</td><td>1</td><td/></row>
@@ -1937,7 +1936,6 @@
 		<row><td>chicago_city_boundary.sbx1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SBX|chicago_city_boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.sbx</td><td>1</td><td/></row>
 		<row><td>chicago_city_boundary.shp1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SHP|chicago_city_boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.shp</td><td>1</td><td/></row>
 		<row><td>chicago_city_boundary.shx1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SHX|chicago_city_boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.shx</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_january_march</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.XML|chicago_crimes_january-march_2013.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Crimes\chicago_crimes_january-march_2013.xml</td><td>1</td><td/></row>
 		<row><td>chicago_crimes_january_march1</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.ZIP|chicago_crimes_january-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Crimes\chicago_crimes_january-march_2013.zip</td><td>1</td><td/></row>
 		<row><td>chicago_crimes_simple_format</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.XML|chicago_crimes_simple_format_sample.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Crimes\chicago_crimes_simple_format_sample.xml</td><td>1</td><td/></row>
 		<row><td>chicago_major_streets.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_major_streets.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.att</td><td>1</td><td/></row>
