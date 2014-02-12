@@ -342,14 +342,16 @@
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
 		<row><td>GUI.Primary_output</td><td>{0103E3E5-646D-418A-94D4-9F44EDCF485F}</td><td>INSTALLDIR</td><td>2</td><td/><td>gui.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{9BC8CA77-B4E4-43AD-A708-884FBE2A028C}</td><td>CONFIG</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{F76E768C-AC3D-4A99-B17C-8FB4F2992483}</td><td>DATA</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{0DBD8291-93DB-41CC-B84C-1325F9E04C62}</td><td>SHAPEFILES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{42FD609C-E5DD-4079-80E7-81FAE45ACD9C}</td><td>CHICAGO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{B3C1A845-F1EF-46E1-B95D-8A2DBC430860}</td><td>AO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{2C4F3400-7D8A-487C-891E-E6045F2D844C}</td><td>FEATURES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{506EBCBA-9548-43AB-A028-EACDF02CEAF0}</td><td>KABUL</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT7</td><td>{EA363ED5-2499-4422-BA6E-55538AC9959B}</td><td>AO1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT8</td><td>{BC3179C3-EA42-4083-AFAD-DC541BE834BC}</td><td>FEATURES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{45C449F3-C8E0-4AFA-BE5A-E6FA5B4DF959}</td><td>DATA</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{0E6C9535-78B5-475A-BD14-47D7C374E227}</td><td>CRIMES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT11</td><td>{69A97D7E-B028-4D1E-A072-0F6A493BA2A8}</td><td>EVENTS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT12</td><td>{1B9FE8E0-5525-42BA-87E0-D21FD629B590}</td><td>SHAPEFILES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT13</td><td>{0BD24F6D-B6D2-47DF-B93F-21C3824378DA}</td><td>CHICAGO1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT14</td><td>{5532DAA3-051E-4C1A-B756-A87A2AF5BD36}</td><td>AO2</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT15</td><td>{D3E7B74E-CEAC-40D0-8FA3-BCEC83424CB5}</td><td>FEATURES2</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT16</td><td>{25589056-F2EE-4712-9DA1-C6EF0F96458F}</td><td>KABUL1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT17</td><td>{FE892A2D-A7ED-4955-B38D-86690FB7196C}</td><td>AO3</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT18</td><td>{A3C5D07C-9107-4C6C-9209-579EFE0C3F75}</td><td>FEATURES3</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT9</td><td>{F19D58B1-BA3F-4A03-B637-D3BC94443F35}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>NewComponent1</td><td>{ED59E1A1-2F52-4D58-8017-343A05213A7E}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
@@ -562,7 +564,7 @@
 		<row><td>LicenseAgreement</td><td>DlgLine</td><td>Line</td><td>48</td><td>234</td><td>326</td><td>0</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>DlgTitle</td><td>Text</td><td>13</td><td>6</td><td>292</td><td>25</td><td>65539</td><td/><td>##IDS__IsLicenseDlg_LicenseAgreement##</td><td/><td/><td>0</td><td/><td/><td/></row>
 		<row><td>LicenseAgreement</td><td>ISPrintButton</td><td>PushButton</td><td>301</td><td>188</td><td>65</td><td>17</td><td>3</td><td/><td>##IDS_PRINT_BUTTON##</td><td>Agree</td><td/><td>0</td><td/><td/><td/></row>
-		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>&lt;VSSolutionFolder&gt;\eula.rtf</td><td/></row>
+		<row><td>LicenseAgreement</td><td>Memo</td><td>ScrollableText</td><td>8</td><td>55</td><td>358</td><td>130</td><td>7</td><td/><td/><td/><td/><td>0</td><td/><td>&lt;VSSolutionFolder&gt;\LICENSE.rtf</td><td/></row>
 		<row><td>LicenseAgreement</td><td>Next</td><td>PushButton</td><td>230</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_NEXT##</td><td>Cancel</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Back</td><td>PushButton</td><td>164</td><td>243</td><td>66</td><td>17</td><td>3</td><td/><td>##IDS_BACK##</td><td>Next</td><td/><td>0</td><td/><td/><td/></row>
 		<row><td>MaintenanceType</td><td>Banner</td><td>Bitmap</td><td>0</td><td>0</td><td>374</td><td>44</td><td>1</td><td/><td/><td/><td/><td>0</td><td/><td/><td>NewBinary1</td></row>
@@ -1061,10 +1063,11 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
-		<row><td>CHICAGO</td><td>ISX_DEFAULTCOMPONENT3</td></row>
+		<row><td>CHICAGO1</td><td>ISX_DEFAULTCOMPONENT13</td></row>
+		<row><td>DATA</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>INSTALLDIR</td><td>NewComponent1</td></row>
-		<row><td>KABUL</td><td>ISX_DEFAULTCOMPONENT6</td></row>
-		<row><td>SHAPEFILES</td><td>ISX_DEFAULTCOMPONENT2</td></row>
+		<row><td>KABUL1</td><td>ISX_DEFAULTCOMPONENT16</td></row>
+		<row><td>SHAPEFILES1</td><td>ISX_DEFAULTCOMPONENT12</td></row>
 	</table>
 
 	<table name="CustomAction">
@@ -1145,21 +1148,23 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S255">ISFolderName</col>
 		<row><td>ALLUSERSPROFILE</td><td>TARGETDIR</td><td>.:ALLUSE~1|All Users</td><td/><td>0</td><td/></row>
-		<row><td>AO</td><td>CHICAGO</td><td>AO</td><td/><td>0</td><td/></row>
-		<row><td>AO1</td><td>KABUL</td><td>AO</td><td/><td>0</td><td/></row>
+		<row><td>AO2</td><td>CHICAGO1</td><td>AO</td><td/><td>0</td><td/></row>
+		<row><td>AO3</td><td>KABUL1</td><td>AO</td><td/><td>0</td><td/></row>
 		<row><td>ASYMMETRIC_THREAT_TRACKER</td><td>PREDICTIVE_TECHNOLOGY_LABORATORY</td><td>ASYMME~1|Asymmetric Threat Tracker</td><td/><td>0</td><td/></row>
 		<row><td>AdminToolsFolder</td><td>TARGETDIR</td><td>.:Admint~1|AdminTools</td><td/><td>0</td><td/></row>
 		<row><td>AppDataFolder</td><td>TARGETDIR</td><td>.:APPLIC~1|Application Data</td><td/><td>0</td><td/></row>
-		<row><td>CHICAGO</td><td>SHAPEFILES</td><td>Chicago</td><td/><td>0</td><td/></row>
+		<row><td>CHICAGO1</td><td>SHAPEFILES1</td><td>Chicago</td><td/><td>0</td><td/></row>
 		<row><td>CONFIG</td><td>INSTALLDIR</td><td>Config</td><td/><td>0</td><td/></row>
+		<row><td>CRIMES</td><td>DATA</td><td>Crimes</td><td/><td>0</td><td/></row>
 		<row><td>CommonAppDataFolder</td><td>TARGETDIR</td><td>.:Common~1|CommonAppData</td><td/><td>0</td><td/></row>
 		<row><td>CommonFiles64Folder</td><td>TARGETDIR</td><td>.:Common64</td><td/><td>0</td><td/></row>
 		<row><td>CommonFilesFolder</td><td>TARGETDIR</td><td>.:Common</td><td/><td>0</td><td/></row>
 		<row><td>DATA</td><td>INSTALLDIR</td><td>Data</td><td/><td>0</td><td/></row>
 		<row><td>DATABASEDIR</td><td>ISYourDataBaseDir</td><td>.</td><td/><td>0</td><td/></row>
 		<row><td>DesktopFolder</td><td>TARGETDIR</td><td>.:Desktop</td><td/><td>3</td><td/></row>
-		<row><td>FEATURES</td><td>CHICAGO</td><td>Features</td><td/><td>0</td><td/></row>
-		<row><td>FEATURES1</td><td>KABUL</td><td>Features</td><td/><td>0</td><td/></row>
+		<row><td>EVENTS</td><td>DATA</td><td>Events</td><td/><td>0</td><td/></row>
+		<row><td>FEATURES2</td><td>CHICAGO1</td><td>Features</td><td/><td>0</td><td/></row>
+		<row><td>FEATURES3</td><td>KABUL1</td><td>Features</td><td/><td>0</td><td/></row>
 		<row><td>FavoritesFolder</td><td>TARGETDIR</td><td>.:FAVORI~1|Favorites</td><td/><td>0</td><td/></row>
 		<row><td>FontsFolder</td><td>TARGETDIR</td><td>.:Fonts</td><td/><td>0</td><td/></row>
 		<row><td>GlobalAssemblyCache</td><td>TARGETDIR</td><td>.:Global~1|GlobalAssemblyCache</td><td/><td>0</td><td/></row>
@@ -1168,7 +1173,7 @@
 		<row><td>ISMyCompanyDir</td><td>ProgramFilesFolder</td><td>MYCOMP~1|My Company Name</td><td/><td>0</td><td/></row>
 		<row><td>ISMyProductDir</td><td>ISMyCompanyDir</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>ISYourDataBaseDir</td><td>INSTALLDIR</td><td>Database</td><td/><td>0</td><td/></row>
-		<row><td>KABUL</td><td>SHAPEFILES</td><td>Kabul</td><td/><td>0</td><td/></row>
+		<row><td>KABUL1</td><td>SHAPEFILES1</td><td>Kabul</td><td/><td>0</td><td/></row>
 		<row><td>LocalAppDataFolder</td><td>TARGETDIR</td><td>.:LocalA~1|LocalAppData</td><td/><td>0</td><td/></row>
 		<row><td>MY_PRODUCT_NAME</td><td>PREDICTIVE_TECHNOLOGY_LABORATORY</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>MyPicturesFolder</td><td>TARGETDIR</td><td>.:MyPict~1|MyPictures</td><td/><td>0</td><td/></row>
@@ -1181,7 +1186,7 @@
 		<row><td>ProgramFilesFolder</td><td>TARGETDIR</td><td>.:PROGRA~1|program files</td><td/><td>0</td><td/></row>
 		<row><td>ProgramMenuFolder</td><td>TARGETDIR</td><td>.:Programs</td><td/><td>3</td><td/></row>
 		<row><td>RecentFolder</td><td>TARGETDIR</td><td>.:Recent</td><td/><td>0</td><td/></row>
-		<row><td>SHAPEFILES</td><td>INSTALLDIR</td><td>SHAPEF~1|ShapeFiles</td><td/><td>0</td><td/></row>
+		<row><td>SHAPEFILES1</td><td>DATA</td><td>SHAPEF~1|Shapefiles</td><td/><td>0</td><td/></row>
 		<row><td>SendToFolder</td><td>TARGETDIR</td><td>.:SendTo</td><td/><td>3</td><td/></row>
 		<row><td>StartMenuFolder</td><td>TARGETDIR</td><td>.:STARTM~1|Start Menu</td><td/><td>3</td><td/></row>
 		<row><td>StartupFolder</td><td>TARGETDIR</td><td>.:StartUp</td><td/><td>3</td><td/></row>
@@ -1890,13 +1895,15 @@
 		<row><td>AlwaysInstall</td><td>GUI.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT5</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT6</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT7</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT8</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT10</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT11</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT12</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT13</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT14</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT15</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT16</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT17</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT18</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT9</td></row>
 		<row><td>AlwaysInstall</td><td>NewComponent1</td></row>
 	</table>
@@ -1914,71 +1921,71 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ATT\att_config.xml</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.dbf</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.DBF|chicago_bike_racks.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_bike_racks.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.prj</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.PRJ|chicago_bike_racks.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_bike_racks.prj</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.sbn</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SBN|chicago_bike_racks.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_bike_racks.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.sbx</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SBX|chicago_bike_racks.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_bike_racks.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.shp</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SHP|chicago_bike_racks.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_bike_racks.shp</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.shx</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SHX|chicago_bike_racks.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_bike_racks.shx</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.srid</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SRI|chicago_bike_racks.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_bike_racks.srid</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.dbf</td><td>ISX_DEFAULTCOMPONENT4</td><td>CHICAG~1.DBF|chicago_city_boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\chicago_city_boundary.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.prj</td><td>ISX_DEFAULTCOMPONENT4</td><td>CHICAG~1.PRJ|chicago_city_boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\chicago_city_boundary.prj</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.sbn</td><td>ISX_DEFAULTCOMPONENT4</td><td>CHICAG~1.SBN|chicago_city_boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\chicago_city_boundary.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.sbx</td><td>ISX_DEFAULTCOMPONENT4</td><td>CHICAG~1.SBX|chicago_city_boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\chicago_city_boundary.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.shp</td><td>ISX_DEFAULTCOMPONENT4</td><td>CHICAG~1.SHP|chicago_city_boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\chicago_city_boundary.shp</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.shx</td><td>ISX_DEFAULTCOMPONENT4</td><td>CHICAG~1.SHX|chicago_city_boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\chicago_city_boundary.shx</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.srid</td><td>ISX_DEFAULTCOMPONENT4</td><td>CHICAG~1.SRI|chicago_city_boundary.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\AO\chicago_city_boundary.srid</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_january_march1</td><td>ISX_DEFAULTCOMPONENT1</td><td>CHICAG~1.ZIP|chicago_crimes_january-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\chicago_crimes_january-march_2013.zip</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.dbf</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.DBF|chicago_major_streets.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_major_streets.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.prj</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.PRJ|chicago_major_streets.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_major_streets.prj</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.sbn</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SBN|chicago_major_streets.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_major_streets.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.sbx</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SBX|chicago_major_streets.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_major_streets.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.shp</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SHP|chicago_major_streets.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_major_streets.shp</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.shx</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SHX|chicago_major_streets.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_major_streets.shx</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.srid</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SRI|chicago_major_streets.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_major_streets.srid</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.dbf</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.DBF|chicago_police_stations.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_police_stations.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.prj</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.PRJ|chicago_police_stations.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_police_stations.prj</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.sbn</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SBN|chicago_police_stations.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_police_stations.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.sbx</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SBX|chicago_police_stations.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_police_stations.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.shp</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SHP|chicago_police_stations.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_police_stations.shp</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.shx</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SHX|chicago_police_stations.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_police_stations.shx</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.srid</td><td>ISX_DEFAULTCOMPONENT5</td><td>CHICAG~1.SRI|chicago_police_stations.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Chicago\Features\chicago_police_stations.srid</td><td>1</td><td/></row>
-		<row><td>gpl.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>gpl.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\gpl.txt</td><td>1</td><td/></row>
+		<row><td>building_violations_jan_mar_</td><td>ISX_DEFAULTCOMPONENT11</td><td>BUILDI~1.XML|building_violations_jan-mar_2013.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Events\building_violations_jan-mar_2013.xml</td><td>1</td><td/></row>
+		<row><td>building_violations_jan_mar_1</td><td>ISX_DEFAULTCOMPONENT11</td><td>BUILDI~1.ZIP|building_violations_jan-mar_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Events\building_violations_jan-mar_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_bike_racks.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.att</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.dbf1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.DBF|chicago_bike_racks.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.dbf</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.prj1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.PRJ|chicago_bike_racks.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.prj</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.sbn1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBN|chicago_bike_racks.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.sbn</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.sbx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBX|chicago_bike_racks.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.sbx</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.shp1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHP|chicago_bike_racks.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.shp</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.shx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHX|chicago_bike_racks.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_bike_racks.shx</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.att</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.ATT|chicago_city_boundary.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.att</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.dbf1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.DBF|chicago_city_boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.dbf</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.prj1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.PRJ|chicago_city_boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.prj</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.sbn1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SBN|chicago_city_boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.sbn</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.sbx1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SBX|chicago_city_boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.sbx</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.shp1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SHP|chicago_city_boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.shp</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.shx1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SHX|chicago_city_boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\AO\chicago_city_boundary.shx</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_january_march</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.XML|chicago_crimes_january-march_2013.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Crimes\chicago_crimes_january-march_2013.xml</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_january_march1</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.ZIP|chicago_crimes_january-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Crimes\chicago_crimes_january-march_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_simple_format</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.XML|chicago_crimes_simple_format_sample.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Crimes\chicago_crimes_simple_format_sample.xml</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_major_streets.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.att</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.dbf1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.DBF|chicago_major_streets.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.dbf</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.prj1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.PRJ|chicago_major_streets.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.prj</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.sbn1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBN|chicago_major_streets.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.sbn</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.sbx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBX|chicago_major_streets.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.sbx</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.shp1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHP|chicago_major_streets.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.shp</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.shx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHX|chicago_major_streets.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_major_streets.shx</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_police_stations.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_police_stations.att</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.dbf1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.DBF|chicago_police_stations.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_police_stations.dbf</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.prj1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.PRJ|chicago_police_stations.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_police_stations.prj</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.sbn1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBN|chicago_police_stations.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_police_stations.sbn</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.sbx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBX|chicago_police_stations.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_police_stations.sbx</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.shp1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHP|chicago_police_stations.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_police_stations.shp</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.shx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHX|chicago_police_stations.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Chicago\Features\chicago_police_stations.shx</td><td>1</td><td/></row>
 		<row><td>gui.primary_output</td><td>GUI.Primary_output</td><td>GUI.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;GUI&gt;|Built</td><td>3</td><td/></row>
 		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\GUI\gui_config.xml</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.dbf</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.DBF|kabol_hydro_aquedctl.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.dbf</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.prj</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.PRJ|kabol_hydro_aquedctl.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.prj</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.sbn</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SBN|kabol_hydro_aquedctl.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.sbn</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.sbx</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SBX|kabol_hydro_aquedctl.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.sbx</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.shp</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SHP|kabol_hydro_aquedctl.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.shp</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.shp.xml</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.XML|kabol_hydro_aquedctl.shp.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.shp.xml</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.shx</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SHX|kabol_hydro_aquedctl.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.shx</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.srid</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SRI|kabol_hydro_aquedctl.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_aquedctl.srid</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.dbf</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.DBF|kabol_hydro_daml.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.dbf</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.prj</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.PRJ|kabol_hydro_daml.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.prj</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.sbn</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SBN|kabol_hydro_daml.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.sbn</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.sbx</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SBX|kabol_hydro_daml.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.sbx</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.shp</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SHP|kabol_hydro_daml.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.shp</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.shp.xml</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.XML|kabol_hydro_daml.shp.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.shp.xml</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.shx</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SHX|kabol_hydro_daml.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.shx</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.srid</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SRI|kabol_hydro_daml.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_hydro_daml.srid</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.dbf</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.DBF|kabol_trans_roadl.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.dbf</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.prj</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.PRJ|kabol_trans_roadl.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.prj</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.sbn</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SBN|kabol_trans_roadl.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.sbn</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.sbx</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SBX|kabol_trans_roadl.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.sbx</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.shp</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SHP|kabol_trans_roadl.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.shp</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.shp.xml</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.XML|kabol_trans_roadl.shp.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.shp.xml</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.shx</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SHX|kabol_trans_roadl.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.shx</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.srid</td><td>ISX_DEFAULTCOMPONENT8</td><td>KABOL_~1.SRI|kabol_trans_roadl.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\Features\kabol_trans_roadl.srid</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.dbf</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.DBF|kabul_city_boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.dbf</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.prj</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.PRJ|kabul_city_boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.prj</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.qix</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.QIX|kabul_city_boundary.qix</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.qix</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.sbn</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.SBN|kabul_city_boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.sbn</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.sbx</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.SBX|kabul_city_boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.sbx</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.shp</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.SHP|kabul_city_boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.shp</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.shp.xml</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.XML|kabul_city_boundary.shp.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.shp.xml</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.shx</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.SHX|kabul_city_boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.shx</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.srid</td><td>ISX_DEFAULTCOMPONENT7</td><td>KABUL_~1.SRI|kabul_city_boundary.srid</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\ShapeFiles\Kabul\AO\kabul_city_boundary.srid</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.att</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.ATT|kabol_hydro_aquedctl.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.att</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.dbf1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.DBF|kabol_hydro_aquedctl.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.dbf</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.prj1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.PRJ|kabol_hydro_aquedctl.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.prj</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.sbn1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBN|kabol_hydro_aquedctl.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.sbn</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.sbx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBX|kabol_hydro_aquedctl.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.sbx</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.shp1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHP|kabol_hydro_aquedctl.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.shp</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.shx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHX|kabol_hydro_aquedctl.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.shx</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.att</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.ATT|kabol_hydro_daml.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.att</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.dbf1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.DBF|kabol_hydro_daml.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.dbf</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.prj1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.PRJ|kabol_hydro_daml.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.prj</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.sbn1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBN|kabol_hydro_daml.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.sbn</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.sbx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBX|kabol_hydro_daml.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.sbx</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.shp1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHP|kabol_hydro_daml.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.shp</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.shx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHX|kabol_hydro_daml.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.shx</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.att</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.ATT|kabol_trans_roadl.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.att</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.dbf1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.DBF|kabol_trans_roadl.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.dbf</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.prj1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.PRJ|kabol_trans_roadl.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.prj</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.sbn1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBN|kabol_trans_roadl.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.sbn</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.sbx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBX|kabol_trans_roadl.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.sbx</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.shp1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHP|kabol_trans_roadl.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.shp</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.shx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHX|kabol_trans_roadl.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.shx</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.att</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.ATT|kabul_city_boundary.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\AO\kabul_city_boundary.att</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.dbf1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.DBF|kabul_city_boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\AO\kabul_city_boundary.dbf</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.prj1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.PRJ|kabul_city_boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\AO\kabul_city_boundary.prj</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.sbn1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SBN|kabul_city_boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\AO\kabul_city_boundary.sbn</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.sbx1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SBX|kabul_city_boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\AO\kabul_city_boundary.sbx</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.shp1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SHP|kabul_city_boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\AO\kabul_city_boundary.shp</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.shx1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SHX|kabul_city_boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\Data\Shapefiles\Kabul\AO\kabul_city_boundary.shx</td><td>1</td><td/></row>
+		<row><td>license.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>LICENSE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\LICENSE.txt</td><td>1</td><td/></row>
+		<row><td>notice.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>NOTICE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\NOTICE.txt</td><td>1</td><td/></row>
 		<row><td>readme.txt</td><td>ISX_DEFAULTCOMPONENT</td><td>README.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\ATT\trunk\GUI\Config\README.txt</td><td>1</td><td/></row>
 	</table>
 
@@ -1995,7 +2002,9 @@
 	<table name="ISAssistantTag">
 		<col key="yes" def="s72">Tag</col>
 		<col def="S255">Data</col>
+		<row><td>LICENSE.txt</td><td/></row>
 		<row><td>PROJECT_ASSISTANT_DEFAULT_FEATURE</td><td>AlwaysInstall</td></row>
+		<row><td>PROJECT_ASSISTANT_FEATURES</td><td>NonSelectable</td></row>
 		<row><td>_Built</td><td/></row>
 		<row><td>gpl.txt</td><td/></row>
 	</table>
@@ -2126,14 +2135,16 @@
 		<col def="S0">Miscellaneous</col>
 		<row><td>GUI.Primary_output</td><td/><td/><td>_49E063F7_7CDE_4241_A6F1_FB5696439C17_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_DFADE0FB_078A_4A8E_AD6A_C2B74A34F424_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_BE4B3158_A2A1_405F_8FD0_C1F02C75BE5E_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_810EE30B_692E_45A7_8AF4_3ED109D4852B_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_66477EB7_8C59_47F6_A810_4BAB8BDAE6E7_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_FFC38240_12C8_4924_BCC9_80B11ABC0056_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_7DA2760D_9E54_4CFB_80E3_29B77DE66EF9_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT6</td><td/><td/><td>_5CBFF728_371D_4836_88D4_6DC2E281DACE_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT7</td><td/><td/><td>_5499225B_0CF8_4523_9F95_8F309F03488E_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT8</td><td/><td/><td>_745DE1A9_0BE9_4D42_A6CD_5A863E25BAB1_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_8E8ED885_1ADF_44F7_9F67_21429B1B4806_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_F3FAA2CA_8AFB_4B6E_ABD4_2CDA6545E864_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT11</td><td/><td/><td>_94C462A1_3E45_4A3D_B10E_32C4A6CA7236_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT12</td><td/><td/><td>_506DD0A1_825C_4029_8167_227B4389DC49_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT13</td><td/><td/><td>_680AA81A_8DF8_439F_A7DE_D6BB0D14EBF4_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT14</td><td/><td/><td>_A2C09C86_2954_40E7_895B_730B8F27E5E3_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT15</td><td/><td/><td>_D0D0DD4E_C9A6_442D_8352_8C9415DF7210_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT16</td><td/><td/><td>_C8E49B54_3D9E_4789_8944_26C31BDDFD2B_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT17</td><td/><td/><td>_86E99A0B_F722_46EA_B979_104DC90E7094_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT18</td><td/><td/><td>_0EBB8CB9_2E4E_4BE0_81EC_248341C53598_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT9</td><td/><td/><td>_BC6AEEBB_3777_4E17_929E_AE9850B67410_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>NewComponent1</td><td/><td/><td>_30F1442F_2DEC_4DDF_99A4_20B7C1D8C559_FILTER</td><td/><td/><td/><td/></row>
 	</table>
@@ -3569,6 +3580,8 @@
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME1</td><td>1033</td><td>Uninstall Asymmetric Threat Tracker</td><td>0</td><td/><td>773944298</td></row>
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME2</td><td>1033</td><td>Run Asymmetric Threat Tracker</td><td>0</td><td/><td>773964810</td></row>
 		<row><td>IDS_SHORTCUT_DISPLAY_NAME3</td><td>1033</td><td>View License</td><td>0</td><td/><td>773934122</td></row>
+		<row><td>IDS_SHORTCUT_DISPLAY_NAME4</td><td>1033</td><td>View LICENSE</td><td>0</td><td/><td>1629669680</td></row>
+		<row><td>IDS_SHORTCUT_DISPLAY_NAME5</td><td>1033</td><td>View NOTICE</td><td>0</td><td/><td>1629665584</td></row>
 		<row><td>IDS_SQLBROWSE_INTRO</td><td>1033</td><td>From the list of servers below, select the database server you would like to target.</td><td>0</td><td/><td>773925738</td></row>
 		<row><td>IDS_SQLBROWSE_INTRO_DB</td><td>1033</td><td>From the list of catalog names below, select the database catalog you would like to target.</td><td>0</td><td/><td>773925738</td></row>
 		<row><td>IDS_SQLBROWSE_INTRO_TEMPLATE</td><td>1033</td><td>[IS_SQLBROWSE_INTRO]</td><td>0</td><td/><td>773925738</td></row>
@@ -3859,12 +3872,15 @@
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>773925738</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td>http://ptl.sys.virginia.edu/ptl</td><td>0</td><td/><td>773962986</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>773925738</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>Predictive Technology Laboratory</td><td>0</td><td/><td>1629636431</td></row>
+		<row><td>ID_STRING4</td><td>1033</td><td>http://ptl.sys.virginia.edu</td><td>0</td><td/><td>1629642575</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>773925738</td></row>
 	</table>
 
 	<table name="ISSwidtagProperty">
 		<col key="yes" def="s72">Name</col>
 		<col def="s0">Value</col>
+		<row><td>TagCreatorName</td><td>Predictive Technology Laboratory</td></row>
 		<row><td>UniqueId</td><td>B4B30603-90AA-42CA-9740-9D47257DF7F6</td></row>
 	</table>
 
@@ -3967,6 +3983,8 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>&lt;VSSolutionFolder&gt;\GUI\bullseye.ico</td><td>0</td></row>
+		<row><td>LICENSE.txt_CCD7FFC959384771BFEE0EC19A5DD1FB.exe</td><td/><td>&lt;ISProductFolder&gt;\redist\Language Independent\OS Independent\GenericExe.ico</td><td>0</td></row>
+		<row><td>NOTICE.txt_B009D6979ECB44439AC216F56029E793.exe</td><td/><td>&lt;ISProductFolder&gt;\redist\Language Independent\OS Independent\GenericExe.ico</td><td>0</td></row>
 		<row><td>UNINST_Uninstall_I_F299073B82864E57AA70B43F681785D4.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2013LE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
 		<row><td>_Built_E325D4F3590146C7B06F3A2A7EF4166C.exe</td><td/><td>&lt;VSSolutionFolder&gt;\GUI\bullseye.ico</td><td>0</td></row>
 		<row><td>gpl.txt_45B5274942334D6BB1DCF1F7B8EA13BE.exe</td><td/><td>&lt;VSSolutionFolder&gt;\gpl_logo.ico</td><td>0</td></row>
@@ -4088,7 +4106,7 @@
 UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 			</td></row>
 		<row><td>DefaultProductConfiguration</td><td>Express</td></row>
-		<row><td>EnableSwidtag</td><td>1</td></row>
+		<row><td>EnableSwidtag</td><td>0</td></row>
 		<row><td>ISCompilerOption_CompileBeforeBuild</td><td>1</td></row>
 		<row><td>ISCompilerOption_Debug</td><td>0</td></row>
 		<row><td>ISCompilerOption_IncludePath</td><td/></row>
@@ -4102,7 +4120,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{51A64992-F170-4FEC-B0F6-997E45BA12CC}</td></row>
 		<row><td>ISUSSignature</td><td>{442423F7-0409-4A2F-8495-7EC93CE359D9}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewUI,viewAppV,viewISToday</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewUI,viewAppV,viewISToday,viewRegistry,viewIniFiles,viewTextFiles,viewXMLConfig,viewFileExtensions,viewTextMessages,viewSystemSearch,viewSupportFiles,viewRelease,viewDesignPatches</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
@@ -4407,6 +4425,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L0">Value</col>
 		<col def="S255">ISComments</col>
 		<row><td>ALLUSERS</td><td>1</td><td/></row>
+		<row><td>ARPCONTACT</td><td>##ID_STRING3##</td><td/></row>
+		<row><td>ARPHELPLINK</td><td>##ID_STRING4##</td><td/></row>
 		<row><td>ARPINSTALLLOCATION</td><td/><td/></row>
 		<row><td>ARPPRODUCTICON</td><td>ARPPRODUCTICON.exe</td><td/></row>
 		<row><td>ARPSIZE</td><td/><td/></row>
@@ -4478,7 +4498,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{55543AF0-BB2E-4BC0-A41E-3370CA7C8F2C}</td><td/></row>
 		<row><td>ProductName</td><td>Asymmetric Threat Tracker</td><td/></row>
-		<row><td>ProductVersion</td><td>1.1.0000</td><td/></row>
+		<row><td>ProductVersion</td><td>1.2</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
@@ -4555,6 +4575,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
+		<row><td>LICENSE.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td/><td>installer</td><td>2</td></row>
+		<row><td>NOTICE.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td/><td>installer</td><td>2</td></row>
 		<row><td>UNINST_Uninstall_Installer</td><td>NewComponent1</td><td/><td>installer</td><td>2</td></row>
 		<row><td>_Built</td><td>GUI.Primary_output</td><td/><td>installer</td><td>2</td></row>
 		<row><td>gpl.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td/><td>installer</td><td>2</td></row>
@@ -4643,9 +4665,10 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
+		<row><td>LICENSE.txt</td><td>installer</td><td>##IDS_SHORTCUT_DISPLAY_NAME4##</td><td>ISX_DEFAULTCOMPONENT9</td><td>[INSTALLDIR]LICENSE.txt</td><td/><td/><td/><td>LICENSE.txt_CCD7FFC959384771BFEE0EC19A5DD1FB.exe</td><td>0</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NOTICE.txt</td><td>installer</td><td>##IDS_SHORTCUT_DISPLAY_NAME5##</td><td>ISX_DEFAULTCOMPONENT9</td><td>[INSTALLDIR]NOTICE.txt</td><td/><td/><td/><td>NOTICE.txt_B009D6979ECB44439AC216F56029E793.exe</td><td>0</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>UNINST_Uninstall_Installer</td><td>installer</td><td>##IDS_SHORTCUT_DISPLAY_NAME1##</td><td>NewComponent1</td><td>[SystemFolder]msiexec.exe</td><td>/x {55543AF0-BB2E-4BC0-A41E-3370CA7C8F2C}</td><td/><td/><td>UNINST_Uninstall_I_F299073B82864E57AA70B43F681785D4.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>_Built</td><td>installer</td><td>##IDS_SHORTCUT_DISPLAY_NAME2##</td><td>GUI.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td>_Built_E325D4F3590146C7B06F3A2A7EF4166C.exe</td><td>0</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>gpl.txt</td><td>installer</td><td>##IDS_SHORTCUT_DISPLAY_NAME3##</td><td>ISX_DEFAULTCOMPONENT9</td><td>[INSTALLDIR]gpl.txt</td><td/><td/><td/><td>gpl.txt_45B5274942334D6BB1DCF1F7B8EA13BE.exe</td><td>0</td><td>1</td><td>INSTALLDIR</td><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">
