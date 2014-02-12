@@ -1,0 +1,8 @@
+Asymmetric Threat Tracker
+Copyright 2013-2014 The Rector & Visitors of the University of Virginia
+
+This software was developed at the Predictive Technology Laboratory at
+the University of Virginia by the following individuals:
+
+  Matthew Gerber (gerber.matthew@gmail.com)
+  David Rosson (david.rosson@gmail.com)
