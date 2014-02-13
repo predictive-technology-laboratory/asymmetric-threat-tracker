@@ -140,7 +140,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="README.txt" />
-    <Content Include="Todo.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ATT.licenseheader" />

@@ -394,7 +394,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="README.txt" />
-    <Content Include="Todo.txt" />
     <None Include="Resources\resetZoom.jpg" />
     <None Include="Resources\resetPan.jpg" />
   </ItemGroup>

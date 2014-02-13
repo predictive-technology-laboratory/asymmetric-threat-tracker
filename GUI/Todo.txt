@@ -1,8 +1,0 @@
-﻿Unit tests
-Surround all DB.Connection.Return calls with try-finally to make sure connections get returned
-Make sure buttons in all forms are consistently named / ordered
-Different assessment plot export types
-Configuration editor
-Improve color handling
-Save coloring scheme
-Make UI robust to user interaction
