@@ -1,12 +1,12 @@
 The process for cutting a release from trunk is as follows:
 
 * Load installer project if not currently loaded.
-* Build Solution, resolve any errors.
+* Build Solution, resolve any errors, and test the ATT.
 * Commit all changes to trunk.
-* Tag trunk to next version number in the tags directory following the "X.Y-release" naming convention. Be sure to set the explicit revision for all externals.
+* Tag trunk to next version number in the tags directory following the "X.Y-release" naming convention. Be sure to set an explicit revision for all externals.
 * Switch to new tag, or update working copy to pull down new tag (if you have the entire repository checked out).
 * Edit Installer.isl in the Installer project for the new release, replacing "trunk" with "tags\X.Y-release" (X and Y being the correct values).
-* Open and build Visual Studio Solution for new release tag, including the Installer project. Run the installer to make sure it works, and run/test the installed ATT system.
-* Commit new tag directory for the release (you edited the installer project).
-* Back in the trunk Solution, increment the Product Version under General settings of the General Information window for the Installer project.
-* Commit trunk.
+* Open and build the Visual Studio Solution for new release tag, including the Installer project. Run the installer to make sure it works, and run/test the installed ATT system.
+* Commit new tag directory for the release (you edited the installer project). The release is now ready.
+* Back in the trunk Solution, increment the Product Version in the Installer project -> General Information -> General settings. 
+* Build and commit trunk.
