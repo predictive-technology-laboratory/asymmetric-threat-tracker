@@ -1,4 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- NOTE:  You must not remove any fields below unless noted otherwise. -->
+
 <configuration>
 
   <application_data_directory></application_data_directory> <!-- Path to application data directory. If left blank, the default local application data directory will be used. -->

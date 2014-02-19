@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?> 
+
+<!-- NOTE:  You must not remove any fields below unless noted otherwise. -->
+
 <configuration>
 
   <postgres>                                           <!-- Requires PostgreSQL 9.2 or higher. Install from your Linux package repository or the following URL:  http://www.enterprisedb.com/products-services-training/pgdownload -->
@@ -29,7 +32,7 @@
     <exe_path></exe_path> <!-- Path java.exe executable. The JAVA_EXE environment variable will be used if this path does not exist. -->
   </java>
 
-  <classifiers>                                       <!-- Options passed to classifiers. -->
+  <classifiers>                                       <!-- Options passed to classifiers. You may remove any of these if you do not wish to use them. -->
     <classifier type="PTL.ATT.Classifiers.LibLinear"> <!-- Use the most current version of LibLinear:  http://www.csie.ntu.edu.tw/~cjlin/liblinear/ -->
       <train></train>                                 <!-- Path to train.exe executable for LibLinear. -->
       <predict></predict>                             <!-- Path to predict.exe executable for LibLinear. -->
