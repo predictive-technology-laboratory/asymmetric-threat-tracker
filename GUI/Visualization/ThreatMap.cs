@@ -862,8 +862,9 @@ namespace PTL.ATT.GUI.Visualization
                 Dictionary<string, ImageFormat> extensionImageFormat = new Dictionary<string, ImageFormat>();
                 foreach (ImageFormat format in new ImageFormat[] { ImageFormat.Bmp, ImageFormat.Emf, ImageFormat.Exif, ImageFormat.Gif, ImageFormat.Icon, ImageFormat.Jpeg, ImageFormat.Png, ImageFormat.Tiff, ImageFormat.Wmf })
                 {
-                    filters.Add(format + " image files (*." + format + ")|*." + format);
-                    extensionImageFormat.Add(format.ToString().ToLower(), format);
+                    string extension = format.ToString().ToLower();
+                    filters.Add(format + " image files (*." + extension + ")|*." + extension);
+                    extensionImageFormat.Add(extension, format);
                 }
 
                 filters.Add("ESRI shapefiles (*.shp)|*.shp");
