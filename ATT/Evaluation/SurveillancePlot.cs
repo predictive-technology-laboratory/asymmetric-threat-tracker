@@ -207,7 +207,7 @@ namespace PTL.ATT.Evaluation
         {
             _aucDigits = aucDigits;
 
-            Render(height, width, true, false, false, false);
+            Render(height, width, true, null, false, false);
         }
 
         public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
@@ -222,11 +222,11 @@ namespace PTL.ATT.Evaluation
         /// <param name="height">Height in pixels</param>
         /// <param name="width">Width in pixels</param>
         /// <param name="includeTitle">Whether or not to include the title</param>
-        /// <param name="plotSeriesDifference">Whether or not to plot the difference between two series. Requires exactly two series in the plot.</param>
+        /// <param name="plotSeriesDifference">Pass non-null to plot a series difference. If both elements are null, the series difference with largest difference is plotted. Or you can pass specific series names to plot a specific difference. If only one series name is provided, the maximum difference between that series and another will be computed.</param>
         /// <param name="blackAndWhite">Whether or not to use black and white only</param>
         /// <param name="args">Additional arguments:  1) plot margins in 0,0,0,0 format (default is 5,4,4,2), 2) additional arguments to plot and lines commands (e.g., cex), 3) additional arguments to legend command (e.g., cex)</param>
         /// <returns>Path to rendered image file</returns>
-        protected override string CreateImageOnDisk(int height, int width, bool includeTitle, bool plotSeriesDifference, bool blackAndWhite, params string[] args)
+        protected override string CreateImageOnDisk(int height, int width, bool includeTitle, Tuple<string, string> plotSeriesDifference, bool blackAndWhite, params string[] args)
         {
             if (args != null && args.Length == 0)
                 args = null;
@@ -236,39 +236,46 @@ namespace PTL.ATT.Evaluation
 
             #region difference series
             string diffSeriesPath = null;
-            PointF diffPeak = PointF.Empty;
-            PointF diffValley = PointF.Empty;
-            if (plotSeriesDifference)
+            PointF diffMax = PointF.Empty;
+            PointF diffMin = PointF.Empty;
+            if (plotSeriesDifference != null)
             {
-                if (SeriesPoints.Count != 2)
-                    throw new Exception("Can only plot series difference using two series");
-
                 diffSeriesPath = Path.GetTempFileName();
                 tmpPaths.Add(diffSeriesPath);
 
-                List<PointF> series1 = SeriesPoints.OrderBy(kvp => kvp.Key).First().Value;
-                List<PointF> series2 = SeriesPoints.OrderBy(kvp => kvp.Key).Last().Value;
-
-                if (series1.Count != series2.Count)
-                    throw new Exception("Cannot plot series difference if series have differing numbers of points");
-
-                using (StreamWriter diffSeriesFile = new StreamWriter(diffSeriesPath))
-                {
-                    foreach (PointF diffPoint in series1.Zip(series2, (p1, p2) =>
+                Func<List<PointF>, List<PointF>, List<PointF>> seriesDifferencer = new Func<List<PointF>,List<PointF>,List<PointF>>((series1, series2) => 
+                    series1.Zip(series2, (p1, p2) =>
                         {
                             if (p1.X != p2.X)
                                 throw new Exception("Differing x values in series comparison");
 
                             return new PointF(p1.X, p2.Y - p1.Y);
-                        }))
+
+                        }).ToList());
+
+                List<PointF> diffSeries = null;
+                if (plotSeriesDifference.Item1 == null && plotSeriesDifference.Item2 == null)
+                    diffSeries = SeriesPoints.Values.SelectMany(series1 => SeriesPoints.Values.Select(series2 => seriesDifferencer(series1, series2))).OrderBy(dSeries => dSeries.Max(p => p.Y)).Last();
+                else if (plotSeriesDifference.Item1 != null && plotSeriesDifference.Item2 != null)
+                    diffSeries = seriesDifferencer(SeriesPoints[plotSeriesDifference.Item1], SeriesPoints[plotSeriesDifference.Item2]);
+                else if (plotSeriesDifference.Item1 != null)
+                    diffSeries = SeriesPoints.Values.Select(series2 => seriesDifferencer(SeriesPoints[plotSeriesDifference.Item1], series2)).OrderBy(dSeries => dSeries.Max(p => p.Y)).Last();
+                else if (plotSeriesDifference.Item2 != null)
+                    diffSeries = SeriesPoints.Values.Select(series1 => seriesDifferencer(series1, SeriesPoints[plotSeriesDifference.Item2])).OrderBy(dSeries => dSeries.Max(p => p.Y)).Last();
+                else
+                    throw new Exception("Cannot determine difference series");
+
+                using (StreamWriter diffSeriesFile = new StreamWriter(diffSeriesPath))
+                {
+                    foreach (PointF diffPoint in diffSeries)
                     {
                         diffSeriesFile.WriteLine(diffPoint.X + "," + diffPoint.Y);
 
-                        if (diffPeak == PointF.Empty || diffPoint.Y > diffPeak.Y)
-                            diffPeak = diffPoint;
+                        if (diffMax == PointF.Empty || diffPoint.Y > diffMax.Y)
+                            diffMax = diffPoint;
 
-                        if (diffValley == PointF.Empty || diffPoint.Y < diffValley.Y)
-                            diffValley = diffPoint;
+                        if (diffMin == PointF.Empty || diffPoint.Y < diffMin.Y)
+                            diffMin = diffPoint;
                     }
 
                     diffSeriesFile.Close();
@@ -295,12 +302,12 @@ main.title = paste(title.lines, sep=""\n"")");
 
             int seriesNum = 0;
             List<string> seriesOrder = new List<string>();
-            string[] seriesDiffDummy = plotSeriesDifference ? new string[] { "dummy" } : new string[] { };
+            string[] seriesDiffDummy = plotSeriesDifference == null ? new string[] { } : new string[] { "dummy" };
             List<int> plotCharacters = SeriesPoints.Keys.OrderBy(k => k).Union(seriesDiffDummy).Select((s, i) => ((i + 1) % 25)).ToList();  // R has 25 plot characters indexed starting at 1
             List<string> plotColors = SeriesPoints.Keys.OrderBy(k => k).Union(seriesDiffDummy).Select((s, i) => blackAndWhite ? "\"black\"" : (i + 1).ToString()).ToList(); // R color numbers start at 1 and wrap
             string aucOutputPath = Path.GetTempFileName();
             tmpPaths.Add(aucOutputPath);
-            float minY = diffValley == PointF.Empty ? 0f : Math.Min(0, diffValley.Y);
+            float minY = diffMin == PointF.Empty ? 0f : Math.Min(0, diffMin.Y);
             foreach (string series in SeriesPoints.Keys.OrderBy(k => k))
             {
                 string pointsInputPath = Path.GetTempFileName();
@@ -335,7 +342,7 @@ cat(as.character(auc),file=""" + aucOutputPath.Replace(@"\", @"\\") + @""",sep="
                 seriesOrder.Add(series);
             }
 
-            if (plotSeriesDifference)
+            if (plotSeriesDifference != null)
             {
                 string plotCharacterVector = "c(" + plotCharacters.Last() + ",rep(NA_integer_," + (SeriesPoints.Values.First().Count / 10) + "))";  // show 10 plot characters for series
 
@@ -344,9 +351,9 @@ points = read.csv(""" + diffSeriesPath.Replace(@"\", @"\\") + @""",header=FALSE)
 x = points[,1]
 y = points[,2]
 lines(x,y,type=""o"",col=" + plotColors.Last() + ",pch=" + plotCharacterVector + (args == null ? "" : "," + args[1]) + @")
-legend_labels=c(legend_labels,expression(paste(Delta, "" peak @ (" + string.Format("{0:0.00},{1:0.00}", diffPeak.X, diffPeak.Y) + @")"")))
-abline(v=" + diffPeak.X + @",lty=1)
-abline(h=" + diffPeak.Y + @",lty=1)");
+legend_labels=c(legend_labels,expression(paste(Delta, "" peak @ (" + string.Format("{0:0.00},{1:0.00}", diffMax.X, diffMax.Y) + @")"")))
+abline(v=" + diffMax.X + @",lty=1)
+abline(h=" + diffMax.Y + @",lty=1)");
             }
 
             rCmd.Append(@"

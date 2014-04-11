@@ -52,7 +52,7 @@ namespace PTL.ATT.Evaluation
                 {
                     _title = value;
                     if (_image != null)
-                        Render(_image.Height, _image.Width, true, false, false, false);
+                        Render(_image.Height, _image.Width, true, null, false, false);
                 }
             }
         }
@@ -98,7 +98,7 @@ namespace PTL.ATT.Evaluation
                 throw new NullReferenceException("Passed null image to plot constructor");
         }
 
-        public void Render(int height, int width, bool includeTitle, bool plotSeriesDifference, bool blackAndWhite, bool retainImageOnDisk, params string[] args)
+        public void Render(int height, int width, bool includeTitle, Tuple<string, string> plotSeriesDifference, bool blackAndWhite, bool retainImageOnDisk, params string[] args)
         {
             _imagePath = CreateImageOnDisk(height, width, includeTitle, plotSeriesDifference, blackAndWhite, args);
 
@@ -125,6 +125,6 @@ namespace PTL.ATT.Evaluation
             }
         }
 
-        protected abstract string CreateImageOnDisk(int height, int width, bool includeTitle, bool plotSeriesDifference, bool blackAndWhite, params string[] args);
+        protected abstract string CreateImageOnDisk(int height, int width, bool includeTitle, Tuple<string, string> plotSeriesDifference, bool blackAndWhite, params string[] args);
     }
 }
