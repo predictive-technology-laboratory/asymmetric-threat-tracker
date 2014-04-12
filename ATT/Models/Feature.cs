@@ -196,7 +196,7 @@ namespace PTL.ATT.Models
 
         public override string ToString()
         {
-            return _description + " " + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
+            return _description + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);
         }
 
         public override bool Equals(object obj)
