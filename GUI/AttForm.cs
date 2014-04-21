@@ -557,6 +557,7 @@ namespace PTL.ATT.GUI
                     importerForm.AddDropDown("Importer:", importerTypes, null, "importer");
                     importerForm.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
                     importerForm.AddDropDown("Import into area:", areas, null, "area");
+                    importerForm.AddCheckBox("Save import setup:", ContentAlignment.MiddleRight, false, "save");
 
                     completeForm(importerForm);
 
@@ -592,9 +593,12 @@ namespace PTL.ATT.GUI
                             Type importerType = importerForm.GetValue<Type>("importer");
                             int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                             Area importArea = importerForm.GetValue<Area>("area");
+                            bool saveImportSetup = Convert.ToBoolean(importerForm.GetValue<bool>("save"));
 
                             try
                             {
+                                Importer importer = null;
+
                                 if (importerType == typeof(XmlImporter))
                                 {
                                     DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
@@ -613,7 +617,8 @@ namespace PTL.ATT.GUI
                                         foreach (string dbCol in databaseColumns)
                                             dbColInputCol.Add(dbCol, rowInserterForm.GetValue<string>(dbCol));
 
-                                        getImporter(dbColInputCol, importArea, sourceSRID, rowInserterForm.GetValue<Type>("row_inserter"), importerForm).Import(path);
+                                        importer = getImporter(dbColInputCol, importArea, sourceSRID, rowInserterForm.GetValue<Type>("row_inserter"), importerForm);
+                                        importer.Import(path);
 
                                         if (deleteFileAfterImport)
                                             File.Delete(path);
@@ -621,6 +626,11 @@ namespace PTL.ATT.GUI
                                 }
                                 else
                                     throw new NotImplementedException("Unknown importer type:  " + importerType);
+
+                                if (saveImportSetup && importer != null)
+                                {
+
+                                }
                             }
                             catch (Exception ex)
                             {

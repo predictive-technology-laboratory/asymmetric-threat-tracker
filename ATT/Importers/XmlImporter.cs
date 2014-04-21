@@ -29,14 +29,17 @@ using PostGIS = LAIR.ResourceAPIs.PostGIS;
 
 namespace PTL.ATT.Importers
 {
+    [Serializable]
     public class XmlImporter : Importer
     {
         #region row inserters
+        [Serializable]
         public abstract class XmlRowInserter
         {
             public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
         }
 
+        [Serializable]
         public class IncidentXmlRowInserter : XmlRowInserter
         {
             private Dictionary<string, string> _dbColInputCol;
@@ -86,6 +89,7 @@ namespace PTL.ATT.Importers
             }
         }
 
+        [Serializable]
         public class PointfileXmlRowInserter : XmlRowInserter
         {
             public static class Columns

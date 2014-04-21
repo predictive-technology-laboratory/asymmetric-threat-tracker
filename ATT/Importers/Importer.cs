@@ -24,6 +24,7 @@ using LAIR.XML;
 
 namespace PTL.ATT.Importers
 {
+    [Serializable]
     public abstract class Importer
     {
         private string _table;
