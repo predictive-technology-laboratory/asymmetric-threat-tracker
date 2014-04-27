@@ -27,8 +27,10 @@ using PTL.ATT.Models;
 
 namespace PTL.ATT
 {
+    [Serializable]
     public class Area
     {
+        #region static members
         internal const string Table = "area";
 
         internal class Columns
@@ -107,6 +109,7 @@ namespace PTL.ATT
 
             return areas;
         }
+        #endregion
 
         private int _id;
         private string _name;

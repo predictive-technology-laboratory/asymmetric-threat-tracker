@@ -4,7 +4,7 @@
 
 <configuration>
 
-  <application_data_directory></application_data_directory> <!-- Path to application data directory. If left blank, the default local application data directory will be used (sometimes this isn't writable, hence the option). -->
+  <application_data_directory></application_data_directory> <!-- Path to application data directory (for logs, etc.). If left blank, the default local application data directory will be used (sometimes this isn't writable, hence the option). -->
   
   <postgis>
     <shapefile_directory></shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., ATT/Data/Shapefiles). -->

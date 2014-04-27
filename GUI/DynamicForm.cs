@@ -207,7 +207,7 @@ namespace PTL.ATT.GUI
             foreach (object o in values)
                 lb.Items.Add(o);
 
-            lb.Size = lb.PreferredSize;
+            lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width), lb.PreferredHeight);
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;

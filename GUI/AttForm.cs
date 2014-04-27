@@ -290,7 +290,7 @@ namespace PTL.ATT.GUI
                                 else
                                     return;
 
-                            Download(uri, downloadPath);
+                            LAIR.IO.Network.Download(uri, downloadPath);
 
                             Console.Out.WriteLine("Unzipping \"" + downloadPath + "\" to \"" + unzipDir + "\"...");
                             ZipFile.ExtractToDirectory(downloadPath, unzipDir);
@@ -335,17 +335,13 @@ namespace PTL.ATT.GUI
             Import(importSource,
                    Configuration.EventsImportDirectory,
                    Configuration.EventsImportDirectory,
-                   new Action<DynamicForm>(f => f.AddTextBox("Import name:", null, 30, "name")),
+                   null,
                    new Func<Area, string[]>(importArea => new string[] { XmlImporter.PointfileXmlRowInserter.Columns.X, 
                                                                          XmlImporter.PointfileXmlRowInserter.Columns.Y,
                                                                          XmlImporter.PointfileXmlRowInserter.Columns.Time }),
                    new Func<Type[]>(() => Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray()),
-                   new Func<Dictionary<string, string>, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, importArea, sourceSRID, rowInserterType, importerForm) =>
+                   new Func<Dictionary<string, string>, string, string, string, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, name, path, sourceURI, importArea, sourceSRID, rowInserterType, importerForm) =>
                    {
-                       string name = importerForm.GetValue<string>("name").Trim();
-                       if (name == "")
-                           name = Path.GetFileNameWithoutExtension(importerForm.GetValue<string>("path"));
-
                        NpgsqlConnection connection = DB.Connection.OpenConnection;
                        Shapefile shapefile = new Shapefile(Shapefile.Create(connection, name, importArea.SRID, Shapefile.ShapefileType.Feature));
                        DB.Connection.Return(connection);
@@ -355,8 +351,8 @@ namespace PTL.ATT.GUI
                            rowInserter = new XmlImporter.PointfileXmlRowInserter(dbColInputCol, sourceSRID, importArea);
                        else
                            throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
-                       
-                       return new XmlImporter(ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Insert, rowInserter, "row", "row");
+
+                       return new XmlImporter(name, path, sourceURI, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Insert, rowInserter, "row", "row");
                    }
             ));
         }
@@ -477,21 +473,19 @@ namespace PTL.ATT.GUI
                    new Action<DynamicForm>(f => f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset")),
                    new Func<Area, string[]>(importArea => new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) }),
                    new Func<Type[]>(() => Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray()),
-                   new Func<Dictionary<string, string>, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, importArea, sourceSRID, rowInserterType, importerForm) =>
+                   new Func<Dictionary<string, string>, string, string, string, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, name, path, sourceURI, importArea, sourceSRID, rowInserterType, importerForm) =>
                    {
                        string table = Incident.CreateTable(importArea);
 
                        int hourOffset = Convert.ToInt32(importerForm.GetValue<decimal>("offset"));
-                       Set<int> existingNativeIDs = Incident.GetNativeIds(importArea);
-                       existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
 
                        XmlImporter.XmlRowInserter rowInserter;
                        if (rowInserterType == typeof(XmlImporter.IncidentXmlRowInserter))
-                           rowInserter = new XmlImporter.IncidentXmlRowInserter(dbColInputCol, importArea, hourOffset, sourceSRID, existingNativeIDs);
+                           rowInserter = new XmlImporter.IncidentXmlRowInserter(dbColInputCol, importArea, hourOffset, sourceSRID);
                        else
                            throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
 
-                       return new XmlImporter(table, Incident.Columns.Insert, rowInserter, "row", "row");
+                       return new XmlImporter(name, path, sourceURI, table, Incident.Columns.Insert, rowInserter, "row", "row");
                    }
             ));
         }
@@ -523,10 +517,10 @@ namespace PTL.ATT.GUI
         private void Import(ImportSource importSource,
                             string promptOpenInitialDirectory,
                             string downloadDirectory,
-                            Action<DynamicForm> completeForm,
+                            Action<DynamicForm> completeImporterForm,
                             Func<Area, string[]> getDatabaseColumns,
                             Func<Type[]> getRowInserterTypes,
-                            Func<Dictionary<string, string>, Area, int, Type, DynamicForm, XmlImporter> getImporter)
+                            Func<Dictionary<string, string>, string, string, string, Area, int, Type, DynamicForm, XmlImporter> getImporter)
         {
             Area[] areas = Area.GetAll().ToArray();
             Type[] importerTypes = Assembly.GetAssembly(typeof(Importer)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Importer))).ToArray();
@@ -557,21 +551,24 @@ namespace PTL.ATT.GUI
                     importerForm.AddDropDown("Importer:", importerTypes, null, "importer");
                     importerForm.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
                     importerForm.AddDropDown("Import into area:", areas, null, "area");
-                    importerForm.AddCheckBox("Save import setup:", ContentAlignment.MiddleRight, false, "save");
+                    importerForm.AddTextBox("Import name:", null, 30, "name");
+                    importerForm.AddCheckBox("Store import:", ContentAlignment.MiddleRight, true, "save");
 
-                    completeForm(importerForm);
+                    if (completeImporterForm != null)
+                        completeImporterForm(importerForm);
 
                     if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
                         #region get path of file to import
-                        string path;
+                        string path = null;
+                        string sourceURI = null;
                         if (importSource == ImportSource.LocalFile)
                             path = importerForm.GetValue<string>("path");
                         else if (importSource == ImportSource.URI)
                         {
                             path = Path.Combine(downloadDirectory, ReplaceInvalidFilenameCharacters("socrata_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToShortTimeString() + ".xml"));
 
-                            try { Download(importerForm.GetValue<string>("uri"), path); }
+                            try { LAIR.IO.Network.Download(sourceURI = importerForm.GetValue<string>("uri"), path); }
                             catch (Exception ex)
                             {
                                 try { File.Delete(path); }
@@ -593,6 +590,7 @@ namespace PTL.ATT.GUI
                             Type importerType = importerForm.GetValue<Type>("importer");
                             int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                             Area importArea = importerForm.GetValue<Area>("area");
+                            string importName = importerForm.GetValue<string>("name");
                             bool saveImportSetup = Convert.ToBoolean(importerForm.GetValue<bool>("save"));
 
                             try
@@ -617,8 +615,8 @@ namespace PTL.ATT.GUI
                                         foreach (string dbCol in databaseColumns)
                                             dbColInputCol.Add(dbCol, rowInserterForm.GetValue<string>(dbCol));
 
-                                        importer = getImporter(dbColInputCol, importArea, sourceSRID, rowInserterForm.GetValue<Type>("row_inserter"), importerForm);
-                                        importer.Import(path);
+                                        importer = getImporter(dbColInputCol, importName, path, sourceURI, importArea, sourceSRID, rowInserterForm.GetValue<Type>("row_inserter"), importerForm);
+                                        importer.Import();
 
                                         if (deleteFileAfterImport)
                                             File.Delete(path);
@@ -628,9 +626,7 @@ namespace PTL.ATT.GUI
                                     throw new NotImplementedException("Unknown importer type:  " + importerType);
 
                                 if (saveImportSetup && importer != null)
-                                {
-
-                                }
+                                    importer.Save();
                             }
                             catch (Exception ex)
                             {
@@ -643,6 +639,31 @@ namespace PTL.ATT.GUI
 
                 t.SetApartmentState(ApartmentState.STA);
                 t.Start();
+            }
+        }
+
+        private void runStoredImporterToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Importer[] importers = Importer.GetAll().ToArray();
+            if (importers.Length == 0)
+                MessageBox.Show("No stored importers are available.");
+            else
+            {
+                DynamicForm f = new DynamicForm("Select importers to run...", MessageBoxButtons.OKCancel);
+                f.AddListBox("Importers:", importers, null, SelectionMode.MultiExtended, "importers");
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    Thread t = new Thread(new ThreadStart(() =>
+                        {
+                            foreach (Importer importer in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("importers"))
+                            {
+                                Console.Out.WriteLine("Running \"" + importer.Name + "\"...");
+                                importer.Import();
+                            }
+                        }));
+
+                    t.Start();
+                }
             }
         }
         #endregion
@@ -1849,40 +1870,6 @@ namespace PTL.ATT.GUI
                 importArea = f.GetValue<Area>("area");
 
             return importArea;
-        }
-
-        private void Download(string uri, string path)
-        {
-            Console.Out.Write("Downloading \"" + uri + "\" to \"" + path + "\"...");
-
-            WebRequest request = WebRequest.Create(uri);
-            request.Method = "GET";
-
-            using (FileStream downloadFile = new FileStream(path, FileMode.Create, FileAccess.Write))
-            using (WebResponse response = request.GetResponse())
-            using (Stream responseStream = response.GetResponseStream())
-            {
-                long totalBytesRead = 0;
-                long bytesInMB = (long)Math.Pow(2, 20);
-                long bytesUntilUpdate = 5 * bytesInMB;
-                byte[] buffer = new byte[1024 * 64];
-                int bytesRead;
-                while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    downloadFile.Write(buffer, 0, bytesRead);
-                    totalBytesRead += bytesRead;
-                    bytesUntilUpdate -= bytesRead;
-                    if (bytesUntilUpdate <= 0)
-                    {
-                        bytesUntilUpdate = 5 * bytesInMB;
-                        Console.Out.Write(string.Format("{0:0.00}", totalBytesRead / (double)bytesInMB) + " MB...");
-                    }
-                }
-                downloadFile.Close();
-                response.Close();
-                responseStream.Close();
-                Console.Out.WriteLine("download finished.");
-            }
         }
         #endregion
     }

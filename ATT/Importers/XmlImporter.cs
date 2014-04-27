@@ -36,6 +36,8 @@ namespace PTL.ATT.Importers
         [Serializable]
         public abstract class XmlRowInserter
         {
+            public abstract void Initialize();
+
             public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
         }
 
@@ -48,13 +50,18 @@ namespace PTL.ATT.Importers
             private int _sourceSRID;
             private Set<int> _existingNativeIDs;
 
-            public IncidentXmlRowInserter(Dictionary<string, string> dbColInputCol, Area importArea, int hourOffset, int sourceSRID, Set<int> existingNativeIDs)
+            public IncidentXmlRowInserter(Dictionary<string, string> dbColInputCol, Area importArea, int hourOffset, int sourceSRID)
             {
                 _dbColInputCol = dbColInputCol;
                 _importArea = importArea;
                 _hourOffset = hourOffset;
                 _sourceSRID = sourceSRID;
-                _existingNativeIDs = existingNativeIDs;
+            }
+
+            public override void Initialize()
+            {
+                _existingNativeIDs = Incident.GetNativeIds(_importArea);
+                _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser rowXmlParser)
@@ -110,6 +117,10 @@ namespace PTL.ATT.Importers
                 _sourceSRID = sourceSRID;
                 _importArea = importArea;
                 _rowNum = 0;
+            }
+
+            public override void Initialize()
+            {
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser)
@@ -168,17 +179,19 @@ namespace PTL.ATT.Importers
         private string _rootElementName;
         private string _rowElementName;
 
-        public XmlImporter(string table, string insertColumns, XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
-            : base(table, insertColumns)
+        public XmlImporter(string name, string path, string sourceURI, string table, string insertColumns, XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
+            : base(name, path, sourceURI, table, insertColumns)
         {
             _xmlRowInserter = xmlRowInserter;
             _rootElementName = rootElementName;
             _rowElementName = rowElementName;
         }
 
-        public override void Import(string path)
+        public override void Import()
         {
-            using (FileStream file = new FileStream(path, FileMode.Open))
+            base.Import();
+
+            using (FileStream file = new FileStream(Path, FileMode.Open))
             {
                 XmlParser p = new XmlParser(file);
                 p.SkipToElement(_rootElementName);
@@ -190,6 +203,7 @@ namespace PTL.ATT.Importers
                 string rowXML;
                 NpgsqlCommand insertCmd = DB.Connection.NewCommand(null);
                 StringBuilder cmdTxt = new StringBuilder();
+                _xmlRowInserter.Initialize();
                 try
                 {
                     while ((rowXML = p.OuterXML(_rowElementName)) != null)
@@ -202,7 +216,7 @@ namespace PTL.ATT.Importers
                             ++skippedRows;
                         else
                         {
-                            cmdTxt.Append((batchCount == 0 ? "INSERT INTO " + Table + " (" + InsertColumns + ") VALUES " : ",") + "(" + valueParameters.Item1 + ")");
+                            cmdTxt.Append((batchCount == 0 ? "INSERT INTO " + InsertTable + " (" + InsertColumns + ") VALUES " : ",") + "(" + valueParameters.Item1 + ")");
 
                             if (valueParameters.Item2.Count > 0)
                                 ConnectionPool.AddParameters(insertCmd, valueParameters.Item2);
@@ -232,9 +246,9 @@ namespace PTL.ATT.Importers
                     }
 
                     Console.Out.WriteLine("Cleaning up database after import");
-                    DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
+                    DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + InsertTable);
 
-                    Console.Out.WriteLine("Import from \"" + path + "\" was successful.  Imported " + totalImported + " rows of " + totalRows + " total in the file (" + skippedRows + " rows were skipped)");
+                    Console.Out.WriteLine("Import from \"" + Path + "\" was successful.  Imported " + totalImported + " rows of " + totalRows + " total in the file (" + skippedRows + " rows were skipped)");
                 }
                 catch (Exception ex)
                 {

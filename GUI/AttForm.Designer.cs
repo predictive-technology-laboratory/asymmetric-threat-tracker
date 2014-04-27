@@ -136,10 +136,12 @@ namespace PTL.ATT.GUI
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.verticalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.threatSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
-            this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
+            this.toolStripSeparator10 = new System.Windows.Forms.ToolStripSeparator();
+            this.runStoredImporterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
+            this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -269,7 +271,9 @@ namespace PTL.ATT.GUI
             this.importToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.geographicDataToolStripMenuItem,
             this.predictionAreasToolStripMenuItem,
-            this.incidentsToolStripMenuItem});
+            this.incidentsToolStripMenuItem,
+            this.toolStripSeparator10,
+            this.runStoredImporterToolStripMenuItem});
             this.importToolStripMenuItem1.Name = "importToolStripMenuItem1";
             this.importToolStripMenuItem1.Size = new System.Drawing.Size(43, 20);
             this.importToolStripMenuItem1.Text = "Data";
@@ -285,7 +289,7 @@ namespace PTL.ATT.GUI
             this.toolStripSeparator5,
             this.deleteGeographicDataToolStripMenuItem});
             this.geographicDataToolStripMenuItem.Name = "geographicDataToolStripMenuItem";
-            this.geographicDataToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.geographicDataToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.geographicDataToolStripMenuItem.Text = "Geographic data";
             // 
             // importShapefilesFromDiskToolStripMenuItem
@@ -339,20 +343,20 @@ namespace PTL.ATT.GUI
             this.addAreaToolStripMenuItem,
             this.deleteAreaToolStripMenuItem});
             this.predictionAreasToolStripMenuItem.Name = "predictionAreasToolStripMenuItem";
-            this.predictionAreasToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.predictionAreasToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.predictionAreasToolStripMenuItem.Text = "Modeling areas";
             // 
             // addAreaToolStripMenuItem
             // 
             this.addAreaToolStripMenuItem.Name = "addAreaToolStripMenuItem";
-            this.addAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.addAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.addAreaToolStripMenuItem.Text = "Add...";
             this.addAreaToolStripMenuItem.Click += new System.EventHandler(this.addAreaToolStripMenuItem_Click);
             // 
             // deleteAreaToolStripMenuItem
             // 
             this.deleteAreaToolStripMenuItem.Name = "deleteAreaToolStripMenuItem";
-            this.deleteAreaToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.deleteAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.deleteAreaToolStripMenuItem.Text = "Delete...";
             this.deleteAreaToolStripMenuItem.Click += new System.EventHandler(this.deleteAreaToolStripMenuItem_Click);
             // 
@@ -366,7 +370,7 @@ namespace PTL.ATT.GUI
             this.simulateIncidentsToolStripMenuItem,
             this.clearSimulatedIncidentsToolStripMenuItem});
             this.incidentsToolStripMenuItem.Name = "incidentsToolStripMenuItem";
-            this.incidentsToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.incidentsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.incidentsToolStripMenuItem.Text = "Incidents";
             // 
             // importFromFileToolStripMenuItem
@@ -1022,24 +1026,6 @@ namespace PTL.ATT.GUI
             this.threatSplitContainer.SplitterDistance = 378;
             this.threatSplitContainer.TabIndex = 0;
             // 
-            // threatMap
-            // 
-            this.threatMap.BackColor = System.Drawing.Color.White;
-            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.threatMap.Location = new System.Drawing.Point(0, 0);
-            this.threatMap.Name = "threatMap";
-            this.threatMap.Size = new System.Drawing.Size(718, 374);
-            this.threatMap.TabIndex = 0;
-            // 
-            // assessments
-            // 
-            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.assessments.Location = new System.Drawing.Point(0, 0);
-            this.assessments.Name = "assessments";
-            this.assessments.Size = new System.Drawing.Size(718, 214);
-            this.assessments.TabIndex = 0;
-            // 
             // horizontalSplitContainer
             // 
             this.horizontalSplitContainer.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
@@ -1070,6 +1056,36 @@ namespace PTL.ATT.GUI
             this.log.Size = new System.Drawing.Size(1122, 181);
             this.log.TabIndex = 0;
             this.log.Text = "";
+            // 
+            // toolStripSeparator10
+            // 
+            this.toolStripSeparator10.Name = "toolStripSeparator10";
+            this.toolStripSeparator10.Size = new System.Drawing.Size(177, 6);
+            // 
+            // runStoredImporterToolStripMenuItem
+            // 
+            this.runStoredImporterToolStripMenuItem.Name = "runStoredImporterToolStripMenuItem";
+            this.runStoredImporterToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.runStoredImporterToolStripMenuItem.Text = "Run stored importer";
+            this.runStoredImporterToolStripMenuItem.Click += new System.EventHandler(this.runStoredImporterToolStripMenuItem_Click);
+            // 
+            // threatMap
+            // 
+            this.threatMap.BackColor = System.Drawing.Color.White;
+            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.threatMap.Location = new System.Drawing.Point(0, 0);
+            this.threatMap.Name = "threatMap";
+            this.threatMap.Size = new System.Drawing.Size(718, 374);
+            this.threatMap.TabIndex = 0;
+            // 
+            // assessments
+            // 
+            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.assessments.Location = new System.Drawing.Point(0, 0);
+            this.assessments.Name = "assessments";
+            this.assessments.Size = new System.Drawing.Size(718, 214);
+            this.assessments.TabIndex = 0;
             // 
             // AttForm
             // 
@@ -1207,6 +1223,8 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
         private System.Windows.Forms.ToolStripMenuItem importPointfileFromSocrataToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
+        private System.Windows.Forms.ToolStripMenuItem runStoredImporterToolStripMenuItem;
     }
 }
 
