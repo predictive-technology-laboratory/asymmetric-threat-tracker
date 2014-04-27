@@ -33,14 +33,39 @@ namespace PTL.ATT.Importers
     public class XmlImporter : Importer
     {
         #region row inserters
+        /// <summary>
+        /// XML row inserter
+        /// </summary>
         [Serializable]
         public abstract class XmlRowInserter
         {
+            private Importer _importer;
+
+            /// <summary>
+            /// A reference to the importer that is going to use this row inserter.
+            /// </summary>
+            public Importer Importer
+            {
+                get { return _importer; }
+                set { _importer = value; }
+            }
+
+            /// <summary>
+            /// Called by the importer just prior to row processing and insertion.
+            /// </summary>
             public abstract void Initialize();
 
+            /// <summary>
+            /// Returns an insertion value with parameters given a row from an XML file.
+            /// </summary>
+            /// <param name="xmlRowParser">XML row</param>
+            /// <returns>Insertion value with parameters</returns>
             public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
         }
 
+        /// <summary>
+        /// Inserter for incidents from XML files (in Socrata format)
+        /// </summary>
         [Serializable]
         public class IncidentXmlRowInserter : XmlRowInserter
         {
@@ -60,6 +85,9 @@ namespace PTL.ATT.Importers
 
             public override void Initialize()
             {
+                Importer.InsertTable = Incident.CreateTable(_importArea);
+                Importer.InsertColumns = Incident.Columns.Insert;
+
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
             }
@@ -96,6 +124,9 @@ namespace PTL.ATT.Importers
             }
         }
 
+        /// <summary>
+        /// Inserter for point data from XML files (in Socrata format)
+        /// </summary>
         [Serializable]
         public class PointfileXmlRowInserter : XmlRowInserter
         {
@@ -116,11 +147,18 @@ namespace PTL.ATT.Importers
                 _dbColInputCol = dbColSocrataCol;
                 _sourceSRID = sourceSRID;
                 _importArea = importArea;
-                _rowNum = 0;
             }
 
             public override void Initialize()
             {
+                _rowNum = 0;
+
+                NpgsqlConnection connection = DB.Connection.OpenConnection;
+                Shapefile shapefile = new Shapefile(Shapefile.Create(connection, Importer.Name, _importArea.SRID, Shapefile.ShapefileType.Feature));
+                DB.Connection.Return(connection);
+
+                Importer.InsertTable = ShapefileGeometry.GetTableName(shapefile);
+                Importer.InsertColumns = ShapefileGeometry.Columns.Insert;
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser)
@@ -148,6 +186,7 @@ namespace PTL.ATT.Importers
         }
         #endregion
 
+        #region static members
         public static string[] GetColumnNames(string path, string rootElementName, string rowElementName)
         {
             Console.Out.WriteLine("Scanning \"" + path + "\" for input field names...");
@@ -174,17 +213,20 @@ namespace PTL.ATT.Importers
                 return columnNames.ToArray();
             }
         }
+        #endregion
 
         private XmlRowInserter _xmlRowInserter;
         private string _rootElementName;
         private string _rowElementName;
 
-        public XmlImporter(string name, string path, string sourceURI, string table, string insertColumns, XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
-            : base(name, path, sourceURI, table, insertColumns)
+        public XmlImporter(string name, string path, string sourceURI, XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
+            : base(name, path, sourceURI)
         {
             _xmlRowInserter = xmlRowInserter;
             _rootElementName = rootElementName;
             _rowElementName = rowElementName;
+
+            _xmlRowInserter.Importer = this;
         }
 
         public override void Import()

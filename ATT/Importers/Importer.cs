@@ -62,7 +62,11 @@ namespace PTL.ATT.Importers
                 BinaryFormatter bf = new BinaryFormatter();
                 List<Importer> importers = new List<Importer>();
                 while (reader.Read())
-                    importers.Add(bf.Deserialize(new MemoryStream(reader[Table + "_" + Columns.Importer] as byte[])) as Importer);
+                {
+                    Importer importer = bf.Deserialize(new MemoryStream(reader[Table + "_" + Columns.Importer] as byte[])) as Importer;
+                    importer.Id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
+                    importers.Add(importer);
+                }
 
                 reader.Close();
 
@@ -87,6 +91,7 @@ namespace PTL.ATT.Importers
         private string _insertTable;
         private string _insertColumns;
         private string _name;
+        private int _id;
 
         public string Path
         {
@@ -101,11 +106,13 @@ namespace PTL.ATT.Importers
         public string InsertTable
         {
             get { return _insertTable; }
+            set { _insertTable = value; }
         }
 
         public string InsertColumns
         {
             get { return _insertColumns; }
+            set { _insertColumns = value; }
         }
 
         public string Name
@@ -113,13 +120,17 @@ namespace PTL.ATT.Importers
             get { return _name; }
         }
 
-        public Importer(string name, string path, string sourceURI, string insertTable, string insertColumns)
+        public int Id
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+
+        public Importer(string name, string path, string sourceURI)
         {
             _name = name;
             _path = path;
             _sourceURI = sourceURI;
-            _insertTable = insertTable;
-            _insertColumns = insertColumns;
         }
 
         public virtual void Import()
@@ -134,6 +145,16 @@ namespace PTL.ATT.Importers
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
             DB.Connection.ExecuteNonQuery("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@" + Columns.Importer + ")", new Parameter(Columns.Importer, NpgsqlTypes.NpgsqlDbType.Bytea, ms.ToArray()));
+        }
+
+        public void Delete()
+        {
+            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
+        }
+
+        public override string ToString()
+        {
+            return _name;
         }
     }
 }
