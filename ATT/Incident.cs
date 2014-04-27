@@ -269,6 +269,26 @@ namespace PTL.ATT
                 return 0;
         }
 
+        public static Incident GetFirst(Area area)
+        {
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(area) + " FROM " + GetTableName(area) + " ORDER BY " + Columns.Time + " ASC LIMIT 1");
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+                return new Incident(reader, area);
+            else
+                return null;
+        }
+
+        public static Incident GetLast(Area area)
+        {
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(area) + " FROM " + GetTableName(area) + " ORDER BY " + Columns.Time + " DESC LIMIT 1");
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+                return new Incident(reader, area);
+            else
+                return null;
+        }
+
         public static Set<int> GetNativeIds(Area area)
         {
             Set<int> nativeIds = new Set<int>();
