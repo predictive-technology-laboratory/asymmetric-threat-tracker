@@ -62,9 +62,9 @@ namespace PTL.ATT.Models
                     Columns.EnumValue + " VARCHAR," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
                     Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
-                    Columns.ParameterValues + " VARCHAR[]," + 
-                    Columns.PredictionResourceId + " VARCHAR," + 
-                    Columns.TrainingResourceId + " VARCHAR);" + 
+                    Columns.ParameterValues + " VARCHAR[]," +
+                    Columns.PredictionResourceId + " VARCHAR," +
+                    Columns.TrainingResourceId + " VARCHAR);" +
                     (connection.TableExists(Table) ? "" :
                     "CREATE INDEX ON " + Table + " (" + Columns.EnumType + ");" +
                     "CREATE INDEX ON " + Table + " (" + Columns.EnumValue + ");" +
@@ -100,7 +100,7 @@ namespace PTL.ATT.Models
 
         public int Id
         {
-            get {  return _id; }
+            get { return _id; }
         }
 
         public Type EnumType
