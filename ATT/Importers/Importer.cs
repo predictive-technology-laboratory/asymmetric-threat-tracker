@@ -86,12 +86,17 @@ namespace PTL.ATT.Importers
             }
         }
 
+        private string _name;
         private string _path;
-        private string _sourceURI;
+        private string _sourceURI;        
         private string _insertTable;
         private string _insertColumns;
-        private string _name;
         private int _id;
+
+        public string Name
+        {
+            get { return _name; }
+        }
 
         public string Path
         {
@@ -115,11 +120,6 @@ namespace PTL.ATT.Importers
             set { _insertColumns = value; }
         }
 
-        public string Name
-        {
-            get { return _name; }
-        }
-
         public int Id
         {
             get { return _id; }
@@ -141,10 +141,12 @@ namespace PTL.ATT.Importers
 
         public void Save()
         {
+            Delete();
+
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
-            DB.Connection.ExecuteNonQuery("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@" + Columns.Importer + ")", new Parameter(Columns.Importer, NpgsqlTypes.NpgsqlDbType.Bytea, ms.ToArray()));
+            _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@" + Columns.Importer + ") RETURNING " + Columns.Id, new Parameter(Columns.Importer, NpgsqlTypes.NpgsqlDbType.Bytea, ms.ToArray())));
         }
 
         public void Delete()

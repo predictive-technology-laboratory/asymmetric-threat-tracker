@@ -63,6 +63,7 @@ namespace PTL.ATT.GUI
 
         public enum ManageImporterAction
         {
+            Edit,
             Run,
             Delete
         }
@@ -661,6 +662,10 @@ namespace PTL.ATT.GUI
                             foreach (Importer importer in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("importers"))
                                 if (action == ManageImporterAction.Delete)
                                     importer.Delete();
+                                else if(action == ManageImporterAction.Edit)
+                                {
+
+                                }
                                 else if (action == ManageImporterAction.Run)
                                 {
                                     Console.Out.WriteLine("Running importer \"" + importer.Name + "\"...");

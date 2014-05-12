@@ -39,21 +39,32 @@ namespace PTL.ATT.Importers
         [Serializable]
         public abstract class XmlRowInserter
         {
-            private Importer _importer;
+            private XmlImporter _xmlImporter;
 
             /// <summary>
             /// A reference to the importer that is going to use this row inserter.
             /// </summary>
-            public Importer Importer
+            public XmlImporter XmlImporter
             {
-                get { return _importer; }
-                set { _importer = value; }
+                get { return _xmlImporter; }
+                set { _xmlImporter = value; }
             }
 
             /// <summary>
             /// Called by the importer just prior to row processing and insertion.
             /// </summary>
             public abstract void Initialize();
+
+            /// <summary>
+            /// Initializes table insertion (called from row inserters).
+            /// </summary>
+            /// <param name="insertTable">Table into which to insert data</param>
+            /// <param name="insertColumns">Columns into which to insert data (comma-separated)</param>
+            protected void Initialize(string insertTable, string insertColumns)
+            {
+                _xmlImporter.InsertTable = insertTable;
+                _xmlImporter.InsertColumns = insertColumns;
+            }
 
             /// <summary>
             /// Returns an insertion value with parameters given a row from an XML file.
@@ -85,8 +96,7 @@ namespace PTL.ATT.Importers
 
             public override void Initialize()
             {
-                Importer.InsertTable = Incident.CreateTable(_importArea);
-                Importer.InsertColumns = Incident.Columns.Insert;
+                base.Initialize(Incident.CreateTable(_importArea), Incident.Columns.Insert);
 
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
@@ -154,11 +164,10 @@ namespace PTL.ATT.Importers
                 _rowNum = 0;
 
                 NpgsqlConnection connection = DB.Connection.OpenConnection;
-                Shapefile shapefile = new Shapefile(Shapefile.Create(connection, Importer.Name, _importArea.SRID, Shapefile.ShapefileType.Feature));
+                Shapefile shapefile = new Shapefile(Shapefile.Create(connection, XmlImporter.Name, _importArea.SRID, Shapefile.ShapefileType.Feature));
                 DB.Connection.Return(connection);
 
-                Importer.InsertTable = ShapefileGeometry.GetTableName(shapefile);
-                Importer.InsertColumns = ShapefileGeometry.Columns.Insert;
+                base.Initialize(ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Insert);
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser)
@@ -226,7 +235,7 @@ namespace PTL.ATT.Importers
             _rootElementName = rootElementName;
             _rowElementName = rowElementName;
 
-            _xmlRowInserter.Importer = this;
+            _xmlRowInserter.XmlImporter = this;
         }
 
         public override void Import()
