@@ -295,15 +295,19 @@ namespace PTL.ATT.GUI
                             Console.Out.WriteLine("Unzipping \"" + downloadPath + "\" to \"" + unzipDir + "\"...");
                             ZipFile.ExtractToDirectory(downloadPath, unzipDir);
 
-                            string shapefileFileName = Path.GetFileNameWithoutExtension(Directory.GetFiles(unzipDir).First());
-                            using (StreamWriter shapefileInfoFile = new StreamWriter(Path.Combine(unzipDir, shapefileFileName + ".att")))
+                            foreach (string shapefilePath in Directory.GetFiles(unzipDir, "*.shp", SearchOption.AllDirectories))
                             {
-                                shapefileInfoFile.Write("reprojection=" + f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid") + Environment.NewLine +
-                                                        "name=" + name);
-                                shapefileInfoFile.Close();
-                            }
+                                string shapefileDirectory = Path.GetDirectoryName(shapefilePath);
+                                string shapefileFileName = Path.GetFileNameWithoutExtension(shapefilePath);
+                                using (StreamWriter shapefileInfoFile = new StreamWriter(Path.Combine(shapefileDirectory, shapefileFileName + ".att")))
+                                {
+                                    shapefileInfoFile.Write("reprojection=" + f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid") + Environment.NewLine +
+                                                            "name=" + name);
+                                    shapefileInfoFile.Close();
+                                }
 
-                            Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), f.GetValue<Shapefile.ShapefileType>("type"), null);
+                                Shapefile.ImportShapefile(Path.Combine(shapefileDirectory, shapefileFileName + ".shp"), f.GetValue<Shapefile.ShapefileType>("type"), null);
+                            }
                         }
                         catch (Exception ex)
                         {

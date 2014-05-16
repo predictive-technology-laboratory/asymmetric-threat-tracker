@@ -113,6 +113,12 @@ namespace PTL.ATT
                     if (neededValues.Count > 0)
                         getShapefileInfo(shapefilePath, neededValues, optionValue);
 
+                    if (neededValues.Any(v => !optionValue.ContainsKey(v)))
+                    {
+                        Console.Out.WriteLine("Necessary information not provided.");
+                        return;
+                    }
+
                     string reprojection = optionValue["reprojection"];
                     Match reprojectionMatch = reprojectionRE.Match(reprojection);
                     if (!reprojectionMatch.Success)
@@ -165,6 +171,8 @@ namespace PTL.ATT
                     cmd.CommandText = "DROP TABLE temp";
                     cmd.ExecuteNonQuery();
                 }
+
+                Console.Out.WriteLine("Shapefile import finished.");
             }
             catch (Exception ex)
             {
@@ -188,8 +196,6 @@ namespace PTL.ATT
             {
                 DB.Connection.Return(cmd.Connection);
             }
-
-            Console.Out.WriteLine("Shapefile import finished.");
         }
 
         public static IEnumerable<Shapefile> GetAll()
