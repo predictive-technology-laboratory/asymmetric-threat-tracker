@@ -78,6 +78,7 @@ namespace PTL.ATT.GUI
             set
             {
                 _featureBasedDCM = value;
+                _trainingArea = null;
 
                 if (_featureBasedDCM != null)
                 {
@@ -85,6 +86,8 @@ namespace PTL.ATT.GUI
                     foreach (Feature feature in _featureBasedDCM.Features)
                         if (feature.PredictionResourceId != feature.TrainingResourceId)
                             _featureRemapKeyTargetPredictionResource.Add(feature.RemapKey, feature.PredictionResourceId);
+
+                    _trainingArea = _featureBasedDCM.TrainingArea;
 
                     RefreshAll();
                 }
