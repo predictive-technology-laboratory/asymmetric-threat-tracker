@@ -69,7 +69,11 @@ namespace PTL.ATT.GUI
 
         public Area TrainingArea
         {
-            set { _trainingArea = value; }
+            set
+            {
+                _trainingArea = value;
+                RefreshAll();
+            }
         }
 
         public FeatureBasedDCM FeatureBasedDCM

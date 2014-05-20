@@ -37,7 +37,6 @@ namespace PTL.ATT.GUI
             discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += new EventHandler((o, e) =>
                 {
                     featureBasedDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
-                    featureBasedDcmOptions.RefreshAll();
                 });
 
             featureBasedDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => TimeSliceDCM.GetAvailableFeatures(a).ToList());
