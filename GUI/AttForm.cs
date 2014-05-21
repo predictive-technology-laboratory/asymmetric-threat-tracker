@@ -165,7 +165,7 @@ namespace PTL.ATT.GUI
 
         private void AttForm_Load(object sender, EventArgs e)
         {
-            Splash splash = new Splash(7);
+            Splash splash = new Splash(4);
             bool done = false;
             Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                 {
@@ -249,7 +249,6 @@ namespace PTL.ATT.GUI
 
             verticalSplitContainer.SplitterDistance = models.Right + 20;
 
-            splash.UpdateProgress("ATT started");
             done = true;
 
             Console.Out.WriteLine("ATT started");
@@ -431,29 +430,34 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No areas available to delete.");
             else
             {
-                DynamicForm f = new DynamicForm("Delete area...");
-                f.AddDropDown("Area:", areas.ToArray(), null, "area");
+                DynamicForm f = new DynamicForm("Delete areas...");
+                f.AddListBox("Areas:", areas.ToArray(), null, SelectionMode.MultiExtended, "areas");
                 if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    Area area = f.GetValue<Area>("area");
+                    bool areaDeleted = false;
 
-                    List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(area, false);
-                    List<Prediction> predictionsForArea = Prediction.GetForArea(area);
-                    if (modelsForArea.Count > 0 || predictionsForArea.Count > 0)
-                        if (MessageBox.Show("The area \"" + area.Name + "\" is associated with " + modelsForArea.Count + " model(s) and " + predictionsForArea.Count + " prediction(s), which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                        {
-                            foreach (Prediction prediction in predictionsForArea)
-                                prediction.Delete();
+                    foreach (Area areaToDelete in f.GetValue<ListBox.SelectedObjectCollection>("areas"))
+                    {
+                        List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(areaToDelete, false);
+                        List<Prediction> predictionsForArea = Prediction.GetForArea(areaToDelete);
+                        if (modelsForArea.Count > 0 || predictionsForArea.Count > 0)
+                            if (MessageBox.Show("The area \"" + areaToDelete.Name + "\" is associated with " + modelsForArea.Count + " model(s) and " + predictionsForArea.Count + " prediction(s), which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                            {
+                                foreach (Prediction prediction in predictionsForArea)
+                                    prediction.Delete();
 
-                            foreach (DiscreteChoiceModel model in modelsForArea)
-                                model.Delete();
-                        }
-                        else
-                            return;
+                                foreach (DiscreteChoiceModel model in modelsForArea)
+                                    model.Delete();
+                            }
+                            else
+                                continue;
 
-                    area.Delete();
+                        areaToDelete.Delete();
+                        areaDeleted = true;
+                    }
 
-                    RefreshAll();
+                    if (areaDeleted)
+                        RefreshAll();
                 }
             }
         }
@@ -651,31 +655,78 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No stored importers are available.");
             else
             {
-                DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
-                f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
-                f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), ManageImporterAction.Run, "action");
-                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                DialogResult manageDialogResult = System.Windows.Forms.DialogResult.OK;
+                bool refreshStoredImporters = false;
+                while (manageDialogResult == System.Windows.Forms.DialogResult.OK)
                 {
-                    Thread t = new Thread(new ThreadStart(() =>
-                        {
-                            ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
-                            foreach (Importer importer in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("importers"))
-                                if (action == ManageImporterAction.Delete)
-                                    importer.Delete();
-                                else if(action == ManageImporterAction.Edit)
-                                {
+                    if (refreshStoredImporters)
+                    {
+                        storedImporters = Importer.GetAll().ToArray();
+                        refreshStoredImporters = false;
+                    }
 
-                                }
-                                else if (action == ManageImporterAction.Run)
-                                {
-                                    Console.Out.WriteLine("Running importer \"" + importer.Name + "\"...");
-                                    importer.Import();
-                                }
-                                else
-                                    MessageBox.Show("Unrecognized action:  " + action);
-                        }));
+                    if (storedImporters.Length == 0)
+                        break;
 
-                    t.Start();
+                    DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
+                    f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
+                    f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action");
+                    if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
+                    {
+                        Thread t = new Thread(new ThreadStart(() =>
+                            {
+                                ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
+                                foreach (Importer importer in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("importers"))
+                                    if (action == ManageImporterAction.Delete)
+                                    {
+                                        importer.Delete();
+                                        refreshStoredImporters = true;
+                                    }
+                                    else if (action == ManageImporterAction.Edit)
+                                    {
+                                        DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...");
+                                        Dictionary<string, object> updateKeyValue = new Dictionary<string, object>();
+                                        importer.GetUpdateRequests(new Action<string, object, IEnumerable<object>, string>((itemName, currentValue, possibleValues, id) =>
+                                            {
+                                                if (currentValue == null)
+                                                    return;
+
+                                                itemName += ":";
+
+                                                if (possibleValues != null)
+                                                    updateForm.AddDropDown(itemName, possibleValues.ToArray(), currentValue, id);
+                                                else if (currentValue is string)
+                                                    updateForm.AddTextBox(itemName, currentValue as string, -1, id);
+                                                else if (currentValue is int)
+                                                    updateForm.AddNumericUpdown(itemName, (decimal)currentValue, 0, int.MinValue, int.MaxValue, 1, id);
+                                                else
+                                                    throw new NotImplementedException("Cannot dynamically generate form for update request");
+
+                                                updateKeyValue.Add(id, null);
+                                            }));
+
+                                        if (updateForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                                        {
+                                            foreach (string id in updateKeyValue.Keys.ToArray())
+                                                updateKeyValue[id] = updateForm.GetValue<object>(id);
+
+                                            importer.Update(updateKeyValue);
+                                            importer.Save();
+                                            refreshStoredImporters = true;
+                                        }
+                                    }
+                                    else if (action == ManageImporterAction.Run)
+                                    {
+                                        Console.Out.WriteLine("Running importer \"" + importer.Name + "\"...");
+                                        importer.Import();
+                                    }
+                                    else
+                                        MessageBox.Show("Unrecognized action:  " + action);
+                            }));
+
+                        t.Start();
+                        t.Join();
+                    }
                 }
             }
         }

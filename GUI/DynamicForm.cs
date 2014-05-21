@@ -45,10 +45,11 @@ namespace PTL.ATT.GUI
             _mainPanel = new FlowLayoutPanel();
             _mainPanel.FlowDirection = FlowDirection.TopDown;
 
+            Load += new EventHandler(DynamicForm_Load);
             Shown += new EventHandler(DynamicForm_Shown);
         }
 
-        private void DynamicForm_Shown(object sender, EventArgs args)
+        private void DynamicForm_Load(object sender, EventArgs args)
         {
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel();
             buttonPanel.FlowDirection = FlowDirection.LeftToRight;
@@ -89,6 +90,10 @@ namespace PTL.ATT.GUI
             Controls.Add(_mainPanel);
             Size = PreferredSize;
             Width = Math.Max(Width, TextRenderer.MeasureText(Text, Font).Width + 50);
+        }
+
+        private void DynamicForm_Shown(object sender, EventArgs args)
+        {
             TopMost = true;
         }
 
@@ -104,7 +109,7 @@ namespace PTL.ATT.GUI
             tb.Name = valueId;
             tb.Text = text;
             tb.PasswordChar = passwordChar;
-            tb.Size = widthInCharacters == -1 ? tb.PreferredSize : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), Font).Width, tb.PreferredSize.Height);
+            tb.Size = widthInCharacters == -1 ? new Size(TextRenderer.MeasureText(tb.Text, tb.Font).Width, tb.PreferredHeight) : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), tb.Font).Width, tb.PreferredHeight);
             tb.KeyDown += new KeyEventHandler((o, args) =>
                 {
                     if (args.KeyCode == Keys.Enter)

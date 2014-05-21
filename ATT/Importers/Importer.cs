@@ -147,6 +147,30 @@ namespace PTL.ATT.Importers
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
             _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@" + Columns.Importer + ") RETURNING " + Columns.Id, new Parameter(Columns.Importer, NpgsqlTypes.NpgsqlDbType.Bytea, ms.ToArray())));
+        }  
+
+        public virtual void GetUpdateRequests(Action<string, object, IEnumerable<object>, string> updateRequest)
+        {
+            if (updateRequest == null)
+                throw new ArgumentNullException("Must pass a non-null update request delegate");
+
+            updateRequest("Name", _name, null, GetType() + "+name");
+            updateRequest("Path", _path, null, GetType() + "+path");
+            updateRequest("Source URI", _sourceURI, null, GetType() + "+uri");
+        }
+
+        public virtual void Update(Dictionary<string, object> updateKeyValue)
+        {
+            object value;
+
+            if (updateKeyValue.TryGetValue(GetType() + "+name", out value))
+                _name = Convert.ToString(value);
+
+            if (updateKeyValue.TryGetValue(GetType() + "+path", out value))
+                _path = Convert.ToString(value);
+
+            if (updateKeyValue.TryGetValue(GetType() + "+uri", out value))
+                _sourceURI = Convert.ToString(value);
         }
 
         public void Delete()
