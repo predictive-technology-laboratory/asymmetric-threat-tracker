@@ -24,6 +24,7 @@ namespace PTL.ATT.Importers
         public delegate void GetShapefileInfoDelegate(string shapefilePath, List<string> optionValuesToGet, Dictionary<string, string> optionValue);
 
         private Shapefile.ShapefileType _type;
+        [NonSerialized]
         private GetShapefileInfoDelegate _getShapefileInfo;
 
         public ShapefileImporter(string name, string path, string sourceURI, Shapefile.ShapefileType type, GetShapefileInfoDelegate getShapefileInfo)
@@ -57,6 +58,7 @@ namespace PTL.ATT.Importers
             {
                 NpgsqlCommand cmd = DB.Connection.NewCommand(null);
                 int shapefileId = -1;
+                string tempTable = null;
                 try
                 {
                     Dictionary<string, string> importOptionValue = new Dictionary<string, string>();
@@ -70,6 +72,9 @@ namespace PTL.ATT.Importers
 
                     if (!string.IsNullOrWhiteSpace(Name))
                         importOptionValue["name"] = Name;
+
+                    if (string.IsNullOrWhiteSpace(Name))
+                        Name = importOptionValue["name"];
 
                     List<string> neededValues = new List<string>();
                     if (!importOptionValue.ContainsKey("reprojection")) neededValues.Add("reprojection");
@@ -101,12 +106,15 @@ namespace PTL.ATT.Importers
                     File.WriteAllText(importOptionsPath, "reprojection=" + fromSRID + ":" + toSRID + Environment.NewLine +
                                                          "name=" + name);
 
+                    shapefileId = Shapefile.Create(cmd.Connection, name, toSRID, _type);
+                    tempTable = "shapefile_import_" + shapefileId;
+
                     string sql;
                     string error;
                     using (Process process = new Process())
                     {
                         process.StartInfo.FileName = Configuration.Shp2PgsqlPath;
-                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapefilePath + "\" temp";
+                        process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + shapefilePath + "\" " + tempTable;
                         process.StartInfo.CreateNoWindow = true;
                         process.StartInfo.UseShellExecute = false;
                         process.StartInfo.RedirectStandardError = true;
@@ -127,8 +135,8 @@ namespace PTL.ATT.Importers
                     cmd.ExecuteNonQuery();
 
                     Console.Out.WriteLine("Importing shapefile into database");
-                    Shapefile shapefile = new Shapefile(Shapefile.Create(cmd.Connection, name, toSRID, _type));
-                    ShapefileGeometry.Create(cmd.Connection, shapefile, "temp", "geom");
+                    Shapefile shapefile = new Shapefile(shapefileId);
+                    ShapefileGeometry.Create(cmd.Connection, shapefile, tempTable, "geom");
                 }
                 catch (Exception ex)
                 {
@@ -145,10 +153,10 @@ namespace PTL.ATT.Importers
                 {
                     try
                     {
-                        cmd.CommandText = "DROP TABLE temp;";
+                        cmd.CommandText = "DROP TABLE " + tempTable + ";";
                         cmd.ExecuteNonQuery();
                     }
-                    catch (Exception ex2) { Console.Out.WriteLine("Falied to drop table \"temp\":  " + ex2.Message); }
+                    catch (Exception ex2) { Console.Out.WriteLine("Falied to drop table \"" + tempTable + "\":  " + ex2.Message); }
 
                     DB.Connection.Return(cmd.Connection);
                 }

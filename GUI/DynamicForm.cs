@@ -94,10 +94,11 @@ namespace PTL.ATT.GUI
 
         private void DynamicForm_Shown(object sender, EventArgs args)
         {
+            CenterToScreen();
             TopMost = true;
         }
 
-        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false)
+        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false, bool addFileBrowsingButtons = false, string initialBrowsingDirectory = null, string fileFilter = null)
         {
             Label l = new Label();
             l.Text = label;
@@ -127,6 +128,28 @@ namespace PTL.ATT.GUI
             p.FlowDirection = FlowDirection.LeftToRight;
             p.Controls.Add(l);
             p.Controls.Add(tb);
+
+            if (addFileBrowsingButtons)
+            {
+                Button fileBrowse = new Button();
+                fileBrowse.Text = "File...";
+                fileBrowse.Click += (o, e) =>
+                    {
+                        tb.Text = LAIR.IO.File.PromptForOpenPath("Select file...", initialBrowsingDirectory, fileFilter);
+                    };
+
+                p.Controls.Add(fileBrowse);
+
+                Button directoryBrowse = new Button();
+                directoryBrowse.Text = "Directory...";
+                directoryBrowse.Click += (o, e) =>
+                    {
+                        tb.Text = LAIR.IO.Directory.PromptForDirectory("Select directory...", initialBrowsingDirectory);
+                    };
+
+                p.Controls.Add(directoryBrowse);
+            }
+
             p.Size = p.PreferredSize;
 
             _mainPanel.Controls.Add(p);

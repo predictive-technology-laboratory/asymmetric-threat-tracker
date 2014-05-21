@@ -288,8 +288,8 @@ namespace PTL.ATT.GUI
             Import(Configuration.PostGisShapefileDirectory,
                    new CompleteImporterFormDelegate(f =>
                        {
-                           f.AddNumericUpdown("Source SRID:", 1, 0, 0, decimal.MaxValue, 0, "source_srid");
-                           f.AddNumericUpdown("Target SRID:", 1, 0, 0, decimal.MaxValue, 0, "target_srid");
+                           f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
+                           f.AddNumericUpdown("Target SRID:", 0, 0, 0, decimal.MaxValue, 1, "target_srid");
                            f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), null, "type");
                            return f;
                        }),
@@ -314,14 +314,24 @@ namespace PTL.ATT.GUI
                                            value = name;
 
                                        df.AddTextBox(optionValueToGet, value, 50, optionValueToGet);
+
+                                       if (value != null)
+                                           optionValue.Add(optionValueToGet, value);
                                    }
 
-                                   df.ShowDialog();
+                                   if (optionValuesToGet.Any(v => !optionValue.ContainsKey(v)))
+                                   {
+                                       df.ShowDialog();
 
-                                   foreach (string optionValueToGet in optionValuesToGet)
-                                       optionValue[optionValueToGet] = df.GetValue<string>(optionValueToGet);
+                                       foreach (string optionValueToGet in optionValuesToGet)
+                                           if (!optionValue.ContainsKey(optionValueToGet))
+                                               optionValue.Add(optionValueToGet, df.GetValue<string>(optionValueToGet));
+                                   }
                                }));
-                       }));
+                       }),
+
+                   Configuration.PostGisShapefileDirectory,
+                   "Shapefiles (*.shp)|*.shp");
         }
 
         private void importPointfilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -356,7 +366,10 @@ namespace PTL.ATT.GUI
                                                     {
                                                         return new XmlImporter.PointfileXmlRowInserter(databaseColumnInputColumn, sourceSRID, importArea);
                                                     });
-                       }));
+                       }),
+
+                   Configuration.EventsImportDirectory,
+                   null);
         }
 
         private void deleteGeographicDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -496,7 +509,10 @@ namespace PTL.ATT.GUI
                                                     {
                                                         return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
                                                     });
-                       }));
+                       }),
+
+                   Configuration.IncidentsImportDirectory,
+                   null);
         }
 
         public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -525,17 +541,19 @@ namespace PTL.ATT.GUI
 
         private void Import(string downloadDirectory,
                             CompleteImporterFormDelegate completeImporterForm,
-                            CreateImporterDelegate createImporter)
+                            CreateImporterDelegate createImporter,
+                            string initialBrowsingDirectory,
+                            string fileFilter)
         {
             Thread t = new Thread(new ThreadStart(delegate()
             {
                 DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
 
                 importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
-                importerForm.AddTextBox("Path:", null, 200, "path");
+                importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileFilter);
                 importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
                 importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
-                importerForm.AddCheckBox("Save importer:", ContentAlignment.MiddleRight, true, "save_importer");
+                importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, true, "save_importer");
 
                 if (completeImporterForm != null)
                     importerForm = completeImporterForm(importerForm);
@@ -545,51 +563,55 @@ namespace PTL.ATT.GUI
 
                 if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    #region download file if needed
-                    string path = importerForm.GetValue<string>("path");
-                    string sourceURI = importerForm.GetValue<string>("uri");
-                    if (!File.Exists(path) && !string.IsNullOrWhiteSpace(sourceURI))
+                    string p = importerForm.GetValue<string>("path");
+                    string[] paths = new string[] { p };
+                    if (Directory.Exists(p))
+                        paths = Directory.GetFiles(p, fileFilter == null ? "*" : fileFilter.Split('|')[1], SearchOption.AllDirectories);
+
+                    foreach (string path in paths)
                     {
-                        if (string.IsNullOrWhiteSpace(path))
-                            path = Path.Combine(downloadDirectory, ReplaceInvalidFilenameCharacters("uri_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToLongTimeString() + ".xml"));
-
-                        try { LAIR.IO.Network.Download(sourceURI, path); }
-                        catch (Exception ex)
+                        #region download file if needed -- some callbacks need the file in order to set up the importer
+                        string sourceURI = importerForm.GetValue<string>("uri");
+                        if (!File.Exists(path) && !string.IsNullOrWhiteSpace(sourceURI))
                         {
-                            try { File.Delete(path); }
-                            catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + path + "\":  " + ex2.Message); }
+                            try { LAIR.IO.Network.Download(sourceURI, path); }
+                            catch (Exception ex)
+                            {
+                                try { File.Delete(path); }
+                                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + path + "\":  " + ex2.Message); }
 
-                            Console.Out.WriteLine("Error downloading file from Socrata URI:  " + ex.Message);
+                                Console.Out.WriteLine("Error downloading file from Socrata URI:  " + ex.Message);
 
-                            return;
+                                return;
+                            }
                         }
+                        #endregion
+
+                        #region import file
+                        if (File.Exists(path))
+                        {
+                            string importName = importerForm.GetValue<string>("name");
+                            bool deleteImportedFileAfterImport = importerForm.GetValue<bool>("delete");
+                            bool saveImporter = Convert.ToBoolean(importerForm.GetValue<bool>("save_importer"));
+
+                            try
+                            {
+                                Importer importer = createImporter(importName, path, sourceURI, importerForm);
+                                importer.Import();
+
+                                if (deleteImportedFileAfterImport)
+                                    File.Delete(path);
+
+                                if (saveImporter)
+                                    importer.Save();
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Out.WriteLine("Error while importing:  " + ex.Message);
+                            }
+                        }
+                        #endregion
                     }
-                    #endregion
-
-                    #region import file
-                    if (File.Exists(path))
-                    {
-                        string importName = importerForm.GetValue<string>("name");
-                        bool deleteImportedFileAfterImport = importerForm.GetValue<bool>("delete");
-                        bool saveImporter = Convert.ToBoolean(importerForm.GetValue<bool>("save_importer"));
-
-                        try
-                        {
-                            Importer importer = createImporter(importName, path, sourceURI, importerForm);
-                            importer.Import();
-
-                            if (deleteImportedFileAfterImport)
-                                File.Delete(path);
-
-                            if (saveImporter && importer != null)
-                                importer.Save();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Out.WriteLine("Error while importing:  " + ex.Message);
-                        }
-                    }
-                    #endregion
                 }
             }));
 
