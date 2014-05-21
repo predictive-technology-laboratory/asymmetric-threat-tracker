@@ -80,6 +80,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -95,6 +96,7 @@
     <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Classifiers\SvmRank.cs" />
     <Compile Include="Importers\Importer.cs" />
+    <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
     <Compile Include="Models\IDiscreteChoiceModel.cs" />

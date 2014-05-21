@@ -54,12 +54,29 @@ namespace PTL.ATT.GUI
 {
     public partial class AttForm : Form
     {
-        #region classes/types
-        public enum ImportSource
-        {
-            LocalFile,
-            URI
-        }
+        #region classes/types/delegates
+        /// <summary>
+        /// Completes a dynamic importer creation form.
+        /// </summary>
+        /// <param name="f">Base form.</param>
+        /// <returns>Completed form.</returns>
+        public delegate DynamicForm CompleteImporterFormDelegate(DynamicForm f);
+
+        /// <summary>
+        /// Creates an importer using an importer form.
+        /// </summary>
+        /// <param name="name">Name of importer.</param>
+        /// <param name="path">Path of file to import.</param>
+        /// <param name="sourceURI">URI of file to import.</param>
+        /// <returns>Importer that is ready to run.</returns>
+        public delegate Importer CreateImporterDelegate(string name, string path, string sourceURI, DynamicForm importerForm);
+
+        /// <summary>
+        /// Creates an XML row inserter.
+        /// </summary>
+        /// <param name="databaseColumnInputColumn">Mapping from database columns to input columns.</param>
+        /// <returns>XML row inserter.</returns>
+        public delegate XmlImporter.XmlRowInserter CreateXmlRowInserterDelegate(Dictionary<string, string> databaseColumnInputColumn);
 
         public enum ManageImporterAction
         {
@@ -266,97 +283,80 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region data
-        public void importShapefilesFromDiskToolStripMenuItem_Click(object sender, EventArgs e)
+        public void importShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ImportShapefileForm form = new ImportShapefileForm(this);
-            form.Show();
+            Import(Configuration.PostGisShapefileDirectory,
+                   new CompleteImporterFormDelegate(f =>
+                       {
+                           f.AddNumericUpdown("Source SRID:", 1, 0, 0, decimal.MaxValue, 0, "source_srid");
+                           f.AddNumericUpdown("Target SRID:", 1, 0, 0, decimal.MaxValue, 0, "target_srid");
+                           f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), null, "type");
+                           return f;
+                       }),
+
+                   new CreateImporterDelegate((name, path, sourceURI, importerForm) =>
+                       {
+                           int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
+                           int targetSRID = Convert.ToInt32(importerForm.GetValue<decimal>("target_srid"));
+
+                           Shapefile.ShapefileType shapefileType = importerForm.GetValue<Shapefile.ShapefileType>("type");
+                           return new ShapefileImporter(name, path, sourceURI, shapefileType, new ShapefileImporter.GetShapefileInfoDelegate((p, optionValuesToGet, optionValue) =>
+                               {
+                                   DynamicForm df = new DynamicForm("Supply shapefile import options...", MessageBoxButtons.OK);
+                                   foreach (string optionValueToGet in optionValuesToGet)
+                                   {
+                                       string value = null;
+
+                                       if (optionValueToGet == "reprojection" && sourceSRID > 0 && targetSRID > 0)
+                                           value = sourceSRID + ":" + targetSRID;
+
+                                       if (optionValueToGet == "name")
+                                           value = name;
+
+                                       df.AddTextBox(optionValueToGet, value, 50, optionValueToGet);
+                                   }
+
+                                   df.ShowDialog();
+
+                                   foreach (string optionValueToGet in optionValuesToGet)
+                                       optionValue[optionValueToGet] = df.GetValue<string>(optionValueToGet);
+                               }));
+                       }));
         }
 
-        private void importShapefileFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
+        private void importPointfilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Thread t = new Thread(new ThreadStart(delegate()
-                {
-                    DynamicForm f = new DynamicForm("Provide shapefile import details...", MessageBoxButtons.OKCancel);
-                    f.AddTextBox("Socrata shapefile .zip URI:", null, 200, "uri");
-                    f.AddTextBox("Descriptive name for shapefile:", null, 75, "name");
-                    f.AddNumericUpdown("Source SRID:", 1, 0, 1, decimal.MaxValue, 1, "source_srid");
-                    f.AddNumericUpdown("Target SRID:", 1, 0, 1, decimal.MaxValue, 1, "target_srid");
-                    f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), null, "type");
-                    if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    {
-                        string uri = f.GetValue<string>("uri");
-                        string downloadPath = Path.GetTempFileName();
-                        try
-                        {
-                            string name = f.GetValue<string>("name");
-                            string unzipDir = Path.Combine(Configuration.PostGisShapefileDirectory, ReplaceInvalidFilenameCharacters(name));
-                            if (Directory.Exists(unzipDir))
-                                if (MessageBox.Show("Directory \"" + unzipDir + "\" already exists. Replace?", "Replace?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                                    Directory.Delete(unzipDir, true);
-                                else
-                                    return;
+            Import(Configuration.EventsImportDirectory,
 
-                            LAIR.IO.Network.Download(uri, downloadPath);
+                   new CompleteImporterFormDelegate(f =>
+                       {
+                           Area[] areas = Area.GetAll().ToArray();
+                           if (areas.Length == 0)
+                           {
+                               MessageBox.Show("No areas available. Create one first.");
+                               return null;
+                           }
 
-                            Console.Out.WriteLine("Unzipping \"" + downloadPath + "\" to \"" + unzipDir + "\"...");
-                            ZipFile.ExtractToDirectory(downloadPath, unzipDir);
+                           f.AddDropDown("Import into area:", areas, null, "area");
+                           f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
 
-                            string shapefileFileName = Path.GetFileNameWithoutExtension(Directory.GetFiles(unzipDir).First());
-                            using (StreamWriter shapefileInfoFile = new StreamWriter(Path.Combine(unzipDir, shapefileFileName + ".att")))
-                            {
-                                shapefileInfoFile.Write("reprojection=" + f.GetValue<decimal>("source_srid") + ":" + f.GetValue<decimal>("target_srid") + Environment.NewLine +
-                                                        "name=" + name);
-                                shapefileInfoFile.Close();
-                            }
+                           return f;
+                       }),
 
-                            Shapefile.ImportShapefile(Path.Combine(unzipDir, shapefileFileName + ".shp"), f.GetValue<Shapefile.ShapefileType>("type"), null);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Out.WriteLine("Error while importing shapefile from \"" + uri + "\":  " + ex.Message);
-                        }
-                        finally
-                        {
-                            try { File.Delete(downloadPath); }
-                            catch (Exception ex) { Console.Out.WriteLine("Failed to delete temporary downloaded shapefile \"" + downloadPath + "\":  " + ex.Message); }
-                        }
-                    }
-                }));
+                   new CreateImporterDelegate((name, path, sourceURI, importerForm) =>
+                       {
+                           Area importArea = importerForm.GetValue<Area>("area");
+                           int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
 
-            t.Start();
-        }
+                           Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray();
+                           string[] databaseColumns = new string[] { XmlImporter.PointfileXmlRowInserter.Columns.X, XmlImporter.PointfileXmlRowInserter.Columns.Y, XmlImporter.PointfileXmlRowInserter.Columns.Time };
 
-        private void importPointfileFromDiskToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ImportPointfile(ImportSource.LocalFile);
-        }
-
-        private void importPointfileFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ImportPointfile(ImportSource.URI);
-        }
-
-        private void ImportPointfile(ImportSource importSource)
-        {
-            Import(importSource,
-                   Configuration.EventsImportDirectory,
-                   Configuration.EventsImportDirectory,
-                   null,
-                   new Func<Area, string[]>(importArea => new string[] { XmlImporter.PointfileXmlRowInserter.Columns.X, 
-                                                                         XmlImporter.PointfileXmlRowInserter.Columns.Y,
-                                                                         XmlImporter.PointfileXmlRowInserter.Columns.Time }),
-                   new Func<Type[]>(() => Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray()),
-                   new Func<Dictionary<string, string>, string, string, string, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, name, path, sourceURI, importArea, sourceSRID, rowInserterType, importerForm) =>
-                   {
-                       XmlImporter.XmlRowInserter rowInserter;
-                       if (rowInserterType == typeof(XmlImporter.PointfileXmlRowInserter))
-                           rowInserter = new XmlImporter.PointfileXmlRowInserter(dbColInputCol, sourceSRID, importArea);
-                       else
-                           throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
-
-                       return new XmlImporter(name, path, sourceURI, rowInserter, "row", "row");
-                   }
-            ));
+                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns,
+                                                    databaseColumnInputColumn =>
+                                                    {
+                                                        return new XmlImporter.PointfileXmlRowInserter(databaseColumnInputColumn, sourceSRID, importArea);
+                                                    });
+                       }));
         }
 
         private void deleteGeographicDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -462,37 +462,41 @@ namespace PTL.ATT.GUI
             }
         }
 
-        public void importIncidentsFromFileToolStripMenuItem_Click(object sender, EventArgs e)
+        public void importIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ImportIncidents(ImportSource.LocalFile);
-        }
+            Import(Configuration.IncidentsImportDirectory,
 
-        private void importIncidentsFromSocrataToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ImportIncidents(ImportSource.URI);
-        }
+                   new CompleteImporterFormDelegate(f =>
+                       {
+                           Area[] areas = Area.GetAll().ToArray();
+                           if (areas.Length == 0)
+                           {
+                               MessageBox.Show("No areas available. Create one first.");
+                               return null;
+                           }
 
-        private void ImportIncidents(ImportSource importSource)
-        {
-            Import(importSource,
-                   Configuration.IncidentsImportDirectory,
-                   Configuration.IncidentsImportDirectory,
-                   new Action<DynamicForm>(f => f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset")),
-                   new Func<Area, string[]>(importArea => new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) }),
-                   new Func<Type[]>(() => Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray()),
-                   new Func<Dictionary<string, string>, string, string, string, Area, int, Type, DynamicForm, XmlImporter>((dbColInputCol, name, path, sourceURI, importArea, sourceSRID, rowInserterType, importerForm) =>
-                   {
-                       int hourOffset = Convert.ToInt32(importerForm.GetValue<decimal>("offset"));
+                           f.AddDropDown("Import into area:", areas, null, "area");
+                           f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                           f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
 
-                       XmlImporter.XmlRowInserter rowInserter;
-                       if (rowInserterType == typeof(XmlImporter.IncidentXmlRowInserter))
-                           rowInserter = new XmlImporter.IncidentXmlRowInserter(dbColInputCol, importArea, hourOffset, sourceSRID);
-                       else
-                           throw new NotImplementedException("Unknown row inserter:  " + rowInserterType);
+                           return f;
+                       }),
 
-                       return new XmlImporter(name, path, sourceURI, rowInserter, "row", "row");
-                   }
-            ));
+                   new CreateImporterDelegate((name, path, sourceURI, importerForm) =>
+                       {
+                           Area importArea = importerForm.GetValue<Area>("area");
+                           int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
+                           int hourOffset = Convert.ToInt32(importerForm.GetValue<decimal>("offset"));
+
+                           Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
+                           string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
+
+                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns,
+                                                    databaseColumnInputColumn =>
+                                                    {
+                                                        return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
+                                                    });
+                       }));
         }
 
         public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -519,133 +523,104 @@ namespace PTL.ATT.GUI
                 Incident.ClearSimulated(clearSimulatedArea);
         }
 
-        private void Import(ImportSource importSource,
-                            string promptOpenInitialDirectory,
-                            string downloadDirectory,
-                            Action<DynamicForm> completeImporterForm,
-                            Func<Area, string[]> getDatabaseColumns,
-                            Func<Type[]> getRowInserterTypes,
-                            Func<Dictionary<string, string>, string, string, string, Area, int, Type, DynamicForm, XmlImporter> getImporter)
+        private void Import(string downloadDirectory,
+                            CompleteImporterFormDelegate completeImporterForm,
+                            CreateImporterDelegate createImporter)
         {
-            Area[] areas = Area.GetAll().ToArray();
-            Type[] importerTypes = Assembly.GetAssembly(typeof(Importer)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Importer))).ToArray();
-            if (areas.Length == 0)
-                MessageBox.Show("No areas available. Create one first.");
-            else if (importerTypes.Length == 0)
-                MessageBox.Show("No importers available.");
-            else
+            Thread t = new Thread(new ThreadStart(delegate()
             {
-                Thread t = new Thread(new ThreadStart(delegate()
+                DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
+
+                importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
+                importerForm.AddTextBox("Path:", null, 200, "path");
+                importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
+                importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
+                importerForm.AddCheckBox("Save importer:", ContentAlignment.MiddleRight, true, "save_importer");
+
+                if (completeImporterForm != null)
+                    importerForm = completeImporterForm(importerForm);
+
+                if (importerForm == null)
+                    return;
+
+                if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
-
-                    importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
-
-                    if (importSource == ImportSource.LocalFile)
+                    #region download file if needed
+                    string path = importerForm.GetValue<string>("path");
+                    string sourceURI = importerForm.GetValue<string>("uri");
+                    if (!File.Exists(path) && !string.IsNullOrWhiteSpace(sourceURI))
                     {
-                        string path = LAIR.IO.File.PromptForOpenPath("Select file...", promptOpenInitialDirectory);
-                        if (path == null)
-                            return;
-                        else
-                            importerForm.AddTextBox("Path:", path, -1, "path");
-                    }
-                    else if (importSource == ImportSource.URI)
-                        importerForm.AddTextBox("Download XML URI:", null, 200, "uri", '\0', true);
-                    else
-                        throw new NotImplementedException("Unknown import source:  " + importSource);
-
-                    importerForm.AddCheckBox("Delete file after import:", ContentAlignment.MiddleRight, false, "delete");
-                    importerForm.AddDropDown("Importer type:", importerTypes, null, "importer");
-                    importerForm.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
-                    importerForm.AddDropDown("Import into area:", areas, null, "area");
-                    importerForm.AddCheckBox("Save importer:", ContentAlignment.MiddleRight, true, "save_importer");
-
-                    if (completeImporterForm != null)
-                        completeImporterForm(importerForm);
-
-                    if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    {
-                        #region get path of file to import, downloading from URI if needed
-                        string path = null;
-                        string sourceURI = null;
-                        if (importSource == ImportSource.LocalFile)
-                            path = importerForm.GetValue<string>("path");
-                        else if (importSource == ImportSource.URI)
-                        {
+                        if (string.IsNullOrWhiteSpace(path))
                             path = Path.Combine(downloadDirectory, ReplaceInvalidFilenameCharacters("uri_import_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToLongTimeString() + ".xml"));
 
-                            try { LAIR.IO.Network.Download(sourceURI = importerForm.GetValue<string>("uri"), path); }
-                            catch (Exception ex)
-                            {
-                                try { File.Delete(path); }
-                                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + path + "\":  " + ex2.Message); }
-
-                                Console.Out.WriteLine("Error downloading file from Socrata URI:  " + ex.Message);
-
-                                return;
-                            }
-                        }
-                        else
-                            throw new NotImplementedException("Unknown import source:  " + importSource);
-                        #endregion
-
-                        #region import file
-                        if (path != null && File.Exists(path))
+                        try { LAIR.IO.Network.Download(sourceURI, path); }
+                        catch (Exception ex)
                         {
-                            string importName = importerForm.GetValue<string>("name");
-                            bool deleteFileAfterImport = importerForm.GetValue<bool>("delete");
-                            Type importerType = importerForm.GetValue<Type>("importer");
-                            int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
-                            Area importArea = importerForm.GetValue<Area>("area");
-                            bool saveImporter = Convert.ToBoolean(importerForm.GetValue<bool>("save_importer"));
+                            try { File.Delete(path); }
+                            catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + path + "\":  " + ex2.Message); }
 
-                            try
-                            {
-                                Importer importer = null;
+                            Console.Out.WriteLine("Error downloading file from Socrata URI:  " + ex.Message);
 
-                                if (importerType == typeof(XmlImporter))
-                                {
-                                    DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
-
-                                    rowInserterForm.AddDropDown("Row inserter:", getRowInserterTypes(), null, "row_inserter");
-
-                                    string[] databaseColumns = getDatabaseColumns(importArea);
-                                    string[] inputColumns = XmlImporter.GetColumnNames(path, "row", "row");
-                                    Array.Sort(inputColumns);
-                                    foreach (string databaseColumn in databaseColumns)
-                                        rowInserterForm.AddDropDown(databaseColumn + ":", inputColumns, null, databaseColumn);
-
-                                    if (rowInserterForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                                    {
-                                        Dictionary<string, string> dbColInputCol = new Dictionary<string, string>();
-                                        foreach (string dbCol in databaseColumns)
-                                            dbColInputCol.Add(dbCol, rowInserterForm.GetValue<string>(dbCol));
-
-                                        importer = getImporter(dbColInputCol, importName, path, sourceURI, importArea, sourceSRID, rowInserterForm.GetValue<Type>("row_inserter"), importerForm);
-                                        importer.Import();
-
-                                        if (deleteFileAfterImport)
-                                            File.Delete(path);
-                                    }
-                                }
-                                else
-                                    throw new NotImplementedException("Unknown importer type:  " + importerType);
-
-                                if (saveImporter && importer != null)
-                                    importer.Save();
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Out.WriteLine("Error while importing:  " + ex.Message);
-                            }
+                            return;
                         }
-                        #endregion
                     }
-                }));
+                    #endregion
 
-                t.SetApartmentState(ApartmentState.STA);
-                t.Start();
+                    #region import file
+                    if (File.Exists(path))
+                    {
+                        string importName = importerForm.GetValue<string>("name");
+                        bool deleteImportedFileAfterImport = importerForm.GetValue<bool>("delete");
+                        bool saveImporter = Convert.ToBoolean(importerForm.GetValue<bool>("save_importer"));
+
+                        try
+                        {
+                            Importer importer = createImporter(importName, path, sourceURI, importerForm);
+                            importer.Import();
+
+                            if (deleteImportedFileAfterImport)
+                                File.Delete(path);
+
+                            if (saveImporter && importer != null)
+                                importer.Save();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Out.WriteLine("Error while importing:  " + ex.Message);
+                        }
+                    }
+                    #endregion
+                }
+            }));
+
+            t.SetApartmentState(ApartmentState.STA);
+            t.Start();
+        }
+
+        private XmlImporter CreateXmlImporter(string name, string path, string sourceURI, Type[] rowInserterTypes, string[] databaseColumns, CreateXmlRowInserterDelegate createXmlRowInserter)
+        {
+            DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
+
+            rowInserterForm.AddDropDown("Row inserter:", rowInserterTypes, null, "row_inserter");
+
+            string[] inputColumns = XmlImporter.GetColumnNames(path, "row", "row");
+            Array.Sort(inputColumns);
+            foreach (string databaseColumn in databaseColumns)
+                rowInserterForm.AddDropDown(databaseColumn + ":", inputColumns, null, databaseColumn);
+
+            XmlImporter importer = null;
+            if (rowInserterForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Type rowInserterType = rowInserterForm.GetValue<Type>("row_inserter");
+
+                Dictionary<string, string> databaseColumnInputColumn = new Dictionary<string, string>();
+                foreach (string databaseColumn in databaseColumns)
+                    databaseColumnInputColumn.Add(databaseColumn, rowInserterForm.GetValue<string>(databaseColumn));
+
+                importer = new XmlImporter(name, path, sourceURI, createXmlRowInserter(databaseColumnInputColumn), "row", "row");
             }
+
+            return importer;
         }
 
         private void manageStoredImportersToolStripMenuItem_Click(object sender, EventArgs e)
@@ -686,7 +661,7 @@ namespace PTL.ATT.GUI
                                     {
                                         DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...");
                                         Dictionary<string, object> updateKeyValue = new Dictionary<string, object>();
-                                        importer.GetUpdateRequests(new Action<string, object, IEnumerable<object>, string>((itemName, currentValue, possibleValues, id) =>
+                                        importer.GetUpdateRequests(new Importer.UpdateRequestDelegate((itemName, currentValue, possibleValues, id) =>
                                             {
                                                 if (currentValue == null)
                                                     return;

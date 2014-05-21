@@ -30,6 +30,15 @@ namespace PTL.ATT.Importers
     [Serializable]
     public abstract class Importer
     {
+        /// <summary>
+        /// Delegate for update requests.
+        /// </summary>
+        /// <param name="requestName">Name of request (informational).</param>
+        /// <param name="currentValue">Current value.</param>
+        /// <param name="possibleValues">Possible values.</param>
+        /// <param name="requestId">ID of request</param>
+        public delegate void UpdateRequestDelegate(string requestName, object currentValue, IEnumerable<object> possibleValues, string requestId);
+
         public const string Table = "importer";
 
         public class Columns
@@ -149,7 +158,7 @@ namespace PTL.ATT.Importers
             _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@" + Columns.Importer + ") RETURNING " + Columns.Id, new Parameter(Columns.Importer, NpgsqlTypes.NpgsqlDbType.Bytea, ms.ToArray())));
         }  
 
-        public virtual void GetUpdateRequests(Action<string, object, IEnumerable<object>, string> updateRequest)
+        public virtual void GetUpdateRequests(UpdateRequestDelegate updateRequest)
         {
             if (updateRequest == null)
                 throw new ArgumentNullException("Must pass a non-null update request delegate");
