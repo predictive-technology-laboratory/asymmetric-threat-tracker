@@ -190,7 +190,12 @@ namespace PTL.ATT.Importers
 
         public override string ToString()
         {
-            return _name;
+            if (!string.IsNullOrWhiteSpace(_name))
+                return _name;
+            else if (!string.IsNullOrWhiteSpace(_path))
+                return System.IO.Path.GetFileNameWithoutExtension(_path);
+            else
+                return GetType().FullName;
         }
     }
 }

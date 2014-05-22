@@ -310,10 +310,10 @@ namespace PTL.ATT.GUI
                                        if (optionValueToGet == "reprojection" && sourceSRID > 0 && targetSRID > 0)
                                            value = sourceSRID + ":" + targetSRID;
 
-                                       if (optionValueToGet == "name")
+                                       if (optionValueToGet == "name" && !string.IsNullOrWhiteSpace(name))
                                            value = name;
 
-                                       df.AddTextBox(optionValueToGet, value, 50, optionValueToGet);
+                                       df.AddTextBox(optionValueToGet + ":", value, 50, optionValueToGet);
 
                                        if (value != null)
                                            optionValue.Add(optionValueToGet, value);
@@ -547,71 +547,105 @@ namespace PTL.ATT.GUI
         {
             Thread t = new Thread(new ThreadStart(delegate()
             {
-                DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
-
-                importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
-                importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileFilter);
-                importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
-                importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
-                importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, true, "save_importer");
-
-                if (completeImporterForm != null)
-                    importerForm = completeImporterForm(importerForm);
-
-                if (importerForm == null)
-                    return;
-
-                if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                try
                 {
-                    string p = importerForm.GetValue<string>("path");
-                    string[] paths = new string[] { p };
-                    if (Directory.Exists(p))
-                        paths = Directory.GetFiles(p, fileFilter == null ? "*" : fileFilter.Split('|')[1], SearchOption.AllDirectories);
+                    DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
 
-                    foreach (string path in paths)
+                    importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
+                    importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileFilter);
+                    importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
+                    importerForm.AddDropDown("File type:", new string[] { "Plain", "Zip" }, "Plain", "file_type");
+                    importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
+                    importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, true, "save_importer");
+
+                    if (completeImporterForm != null)
+                        importerForm = completeImporterForm(importerForm);
+
+                    if (importerForm == null)
+                        return;
+
+                    if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
+                        string p = importerForm.GetValue<string>("path");
+                        bool pathIsDirectory = Directory.Exists(p);
+
+                        if (pathIsDirectory)
+                            downloadDirectory = p;
+
                         #region download file if needed -- some callbacks need the file in order to set up the importer
                         string sourceURI = importerForm.GetValue<string>("uri");
-                        if (!File.Exists(path) && !string.IsNullOrWhiteSpace(sourceURI))
+                        if (!string.IsNullOrWhiteSpace(sourceURI))
                         {
-                            try { LAIR.IO.Network.Download(sourceURI, path); }
+                            if (string.IsNullOrWhiteSpace(p) || pathIsDirectory)
+                            {
+                                p = Path.Combine(downloadDirectory, ReplaceInvalidFilenameCharacters("uri_download_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToLongTimeString()));
+                                pathIsDirectory = false;
+                            }
+
+                            try { LAIR.IO.Network.Download(sourceURI, p); }
                             catch (Exception ex)
                             {
-                                try { File.Delete(path); }
-                                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + path + "\":  " + ex2.Message); }
+                                try { File.Delete(p); }
+                                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete partially downloaded file \"" + p + "\":  " + ex2.Message); }
 
-                                Console.Out.WriteLine("Error downloading file from Socrata URI:  " + ex.Message);
+                                Console.Out.WriteLine("Error downloading file from URI:  " + ex.Message);
 
                                 return;
                             }
                         }
                         #endregion
 
-                        #region import file
-                        if (File.Exists(path))
+                        #region decompress zip files
+                        if (importerForm.GetValue<string>("file_type") == "Zip")
                         {
-                            string importName = importerForm.GetValue<string>("name");
-                            bool deleteImportedFileAfterImport = importerForm.GetValue<bool>("delete");
-                            bool saveImporter = Convert.ToBoolean(importerForm.GetValue<bool>("save_importer"));
+                            string unzipDir = LAIR.IO.Directory.GetTemporaryDirectory();
+                            if (Directory.Exists(unzipDir))
+                                Directory.Delete(unzipDir, true);
 
-                            try
-                            {
-                                Importer importer = createImporter(importName, path, sourceURI, importerForm);
-                                importer.Import();
+                            Console.Out.WriteLine("Unzipping \"" + p + "\" to \"" + unzipDir + "\"...");
+                            ZipFile.ExtractToDirectory(p, unzipDir);
 
-                                if (deleteImportedFileAfterImport)
-                                    File.Delete(path);
-
-                                if (saveImporter)
-                                    importer.Save();
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.Out.WriteLine("Error while importing:  " + ex.Message);
-                            }
+                            File.Delete(p);
+                            Directory.Move(unzipDir, p);
+                            pathIsDirectory = true;
                         }
                         #endregion
+
+                        string[] paths = new string[] { p };
+                        if (pathIsDirectory)
+                            paths = Directory.GetFiles(p, fileFilter == null ? "*" : fileFilter.Split('|')[1], SearchOption.AllDirectories);
+
+                        foreach (string path in paths)
+                            if (File.Exists(path))
+                            {
+                                string importName = importerForm.GetValue<string>("name");
+                                if (paths.Length > 1)
+                                    importName = "";
+
+                                bool deleteImportedFileAfterImport = importerForm.GetValue<bool>("delete");
+                                bool saveImporter = Convert.ToBoolean(importerForm.GetValue<bool>("save_importer"));
+
+                                try
+                                {
+                                    Importer importer = createImporter(importName, path, sourceURI, importerForm);
+                                    importer.Import();
+
+                                    if (deleteImportedFileAfterImport)
+                                        File.Delete(path);
+
+                                    if (saveImporter)
+                                        importer.Save();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.Out.WriteLine("Error while importing:  " + ex.Message);
+                                }
+                            }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.Out.WriteLine(ex.Message);
                 }
             }));
 
@@ -652,25 +686,25 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No stored importers are available.");
             else
             {
-                DialogResult manageDialogResult = System.Windows.Forms.DialogResult.OK;
-                bool refreshStoredImporters = false;
-                while (manageDialogResult == System.Windows.Forms.DialogResult.OK)
-                {
-                    if (refreshStoredImporters)
+                Thread t = new Thread(new ThreadStart(() =>
                     {
-                        storedImporters = Importer.GetAll().ToArray();
-                        refreshStoredImporters = false;
-                    }
+                        DialogResult manageDialogResult = System.Windows.Forms.DialogResult.OK;
+                        bool refreshStoredImporters = false;
+                        while (manageDialogResult == System.Windows.Forms.DialogResult.OK)
+                        {
+                            if (refreshStoredImporters)
+                            {
+                                storedImporters = Importer.GetAll().ToArray();
+                                refreshStoredImporters = false;
+                            }
 
-                    if (storedImporters.Length == 0)
-                        break;
+                            if (storedImporters.Length == 0)
+                                break;
 
-                    DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
-                    f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
-                    f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action");
-                    if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
-                    {
-                        Thread t = new Thread(new ThreadStart(() =>
+                            DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
+                            f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
+                            f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action");
+                            if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
                             {
                                 ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
                                 foreach (Importer importer in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("importers"))
@@ -714,17 +748,16 @@ namespace PTL.ATT.GUI
                                     }
                                     else if (action == ManageImporterAction.Run)
                                     {
-                                        Console.Out.WriteLine("Running importer \"" + importer.Name + "\"...");
+                                        Console.Out.WriteLine("Running importer \"" + importer + "\"...");
                                         importer.Import();
                                     }
                                     else
                                         MessageBox.Show("Unrecognized action:  " + action);
-                            }));
+                            }
+                        }
+                    }));
 
-                        t.Start();
-                        t.Join();
-                    }
-                }
+                t.Start();
             }
         }
         #endregion

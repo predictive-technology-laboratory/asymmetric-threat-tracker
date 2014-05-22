@@ -163,7 +163,10 @@ namespace PTL.ATT
 
         public override string ToString()
         {
-            return _name;
+            if (!string.IsNullOrWhiteSpace(_name))
+                return _name;
+            else
+                return _id.ToString();
         }
 
         public void Delete()
