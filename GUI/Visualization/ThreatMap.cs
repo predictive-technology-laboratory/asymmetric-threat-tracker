@@ -1164,8 +1164,8 @@ namespace PTL.ATT.GUI.Visualization
             float threatRectanglePixelWidth;
             GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);
 
-            double xMeters = _regionBottomLeftInMeters.X + (point.X + _panOffset.Width) / pixelsPerMeter;
-            double yMeters = _regionBottomLeftInMeters.Y + (_regionSizeInMeters.Height - (point.Y + _panOffset.Height) / pixelsPerMeter);
+            double xMeters = _regionBottomLeftInMeters.X + point.X / pixelsPerMeter;
+            double yMeters = _regionBottomLeftInMeters.Y + (_regionSizeInMeters.Height - point.Y / pixelsPerMeter);
 
             return new PostGIS.Point(xMeters, yMeters, DisplayedPrediction.PredictionArea.SRID);
         }
