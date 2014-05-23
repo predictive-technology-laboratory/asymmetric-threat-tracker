@@ -489,7 +489,7 @@ namespace PTL.ATT.GUI.Visualization
                 if (ModifierKeys.HasFlag(Keys.Control))
                 {
                     if (_definingSpatialFeature)
-                        _spatialFeatureForm.points.Items.Add(GetPostGisPoint(e.Location));
+                        _spatialFeatureForm.points.Items.Add(GetPostGisPointFromDrawingPoint(new PointF(e.Location.X + _panOffset.Width, e.Location.Y + _panOffset.Height)));
                 }
                 else
                 {
@@ -515,7 +515,7 @@ namespace PTL.ATT.GUI.Visualization
                 if (ModifierKeys.HasFlag(Keys.Control))
                 {
                     if (_definingSpatialFeature)
-                        _spatialFeatureForm.points.Items.Add(GetPostGisPoint(e.Location));
+                        _spatialFeatureForm.points.Items.Add(GetPostGisPointFromDrawingPoint(new PointF(e.Location.X + _panOffset.Width, e.Location.Y + _panOffset.Height)));
                 }
                 else
                 {
@@ -914,11 +914,11 @@ namespace PTL.ATT.GUI.Visualization
                                     float top = squareThreatType.Item1.Top;
                                     float right = squareThreatType.Item1.Right;
                                     PostGIS.Polygon polygon = new PostGIS.Polygon(new PostGIS.Point[]{
-                                    GetPostGisPoint(new PointF(left, bottom)),
-                                    GetPostGisPoint(new PointF(left, top)),
-                                    GetPostGisPoint(new PointF(right, top)),
-                                    GetPostGisPoint(new PointF(right, bottom)),
-                                    GetPostGisPoint(new PointF(left, bottom))}, DisplayedPrediction.PredictionArea.SRID);
+                                    GetPostGisPointFromDrawingPoint(new PointF(left, bottom)),
+                                    GetPostGisPointFromDrawingPoint(new PointF(left, top)),
+                                    GetPostGisPointFromDrawingPoint(new PointF(right, top)),
+                                    GetPostGisPointFromDrawingPoint(new PointF(right, bottom)),
+                                    GetPostGisPointFromDrawingPoint(new PointF(left, bottom))}, DisplayedPrediction.PredictionArea.SRID);
 
                                     cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO temp (region,level,type) VALUES " : ",") + "(" + polygon.StGeometryFromText + "," +
                                                                                                                                       squareThreatType.Item2 + "," +
@@ -1158,14 +1158,14 @@ namespace PTL.ATT.GUI.Visualization
             }
         }
 
-        private PostGIS.Point GetPostGisPoint(System.Drawing.PointF point)
+        private PostGIS.Point GetPostGisPointFromDrawingPoint(System.Drawing.PointF drawingPoint)
         {
             float pixelsPerMeter;
             float threatRectanglePixelWidth;
             GetDrawingParameters(new Rectangle(new System.Drawing.Point(0, 0), CurrentThreatSurface.Size), out pixelsPerMeter, out threatRectanglePixelWidth);
 
-            double xMeters = _regionBottomLeftInMeters.X + point.X / pixelsPerMeter;
-            double yMeters = _regionBottomLeftInMeters.Y + (_regionSizeInMeters.Height - point.Y / pixelsPerMeter);
+            double xMeters = _regionBottomLeftInMeters.X + drawingPoint.X / pixelsPerMeter;
+            double yMeters = _regionBottomLeftInMeters.Y + (_regionSizeInMeters.Height - drawingPoint.Y / pixelsPerMeter);
 
             return new PostGIS.Point(xMeters, yMeters, DisplayedPrediction.PredictionArea.SRID);
         }
