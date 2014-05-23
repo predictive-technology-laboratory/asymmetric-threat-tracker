@@ -151,14 +151,14 @@ namespace PTL.ATT.Importers
         {
             base.GetUpdateRequests(updateRequest);
 
-            updateRequest("Shapefile type", _type, Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<object>(), GetType() + "+type");
+            updateRequest("Shapefile type", _type, Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<object>(), GetUpdateRequestId("type"));
         }
 
         public override void Update(Dictionary<string, object> updateKeyValue)
         {
             base.Update(updateKeyValue);
 
-            _type = (Shapefile.ShapefileType)updateKeyValue[GetType() + "+type"];
+            _type = (Shapefile.ShapefileType)updateKeyValue[GetUpdateRequestId("type")];
         }
     }
 }

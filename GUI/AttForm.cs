@@ -556,7 +556,7 @@ namespace PTL.ATT.GUI
                     importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
                     importerForm.AddDropDown("File type:", new string[] { "Plain", "Zip" }, "Plain", "file_type");
                     importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
-                    importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, true, "save_importer");
+                    importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, false, "save_importer");
 
                     if (completeImporterForm != null)
                         importerForm = completeImporterForm(importerForm);
@@ -715,13 +715,10 @@ namespace PTL.ATT.GUI
                                     }
                                     else if (action == ManageImporterAction.Edit)
                                     {
-                                        DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...");
                                         Dictionary<string, object> updateKeyValue = new Dictionary<string, object>();
+                                        DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...");
                                         importer.GetUpdateRequests(new Importer.UpdateRequestDelegate((itemName, currentValue, possibleValues, id) =>
                                             {
-                                                if (currentValue == null)
-                                                    return;
-
                                                 itemName += ":";
 
                                                 if (possibleValues != null)
@@ -729,17 +726,17 @@ namespace PTL.ATT.GUI
                                                 else if (currentValue is string)
                                                     updateForm.AddTextBox(itemName, currentValue as string, -1, id);
                                                 else if (currentValue is int)
-                                                    updateForm.AddNumericUpdown(itemName, (decimal)currentValue, 0, int.MinValue, int.MaxValue, 1, id);
-                                                else
+                                                    updateForm.AddNumericUpdown(itemName, (int)currentValue, 0, int.MinValue, int.MaxValue, 1, id);
+                                                else if (currentValue != null)
                                                     throw new NotImplementedException("Cannot dynamically generate form for update request");
 
-                                                updateKeyValue.Add(id, null);
+                                                updateKeyValue.Add(id, currentValue);
                                             }));
 
                                         if (updateForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                         {
-                                            foreach (string id in updateKeyValue.Keys.ToArray())
-                                                updateKeyValue[id] = updateForm.GetValue<object>(id);
+                                            foreach (string updateKey in updateKeyValue.Keys.ToArray())
+                                                updateKeyValue[updateKey] = updateForm.GetValue<object>(updateKey);
 
                                             importer.Update(updateKeyValue);
                                             importer.Save();

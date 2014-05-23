@@ -72,6 +72,14 @@ namespace PTL.ATT.Importers
             /// <param name="xmlRowParser">XML row</param>
             /// <returns>Insertion value with parameters</returns>
             public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
+
+            public virtual void GetUpdateRequests(UpdateRequestDelegate updateRequest)
+            {
+            }
+
+            public virtual void Update(Dictionary<string, object> updateKeyValue)
+            {
+            }
         }
 
         /// <summary>
@@ -100,6 +108,24 @@ namespace PTL.ATT.Importers
 
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
+            }
+
+            public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)
+            {
+                base.GetUpdateRequests(updateRequest);
+
+                updateRequest("Area", _importArea, Area.GetForSRID(_importArea.SRID), XmlImporter.GetUpdateRequestId("area"));
+                updateRequest("Hour offset", _hourOffset, null, XmlImporter.GetUpdateRequestId("offset"));
+                updateRequest("Source SRID", _sourceSRID, null, "source_srid");
+            }
+
+            public override void Update(Dictionary<string, object> updateKeyValue)
+            {
+                base.Update(updateKeyValue);
+
+                _importArea = (Area)updateKeyValue[XmlImporter.GetUpdateRequestId("area")];
+                _hourOffset = (int)updateKeyValue[XmlImporter.GetUpdateRequestId("offset")];
+                _sourceSRID = (int)updateKeyValue[XmlImporter.GetUpdateRequestId("source_srid")];
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser rowXmlParser)
@@ -310,6 +336,20 @@ namespace PTL.ATT.Importers
                     DB.Connection.Return(insertCmd.Connection);
                 }
             }
+        }
+
+        public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)
+        {
+            base.GetUpdateRequests(updateRequest);
+
+            _xmlRowInserter.GetUpdateRequests(updateRequest);
+        }
+
+        public override void Update(Dictionary<string, object> updateKeyValue)
+        {
+            base.Update(updateKeyValue);
+
+            _xmlRowInserter.Update(updateKeyValue);
         }
     }
 }

@@ -164,23 +164,21 @@ namespace PTL.ATT.Importers
             if (updateRequest == null)
                 throw new ArgumentNullException("Must pass a non-null update request delegate");
 
-            updateRequest("Name", _name, null, GetType() + "+name");
-            updateRequest("Path", _path, null, GetType() + "+path");
-            updateRequest("Source URI", _sourceURI, null, GetType() + "+uri");
+            updateRequest("Name", _name, null, GetUpdateRequestId("name"));
+            updateRequest("Path", _path, null, GetUpdateRequestId("path"));
+            updateRequest("Source URI", _sourceURI, null, GetUpdateRequestId("uri"));
         }
 
         public virtual void Update(Dictionary<string, object> updateKeyValue)
         {
-            object value;
+            _name = Convert.ToString(GetUpdateRequestId("name"));
+            _path = Convert.ToString(GetUpdateRequestId("path"));
+            _sourceURI = Convert.ToString(GetUpdateRequestId("uri"));
+        }
 
-            if (updateKeyValue.TryGetValue(GetType() + "+name", out value))
-                _name = Convert.ToString(value);
-
-            if (updateKeyValue.TryGetValue(GetType() + "+path", out value))
-                _path = Convert.ToString(value);
-
-            if (updateKeyValue.TryGetValue(GetType() + "+uri", out value))
-                _sourceURI = Convert.ToString(value);
+        internal string GetUpdateRequestId(string id)
+        {
+            return GetType() + "+" + id;
         }
 
         public void Delete()

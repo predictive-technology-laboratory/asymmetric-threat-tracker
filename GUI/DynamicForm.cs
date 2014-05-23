@@ -110,7 +110,7 @@ namespace PTL.ATT.GUI
             tb.Name = valueId;
             tb.Text = text;
             tb.PasswordChar = passwordChar;
-            tb.Size = widthInCharacters == -1 ? new Size(TextRenderer.MeasureText(tb.Text, tb.Font).Width, tb.PreferredHeight) : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), tb.Font).Width, tb.PreferredHeight);
+            tb.Size = widthInCharacters == -1 ? new Size(TextRenderer.MeasureText(tb.Text == "" ? "".PadLeft(50, ' ') : tb.Text, tb.Font).Width, tb.PreferredHeight) : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), tb.Font).Width, tb.PreferredHeight);
             tb.KeyDown += new KeyEventHandler((o, args) =>
                 {
                     if (args.KeyCode == Keys.Enter)
