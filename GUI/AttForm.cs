@@ -56,6 +56,50 @@ namespace PTL.ATT.GUI
     public partial class AttForm : Form
     {
         #region classes/types/delegates
+        [Serializable]
+        public class ShapefileInfoRetriever : IShapefileInfoRetriever
+        {
+            private int _sourceSRID;
+            private int _targetSRID;
+            private string _name;
+
+            public ShapefileInfoRetriever(string name, int sourceSRID, int targetSRID)
+            {
+                _name = name;
+                _sourceSRID = sourceSRID;
+                _targetSRID = targetSRID;
+            }
+
+            public void GetShapefileInfo(string shapefilePath, List<string> optionValuesToGet, Dictionary<string, string> optionValue)
+            {
+                DynamicForm df = new DynamicForm("Supply shapefile import options...", MessageBoxButtons.OK);
+                foreach (string optionValueToGet in optionValuesToGet)
+                {
+                    string value = null;
+
+                    if (optionValueToGet == "reprojection" && _sourceSRID > 0 && _targetSRID > 0)
+                        value = _sourceSRID + ":" + _targetSRID;
+
+                    if (optionValueToGet == "name" && !string.IsNullOrWhiteSpace(_name))
+                        value = _name;
+
+                    df.AddTextBox(optionValueToGet + ":", value, 50, optionValueToGet);
+
+                    if (value != null)
+                        optionValue.Add(optionValueToGet, value);
+                }
+
+                if (optionValuesToGet.Any(v => !optionValue.ContainsKey(v)))
+                {
+                    df.ShowDialog();
+
+                    foreach (string optionValueToGet in optionValuesToGet)
+                        if (!optionValue.ContainsKey(optionValueToGet))
+                            optionValue.Add(optionValueToGet, df.GetValue<string>(optionValueToGet));
+                }
+            }
+        }
+
         /// <summary>
         /// Completes a dynamic importer creation form.
         /// </summary>
@@ -295,6 +339,7 @@ namespace PTL.ATT.GUI
         public void importShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Import(Configuration.PostGisShapefileDirectory,
+
                    new CompleteImporterFormDelegate(f =>
                        {
                            f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
@@ -315,43 +360,16 @@ namespace PTL.ATT.GUI
                            int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                            int targetSRID = Convert.ToInt32(importerForm.GetValue<decimal>("target_srid"));
 
-                           ShapefileImporter.GetShapefileInfoDelegate getInfoDelegate = new ShapefileImporter.GetShapefileInfoDelegate((p, optionValuesToGet, optionValue) =>
-                               {
-                                   DynamicForm df = new DynamicForm("Supply shapefile import options...", MessageBoxButtons.OK);
-                                   foreach (string optionValueToGet in optionValuesToGet)
-                                   {
-                                       string value = null;
-
-                                       if (optionValueToGet == "reprojection" && sourceSRID > 0 && targetSRID > 0)
-                                           value = sourceSRID + ":" + targetSRID;
-
-                                       if (optionValueToGet == "name" && !string.IsNullOrWhiteSpace(name))
-                                           value = name;
-
-                                       df.AddTextBox(optionValueToGet + ":", value, 50, optionValueToGet);
-
-                                       if (value != null)
-                                           optionValue.Add(optionValueToGet, value);
-                                   }
-
-                                   if (optionValuesToGet.Any(v => !optionValue.ContainsKey(v)))
-                                   {
-                                       df.ShowDialog();
-
-                                       foreach (string optionValueToGet in optionValuesToGet)
-                                           if (!optionValue.ContainsKey(optionValueToGet))
-                                               optionValue.Add(optionValueToGet, df.GetValue<string>(optionValueToGet));
-                                   }
-                               });
+                           ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
 
                            Shapefile.ShapefileType shapefileType = importerForm.GetValue<Shapefile.ShapefileType>("type");
                            if (shapefileType == Shapefile.ShapefileType.Area)
                            {
                                int containmentBoxSize = Convert.ToInt32(importerForm.GetValue<decimal>("containment_box_size"));
-                               return new AreaShapefileImporter(name, path, sourceURI, getInfoDelegate, containmentBoxSize);
+                               return new AreaShapefileImporter(name, path, sourceURI, shapefileInfoRetriever, containmentBoxSize);
                            }
                            else if (shapefileType == Shapefile.ShapefileType.Feature)
-                               return new FeatureShapefileImporter(name, path, sourceURI, getInfoDelegate);
+                               return new FeatureShapefileImporter(name, path, sourceURI, shapefileInfoRetriever);
                            else
                                throw new NotImplementedException("Unrecognized shapefile type:  " + shapefileType);
                        }),
@@ -370,7 +388,7 @@ namespace PTL.ATT.GUI
                            Area[] areas = Area.GetAll().ToArray();
                            if (areas.Length == 0)
                            {
-                               MessageBox.Show("No areas available. Create one first.");
+                               MessageBox.Show("No areas available. Import one first.");
                                return null;
                            }
 
@@ -388,8 +406,7 @@ namespace PTL.ATT.GUI
                            Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray();
                            string[] databaseColumns = new string[] { XmlImporter.PointfileXmlRowInserter.Columns.X, XmlImporter.PointfileXmlRowInserter.Columns.Y, XmlImporter.PointfileXmlRowInserter.Columns.Time };
 
-                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns,
-                                                    databaseColumnInputColumn =>
+                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
                                                     {
                                                         return new XmlImporter.PointfileXmlRowInserter(databaseColumnInputColumn, sourceSRID, importArea);
                                                     });
@@ -483,7 +500,7 @@ namespace PTL.ATT.GUI
                            Area[] areas = Area.GetAll().ToArray();
                            if (areas.Length == 0)
                            {
-                               MessageBox.Show("No areas available. Create one first.");
+                               MessageBox.Show("No areas available. Import one first.");
                                return null;
                            }
 
@@ -503,8 +520,7 @@ namespace PTL.ATT.GUI
                            Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
                            string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
 
-                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns,
-                                                    databaseColumnInputColumn =>
+                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
                                                     {
                                                         return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
                                                     });

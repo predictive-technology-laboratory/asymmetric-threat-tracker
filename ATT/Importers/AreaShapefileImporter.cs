@@ -11,8 +11,8 @@ namespace PTL.ATT.Importers
     {
         private int _areaContainmentBoxSize;
 
-        public AreaShapefileImporter(string name, string path, string sourceURI, ShapefileImporter.GetShapefileInfoDelegate getShapefileInfo, int areaContainmentBoxSize)
-            : base(name, path, sourceURI, getShapefileInfo)
+        public AreaShapefileImporter(string name, string path, string sourceURI, IShapefileInfoRetriever shapefileInfoRetriever, int areaContainmentBoxSize)
+            : base(name, path, sourceURI, shapefileInfoRetriever)
         {
             _areaContainmentBoxSize = areaContainmentBoxSize;
         }

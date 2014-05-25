@@ -14,17 +14,8 @@ namespace PTL.ATT.Importers
 {
     [Serializable]
     public abstract class ShapefileImporter : Importer
-    {
-        /// <summary>
-        /// Gets shapefile information
-        /// </summary>
-        /// <param name="shapefilePath">Path to shapefile being imported</param>
-        /// <param name="optionValuesToGet">Options for which a value is needed</param>
-        /// <param name="optionValue">Dictionary in which to place retrieved option-value pairs</param>
-        public delegate void GetShapefileInfoDelegate(string shapefilePath, List<string> optionValuesToGet, Dictionary<string, string> optionValue);
-
-        [NonSerialized]
-        private GetShapefileInfoDelegate _getShapefileInfo;
+    {           
+        private IShapefileInfoRetriever _shapefileInfoRetriever;
         private Shapefile _importedShapefile;
 
         protected Shapefile ImportedShapefile
@@ -32,10 +23,10 @@ namespace PTL.ATT.Importers
             get { return _importedShapefile; }
         }
 
-        public ShapefileImporter(string name, string path, string sourceURI, GetShapefileInfoDelegate getShapefileInfo)
+        public ShapefileImporter(string name, string path, string sourceURI, IShapefileInfoRetriever shapefileInfoRetriever)
             : base(name, path, sourceURI)
         {
-            _getShapefileInfo = getShapefileInfo;
+            _shapefileInfoRetriever = shapefileInfoRetriever;
         }
 
         public override void Import()
@@ -65,10 +56,10 @@ namespace PTL.ATT.Importers
                 if (!importOptionValue.ContainsKey("reprojection") || string.IsNullOrWhiteSpace(importOptionValue["reprojection"])) neededValues.Add("reprojection");
                 if (!importOptionValue.ContainsKey("name") || string.IsNullOrWhiteSpace(importOptionValue["name"])) neededValues.Add("name");
                 if (neededValues.Count > 0)
-                    if (_getShapefileInfo == null)
-                        throw new ArgumentNullException("Failed to provide shapefile import information or a suitable callback to get it.");
+                    if (_shapefileInfoRetriever == null)
+                        throw new ArgumentNullException("Failed to provide shapefile import information or a suitable retriever to get it.");
                     else
-                        _getShapefileInfo(Path, neededValues, importOptionValue);
+                        _shapefileInfoRetriever.GetShapefileInfo(Path, neededValues, importOptionValue);
 
                 string missingValues = neededValues.Where(v => !importOptionValue.ContainsKey(v) || string.IsNullOrWhiteSpace(importOptionValue[v])).Concatenate(", ");
                 if (missingValues != "")

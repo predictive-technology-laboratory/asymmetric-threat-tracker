@@ -99,6 +99,7 @@
     <Compile Include="Importers\Importer.cs" />
     <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
+    <Compile Include="Importers\IShapefileInfoRetriever.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
     <Compile Include="Models\IDiscreteChoiceModel.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />
