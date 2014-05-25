@@ -171,9 +171,9 @@ namespace PTL.ATT.Importers
 
         public virtual void Update(Dictionary<string, object> updateKeyValue)
         {
-            _name = Convert.ToString(GetUpdateRequestId("name"));
-            _path = Convert.ToString(GetUpdateRequestId("path"));
-            _sourceURI = Convert.ToString(GetUpdateRequestId("uri"));
+            _name = Convert.ToString(updateKeyValue[GetUpdateRequestId("name")]);
+            _path = Convert.ToString(updateKeyValue[GetUpdateRequestId("path")]);
+            _sourceURI = Convert.ToString(updateKeyValue[GetUpdateRequestId("uri")]);
         }
 
         internal string GetUpdateRequestId(string id)

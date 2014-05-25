@@ -28,6 +28,7 @@ using System.Text.RegularExpressions;
 
 namespace PTL.ATT
 {
+    [Serializable]
     public class Shapefile
     {
         public enum ShapefileType

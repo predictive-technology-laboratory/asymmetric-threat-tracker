@@ -37,10 +37,8 @@ namespace PTL.ATT.GUI
             }
             catch (Exception ex)
             {
-                string msg = "An error occurred while running the ATT:  " + ex.Message + Environment.NewLine +
-                             "Stacktrace:  " + ex.StackTrace;
-                Console.Out.Write(msg);
-                MessageBox.Show(msg);
+                MessageBox.Show("An error occurred while running the ATT:  " + ex.Message + Environment.NewLine +
+                                "Stacktrace:  " + ex.StackTrace);
             }
         }
     }

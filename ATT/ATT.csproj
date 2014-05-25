@@ -73,8 +73,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\LAIR.XML.dll</HintPath>
     </Reference>
-    <Reference Include="Npgsql, Version=2.0.11.94, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Npgsql">
       <HintPath>..\Libraries\Npgsql.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -95,6 +94,8 @@
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Classifiers\SvmRank.cs" />
+    <Compile Include="Importers\AreaShapefileImporter.cs" />
+    <Compile Include="Importers\FeatureShapefileImporter.cs" />
     <Compile Include="Importers\Importer.cs" />
     <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />

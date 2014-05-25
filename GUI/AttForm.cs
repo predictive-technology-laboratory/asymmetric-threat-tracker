@@ -49,6 +49,7 @@ using Newtonsoft.Json.Linq;
 using LAIR.ResourceAPIs.PostgreSQL;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using PTL.ATT.Importers;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace PTL.ATT.GUI
 {
@@ -61,6 +62,12 @@ namespace PTL.ATT.GUI
         /// <param name="f">Base form.</param>
         /// <returns>Completed form.</returns>
         public delegate DynamicForm CompleteImporterFormDelegate(DynamicForm f);
+
+        /// <summary>
+        /// Called when an import finishes
+        /// </summary>
+        /// <returns></returns>
+        public delegate void ImportCompletionDelegate();
 
         /// <summary>
         /// Creates an importer using an importer form.
@@ -80,8 +87,10 @@ namespace PTL.ATT.GUI
 
         public enum ManageImporterAction
         {
+            Import,
             Edit,
             Run,
+            Export,
             Delete
         }
         #endregion
@@ -290,7 +299,14 @@ namespace PTL.ATT.GUI
                        {
                            f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Target SRID:", 0, 0, 0, decimal.MaxValue, 1, "target_srid");
-                           f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), null, "type");
+                           f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), Shapefile.ShapefileType.Area, "type", new Action<object, EventArgs>((o, args) =>
+                               {
+                                   ComboBox cb = o as ComboBox;
+                                   Control[] panels = f.Controls.Find("containment_box_size", true);
+                                   if (panels.Length > 0)
+                                       (panels[0] as Panel).Visible = (Shapefile.ShapefileType)cb.SelectedItem == Shapefile.ShapefileType.Area;
+                               }));
+                           f.AddNumericUpdown("Area containment box size (meters):", 1000, 0, 1, decimal.MaxValue, 1, "containment_box_size");
                            return f;
                        }),
 
@@ -299,8 +315,7 @@ namespace PTL.ATT.GUI
                            int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                            int targetSRID = Convert.ToInt32(importerForm.GetValue<decimal>("target_srid"));
 
-                           Shapefile.ShapefileType shapefileType = importerForm.GetValue<Shapefile.ShapefileType>("type");
-                           return new ShapefileImporter(name, path, sourceURI, shapefileType, new ShapefileImporter.GetShapefileInfoDelegate((p, optionValuesToGet, optionValue) =>
+                           ShapefileImporter.GetShapefileInfoDelegate getInfoDelegate = new ShapefileImporter.GetShapefileInfoDelegate((p, optionValuesToGet, optionValue) =>
                                {
                                    DynamicForm df = new DynamicForm("Supply shapefile import options...", MessageBoxButtons.OK);
                                    foreach (string optionValueToGet in optionValuesToGet)
@@ -327,11 +342,23 @@ namespace PTL.ATT.GUI
                                            if (!optionValue.ContainsKey(optionValueToGet))
                                                optionValue.Add(optionValueToGet, df.GetValue<string>(optionValueToGet));
                                    }
-                               }));
+                               });
+
+                           Shapefile.ShapefileType shapefileType = importerForm.GetValue<Shapefile.ShapefileType>("type");
+                           if (shapefileType == Shapefile.ShapefileType.Area)
+                           {
+                               int containmentBoxSize = Convert.ToInt32(importerForm.GetValue<decimal>("containment_box_size"));
+                               return new AreaShapefileImporter(name, path, sourceURI, getInfoDelegate, containmentBoxSize);
+                           }
+                           else if (shapefileType == Shapefile.ShapefileType.Feature)
+                               return new FeatureShapefileImporter(name, path, sourceURI, getInfoDelegate);
+                           else
+                               throw new NotImplementedException("Unrecognized shapefile type:  " + shapefileType);
                        }),
 
                    Configuration.PostGisShapefileDirectory,
-                   "Shapefiles (*.shp)|*.shp");
+                   "Shapefiles (*.shp)|*.shp",
+                   new ImportCompletionDelegate(() => { RefreshPredictionAreas(); }));
         }
 
         private void importPointfilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -369,7 +396,7 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.EventsImportDirectory,
-                   null);
+                   null, null);
         }
 
         private void deleteGeographicDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -403,34 +430,6 @@ namespace PTL.ATT.GUI
                         }
 
                         Console.Out.WriteLine("Deleted " + deleted + " item(s)");
-                    }
-                }
-            }
-        }
-
-        private void addAreaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Shapefile[] areaShapefiles = Shapefile.GetAll().Where(sf => sf.Type == Shapefile.ShapefileType.Area).ToArray();
-            if (areaShapefiles.Length == 0)
-                MessageBox.Show("No shapefiles available from which to create area. Import shapefiles first.");
-            else
-            {
-                DynamicForm f = new DynamicForm("Select area parameters...", MessageBoxButtons.OKCancel);
-                f.AddDropDown("Shapefile:", areaShapefiles, null, "shapefile");
-                f.AddNumericUpdown("Point containment bounding box size (meters):", 1000, 0, 1, decimal.MaxValue, 1, "bounding_box_size");
-                if (f.ShowDialog() == DialogResult.OK)
-                {
-                    Shapefile selectedShapefile = f.GetValue<Shapefile>("shapefile");
-                    int boundingBoxSize = Convert.ToInt32(f.GetValue<decimal>("bounding_box_size"));
-                    if (selectedShapefile != null)
-                    {
-                        Thread t = new Thread(new ThreadStart(delegate()
-                            {
-                                Area.Create(selectedShapefile, selectedShapefile.Name, boundingBoxSize);
-                                RefreshAreas();
-                                Console.Out.WriteLine("Finished creating area");
-                            }));
-                        t.Start();
                     }
                 }
             }
@@ -512,7 +511,7 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.IncidentsImportDirectory,
-                   null);
+                   null, null);
         }
 
         public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -543,7 +542,8 @@ namespace PTL.ATT.GUI
                             CompleteImporterFormDelegate completeImporterForm,
                             CreateImporterDelegate createImporter,
                             string initialBrowsingDirectory,
-                            string fileFilter)
+                            string fileFilter,
+                            ImportCompletionDelegate completionCallback)
         {
             Thread t = new Thread(new ThreadStart(delegate()
             {
@@ -638,7 +638,7 @@ namespace PTL.ATT.GUI
                                 }
                                 catch (Exception ex)
                                 {
-                                    Console.Out.WriteLine("Error while importing:  " + ex.Message);
+                                    Console.Out.WriteLine("Error while importing from \"" + path + "\":  " + ex.Message);
                                 }
                             }
                     }
@@ -647,6 +647,9 @@ namespace PTL.ATT.GUI
                 {
                     Console.Out.WriteLine(ex.Message);
                 }
+
+                if (completionCallback != null)
+                    completionCallback();
             }));
 
             t.SetApartmentState(ApartmentState.STA);
@@ -682,31 +685,60 @@ namespace PTL.ATT.GUI
         private void manageStoredImportersToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Importer[] storedImporters = Importer.GetAll().ToArray();
-            if (storedImporters.Length == 0)
-                MessageBox.Show("No stored importers are available.");
-            else
-            {
-                Thread t = new Thread(new ThreadStart(() =>
+
+            Thread t = new Thread(new ThreadStart(() =>
+                {
+                    DialogResult manageDialogResult = System.Windows.Forms.DialogResult.OK;
+                    bool refreshStoredImporters = false;
+                    while (manageDialogResult == System.Windows.Forms.DialogResult.OK)
                     {
-                        DialogResult manageDialogResult = System.Windows.Forms.DialogResult.OK;
-                        bool refreshStoredImporters = false;
-                        while (manageDialogResult == System.Windows.Forms.DialogResult.OK)
+                        if (refreshStoredImporters)
                         {
-                            if (refreshStoredImporters)
+                            storedImporters = Importer.GetAll().ToArray();
+                            refreshStoredImporters = false;
+                        }
+
+                        DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
+                        f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
+                        f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action");
+                        if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
+                        {
+                            ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
+
+                            if (action == ManageImporterAction.Import)
                             {
-                                storedImporters = Importer.GetAll().ToArray();
-                                refreshStoredImporters = false;
+                                DynamicForm df = new DynamicForm("Select importer source...");
+                                df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                                if (df.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                                {
+                                    string path = df.GetValue<string>("path");
+                                    string[] importerPaths = null;
+                                    if (Directory.Exists(path))
+                                        importerPaths = Directory.GetFiles(path, "*.attimp", SearchOption.TopDirectoryOnly);
+                                    else if (File.Exists(path))
+                                        importerPaths = new string[] { path };
+
+                                    if (importerPaths != null)
+                                    {
+                                        BinaryFormatter bf = new BinaryFormatter();
+                                        foreach (string importerPath in importerPaths)
+                                            using (FileStream fs = new FileStream(importerPath, FileMode.Open, FileAccess.Read))
+                                            {
+                                                try
+                                                {
+                                                    (bf.Deserialize(fs) as Importer).Save();
+                                                    fs.Close();
+                                                    refreshStoredImporters = true;
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    Console.Out.WriteLine("Importer import failed:  " + ex.Message);
+                                                }
+                                            }
+                                    }
+                                }
                             }
-
-                            if (storedImporters.Length == 0)
-                                break;
-
-                            DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
-                            f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
-                            f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action");
-                            if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
-                            {
-                                ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
+                            else
                                 foreach (Importer importer in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("importers"))
                                     if (action == ManageImporterAction.Delete)
                                     {
@@ -743,19 +775,46 @@ namespace PTL.ATT.GUI
                                             refreshStoredImporters = true;
                                         }
                                     }
+                                    else if (action == ManageImporterAction.Export)
+                                    {
+                                        string exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                                        if (Directory.Exists(exportDirectory))
+                                        {
+                                            try
+                                            {
+                                                BinaryFormatter bf = new BinaryFormatter();
+                                                using (FileStream fs = new FileStream(Path.Combine(exportDirectory, ReplaceInvalidFilenameCharacters(importer.ToString() + ".attimp")), FileMode.Create, FileAccess.ReadWrite))
+                                                {
+                                                    bf.Serialize(fs, importer);
+                                                    fs.Close();
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Console.Out.WriteLine("Importer export failed:  " + ex.Message);
+                                            }
+                                        }
+                                    }
                                     else if (action == ManageImporterAction.Run)
                                     {
                                         Console.Out.WriteLine("Running importer \"" + importer + "\"...");
-                                        importer.Import();
+                                        try { importer.Import(); }
+                                        catch (Exception ex)
+                                        {
+                                            Console.Out.WriteLine("Import failed:  " + ex.Message);
+                                        }
                                     }
                                     else
                                         MessageBox.Show("Unrecognized action:  " + action);
-                            }
                         }
-                    }));
+                    }
 
-                t.Start();
-            }
+                    // might have imported/created an area
+                    RefreshPredictionAreas();
+                }));
+
+            t.SetApartmentState(ApartmentState.STA);
+            t.Start();
         }
         #endregion
 
@@ -1695,7 +1754,7 @@ namespace PTL.ATT.GUI
             try
             {
                 RefreshModels(-1);
-                RefreshAreas();
+                RefreshPredictionAreas();
                 RefreshPredictions(-1);
             }
             catch (Exception ex)
@@ -1728,11 +1787,11 @@ namespace PTL.ATT.GUI
             }
         }
 
-        public void RefreshAreas()
+        public void RefreshPredictionAreas()
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(RefreshAreas));
+                Invoke(new Action(RefreshPredictionAreas));
                 return;
             }
 

@@ -13,7 +13,7 @@ using LAIR.Extensions;
 namespace PTL.ATT.Importers
 {
     [Serializable]
-    public class ShapefileImporter : Importer
+    public abstract class ShapefileImporter : Importer
     {
         /// <summary>
         /// Gets shapefile information
@@ -23,14 +23,18 @@ namespace PTL.ATT.Importers
         /// <param name="optionValue">Dictionary in which to place retrieved option-value pairs</param>
         public delegate void GetShapefileInfoDelegate(string shapefilePath, List<string> optionValuesToGet, Dictionary<string, string> optionValue);
 
-        private Shapefile.ShapefileType _type;
         [NonSerialized]
         private GetShapefileInfoDelegate _getShapefileInfo;
+        private Shapefile _importedShapefile;
 
-        public ShapefileImporter(string name, string path, string sourceURI, Shapefile.ShapefileType type, GetShapefileInfoDelegate getShapefileInfo)
+        protected Shapefile ImportedShapefile
+        {
+            get { return _importedShapefile; }
+        }
+
+        public ShapefileImporter(string name, string path, string sourceURI, GetShapefileInfoDelegate getShapefileInfo)
             : base(name, path, sourceURI)
         {
-            _type = type;
             _getShapefileInfo = getShapefileInfo;
         }
 
@@ -89,7 +93,15 @@ namespace PTL.ATT.Importers
                 File.WriteAllText(importOptionsPath, "reprojection=" + fromSRID + ":" + toSRID + Environment.NewLine +
                                                      "name=" + name);
 
-                shapefileId = Shapefile.Create(cmd.Connection, name, toSRID, _type);
+                Shapefile.ShapefileType type;
+                if (this is FeatureShapefileImporter)
+                    type = Shapefile.ShapefileType.Feature;
+                else if (this is AreaShapefileImporter)
+                    type = Shapefile.ShapefileType.Area;
+                else
+                    throw new NotImplementedException("Unrecognized shapefile importer type:  " + GetType());
+
+                shapefileId = Shapefile.Create(cmd.Connection, name, toSRID, type);
                 tempTable = "shapefile_import_" + shapefileId;
 
                 string sql;
@@ -118,8 +130,8 @@ namespace PTL.ATT.Importers
                 cmd.ExecuteNonQuery();
 
                 Console.Out.WriteLine("Importing shapefile into database");
-                Shapefile shapefile = new Shapefile(shapefileId);
-                ShapefileGeometry.Create(cmd.Connection, shapefile, tempTable, "geom");
+                _importedShapefile = new Shapefile(shapefileId);
+                ShapefileGeometry.Create(cmd.Connection, _importedShapefile, tempTable, "geom");
             }
             catch (Exception ex)
             {
@@ -143,22 +155,6 @@ namespace PTL.ATT.Importers
 
                 DB.Connection.Return(cmd.Connection);
             }
-
-            Console.Out.WriteLine("Shapefile import finished.");
-        }
-
-        public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)
-        {
-            base.GetUpdateRequests(updateRequest);
-
-            updateRequest("Shapefile type", _type, Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<object>(), GetUpdateRequestId("type"));
-        }
-
-        public override void Update(Dictionary<string, object> updateKeyValue)
-        {
-            base.Update(updateKeyValue);
-
-            _type = (Shapefile.ShapefileType)updateKeyValue[GetUpdateRequestId("type")];
         }
     }
 }

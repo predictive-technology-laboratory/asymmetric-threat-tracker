@@ -106,6 +106,9 @@ namespace PTL.ATT.Importers
             {
                 base.Initialize(Incident.CreateTable(_importArea), Incident.Columns.Insert);
 
+                if (!Area.GetAll().Any(a => a.Id == _importArea.Id))
+                    throw new Exception("Area into which incidents are to be imported (ID=" + _importArea.Id + ", name=" + _importArea.Name + ") does not exist in the database. If you're running a stored importer, try editing the importer.");
+
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
             }
@@ -116,7 +119,7 @@ namespace PTL.ATT.Importers
 
                 updateRequest("Area", _importArea, Area.GetForSRID(_importArea.SRID), XmlImporter.GetUpdateRequestId("area"));
                 updateRequest("Hour offset", _hourOffset, null, XmlImporter.GetUpdateRequestId("offset"));
-                updateRequest("Source SRID", _sourceSRID, null, "source_srid");
+                updateRequest("Source SRID", _sourceSRID, null, XmlImporter.GetUpdateRequestId("source_srid"));
             }
 
             public override void Update(Dictionary<string, object> updateKeyValue)
@@ -124,8 +127,8 @@ namespace PTL.ATT.Importers
                 base.Update(updateKeyValue);
 
                 _importArea = (Area)updateKeyValue[XmlImporter.GetUpdateRequestId("area")];
-                _hourOffset = (int)updateKeyValue[XmlImporter.GetUpdateRequestId("offset")];
-                _sourceSRID = (int)updateKeyValue[XmlImporter.GetUpdateRequestId("source_srid")];
+                _hourOffset = Convert.ToInt32(updateKeyValue[XmlImporter.GetUpdateRequestId("offset")]);
+                _sourceSRID = Convert.ToInt32(updateKeyValue[XmlImporter.GetUpdateRequestId("source_srid")]);
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser rowXmlParser)
@@ -178,15 +181,18 @@ namespace PTL.ATT.Importers
             private Area _importArea;
             private int _rowNum;
 
-            public PointfileXmlRowInserter(Dictionary<string, string> dbColSocrataCol, int sourceSRID, Area importArea)
+            public PointfileXmlRowInserter(Dictionary<string, string> dbColInputCol, int sourceSRID, Area importArea)
             {
-                _dbColInputCol = dbColSocrataCol;
+                _dbColInputCol = dbColInputCol;
                 _sourceSRID = sourceSRID;
                 _importArea = importArea;
             }
 
             public override void Initialize()
             {
+                if (!Area.GetAll().Any(a => a.Id == _importArea.Id))
+                    throw new Exception("Area into which incidents are to be imported (ID=" + _importArea.Id + ", name=" + _importArea.Name + ") does not exist in the database. If you're running a stored importer, try editing the importer.");
+
                 _rowNum = 0;
 
                 NpgsqlConnection connection = DB.Connection.OpenConnection;
@@ -194,6 +200,22 @@ namespace PTL.ATT.Importers
                 DB.Connection.Return(connection);
 
                 base.Initialize(ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Insert);
+            }
+
+            public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)
+            {
+                base.GetUpdateRequests(updateRequest);
+
+                updateRequest("Area", _importArea, Area.GetForSRID(_importArea.SRID), XmlImporter.GetUpdateRequestId("area"));
+                updateRequest("Source SRID", _sourceSRID, null, XmlImporter.GetUpdateRequestId("source_srid"));
+            }
+
+            public override void Update(Dictionary<string, object> updateKeyValue)
+            {
+                base.Update(updateKeyValue);
+
+                _importArea = (Area)updateKeyValue[XmlImporter.GetUpdateRequestId("area")];
+                _sourceSRID = Convert.ToInt32(updateKeyValue[XmlImporter.GetUpdateRequestId("source_srid")]);
             }
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser)
@@ -280,9 +302,10 @@ namespace PTL.ATT.Importers
                 string rowXML;
                 NpgsqlCommand insertCmd = DB.Connection.NewCommand(null);
                 StringBuilder cmdTxt = new StringBuilder();
-                _xmlRowInserter.Initialize();
                 try
                 {
+                    _xmlRowInserter.Initialize();
+
                     while ((rowXML = p.OuterXML(_rowElementName)) != null)
                     {
                         ++totalRows;

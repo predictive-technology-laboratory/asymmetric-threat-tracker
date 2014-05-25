@@ -151,6 +151,7 @@ namespace PTL.ATT.GUI
             }
 
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<string>(() => tb.Text));
@@ -177,6 +178,7 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(ud);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
@@ -189,12 +191,13 @@ namespace PTL.ATT.GUI
             cb.CheckAlign = checkAlign;
             cb.Checked = isChecked;
             cb.Size = cb.PreferredSize;
+            cb.Name = valueId;
 
             _mainPanel.Controls.Add(cb);
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
         }
 
-        public void AddDropDown(string label, Array values, object selected, string valueId)
+        public void AddDropDown(string label, Array values, object selected, string valueId, Action<object, EventArgs> selectedValueChanged = null)
         {
             Label l = new Label();
             l.Text = label;
@@ -207,12 +210,15 @@ namespace PTL.ATT.GUI
                 cb.Items.Add(o);
 
             cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+            if (selectedValueChanged != null)
+                cb.SelectedValueChanged += new EventHandler(selectedValueChanged);
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;
             p.Controls.Add(l);
             p.Controls.Add(cb);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.SelectedItem));
@@ -235,13 +241,15 @@ namespace PTL.ATT.GUI
             foreach (object o in values)
                 lb.Items.Add(o);
 
-            lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width + 30), lb.PreferredHeight);
+            if (values.Length > 0)
+                lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width + 30), lb.PreferredHeight);
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;
             p.Controls.Add(l);
             p.Controls.Add(lb);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => lb.SelectedItems));
@@ -266,6 +274,7 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(control);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, returnValueFunction);

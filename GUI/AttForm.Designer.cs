@@ -65,7 +65,6 @@ namespace PTL.ATT.GUI
             this.importPointfilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteGeographicDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.predictionAreasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.incidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -307,18 +306,10 @@ namespace PTL.ATT.GUI
             // predictionAreasToolStripMenuItem
             // 
             this.predictionAreasToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addAreaToolStripMenuItem,
             this.deleteAreaToolStripMenuItem});
             this.predictionAreasToolStripMenuItem.Name = "predictionAreasToolStripMenuItem";
             this.predictionAreasToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
             this.predictionAreasToolStripMenuItem.Text = "Modeling areas";
-            // 
-            // addAreaToolStripMenuItem
-            // 
-            this.addAreaToolStripMenuItem.Name = "addAreaToolStripMenuItem";
-            this.addAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.addAreaToolStripMenuItem.Text = "Add...";
-            this.addAreaToolStripMenuItem.Click += new System.EventHandler(this.addAreaToolStripMenuItem_Click);
             // 
             // deleteAreaToolStripMenuItem
             // 
@@ -1174,7 +1165,6 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem deleteGeographicDataToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
         private System.Windows.Forms.ToolStripMenuItem predictionAreasToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem addAreaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteAreaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importPointfilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
