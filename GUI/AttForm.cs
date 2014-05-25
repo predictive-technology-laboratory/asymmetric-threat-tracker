@@ -366,10 +366,10 @@ namespace PTL.ATT.GUI
                            if (shapefileType == Shapefile.ShapefileType.Area)
                            {
                                int containmentBoxSize = Convert.ToInt32(importerForm.GetValue<decimal>("containment_box_size"));
-                               return new AreaShapefileImporter(name, path, sourceURI, shapefileInfoRetriever, containmentBoxSize);
+                               return new AreaShapefileImporter(name, path, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, containmentBoxSize);
                            }
                            else if (shapefileType == Shapefile.ShapefileType.Feature)
-                               return new FeatureShapefileImporter(name, path, sourceURI, shapefileInfoRetriever);
+                               return new FeatureShapefileImporter(name, path, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever);
                            else
                                throw new NotImplementedException("Unrecognized shapefile type:  " + shapefileType);
                        }),

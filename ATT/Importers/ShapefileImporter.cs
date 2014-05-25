@@ -14,7 +14,9 @@ namespace PTL.ATT.Importers
 {
     [Serializable]
     public abstract class ShapefileImporter : Importer
-    {           
+    {
+        private int _sourceSRID;
+        private int _targetSRID;
         private IShapefileInfoRetriever _shapefileInfoRetriever;
         private Shapefile _importedShapefile;
 
@@ -23,9 +25,11 @@ namespace PTL.ATT.Importers
             get { return _importedShapefile; }
         }
 
-        public ShapefileImporter(string name, string path, string sourceURI, IShapefileInfoRetriever shapefileInfoRetriever)
+        public ShapefileImporter(string name, string path, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever)
             : base(name, path, sourceURI)
         {
+            _sourceSRID = sourceSRID;
+            _targetSRID = targetSRID;
             _shapefileInfoRetriever = shapefileInfoRetriever;
         }
 
@@ -52,14 +56,14 @@ namespace PTL.ATT.Importers
                 if (!string.IsNullOrWhiteSpace(Name))
                     importOptionValue["name"] = Name;
 
+                if (_sourceSRID > 0 && _targetSRID > 0)
+                    importOptionValue["reprojection"] = _sourceSRID + ":" + _targetSRID;
+
                 List<string> neededValues = new List<string>();
                 if (!importOptionValue.ContainsKey("reprojection") || string.IsNullOrWhiteSpace(importOptionValue["reprojection"])) neededValues.Add("reprojection");
                 if (!importOptionValue.ContainsKey("name") || string.IsNullOrWhiteSpace(importOptionValue["name"])) neededValues.Add("name");
                 if (neededValues.Count > 0)
-                    if (_shapefileInfoRetriever == null)
-                        throw new ArgumentNullException("Failed to provide shapefile import information or a suitable retriever to get it.");
-                    else
-                        _shapefileInfoRetriever.GetShapefileInfo(Path, neededValues, importOptionValue);
+                    _shapefileInfoRetriever.GetShapefileInfo(Path, neededValues, importOptionValue);
 
                 string missingValues = neededValues.Where(v => !importOptionValue.ContainsKey(v) || string.IsNullOrWhiteSpace(importOptionValue[v])).Concatenate(", ");
                 if (missingValues != "")

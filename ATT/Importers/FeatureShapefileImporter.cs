@@ -9,8 +9,8 @@ namespace PTL.ATT.Importers
     [Serializable]
     public class FeatureShapefileImporter : ShapefileImporter
     {
-        public FeatureShapefileImporter(string name, string path, string sourceURI, IShapefileInfoRetriever shapefileInfoRetriever)
-            : base(name, path, sourceURI, shapefileInfoRetriever)
+        public FeatureShapefileImporter(string name, string path, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever)
+            : base(name, path, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever)
         {
         }
     }
