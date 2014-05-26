@@ -1,0 +1,10 @@
+ATT.v12.suo
+ATT/bin
+ATT/obj
+GUI/bin
+GUI/obj
+GUI/Config/att_config.xml
+GUI/Config/gui_config.xml
+Installer/Installer/Express/Interm
+Installer/Installer/Express/SingleImage/LogFiles
+Installer/Installer/Express/SingleImage/Reports
