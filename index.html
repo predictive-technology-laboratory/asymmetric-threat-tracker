@@ -70,7 +70,11 @@
 <ul>
 <li>Install a working version of Microsoft Visual Studio that is capable of running C# applications. ​<a href="http://www.visualstudio.com/en-US/products/visual-studio-express-vs">Visual Studio Express 2013</a> is sufficient and free.</li>
 <li>Optional:  Go to Tools -&gt; Extensions and Updates, then search for and install the License Header Manager. This is used to apply license text to each source code file. Also install the <a href="http://learn.flexerasoftware.com/content/IS-EVAL-InstallShield-Limited-Edition-Visual-Studio">InstallShield Limited Edition for Visual Studio</a> add-on if you want to build the installer package.</li>
-<li>Clone the <a href="https://github.com/MatthewGerber/asymmetric-threat-tracker">ATT GitHub repository</a>.</li>
+<li>Clone the <a href="https://github.com/MatthewGerber/asymmetric-threat-tracker">ATT GitHub repository</a>. In your clone command, pass "--recursive" to retrieve necessary sub-projects. For example:</li>
+</ul><pre><code>git clone --recursive git@github.com:MatthewGerber/asymmetric-threat-tracker.git
+</code></pre>
+
+<ul>
 <li>Open the ATT solution in Visual Studio by double-clicking the "ATT.sln" file. </li>
 <li>Along the top menu in Visual Studio, change the configuration of the solution from "Debug" to "Release". </li>
 <li>Right-click the ATT project and select "Build".</li>
