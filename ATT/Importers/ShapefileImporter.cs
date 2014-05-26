@@ -53,11 +53,11 @@ namespace PTL.ATT.Importers
                         importOptionValue.Add(parts[0].Trim(), parts[1].Trim());
                     }
 
-                if (!string.IsNullOrWhiteSpace(Name))
-                    importOptionValue["name"] = Name;
-
                 if (_sourceSRID > 0 && _targetSRID > 0)
                     importOptionValue["reprojection"] = _sourceSRID + ":" + _targetSRID;
+
+                if (!string.IsNullOrWhiteSpace(Name))
+                    importOptionValue["name"] = Name;  
 
                 List<string> neededValues = new List<string>();
                 if (!importOptionValue.ContainsKey("reprojection") || string.IsNullOrWhiteSpace(importOptionValue["reprojection"])) neededValues.Add("reprojection");
@@ -150,6 +150,8 @@ namespace PTL.ATT.Importers
 
                 DB.Connection.Return(cmd.Connection);
             }
+
+            Console.Out.WriteLine("Shapefile import completed.");
         }
     }
 }

@@ -145,13 +145,14 @@ namespace PTL.ATT.Importers
 
         public virtual void Import()
         {
-            if (!System.IO.File.Exists(_path) && _sourceURI != null)
+            if (!System.IO.File.Exists(_path) && !string.IsNullOrWhiteSpace(_sourceURI))
                 Network.Download(_sourceURI, _path);
         }
 
-        public void Save()
+        public void Save(bool deleteFirst)
         {
-            Delete();
+            if (deleteFirst)
+                Delete();
 
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();

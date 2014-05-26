@@ -40,18 +40,21 @@ namespace PTL.ATT
             [Reflector.Insert, Reflector.Select(true)]
             internal const string Name = "name";
             [Reflector.Insert, Reflector.Select(true)]
+            internal const string ShapefileId = "shapefile_id";
+            [Reflector.Insert, Reflector.Select(true)]
             internal const string SRID = "srid";
 
             internal static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             internal static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
         }
 
-        [ConnectionPool.CreateTable]
+        [ConnectionPool.CreateTable(typeof(Shapefile))]
         private static string CreateTable(ConnectionPool connection)
         {
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.Name + " VARCHAR," +
+                   Columns.ShapefileId + " INTEGER REFERENCES " + Shapefile.Table + " ON DELETE CASCADE," +
                    Columns.SRID + " INTEGER);";
         }
 
@@ -60,7 +63,7 @@ namespace PTL.ATT
             int areaId = -1;
             try
             {
-                areaId = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Area.Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + shapefile.SRID + ") RETURNING " + Columns.Id));
+                areaId = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Area.Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + shapefile.Id + "," + shapefile.SRID + ") RETURNING " + Columns.Id));
 
                 Console.Out.WriteLine("Creating area geometry");
                 AreaGeometry.Create(shapefile, areaId);
@@ -109,12 +112,27 @@ namespace PTL.ATT
 
             return areas;
         }
+
+        public static List<Area> GetForShapefile(Shapefile shapefile)
+        {
+            List<Area> areas = new List<Area>();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.ShapefileId + "=" + shapefile.Id);
+            NpgsqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+                areas.Add(new Area(reader));
+
+            reader.Close();
+            DB.Connection.Return(cmd.Connection);
+
+            return areas;
+        }
         #endregion
 
         private int _id;
         private string _name;
         private int _srid;
         private PostGIS.Polygon _boundingBox;
+        private int _shapefileId;
 
         public int Id
         {
@@ -136,6 +154,11 @@ namespace PTL.ATT
             get { return _boundingBox; }
         }
 
+        public int ShapefileId
+        {
+            get { return _shapefileId; }
+        }
+
         public Area(int id)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Area.Table + " WHERE " + Columns.Id + "=" + id);
@@ -155,6 +178,7 @@ namespace PTL.ATT
         {
             _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
             _name = Convert.ToString(reader[Table + "_" + Columns.Name]);
+            _shapefileId = Convert.ToInt32(reader[Table + "_" + Columns.ShapefileId]);
             _srid = Convert.ToInt32(reader[Table + "_" + Columns.SRID]);
 
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " +
@@ -215,14 +239,6 @@ namespace PTL.ATT
             return _id.GetHashCode();
         }
 
-        public void Delete()
-        {
-            if (Prediction.GetForArea(this).Count() > 0)
-                throw new Exception("Predictions have been made based on the given area. Cannot delete it.");
-
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
-        }
-
         public override string ToString()
         {
             return _name;
@@ -237,6 +253,7 @@ namespace PTL.ATT
             return (indentLevel > 0 ? Environment.NewLine : "") + indent + "ID:  " + _id + Environment.NewLine +
                    indent + "Name:  " + _name + Environment.NewLine +
                    indent + "Bounding box:  " + _boundingBox.LowerLeft + "," + _boundingBox.UpperLeft + "," + _boundingBox.UpperRight + "," + _boundingBox.LowerRight + Environment.NewLine +
+                   indent + "Shapefile:  " + new Shapefile(_shapefileId) + Environment.NewLine + 
                    indent + "SRID:  " + _srid;
         }
 

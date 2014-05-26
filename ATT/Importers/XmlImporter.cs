@@ -104,10 +104,10 @@ namespace PTL.ATT.Importers
 
             public override void Initialize()
             {
-                base.Initialize(Incident.CreateTable(_importArea), Incident.Columns.Insert);
+                if (_importArea == null || !Area.GetAll().Any(a => a.Id == _importArea.Id))
+                    throw new Exception("No import area is defined for these incidents. If you're running a stored importer, try editing the importer and selecting an import area.");
 
-                if (!Area.GetAll().Any(a => a.Id == _importArea.Id))
-                    throw new Exception("Area into which incidents are to be imported (ID=" + _importArea.Id + ", name=" + _importArea.Name + ") does not exist in the database. If you're running a stored importer, try editing the importer.");
+                base.Initialize(Incident.CreateTable(_importArea), Incident.Columns.Insert);
 
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
@@ -117,7 +117,7 @@ namespace PTL.ATT.Importers
             {
                 base.GetUpdateRequests(updateRequest);
 
-                updateRequest("Area", _importArea, Area.GetForSRID(_importArea.SRID), XmlImporter.GetUpdateRequestId("area"));
+                updateRequest("Area", _importArea, Area.GetAll(), XmlImporter.GetUpdateRequestId("area"));
                 updateRequest("Hour offset", _hourOffset, null, XmlImporter.GetUpdateRequestId("offset"));
                 updateRequest("Source SRID", _sourceSRID, null, XmlImporter.GetUpdateRequestId("source_srid"));
             }

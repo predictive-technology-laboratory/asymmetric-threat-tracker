@@ -22,6 +22,8 @@ namespace PTL.ATT.Importers
             base.Import();
 
             Area.Create(ImportedShapefile, ImportedShapefile.Name, _areaContainmentBoxSize);
+
+            Console.Out.WriteLine("Area definition completed.");
         }
 
         public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)

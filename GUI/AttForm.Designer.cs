@@ -64,8 +64,6 @@ namespace PTL.ATT.GUI
             this.importShapefilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importPointfilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteGeographicDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.predictionAreasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.incidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearImportedIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -264,7 +262,6 @@ namespace PTL.ATT.GUI
             // 
             this.importToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.geographicDataToolStripMenuItem,
-            this.predictionAreasToolStripMenuItem,
             this.incidentsToolStripMenuItem,
             this.toolStripSeparator10,
             this.manageStoredImportersToolStripMenuItem});
@@ -302,21 +299,6 @@ namespace PTL.ATT.GUI
             this.deleteGeographicDataToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.deleteGeographicDataToolStripMenuItem.Text = "Delete...";
             this.deleteGeographicDataToolStripMenuItem.Click += new System.EventHandler(this.deleteGeographicDataToolStripMenuItem_Click);
-            // 
-            // predictionAreasToolStripMenuItem
-            // 
-            this.predictionAreasToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteAreaToolStripMenuItem});
-            this.predictionAreasToolStripMenuItem.Name = "predictionAreasToolStripMenuItem";
-            this.predictionAreasToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.predictionAreasToolStripMenuItem.Text = "Modeling areas";
-            // 
-            // deleteAreaToolStripMenuItem
-            // 
-            this.deleteAreaToolStripMenuItem.Name = "deleteAreaToolStripMenuItem";
-            this.deleteAreaToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.deleteAreaToolStripMenuItem.Text = "Delete...";
-            this.deleteAreaToolStripMenuItem.Click += new System.EventHandler(this.deleteAreaToolStripMenuItem_Click);
             // 
             // incidentsToolStripMenuItem
             // 
@@ -1164,8 +1146,6 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem importShapefilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteGeographicDataToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
-        private System.Windows.Forms.ToolStripMenuItem predictionAreasToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem deleteAreaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importPointfilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
         private System.Windows.Forms.ToolStripMenuItem manageStoredImportersToolStripMenuItem;

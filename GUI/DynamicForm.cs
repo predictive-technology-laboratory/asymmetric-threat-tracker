@@ -209,7 +209,9 @@ namespace PTL.ATT.GUI
             foreach (object o in values)
                 cb.Items.Add(o);
 
-            cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+            if (values.Length > 0)
+                cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+
             if (selectedValueChanged != null)
                 cb.SelectedValueChanged += new EventHandler(selectedValueChanged);
 
@@ -282,14 +284,8 @@ namespace PTL.ATT.GUI
 
         public T GetValue<T>(string valueId)
         {
-            T castValue;
-            try { castValue = (T)_valueIdReturn[valueId](); }
+            try { return (T)_valueIdReturn[valueId](); }
             catch (InvalidCastException ex) { throw new InvalidCastException("Invalid cast in Parameterize form:  " + ex.Message); }
-
-            if (castValue == null)
-                throw new NullReferenceException("ParameterizeForm value function returned null");
-
-            return castValue;
         }
     }
 }

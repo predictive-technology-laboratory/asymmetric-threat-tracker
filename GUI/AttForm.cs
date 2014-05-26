@@ -427,66 +427,40 @@ namespace PTL.ATT.GUI
                 f.AddListBox("Geographic data:", shapefiles, null, SelectionMode.MultiExtended, "shapefiles");
                 if (f.ShowDialog() == DialogResult.OK)
                 {
-                    Shapefile[] selected = f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("shapefiles").Cast<Shapefile>().ToArray();
-                    if (selected.Length > 0 && MessageBox.Show("Are you sure you want to delete " + selected.Length + " item(s)?", "Confirm delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    Shapefile[] selectedShapefiles = f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("shapefiles").Cast<Shapefile>().ToArray();
+                    if (selectedShapefiles.Length > 0 && MessageBox.Show("Are you sure you want to delete " + selectedShapefiles.Length + " shapefile(s)?", "Confirm delete", MessageBoxButtons.YesNo) == DialogResult.Yes)
                     {
-                        int deleted = 0;
-                        foreach (Shapefile shapefile in selected)
+                        int shapefilesDeleted = 0;
+                        foreach (Shapefile shapefile in selectedShapefiles)
                         {
-                            if (DiscreteChoiceModel.GetAll(false).Where(m => m is IFeatureBasedDCM).SelectMany(m => (m as IFeatureBasedDCM).Features).Any(feat => feat.TrainingResourceId == shapefile.Id.ToString() || feat.PredictionResourceId == shapefile.Id.ToString()))
-                                Console.Out.WriteLine("Cannot delete shapefile \"" + shapefile.Name + "\" because it is used in a model.");
-                            else
-                            {
-                                try
+                            List<Area> areasForShapefile = Area.GetForShapefile(shapefile);
+                            List<DiscreteChoiceModel> modelsForShapefile = areasForShapefile.SelectMany(a => DiscreteChoiceModel.GetForArea(a, false)).Union(DiscreteChoiceModel.GetAll(false).Where(m => m is IFeatureBasedDCM && (m as IFeatureBasedDCM).Features.Any(feat => feat.TrainingResourceId == shapefile.Id.ToString() || feat.PredictionResourceId == shapefile.Id.ToString()))).ToList();
+                            List<Prediction> predictionsForShapefile = areasForShapefile.SelectMany(a => Prediction.GetForArea(a)).ToList();
+                            if (modelsForShapefile.Count > 0 || predictionsForShapefile.Count > 0)
+                                if (MessageBox.Show("The shapefile \"" + shapefile + "\" is associated with " + modelsForShapefile.Count + " model(s) and " + predictionsForShapefile.Count + " prediction(s), which must be deleted before the shapefile can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                                 {
-                                    shapefile.Delete();
-                                    ++deleted;
+                                    foreach (Prediction prediction in predictionsForShapefile)
+                                        prediction.Delete();
+
+                                    foreach (DiscreteChoiceModel model in modelsForShapefile)
+                                        model.Delete();
                                 }
-                                catch (Exception ex) { Console.Out.WriteLine("Error deleting shapefile \"" + shapefile.Name + "\":  " + ex.Message); }
+                                else
+                                    continue;
+
+                            try
+                            {
+                                shapefile.Delete();
+                                ++shapefilesDeleted;
                             }
+                            catch (Exception ex) { Console.Out.WriteLine("Error deleting shapefile \"" + shapefile.Name + "\":  " + ex.Message); }
                         }
 
-                        Console.Out.WriteLine("Deleted " + deleted + " item(s)");
+                        Console.Out.WriteLine("Deleted " + shapefilesDeleted + " shapefile(s)");
+
+                        if (shapefilesDeleted > 0)
+                            RefreshAll();
                     }
-                }
-            }
-        }
-
-        private void deleteAreaToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            List<Area> areas = Area.GetAll();
-            if (areas.Count == 0)
-                MessageBox.Show("No areas available to delete.");
-            else
-            {
-                DynamicForm f = new DynamicForm("Delete areas...");
-                f.AddListBox("Areas:", areas.ToArray(), null, SelectionMode.MultiExtended, "areas");
-                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    bool areaDeleted = false;
-
-                    foreach (Area areaToDelete in f.GetValue<ListBox.SelectedObjectCollection>("areas"))
-                    {
-                        List<DiscreteChoiceModel> modelsForArea = DiscreteChoiceModel.GetForArea(areaToDelete, false);
-                        List<Prediction> predictionsForArea = Prediction.GetForArea(areaToDelete);
-                        if (modelsForArea.Count > 0 || predictionsForArea.Count > 0)
-                            if (MessageBox.Show("The area \"" + areaToDelete.Name + "\" is associated with " + modelsForArea.Count + " model(s) and " + predictionsForArea.Count + " prediction(s), which must be deleted before the area can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                            {
-                                foreach (Prediction prediction in predictionsForArea)
-                                    prediction.Delete();
-
-                                foreach (DiscreteChoiceModel model in modelsForArea)
-                                    model.Delete();
-                            }
-                            else
-                                continue;
-
-                        areaToDelete.Delete();
-                        areaDeleted = true;
-                    }
-
-                    if (areaDeleted)
-                        RefreshAll();
                 }
             }
         }
@@ -650,7 +624,7 @@ namespace PTL.ATT.GUI
                                         File.Delete(path);
 
                                     if (saveImporter)
-                                        importer.Save();
+                                        importer.Save(false);
                                 }
                                 catch (Exception ex)
                                 {
@@ -742,7 +716,7 @@ namespace PTL.ATT.GUI
                                             {
                                                 try
                                                 {
-                                                    (bf.Deserialize(fs) as Importer).Save();
+                                                    (bf.Deserialize(fs) as Importer).Save(false);
                                                     fs.Close();
                                                     refreshStoredImporters = true;
                                                 }
@@ -755,6 +729,8 @@ namespace PTL.ATT.GUI
                                 }
                             }
                             else
+                            {
+                                string exportDirectory = null;
                                 foreach (Importer importer in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("importers"))
                                     if (action == ManageImporterAction.Delete)
                                     {
@@ -787,13 +763,15 @@ namespace PTL.ATT.GUI
                                                 updateKeyValue[updateKey] = updateForm.GetValue<object>(updateKey);
 
                                             importer.Update(updateKeyValue);
-                                            importer.Save();
+                                            importer.Save(true);
                                             refreshStoredImporters = true;
                                         }
                                     }
                                     else if (action == ManageImporterAction.Export)
                                     {
-                                        string exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                                        if (exportDirectory == null)
+                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+
                                         if (Directory.Exists(exportDirectory))
                                         {
                                             try
@@ -803,6 +781,7 @@ namespace PTL.ATT.GUI
                                                 {
                                                     bf.Serialize(fs, importer);
                                                     fs.Close();
+                                                    Console.Out.WriteLine("Exported \"" + importer + "\".");
                                                 }
                                             }
                                             catch (Exception ex)
@@ -822,6 +801,7 @@ namespace PTL.ATT.GUI
                                     }
                                     else
                                         MessageBox.Show("Unrecognized action:  " + action);
+                            }
                         }
                     }
 
