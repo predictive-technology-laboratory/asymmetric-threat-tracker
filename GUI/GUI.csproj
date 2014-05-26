@@ -88,7 +88,7 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\Libraries\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Npgsql, Version=2.0.11.94, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
+    <Reference Include="Npgsql, Version=2.1.1.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\Npgsql.dll</HintPath>
     </Reference>
@@ -214,12 +214,6 @@
     <Compile Include="FeatureBasedDcmForm.Designer.cs">
       <DependentUpon>FeatureBasedDcmForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ImportShapefileForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ImportShapefileForm.Designer.cs">
-      <DependentUpon>ImportShapefileForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TimeSliceDcmForm.cs">
@@ -316,9 +310,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FeatureBasedDcmForm.resx">
       <DependentUpon>FeatureBasedDcmForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ImportShapefileForm.resx">
-      <DependentUpon>ImportShapefileForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

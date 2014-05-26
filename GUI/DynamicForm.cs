@@ -45,10 +45,11 @@ namespace PTL.ATT.GUI
             _mainPanel = new FlowLayoutPanel();
             _mainPanel.FlowDirection = FlowDirection.TopDown;
 
+            Load += new EventHandler(DynamicForm_Load);
             Shown += new EventHandler(DynamicForm_Shown);
         }
 
-        private void DynamicForm_Shown(object sender, EventArgs args)
+        private void DynamicForm_Load(object sender, EventArgs args)
         {
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel();
             buttonPanel.FlowDirection = FlowDirection.LeftToRight;
@@ -89,10 +90,15 @@ namespace PTL.ATT.GUI
             Controls.Add(_mainPanel);
             Size = PreferredSize;
             Width = Math.Max(Width, TextRenderer.MeasureText(Text, Font).Width + 50);
+        }
+
+        private void DynamicForm_Shown(object sender, EventArgs args)
+        {
+            CenterToScreen();
             TopMost = true;
         }
 
-        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false)
+        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false, bool addFileBrowsingButtons = false, string initialBrowsingDirectory = null, string fileFilter = null)
         {
             Label l = new Label();
             l.Text = label;
@@ -104,7 +110,7 @@ namespace PTL.ATT.GUI
             tb.Name = valueId;
             tb.Text = text;
             tb.PasswordChar = passwordChar;
-            tb.Size = widthInCharacters == -1 ? tb.PreferredSize : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), Font).Width, tb.PreferredSize.Height);
+            tb.Size = widthInCharacters == -1 ? new Size(TextRenderer.MeasureText(tb.Text == "" ? "".PadLeft(50, ' ') : tb.Text, tb.Font).Width, tb.PreferredHeight) : new Size(TextRenderer.MeasureText("".PadLeft(widthInCharacters), tb.Font).Width, tb.PreferredHeight);
             tb.KeyDown += new KeyEventHandler((o, args) =>
                 {
                     if (args.KeyCode == Keys.Enter)
@@ -122,7 +128,30 @@ namespace PTL.ATT.GUI
             p.FlowDirection = FlowDirection.LeftToRight;
             p.Controls.Add(l);
             p.Controls.Add(tb);
+
+            if (addFileBrowsingButtons)
+            {
+                Button fileBrowse = new Button();
+                fileBrowse.Text = "File...";
+                fileBrowse.Click += (o, e) =>
+                    {
+                        tb.Text = LAIR.IO.File.PromptForOpenPath("Select file...", initialBrowsingDirectory, fileFilter);
+                    };
+
+                p.Controls.Add(fileBrowse);
+
+                Button directoryBrowse = new Button();
+                directoryBrowse.Text = "Directory...";
+                directoryBrowse.Click += (o, e) =>
+                    {
+                        tb.Text = LAIR.IO.Directory.PromptForDirectory("Select directory...", initialBrowsingDirectory);
+                    };
+
+                p.Controls.Add(directoryBrowse);
+            }
+
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<string>(() => tb.Text));
@@ -149,6 +178,7 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(ud);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
@@ -161,12 +191,13 @@ namespace PTL.ATT.GUI
             cb.CheckAlign = checkAlign;
             cb.Checked = isChecked;
             cb.Size = cb.PreferredSize;
+            cb.Name = valueId;
 
             _mainPanel.Controls.Add(cb);
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
         }
 
-        public void AddDropDown(string label, Array values, object selected, string valueId)
+        public void AddDropDown(string label, Array values, object selected, string valueId, Action<object, EventArgs> selectedValueChanged = null)
         {
             Label l = new Label();
             l.Text = label;
@@ -178,13 +209,18 @@ namespace PTL.ATT.GUI
             foreach (object o in values)
                 cb.Items.Add(o);
 
-            cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+            if (values.Length > 0)
+                cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+
+            if (selectedValueChanged != null)
+                cb.SelectedValueChanged += new EventHandler(selectedValueChanged);
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;
             p.Controls.Add(l);
             p.Controls.Add(cb);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.SelectedItem));
@@ -207,13 +243,15 @@ namespace PTL.ATT.GUI
             foreach (object o in values)
                 lb.Items.Add(o);
 
-            lb.Size = lb.PreferredSize;
+            if (values.Length > 0)
+                lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width + 30), lb.PreferredHeight);
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;
             p.Controls.Add(l);
             p.Controls.Add(lb);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => lb.SelectedItems));
@@ -238,6 +276,7 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(control);
             p.Size = p.PreferredSize;
+            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, returnValueFunction);
@@ -245,14 +284,8 @@ namespace PTL.ATT.GUI
 
         public T GetValue<T>(string valueId)
         {
-            T castValue;
-            try { castValue = (T)_valueIdReturn[valueId](); }
+            try { return (T)_valueIdReturn[valueId](); }
             catch (InvalidCastException ex) { throw new InvalidCastException("Invalid cast in Parameterize form:  " + ex.Message); }
-
-            if (castValue == null)
-                throw new NullReferenceException("ParameterizeForm value function returned null");
-
-            return castValue;
         }
     }
 }

@@ -73,13 +73,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\LAIR.XML.dll</HintPath>
     </Reference>
-    <Reference Include="Npgsql, Version=2.0.11.94, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Npgsql">
       <HintPath>..\Libraries\Npgsql.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -94,8 +94,12 @@
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Classifiers\SvmRank.cs" />
+    <Compile Include="Importers\AreaShapefileImporter.cs" />
+    <Compile Include="Importers\FeatureShapefileImporter.cs" />
     <Compile Include="Importers\Importer.cs" />
+    <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
+    <Compile Include="Importers\IShapefileInfoRetriever.cs" />
     <Compile Include="Models\FeatureExtractor.cs" />
     <Compile Include="Models\IDiscreteChoiceModel.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />

@@ -170,25 +170,20 @@ namespace PTL.ATT.GUI
 
             _setIncidentsToolTip = true;
 
-            modelName.Text = "";
-            trainingAreas.Items.Clear();
-            pointSpacing.Value = 200;
-            trainingStart.Value = DateTime.Today.Add(new TimeSpan(-7, 0, 0, 0));
-            trainingEnd.Value = trainingStart.Value.Add(new TimeSpan(6, 23, 59, 59));
-            incidentTypes.Items.Clear();
+            RefreshAreas();
             smoothers.Populate(_discreteChoiceModel);
 
-            try
+            if (_discreteChoiceModel == null)
             {
-                RefreshAreas();
+                modelName.Text = "";
+                pointSpacing.Value = 200;
+                Incident firstIncident = Incident.GetFirst(TrainingArea);
+                Incident lastIncident = Incident.GetLast(TrainingArea);
+                trainingStart.Value = firstIncident == null ? DateTime.Today.Add(new TimeSpan(-7, 0, 0, 0)) : firstIncident.Time;
+                trainingEnd.Value = lastIncident == null ? trainingStart.Value.Add(new TimeSpan(6, 23, 59, 59)) : lastIncident.Time;
                 RefreshIncidentTypes();
             }
-            catch (Exception ex)
-            {
-                Console.Out.WriteLine("Failed to refresh information from database:  " + ex.Message + Environment.NewLine + ex.StackTrace);
-            }
-
-            if (_discreteChoiceModel != null)
+            else
             {
                 modelName.Text = _discreteChoiceModel.Name;
                 trainingAreas.SelectedItem = _discreteChoiceModel.TrainingArea;
@@ -238,10 +233,19 @@ namespace PTL.ATT.GUI
 
             _setIncidentsToolTip = false;
 
+            List<string> selections = incidentTypes.SelectedItems.Cast<string>().ToList();
+
             incidentTypes.Items.Clear();
             if (TrainingArea != null)
                 foreach (string incidentType in Incident.GetUniqueTypes(trainingStart.Value, trainingEnd.Value, TrainingArea))
                     incidentTypes.Items.Add(incidentType);
+
+            foreach (string selection in selections)
+            {
+                int index = incidentTypes.Items.IndexOf(selection);
+                if (index >= 0)
+                    incidentTypes.SetSelected(index, true);
+            }
 
             _setIncidentsToolTip = true;
 
