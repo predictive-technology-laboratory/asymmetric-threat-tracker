@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Asymmetric Threat Tracker by MatthewGerber</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Asymmetric Threat Tracker</h1>
+          <h2>Spatiotemporal Crime Prediction Software</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/MatthewGerber/asymmetric-threat-tracker/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/MatthewGerber/asymmetric-threat-tracker/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/MatthewGerber/asymmetric-threat-tracker" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a name="operating-system-compatibility" class="anchor" href="#operating-system-compatibility"><span class="octicon octicon-link"></span></a>Operating System Compatibility</h1>
+
+<ul>
+<li>All instructions below apply to Windows XP and 7.</li>
+<li>Windows 8 should also work but hasn't been tested.</li>
+<li>Running on Linux via Mono should work (must compile from source -- see below). </li>
+</ul><h1>
+<a name="prerequisites" class="anchor" href="#prerequisites"><span class="octicon octicon-link"></span></a>Prerequisites</h1>
+
+<ul>
+<li>Install <a href="http://www.enterprisedb.com/products-services-training/pgdownload">​PostgreSQL</a> 9.2 or later. After installing PostgreSQL, use Stack Builder to install PostGIS 2.0 or later. PostGIS is located under the Spatial Extensions tab. Keep note of the file paths to "shp2pgsql.exe" and "pgsql2shp.exe".</li>
+<li>Install <a href="http://www.r-project.org">​R</a> 2.15.0 or later. Make sure the directory to which you install R packages is writable. Keep note of the file path to "R.exe".</li>
+<li>Install ​<a href="https://www.java.com/en/download">Java</a> 1.6 or later. Keep note of the file path to "java.exe". </li>
+<li>Install the most current version of ​<a href="http://www.csie.ntu.edu.tw/%7Ecjlin/liblinear">LibLinear</a>. Keep note of the file paths to "train.exe" and predict.exe".</li>
+<li>Install the most current version of <a href="http://www.cs.cornell.edu/people/tj/svm_light/svm_rank.html">​SvmRank</a>. Keep note of the file paths to "svm_rank_learn.exe" and "svm_rank_classify.exe".</li>
+</ul><h1>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h1>
+
+<p>There are two installation choices: binary installer and compilation from source. Unless you are interested in modifying the ATT or understanding the nitty gritty of how it works, you will probably want to use the binary installer.</p>
+
+<h2>
+<a name="binary-installer" class="anchor" href="#binary-installer"><span class="octicon octicon-link"></span></a>Binary Installer</h2>
+
+<p>Download and run the installer for the version you would like:</p>
+
+<ul>
+<li>
+<a href="https://github.com/MatthewGerber/asymmetric-threat-tracker/raw/master/Installer/Installer/Express/SingleImage/DiskImages/DISK1/setup.exe">Beta</a>:  this is the most recent version. It is usually well tested, but might contain bugs.</li>
+</ul><p>After you run the installer, edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine. Then run the ATT. If everything is installed/configured correctly, the system will start.</p>
+
+<h2>
+<a name="compilation-from-source" class="anchor" href="#compilation-from-source"><span class="octicon octicon-link"></span></a>Compilation from Source</h2>
+
+<p>To compile from source:</p>
+
+<ul>
+<li>Install a working version of Microsoft Visual Studio that is capable of running C# applications. ​<a href="http://www.visualstudio.com/en-US/products/visual-studio-express-vs">Visual Studio Express 2013</a> is sufficient and free.</li>
+<li>Optional:  Go to Tools -&gt; Extensions and Updates, then search for and install the License Header Manager. This is used to apply license text to each source code file. Also install the <a href="http://learn.flexerasoftware.com/content/IS-EVAL-InstallShield-Limited-Edition-Visual-Studio">InstallShield Limited Edition for Visual Studio</a> add-on if you want to build the installer package.</li>
+<li>Clone the <a href="https://github.com/MatthewGerber/asymmetric-threat-tracker">ATT GitHub repository</a>.</li>
+<li>Open the ATT solution in Visual Studio by double-clicking the "ATT.sln" file. </li>
+<li>Along the top menu in Visual Studio, change the configuration of the solution from "Debug" to "Release". </li>
+<li>Right-click the ATT project and select "Build".</li>
+<li>Copy "att_config.xml" from the ATT project into the Config folder within the GUI project. After copying, select the copied file and, within the properties window, set "Copy to Output Directory" to "Copy Always".</li>
+<li>Copy "gui_config.xml" from the GUI project into the Config folder within the GUI project. After copying, select the copied file and, within the properties window, set "Copy to Output Directory" to "Copy Always".</li>
+<li>Edit the "att_config.xml" and "gui_config.xml" files in Config appropriately for your machine. Consult the documentation within the config files for detailed instructions.</li>
+<li>Right-click the GUI project and select "Build".</li>
+<li>Right-click the GUI project and select "Set as Start Up Project".</li>
+<li>Run the ATT solution. If everything goes okay, it will initialize all of the database tables and present the GUI interface.</li>
+</ul>
+        </section>
+
+        <footer>
+          Asymmetric Threat Tracker is maintained by <a href="https://github.com/MatthewGerber">MatthewGerber</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
