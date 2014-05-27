@@ -15,7 +15,8 @@ There are two installation choices: binary installer and compilation from source
 
 ## Binary Installer
 Download and run the installer for the version you would like:
-* [Beta](https://github.com/MatthewGerber/asymmetric-threat-tracker/raw/master/Installer/Installer/Express/SingleImage/DiskImages/DISK1/setup.exe):  this is the most recent version. It is usually well tested, but might contain bugs.
+* [Beta](https://github.com/MatthewGerber/asymmetric-threat-tracker/raw/master/Installer/Installer/Express/SingleImage/DiskImages/DISK1/setup.exe):  This is the most recent version. It is usually well tested, but might contain bugs.
+* [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/raw/407d25cdd76af075def6341d89e38de9c9ae442a/Installer/Installer/Express/SingleImage/DiskImages/DISK1/setup.exe):  Released 5/26/2014.
 
 After you run the installer, edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine. Then run the ATT. If everything is installed/configured correctly, the system will start.
 
