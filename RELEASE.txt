@@ -1,12 +1,16 @@
-The process for cutting a release from trunk is as follows:
+The process for cutting a release is as follows:
 
-* Load installer project if not currently loaded.
-* Build Solution, resolve any errors, and test the ATT.
-* Commit all changes to trunk.
-* Tag trunk to next version number in the tags directory following the "X.Y-release" naming convention. Be sure to set an explicit revision for all externals.
-* Switch to new tag, or update working copy to pull down new tag (if you have the entire repository checked out).
-* Edit Installer.isl in the Installer project for the new release, replacing "trunk" with "tags\X.Y-release" (X and Y being the correct values).
-* Open and build the Visual Studio Solution for new release tag, including the Installer project. Run the installer to make sure it works, and run/test the installed ATT system.
-* Commit new tag directory for the release (you edited the installer project). The release is now ready.
-* Back in the trunk Solution, increment the Product Version in the Installer project -> General Information -> General settings. 
-* Build and commit trunk.
+* Check out the branch from which to cut a release (e.g., "git checkout master" for releases from the master branch).
+* Open ATT within Visual Studio and load the Installer project if not currently loaded.
+* Within the Installer project, set the Product Version under -> General Information -> General.
+* Build Solution, resolve any errors, and test the ATT by installing and running it. The installer should be at the following location:
+
+    {att_repository}\Installer\Installer\Express\SingleImage\DiskImages\DISK1\setup.exe
+  
+* Commit all changes to the repository using the appropriate version in "vX.Y-release" format (e.g., "git commit -a -m "Committing release version v1.3-release.").
+* Tag the release (e.g., "git tag -a v1.3-release -m "Release v1.3").
+* Push the tag to GitHub (e.g., "git push origin v1.3-release").
+* Check out the new tag (e.g., "git checkout v1.3-release").
+* Open and build the Visual Studio Solution for new release tag, including the Installer project.
+* Run the installer to make sure it works, and run/test the installed ATT system.
+* If there are problems, check out master, delete the new tag, and fix the problem; otherwise, you're done!
