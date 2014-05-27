@@ -9,8 +9,4 @@ The process for cutting a release is as follows:
   
 * Commit all changes to the repository using the appropriate version in "vX.Y-release" format (e.g., "git commit -a -m "Committing release version v1.3-release.").
 * Tag the release (e.g., "git tag -a v1.3-release -m "Release v1.3").
-* Push the tag to GitHub (e.g., "git push origin v1.3-release").
-* Check out the new tag (e.g., "git checkout v1.3-release").
-* Open and build the Visual Studio Solution for new release tag, including the Installer project.
-* Run the installer to make sure it works, and run/test the installed ATT system.
-* If there are problems, check out master, delete the new tag, and fix the problem; otherwise, you're done!
+* Push the release to GitHub (e.g., "git push origin v1.3-release").
