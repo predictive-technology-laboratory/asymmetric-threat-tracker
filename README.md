@@ -14,18 +14,18 @@
 There are two installation choices: binary installer and compilation from source. Unless you are interested in modifying the ATT or understanding the nitty gritty of how it works, you will probably want to use the binary installer.
 
 ## Binary Installer
-Download and run the installer for the version you would like
+Download and run the installer for the version you would like:
 * [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe)
 
 After you run the installer, edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine. Then run the ATT. If everything is installed/configured correctly, the system will start.
 
 ## Compilation from Source
 * Install a working version of Microsoft Visual Studio that is capable of running C# applications. ​[Visual Studio Express 2013](http://www.visualstudio.com/en-US/products/visual-studio-express-vs) is sufficient and free.
-* Optional
+* Optional steps:
   * Go to Tools -> Extensions and Updates, then search for and install the License Header Manager. This is used to apply license text to each source code file.
   * Install the [InstallShield Limited Edition for Visual Studio](http://learn.flexerasoftware.com/content/IS-EVAL-InstallShield-Limited-Edition-Visual-Studio) add-on if you want to build the installer package.
-* Obtain the source code
-  * Download the source archive for the version of interest
+* Obtain the source code:
+  * Download the source archive for the version of interest:
     * 1.3 ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip),  [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
   * To get the most recent version, clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker). In your clone command, pass "--recursive" to retrieve necessary sub-projects. For example:
     ```
