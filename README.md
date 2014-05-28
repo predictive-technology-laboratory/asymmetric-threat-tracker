@@ -22,8 +22,13 @@ After you run the installer, edit the configuration files in the Config sub-dire
 ## Compilation from Source
 To compile from source:
 * Install a working version of Microsoft Visual Studio that is capable of running C# applications. ​[Visual Studio Express 2013](http://www.visualstudio.com/en-US/products/visual-studio-express-vs) is sufficient and free.
-* Optional:  Go to Tools -> Extensions and Updates, then search for and install the License Header Manager. This is used to apply license text to each source code file. Also install the [InstallShield Limited Edition for Visual Studio](http://learn.flexerasoftware.com/content/IS-EVAL-InstallShield-Limited-Edition-Visual-Studio) add-on if you want to build the installer package.
-* Clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker). In your clone command, pass "--recursive" to retrieve necessary sub-projects. For example:
+* Optional
+  * Go to Tools -> Extensions and Updates, then search for and install the License Header Manager. This is used to apply license text to each source code file.
+  * Install the [InstallShield Limited Edition for Visual Studio](http://learn.flexerasoftware.com/content/IS-EVAL-InstallShield-Limited-Edition-Visual-Studio) add-on if you want to build the installer package.
+* Obtain the source code via one of the following options:
+  * Download the source archive for the version of interest:
+    * 1.3 ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip),  [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
+  * To get the most recent version, clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker). In your clone command, pass "--recursive" to retrieve necessary sub-projects. For example:
 ```
 git clone --recursive git@github.com:MatthewGerber/asymmetric-threat-tracker.git
 ```
