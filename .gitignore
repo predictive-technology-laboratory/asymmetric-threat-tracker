@@ -1,11 +1,11 @@
 ATT.v12.suo
 ATT/bin
 ATT/obj
+Data/Crimes/chicago_crimes_january-march_2013.xml
+Data/Events/building_violations_jan-mar_2013.xml
 GUI/bin
 GUI/obj
 GUI/Config/att_config.xml
 GUI/Config/gui_config.xml
-Installer/Installer/Express/Interm
-Installer/Installer/Express/SingleImage/LogFiles
-Installer/Installer/Express/SingleImage/Reports
+Installer/Installer
 Models
