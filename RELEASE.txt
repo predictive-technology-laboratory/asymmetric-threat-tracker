@@ -7,4 +7,4 @@ The process for cutting a release is as follows:
 
     {att_repository}\Installer\Installer\Express\SingleImage\DiskImages\DISK1\setup.exe
   
-* On GitHub, draft a new release with tag "vX.Y" and release title "vX.Y", attaching the binary installer file that you built above (setup.exe).
+* On GitHub, draft a new release with tag "vX.Y" and release title "ATT release vX.Y", attaching the binary installer file that you built above (setup.exe).
