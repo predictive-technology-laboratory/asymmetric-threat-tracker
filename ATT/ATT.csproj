@@ -143,7 +143,6 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ATT.licenseheader" />

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="is.xsl" ?>
 <!DOCTYPE msi [
    <!ELEMENT msi   (summary,table*)>
@@ -4118,7 +4118,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{51A64992-F170-4FEC-B0F6-997E45BA12CC}</td></row>
 		<row><td>ISUSSignature</td><td>{442423F7-0409-4A2F-8495-7EC93CE359D9}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewUI,viewAppV,viewISToday,viewRegistry,viewIniFiles,viewTextFiles,viewXMLConfig,viewFileExtensions,viewTextMessages,viewSystemSearch,viewSupportFiles,viewRelease,viewDesignPatches</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewUI,viewAppV,viewISToday,viewRegistry,viewIniFiles,viewTextFiles,viewXMLConfig,viewFileExtensions,viewTextMessages,viewSystemSearch,viewSupportFiles,viewRelease,viewDesignPatches,viewCustomActions,viewInstallScriptStd</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>

@@ -344,9 +344,6 @@
     <None Include="..\ATT\ATT.licenseheader">
       <Link>ATT.licenseheader</Link>
     </None>
-    <None Include="..\README.md">
-      <Link>README.md</Link>
-    </None>
     <None Include="Resources\zoom_out.jpg" />
   </ItemGroup>
   <ItemGroup>
@@ -387,7 +384,6 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="README.txt" />
     <None Include="Resources\resetZoom.jpg" />
     <None Include="Resources\resetPan.jpg" />
   </ItemGroup>
