@@ -14,13 +14,12 @@
 There are two installation choices: binary installer and compilation from source. Unless you are interested in modifying the ATT or understanding the nitty gritty of how it works, you will probably want to use the binary installer.
 
 ## Binary Installer
-Download and run the installer for the version you would like:
+Download and run the installer for the version you would like
 * [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe)
 
 After you run the installer, edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine. Then run the ATT. If everything is installed/configured correctly, the system will start.
 
 ## Compilation from Source
-To compile from source:
 * Install a working version of Microsoft Visual Studio that is capable of running C# applications. ​[Visual Studio Express 2013](http://www.visualstudio.com/en-US/products/visual-studio-express-vs) is sufficient and free.
 * Optional
   * Go to Tools -> Extensions and Updates, then search for and install the License Header Manager. This is used to apply license text to each source code file.
