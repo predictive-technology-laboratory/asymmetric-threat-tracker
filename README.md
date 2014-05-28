@@ -15,7 +15,7 @@ There are two installation choices: binary installer and compilation from source
 
 ## Binary Installer
 Download and run the installer for the version you would like:
-* [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe)
+* [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe) (5/27/2014)
 
 After you run the installer, edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine. Then run the ATT. If everything is installed/configured correctly, the system will start.
 
@@ -26,7 +26,7 @@ After you run the installer, edit the configuration files in the Config sub-dire
   * Install the [InstallShield Limited Edition for Visual Studio](http://learn.flexerasoftware.com/content/IS-EVAL-InstallShield-Limited-Edition-Visual-Studio) add-on if you want to build the installer package.
 * Obtain the source code:
   * Download the source archive for the version of interest:
-    * 1.3 ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip),  [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
+    * 1.3 (5/27/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip),  [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
   * To get the most recent version, clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker). In your clone command, pass "--recursive" to retrieve necessary sub-projects. For example:
     ```
     git clone --recursive git@github.com:MatthewGerber/asymmetric-threat-tracker.git
