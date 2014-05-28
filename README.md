@@ -15,7 +15,7 @@ There are two installation choices: binary installer and compilation from source
 
 ## Binary Installer
 Download and run the installer for the version you would like:
-* [1.3]
+* [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe)
 
 After you run the installer, edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine. Then run the ATT. If everything is installed/configured correctly, the system will start.
 
