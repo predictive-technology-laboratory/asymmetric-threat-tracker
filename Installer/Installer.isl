@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="is.xsl" ?>
 <!DOCTYPE msi [
    <!ELEMENT msi   (summary,table*)>
@@ -342,16 +342,16 @@
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
 		<row><td>GUI.Primary_output</td><td>{0103E3E5-646D-418A-94D4-9F44EDCF485F}</td><td>INSTALLDIR</td><td>2</td><td/><td>gui.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{9BC8CA77-B4E4-43AD-A708-884FBE2A028C}</td><td>CONFIG</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{45C449F3-C8E0-4AFA-BE5A-E6FA5B4DF959}</td><td>DATA</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{0E6C9535-78B5-475A-BD14-47D7C374E227}</td><td>CRIMES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT11</td><td>{69A97D7E-B028-4D1E-A072-0F6A493BA2A8}</td><td>EVENTS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT12</td><td>{1B9FE8E0-5525-42BA-87E0-D21FD629B590}</td><td>SHAPEFILES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT13</td><td>{0BD24F6D-B6D2-47DF-B93F-21C3824378DA}</td><td>CHICAGO1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT14</td><td>{5532DAA3-051E-4C1A-B756-A87A2AF5BD36}</td><td>AO2</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT15</td><td>{D3E7B74E-CEAC-40D0-8FA3-BCEC83424CB5}</td><td>FEATURES2</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT16</td><td>{25589056-F2EE-4712-9DA1-C6EF0F96458F}</td><td>KABUL1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT17</td><td>{FE892A2D-A7ED-4955-B38D-86690FB7196C}</td><td>AO3</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT18</td><td>{A3C5D07C-9107-4C6C-9209-579EFE0C3F75}</td><td>FEATURES3</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{8833679A-3263-4152-A6BC-4ABCE618666C}</td><td>DATA</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{76B42875-734D-43FA-B1F6-068AB027F36F}</td><td>AO1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT11</td><td>{8475D061-7034-4005-B6E2-B4C312F44935}</td><td>FEATURES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{277D309B-2704-4A22-9086-EFFE9E82C8D2}</td><td>CRIMES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{6B7D951F-B43D-429A-8E09-7768DCBD2C79}</td><td>EVENTS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{1EB9B531-BD72-483B-9D02-32F91981B65D}</td><td>SHAPEFILES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{523AE025-A14C-4BFA-8E5F-72EED2A08D67}</td><td>CHICAGO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{FE200EC7-FA15-4D82-AC40-3A8BC3B0BE39}</td><td>AO</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT7</td><td>{7AFB9497-EB96-461A-B0EE-3E5D41978703}</td><td>FEATURES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT8</td><td>{E0DFF401-C004-4D78-89D2-5714357AB9C4}</td><td>KABUL</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT9</td><td>{F19D58B1-BA3F-4A03-B637-D3BC94443F35}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>NewComponent1</td><td>{ED59E1A1-2F52-4D58-8017-343A05213A7E}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
@@ -1063,11 +1063,11 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
-		<row><td>CHICAGO1</td><td>ISX_DEFAULTCOMPONENT13</td></row>
+		<row><td>CHICAGO</td><td>ISX_DEFAULTCOMPONENT5</td></row>
 		<row><td>DATA</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>INSTALLDIR</td><td>NewComponent1</td></row>
-		<row><td>KABUL1</td><td>ISX_DEFAULTCOMPONENT16</td></row>
-		<row><td>SHAPEFILES1</td><td>ISX_DEFAULTCOMPONENT12</td></row>
+		<row><td>KABUL</td><td>ISX_DEFAULTCOMPONENT8</td></row>
+		<row><td>SHAPEFILES</td><td>ISX_DEFAULTCOMPONENT4</td></row>
 	</table>
 
 	<table name="CustomAction">
@@ -1148,12 +1148,12 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S255">ISFolderName</col>
 		<row><td>ALLUSERSPROFILE</td><td>TARGETDIR</td><td>.:ALLUSE~1|All Users</td><td/><td>0</td><td/></row>
-		<row><td>AO2</td><td>CHICAGO1</td><td>AO</td><td/><td>0</td><td/></row>
-		<row><td>AO3</td><td>KABUL1</td><td>AO</td><td/><td>0</td><td/></row>
+		<row><td>AO</td><td>CHICAGO</td><td>AO</td><td/><td>0</td><td/></row>
+		<row><td>AO1</td><td>KABUL</td><td>AO</td><td/><td>0</td><td/></row>
 		<row><td>ASYMMETRIC_THREAT_TRACKER</td><td>PREDICTIVE_TECHNOLOGY_LABORATORY</td><td>ASYMME~1|Asymmetric Threat Tracker</td><td/><td>0</td><td/></row>
 		<row><td>AdminToolsFolder</td><td>TARGETDIR</td><td>.:Admint~1|AdminTools</td><td/><td>0</td><td/></row>
 		<row><td>AppDataFolder</td><td>TARGETDIR</td><td>.:APPLIC~1|Application Data</td><td/><td>0</td><td/></row>
-		<row><td>CHICAGO1</td><td>SHAPEFILES1</td><td>Chicago</td><td/><td>0</td><td/></row>
+		<row><td>CHICAGO</td><td>SHAPEFILES</td><td>Chicago</td><td/><td>0</td><td/></row>
 		<row><td>CONFIG</td><td>INSTALLDIR</td><td>Config</td><td/><td>0</td><td/></row>
 		<row><td>CRIMES</td><td>DATA</td><td>Crimes</td><td/><td>0</td><td/></row>
 		<row><td>CommonAppDataFolder</td><td>TARGETDIR</td><td>.:Common~1|CommonAppData</td><td/><td>0</td><td/></row>
@@ -1163,8 +1163,8 @@
 		<row><td>DATABASEDIR</td><td>ISYourDataBaseDir</td><td>.</td><td/><td>0</td><td/></row>
 		<row><td>DesktopFolder</td><td>TARGETDIR</td><td>.:Desktop</td><td/><td>3</td><td/></row>
 		<row><td>EVENTS</td><td>DATA</td><td>Events</td><td/><td>0</td><td/></row>
-		<row><td>FEATURES2</td><td>CHICAGO1</td><td>Features</td><td/><td>0</td><td/></row>
-		<row><td>FEATURES3</td><td>KABUL1</td><td>Features</td><td/><td>0</td><td/></row>
+		<row><td>FEATURES</td><td>CHICAGO</td><td>Features</td><td/><td>0</td><td/></row>
+		<row><td>FEATURES1</td><td>KABUL</td><td>Features</td><td/><td>0</td><td/></row>
 		<row><td>FavoritesFolder</td><td>TARGETDIR</td><td>.:FAVORI~1|Favorites</td><td/><td>0</td><td/></row>
 		<row><td>FontsFolder</td><td>TARGETDIR</td><td>.:Fonts</td><td/><td>0</td><td/></row>
 		<row><td>GlobalAssemblyCache</td><td>TARGETDIR</td><td>.:Global~1|GlobalAssemblyCache</td><td/><td>0</td><td/></row>
@@ -1173,7 +1173,7 @@
 		<row><td>ISMyCompanyDir</td><td>ProgramFilesFolder</td><td>MYCOMP~1|My Company Name</td><td/><td>0</td><td/></row>
 		<row><td>ISMyProductDir</td><td>ISMyCompanyDir</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>ISYourDataBaseDir</td><td>INSTALLDIR</td><td>Database</td><td/><td>0</td><td/></row>
-		<row><td>KABUL1</td><td>SHAPEFILES1</td><td>Kabul</td><td/><td>0</td><td/></row>
+		<row><td>KABUL</td><td>SHAPEFILES</td><td>Kabul</td><td/><td>0</td><td/></row>
 		<row><td>LocalAppDataFolder</td><td>TARGETDIR</td><td>.:LocalA~1|LocalAppData</td><td/><td>0</td><td/></row>
 		<row><td>MY_PRODUCT_NAME</td><td>PREDICTIVE_TECHNOLOGY_LABORATORY</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>MyPicturesFolder</td><td>TARGETDIR</td><td>.:MyPict~1|MyPictures</td><td/><td>0</td><td/></row>
@@ -1186,7 +1186,7 @@
 		<row><td>ProgramFilesFolder</td><td>TARGETDIR</td><td>.:PROGRA~1|program files</td><td/><td>0</td><td/></row>
 		<row><td>ProgramMenuFolder</td><td>TARGETDIR</td><td>.:Programs</td><td/><td>3</td><td/></row>
 		<row><td>RecentFolder</td><td>TARGETDIR</td><td>.:Recent</td><td/><td>0</td><td/></row>
-		<row><td>SHAPEFILES1</td><td>DATA</td><td>SHAPEF~1|Shapefiles</td><td/><td>0</td><td/></row>
+		<row><td>SHAPEFILES</td><td>DATA</td><td>SHAPEF~1|Shapefiles</td><td/><td>0</td><td/></row>
 		<row><td>SendToFolder</td><td>TARGETDIR</td><td>.:SendTo</td><td/><td>3</td><td/></row>
 		<row><td>StartMenuFolder</td><td>TARGETDIR</td><td>.:STARTM~1|Start Menu</td><td/><td>3</td><td/></row>
 		<row><td>StartupFolder</td><td>TARGETDIR</td><td>.:StartUp</td><td/><td>3</td><td/></row>
@@ -1897,13 +1897,13 @@
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT10</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT11</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT12</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT13</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT14</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT15</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT16</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT17</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT18</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT5</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT6</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT7</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT8</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT9</td></row>
 		<row><td>AlwaysInstall</td><td>NewComponent1</td></row>
 	</table>
@@ -1921,67 +1921,19 @@
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\ATT\att_config.xml</td><td>1</td><td/></row>
-		<row><td>building_violations_jan_mar_1</td><td>ISX_DEFAULTCOMPONENT11</td><td>BUILDI~1.ZIP|building_violations_jan-mar_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Events\building_violations_jan-mar_2013.zip</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_bike_racks.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.att</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.dbf1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.DBF|chicago_bike_racks.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.prj1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.PRJ|chicago_bike_racks.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.prj</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.sbn1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBN|chicago_bike_racks.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.sbx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBX|chicago_bike_racks.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.shp1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHP|chicago_bike_racks.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.shp</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.shx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHX|chicago_bike_racks.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.shx</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.att</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.ATT|chicago_city_boundary.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.att</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.dbf1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.DBF|chicago_city_boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.prj1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.PRJ|chicago_city_boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.prj</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.sbn1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SBN|chicago_city_boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.sbx1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SBX|chicago_city_boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.shp1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SHP|chicago_city_boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.shp</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.shx1</td><td>ISX_DEFAULTCOMPONENT14</td><td>CHICAG~1.SHX|chicago_city_boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.shx</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_january_march1</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.ZIP|chicago_crimes_january-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_january-march_2013.zip</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_simple_format</td><td>ISX_DEFAULTCOMPONENT10</td><td>CHICAG~1.XML|chicago_crimes_simple_format_sample.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_simple_format_sample.xml</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_major_streets.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.att</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.dbf1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.DBF|chicago_major_streets.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.prj1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.PRJ|chicago_major_streets.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.prj</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.sbn1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBN|chicago_major_streets.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.sbx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBX|chicago_major_streets.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.shp1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHP|chicago_major_streets.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.shp</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.shx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHX|chicago_major_streets.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.shx</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.att</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.ATT|chicago_police_stations.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.att</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.dbf1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.DBF|chicago_police_stations.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.dbf</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.prj1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.PRJ|chicago_police_stations.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.prj</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.sbn1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBN|chicago_police_stations.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.sbn</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.sbx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SBX|chicago_police_stations.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.sbx</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.shp1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHP|chicago_police_stations.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.shp</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.shx1</td><td>ISX_DEFAULTCOMPONENT15</td><td>CHICAG~1.SHX|chicago_police_stations.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.shx</td><td>1</td><td/></row>
+		<row><td>building_violations_jan_mar_</td><td>ISX_DEFAULTCOMPONENT3</td><td>BUILDI~1.ZIP|building_violations_jan-mar_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Events\building_violations_jan-mar_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_bike_racks.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.zip</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.zip</td><td>ISX_DEFAULTCOMPONENT6</td><td>CHICAG~1.ZIP|chicago_city_boundary.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.zip</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_january_march</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.ZIP|chicago_crimes_january-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_january-march_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_simple_format</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.XML|chicago_crimes_simple_format_sample.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_simple_format_sample.xml</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_major_streets.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.zip</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_police_stations.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.zip</td><td>1</td><td/></row>
 		<row><td>gui.primary_output</td><td>GUI.Primary_output</td><td>GUI.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;GUI&gt;|Built</td><td>3</td><td/></row>
 		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\GUI\gui_config.xml</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.att</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.ATT|kabol_hydro_aquedctl.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.att</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.dbf1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.DBF|kabol_hydro_aquedctl.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.dbf</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.prj1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.PRJ|kabol_hydro_aquedctl.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.prj</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.sbn1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBN|kabol_hydro_aquedctl.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.sbn</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.sbx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBX|kabol_hydro_aquedctl.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.sbx</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.shp1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHP|kabol_hydro_aquedctl.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.shp</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.shx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHX|kabol_hydro_aquedctl.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.shx</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.att</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.ATT|kabol_hydro_daml.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.att</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.dbf1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.DBF|kabol_hydro_daml.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.dbf</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.prj1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.PRJ|kabol_hydro_daml.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.prj</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.sbn1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBN|kabol_hydro_daml.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.sbn</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.sbx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBX|kabol_hydro_daml.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.sbx</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.shp1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHP|kabol_hydro_daml.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.shp</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.shx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHX|kabol_hydro_daml.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.shx</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.att</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.ATT|kabol_trans_roadl.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.att</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.dbf1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.DBF|kabol_trans_roadl.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.dbf</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.prj1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.PRJ|kabol_trans_roadl.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.prj</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.sbn1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBN|kabol_trans_roadl.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.sbn</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.sbx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SBX|kabol_trans_roadl.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.sbx</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.shp1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHP|kabol_trans_roadl.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.shp</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.shx1</td><td>ISX_DEFAULTCOMPONENT18</td><td>KABOL_~1.SHX|kabol_trans_roadl.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.shx</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.att</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.ATT|kabul_city_boundary.att</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.att</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.dbf1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.DBF|kabul_city_boundary.dbf</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.dbf</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.prj1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.PRJ|kabul_city_boundary.prj</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.prj</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.sbn1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SBN|kabul_city_boundary.sbn</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.sbn</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.sbx1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SBX|kabul_city_boundary.sbx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.sbx</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.shp1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SHP|kabul_city_boundary.shp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.shp</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.shx1</td><td>ISX_DEFAULTCOMPONENT17</td><td>KABUL_~1.SHX|kabul_city_boundary.shx</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.shx</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_hydro_aquedctl.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.zip</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_hydro_daml.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.zip</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_trans_roadl.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.zip</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.zip</td><td>ISX_DEFAULTCOMPONENT10</td><td>KABUL_~1.ZIP|kabul_city_boundary.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.zip</td><td>1</td><td/></row>
 		<row><td>license.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>LICENSE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\LICENSE.txt</td><td>1</td><td/></row>
 		<row><td>notice.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>NOTICE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\NOTICE.txt</td><td>1</td><td/></row>
 		<row><td>readme.txt</td><td>ISX_DEFAULTCOMPONENT</td><td>README.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\GUI\Config\README.txt</td><td>1</td><td/></row>
@@ -2133,16 +2085,16 @@
 		<col def="S0">Miscellaneous</col>
 		<row><td>GUI.Primary_output</td><td/><td/><td>_49E063F7_7CDE_4241_A6F1_FB5696439C17_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_DFADE0FB_078A_4A8E_AD6A_C2B74A34F424_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_8E8ED885_1ADF_44F7_9F67_21429B1B4806_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_F3FAA2CA_8AFB_4B6E_ABD4_2CDA6545E864_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT11</td><td/><td/><td>_94C462A1_3E45_4A3D_B10E_32C4A6CA7236_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT12</td><td/><td/><td>_506DD0A1_825C_4029_8167_227B4389DC49_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT13</td><td/><td/><td>_680AA81A_8DF8_439F_A7DE_D6BB0D14EBF4_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT14</td><td/><td/><td>_A2C09C86_2954_40E7_895B_730B8F27E5E3_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT15</td><td/><td/><td>_D0D0DD4E_C9A6_442D_8352_8C9415DF7210_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT16</td><td/><td/><td>_C8E49B54_3D9E_4789_8944_26C31BDDFD2B_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT17</td><td/><td/><td>_86E99A0B_F722_46EA_B979_104DC90E7094_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT18</td><td/><td/><td>_0EBB8CB9_2E4E_4BE0_81EC_248341C53598_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_36A2A84A_0A58_4B02_8766_02FCE3B4BE67_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_662BE1BF_B3E4_4D4D_9CC3_EE941F2825FA_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT11</td><td/><td/><td>_F7D8414F_75F6_49F2_A1FF_5186EC7C3A32_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_3A89B3F5_BEE4_47EC_A1FD_31100FE21120_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_B0CC8BD7_FAAD_45A3_84C8_CB7680EB28AD_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_E1A42CDC_3343_48DE_9D1E_BB11D643B12C_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_95AFE7A3_084E_471B_ABDA_DB003C30A145_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT6</td><td/><td/><td>_6CCBC41B_B7B6_4EB6_98AC_A1F4FC61E6B1_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT7</td><td/><td/><td>_BB8AD75C_521E_40E8_996D_502B252DD38F_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT8</td><td/><td/><td>_E6922B15_F531_4499_B480_7C997BA882AC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT9</td><td/><td/><td>_BC6AEEBB_3777_4E17_929E_AE9850B67410_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>NewComponent1</td><td/><td/><td>_30F1442F_2DEC_4DDF_99A4_20B7C1D8C559_FILTER</td><td/><td/><td/><td/></row>
 	</table>

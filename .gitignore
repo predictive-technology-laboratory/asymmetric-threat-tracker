@@ -1,8 +1,7 @@
 ATT.v12.suo
 ATT/bin
 ATT/obj
-Data/Crimes/chicago_crimes_january-march_2013.xml
-Data/Events/building_violations_jan-mar_2013.xml
+Data/**/*unzipped
 GUI/bin
 GUI/obj
 GUI/Config/att_config.xml

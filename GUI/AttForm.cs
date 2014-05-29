@@ -375,7 +375,7 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.PostGisShapefileDirectory,
-                   "Shapefiles (*.shp)|*.shp",
+                   "Shapefiles (*.shp;*.zip)|*.shp;*.zip", "*.shp",
                    new ImportCompletionDelegate(() => { RefreshPredictionAreas(); }));
         }
 
@@ -413,7 +413,7 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.EventsImportDirectory,
-                   null, null);
+                   null, null, null);
         }
 
         private void deleteGeographicDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -501,7 +501,7 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.IncidentsImportDirectory,
-                   null, null);
+                   null, null, null);
         }
 
         public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -532,7 +532,8 @@ namespace PTL.ATT.GUI
                             CompleteImporterFormDelegate completeImporterForm,
                             CreateImporterDelegate createImporter,
                             string initialBrowsingDirectory,
-                            string fileFilter,
+                            string fileBrowserFilter,
+                            string importFileSearchPattern,
                             ImportCompletionDelegate completionCallback)
         {
             Thread t = new Thread(new ThreadStart(delegate()
@@ -542,7 +543,7 @@ namespace PTL.ATT.GUI
                     DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
 
                     importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
-                    importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileFilter);
+                    importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileBrowserFilter);
                     importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
                     importerForm.AddDropDown("File type:", new string[] { "Plain", "Zip" }, "Plain", "file_type");
                     importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
@@ -562,7 +563,7 @@ namespace PTL.ATT.GUI
                         if (pathIsDirectory)
                             downloadDirectory = p;
 
-                        #region download file if needed -- some callbacks need the file in order to set up the importer
+                        #region download file if a URI is given -- some callbacks need the file in order to set up the importer
                         string sourceURI = importerForm.GetValue<string>("uri");
                         if (!string.IsNullOrWhiteSpace(sourceURI))
                         {
@@ -585,25 +586,29 @@ namespace PTL.ATT.GUI
                         }
                         #endregion
 
-                        #region decompress zip files
+                        #region decompress zip files if the user is providing them
                         if (importerForm.GetValue<string>("file_type") == "Zip")
                         {
-                            string unzipDir = LAIR.IO.Directory.GetTemporaryDirectory();
-                            if (Directory.Exists(unzipDir))
-                                Directory.Delete(unzipDir, true);
+                            string[] pathsToUnzip = new string[] { p };
+                            if (pathIsDirectory)
+                                pathsToUnzip = Directory.GetFiles(p, "*.zip", SearchOption.AllDirectories);
 
-                            Console.Out.WriteLine("Unzipping \"" + p + "\" to \"" + unzipDir + "\"...");
-                            ZipFile.ExtractToDirectory(p, unzipDir);
+                            foreach (string pathToUnzip in pathsToUnzip)
+                            {
+                                string destinationDirectory = pathToUnzip + "_unzipped";
+                                Console.Out.WriteLine("Unzipping \"" + pathToUnzip + "\" to \"" + destinationDirectory + "\"...");
+                                ZipFile.ExtractToDirectory(pathToUnzip, destinationDirectory);
+                                if (!pathIsDirectory)
+                                    p = destinationDirectory;
+                            }
 
-                            File.Delete(p);
-                            Directory.Move(unzipDir, p);
                             pathIsDirectory = true;
                         }
                         #endregion
 
                         string[] paths = new string[] { p };
                         if (pathIsDirectory)
-                            paths = Directory.GetFiles(p, fileFilter == null ? "*" : fileFilter.Split('|')[1], SearchOption.AllDirectories);
+                            paths = Directory.GetFiles(p, importFileSearchPattern == null ? "*" : importFileSearchPattern, SearchOption.AllDirectories);
 
                         foreach (string path in paths)
                             if (File.Exists(path))

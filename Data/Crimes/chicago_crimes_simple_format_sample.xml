@@ -1,0 +1,16 @@
+<row>
+  <row>
+    <id>1</id>
+    <time>1/1/2013 1:00 PM</time>
+    <latitude>41.88194715226796</latitude>
+    <longitude>-87.6428102313306</longitude>
+    <type>THEFT</type>
+  </row>
+  <row>
+    <id>2</id>
+    <time>1/1/2013 1:00 PM</time>
+    <latitude>41.88194715226796</latitude>
+    <longitude>-87.6428102313306</longitude>
+    <type>ASSAULT</type>
+  </row>
+</row>
