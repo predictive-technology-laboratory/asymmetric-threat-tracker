@@ -1,0 +1,1305 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FeatureSelector</name>
+    </assembly>
+    <members>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper">
+            <summary>
+            Abstract wrapper for subset selection
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.Initialize(System.String,System.Int32[],LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this wrapper with various things
+            </summary>
+            <param name="id">ID of subset evaluation</param>
+            <param name="features">Features to evaluate</param>
+            <param name="options">Options and their values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes subclasses with options
+            </summary>
+            <param name="options">Options to initialize with</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.SetGain(System.Int32,System.Single)">
+            <summary>
+            Sets the gain for a feature
+            </summary>
+            <param name="feature">Feature to set gain for</param>
+            <param name="gain">Gain of feature</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.GetGain(System.Int32)">
+            <summary>
+            Gets the gain of a feature
+            </summary>
+            <param name="feature">Feature to get gain for</param>
+            <returns>Feature gain</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.Contains(System.Int32)">
+            <summary>
+            Gets whether or not this wrapper contains a given feature (group)
+            </summary>
+            <param name="feature">Feature (group) to check for</param>
+            <returns>True if feature (group) is contained, false otherwise</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.GetPredictions(System.Collections.Generic.IEnumerable{System.String},System.String[],System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.String[]@,System.Single[]@)">
+            <summary>
+            Gets predicted labels and their scores
+            </summary>
+            <param name="trainingVectors">Training vectors</param>
+            <param name="validationVectors">Validation vectors</param>
+            <param name="featureNumberGroup">Feature number groups</param>
+            <param name="predictedLabels">Predicted labels</param>
+            <param name="predictionScores">Prediction scores</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.Cleanup">
+            <summary>
+            Cleans up after subset training and validation is complete
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.ToString">
+            <summary>
+            Gets the ID of this subset
+            </summary>
+            <returns>ID</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.GetFeatureByInstanceVectors(System.Collections.Generic.IEnumerable{System.String},System.Int32,System.Collections.Generic.Dictionary{System.Int32,System.Int32})">
+            <summary>
+            Gets enumerator over feature vectors, where each dimension in the vector is the feature's value for an instance
+            </summary>
+            <param name="featureVectors">Feature vectors</param>
+            <param name="numInstances">Total number of instances</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <returns>Mapping from feature ids to instance numbers to feature values</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.GetInteractionEvaluationOptions(System.Int32[],System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.Collections.Generic.Dictionary{System.Int32,System.String},LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Gets option configuration for evaluating interaction features
+            </summary>
+            <param name="selectedGroups"></param>
+            <param name="options"></param>
+            <param name="groupIdName"></param>
+            <param name="featureNumberGroup"></param>
+            <returns>New options</returns>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.ID">
+            <summary>
+            Gets the ID
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.Features">
+            <summary>
+            Gets ordered list of features
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.NewestFeature">
+            <summary>
+            Gets the newest feature added to the current wrapper
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.NewestFeatureGain">
+            <summary>
+            Gets or sets the gain of the newest feature added to the current wrapper
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper.Score">
+            <summary>
+            Gets or sets the score
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options">
+            <summary>
+            Holds feature selection options
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="path">Path to options file</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.Add(System.Enum,System.String,System.Boolean)">
+            <summary>
+            Adds an option-value pair
+            </summary>
+            <param name="option">Option to add</param>
+            <param name="value">Value to add</param>
+            <param name="setValueIfOptionExists">Whether or not to set the option value if the option is already present. If this is false and the option already exists, an exception will be thrown.</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.Save(System.String)">
+            <summary>
+            Saves the current options to disk
+            </summary>
+            <param name="path">Path at which to save options</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.GetInt(System.Enum)">
+            <summary>
+            Gets an int
+            </summary>
+            <param name="option"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.GetBool(System.Enum)">
+            <summary>
+            Gets a bool
+            </summary>
+            <param name="option"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.TryGetString(System.Enum,System.String@)">
+            <summary>
+            Tries to get the value for an option
+            </summary>
+            <param name="option">Option to get value for</param>
+            <param name="value">Value for option</param>
+            <returns>True if value was found and false otherwise</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.TryGetType(System.Enum,System.Type@)">
+            <summary>
+            Tries to get the type indicated by an option value
+            </summary>
+            <param name="option">Option whose value indicates a type</param>
+            <param name="type">Type</param>
+            <returns>True if type was specified in the options and successfully loaded, false if the type was not specified. Quits if type was specified but could not be loaded.</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.TryGetBool(System.Enum,System.Boolean@)">
+            <summary>
+            Tries to get bool
+            </summary>
+            <param name="option"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.TryGetFloat(System.Enum,System.Single@)">
+            <summary>
+            Tries to get float
+            </summary>
+            <param name="option"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.TryGetInt(System.Enum,System.Int32@)">
+            <summary>
+            Tries to get int
+            </summary>
+            <param name="option"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.GetEnumerator">
+            <summary>
+            Gets an enumerator over options
+            </summary>
+            <returns>Enumerator over options</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Gets an enumerator over options
+            </summary>
+            <returns>Enumerator over options</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.Copy">
+            <summary>
+            Gets a copy of these options
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.Count">
+            <summary>
+            Gets the number of options present
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options.Item(System.Enum)">
+            <summary>
+            Gets the value for an option
+            </summary>
+            <param name="option">Option to get value for</param>
+            <returns>Value for option</returns>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.CosineSimilarityFeatureFilter">
+            <summary>
+            Filters features using cosine similarity
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter">
+            <summary>
+            Performs feature filtering
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter.Initialize(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this filter
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this filter
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter.Filter(System.Collections.Generic.IEnumerable{System.String},System.Int32,System.Collections.Generic.Dictionary{System.Int32,System.Int32})">
+            <summary>
+            Filters a set of features
+            </summary>
+            <param name="featureVectors">Feature vectors</param>
+            <param name="numInstances">Total number of instances</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <returns>Features to remove</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter.FilterPrivate(System.Collections.Generic.IEnumerable{System.String},System.Int32,System.Collections.Generic.Dictionary{System.Int32,System.Int32},LAIR.Collections.Generic.Set{System.Int32})">
+            <summary>
+            Filters features
+            </summary>
+            <param name="featureVectors"></param>
+            <param name="numInstances"></param>
+            <param name="featureNumberGroup"></param>
+            <param name="alreadyRemoved"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter.FilterFeatures(System.Collections.Generic.IEnumerable{System.String},System.Int32,System.Collections.Generic.Dictionary{System.Int32,System.Int32},LAIR.Collections.Generic.Set{System.Int32})">
+            <summary>
+            Filters a set of features
+            </summary>
+            <param name="featureVectors">Feature vectors</param>
+            <param name="numInstances">Total number of instances</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <param name="alreadyRemoved">Features removed by previous filters in the chain</param>
+            <returns>Features to remove</returns>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter.NextFilter">
+            <summary>
+            Sets the next filter in the filter chain
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.FeatureFilter.WrapperType">
+            <summary>
+            Gets the wrapper type
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.CosineSimilarityFeatureFilter.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes options
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.CosineSimilarityFeatureFilter.FilterFeatures(System.Collections.Generic.IEnumerable{System.String},System.Int32,System.Collections.Generic.Dictionary{System.Int32,System.Int32},LAIR.Collections.Generic.Set{System.Int32})">
+            <summary>
+            Filters features
+            </summary>
+            <param name="featureVectors">Feature vectors</param>
+            <param name="numInstances">Total number of instances</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <param name="alreadyRemoved">Features already removed</param>
+            <returns>Features numbers to remove</returns>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.CosineSimilarityFeatureFilter.Option">
+            <summary>
+            Options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureFilters.CosineSimilarityFeatureFilter.Option.Threshold">
+            <summary>
+            Threshold to use when filtering features. ([0,1], default:  0.95)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.SurveillancePlotScorer">
+            <summary>
+            Scores predictions with area under surveillance plot
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer">
+            <summary>
+            Abstract base class for all scorers
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.Initialize(System.String[],System.String[],LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this scorer
+            </summary>
+            <param name="trainingInstanceComments">Training instance comments</param>
+            <param name="validationInstanceComments">Validation instance comments</param>
+            <param name="options">Option values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes options
+            </summary>
+            <param name="options">Options and their values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.GetScore(System.Int32,System.Int32,System.String[],System.Single[],System.String[],System.String@)">
+            <summary>
+            Gets score for predicted labels
+            </summary>
+            <param name="instanceEnd">Start of instance range</param>
+            <param name="instanceStart">End of instance range</param>
+            <param name="predictedLabels">Predicted labels</param>
+            <param name="predictionScores">Prediction scores</param>
+            <param name="trueLabels">True labels</param>
+            <param name="informationToLog">Other information about the scoring operation that should be logged</param>
+            <returns>Score of predicted labels given true labels</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.GetSizeOfBlockStartingAt(System.Int32)">
+            <summary>
+            Gets the size of the block that starts at a given instance
+            </summary>
+            <param name="validationInstanceNumber">Number of instance on which the block starts</param>
+            <returns>Size of block</returns>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.TrainingInstanceComments">
+            <summary>
+            Gets or sets the training instance comments
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.ValidationInstanceBlockSizes">
+            <summary>
+            Gets or sets the block sizes for the validation instances that are being scored. This will only be non-null
+            when doing cross-validation, as that is the only place that block sizes are applicable.
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer.ValidationInstanceComments">
+            <summary>
+            Gets or sets the validation instance comments
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.SurveillancePlotScorer.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes options
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.SurveillancePlotScorer.GetScore(System.Int32,System.Int32,System.String[],System.Single[],System.String[],System.String@)">
+            <summary>
+            Gets surveillance score
+            </summary>
+            <param name="instanceEnd">Start of instance range</param>
+            <param name="instanceStart">End of instance range</param>
+            <param name="predictedLabels"></param>
+            <param name="predictionScores"></param>
+            <param name="trueLabels"></param>
+            <param name="informationToLog"></param>
+            <returns></returns>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.SurveillancePlotScorer.Option">
+            <summary>
+            Options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.SurveillancePlotScorer.Option.IgnoredSurveillanceClasses">
+            <summary>
+            A space-separated list of classes to ignore when computing the surveillance plot. (optional)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper">
+             <summary>
+             Wrapper for classifiers such as SvmLight and LibLinear, which use separate training and classification
+             executables. This also assumes that all instance files have lines in the following format:
+            
+               label feature1:value1 feature2:value2 ... featureN:valueN
+            
+             The one-based feature numbers are sorted ascendingly left to right.
+             </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper._featureCondensers">
+            <summary>
+            A pool of unused feature condensers
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.#cctor">
+            <summary>
+            Static constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="newLine">Newline sequence used by this wrapper</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this wrapper with options
+            </summary>
+            <param name="options">Options and their values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.GetPredictions(System.Collections.Generic.IEnumerable{System.String},System.String[],System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.String[]@,System.Single[]@)">
+            <summary>
+            Gets trains a subset model and runs it on validation instances
+            </summary>
+            <param name="trainingVectors">Training vectors</param>
+            <param name="validationVectors">Validation vectors</param>
+            <param name="featureNumberGroup">Feature number groups</param>
+            <param name="predictedLabels">Predicted labels (set to null)</param>
+            <param name="predictionScores">Prediction scores (set to null)</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.WriteFilteredVectors(System.Collections.Generic.IEnumerable{System.String},System.Collections.Generic.Dictionary{System.Int32,System.Int32},LAIR.MachineLearning.FeatureNameTransformation.MemoryNumericFeatureNameTransform,System.Boolean,System.String)">
+            <summary>
+            Writes filtered vectors to file, condensing the feature space at it goes. The motivation behind condensing the feature space
+            is that the space containing the unfiltered vectors is much larger than the space containing the filtered vectors, and these
+            extra dimensions can be removed with no degradation of performance - indeed, performance is greatly enhanced because the 
+            classifier has only a fraction of the original dimensions to worry about with.
+            </summary>
+            <param name="vectors">Original vectors to filter</param>
+            <param name="featureNumberGroup">Maps feature numbers in vectors to feature numbers in this subset. This is used in applications
+            of feature grouping, where many features from vectors map to a single feature in the subset (e.g., binarized features)</param>
+            <param name="condensedFeatureNameTransform">Feature name transform to use when condensing feature vectors</param>
+            <param name="includeZeroVectors">Whether or not to include zero-vectors in the output file</param>
+            <param name="outputPath">Where to write filtered vectors</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Cleanup">
+            <summary>
+            Removes all intermediate files that were created while training and testing subset
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.TrainProcessArguments">
+            <summary>
+            Gets train process argument
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.ValidateProcessArguments">
+            <summary>
+            Gets test validate arguments
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.TrainingInstancesPath">
+            <summary>
+            Gets path to training instances
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.ModelPath">
+            <summary>
+            Gets path to model
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.ValidationInstancesPath">
+            <summary>
+            Gets path to validation instances
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.ValidationResultsPath">
+            <summary>
+            Gets path to validation results
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Option">
+            <summary>
+            CommonWrapper options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Option.ClassifyExePath">
+            <summary>
+            Path to classification executable file. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Option.DeleteSubsetData">
+            <summary>
+            Whether or not to delete the subset training, validation, model, and results data. (true/false, default:  true)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Option.ModelDirectory">
+            <summary>
+            Path to directory in which all model files are stored. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Option.TrainExePath">
+            <summary>
+            Path to training executable file. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Option.TrainWithZeroVectors">
+            <summary>
+            Whether or not to include zero-vectors in the training data. (true/false, default:  true)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.CommonWrapper.Option.ValidateWithZeroVectors">
+            <summary>
+            Whether or not to include zero-vectors in the validation data. (true/false, default:  true)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper">
+            <summary>
+            Performs feature selection using LibLinear
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this wrapper with options
+            </summary>
+            <param name="options">Options defined by user</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.GetPredictions(System.Collections.Generic.IEnumerable{System.String},System.String[],System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.String[]@,System.Single[]@)">
+            <summary>
+            Gets predicted labels and their scores
+            </summary>
+            <param name="trainingVectors">Training vectors</param>
+            <param name="validationVectors">Validation vectors</param>
+            <param name="featureNumberGroup">Feature number groups</param>
+            <param name="predictedLabels">Predicted labels</param>
+            <param name="predictionScores">Prediction scores</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.GetFeatureByInstanceVectors(System.Collections.Generic.IEnumerable{System.String},System.Int32,System.Collections.Generic.Dictionary{System.Int32,System.Int32})">
+            <summary>
+            Gets feature vectors for filtering
+            </summary>
+            <param name="featureVectors">Feature vectors to use</param>
+            <param name="numInstances">Total number of instances</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <returns>Mapping from feature ids to instance numbers to feature values</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.GetInteractionEvaluationOptions(System.Int32[],System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.Collections.Generic.Dictionary{System.Int32,System.String},LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Gets option configuration for evaluating interaction features
+            </summary>
+            <param name="selectedGroups"></param>
+            <param name="options"></param>
+            <param name="groupIdName"></param>
+            <param name="featureNumberGroup"></param>
+            <returns>New options</returns>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.TrainProcessArguments">
+            <summary>
+            Gets learn process arguments
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.ValidateProcessArguments">
+            <summary>
+            Gets test process arguments
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option">
+            <summary>
+            LibLinearWrapper options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.Solver">
+            <summary>
+            -s option in LibLinear training. (0/1/2/3/4/5/6/7, mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.Probabilistic">
+            <summary>
+            -b option in LibLinear prediction. (true/false, mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.IgnoredProbabilisticClasses">
+            <summary>
+            Classes to ignore when getting probabilistic output. This is a space-separated list of integers representing the class numbers to ignore when reading results.
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.SumInstanceProbabilities">
+            <summary>
+            Whether or not to sum the instance probabilities (for multi-class classification). (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.B">
+            <summary>
+            -B option in LibLinear training. ([float.MinValue, float.MaxValue], default:  -1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.C">
+            <summary>
+            -c option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W1">
+            <summary>
+            -w1 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W2">
+            <summary>
+            -w2 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W3">
+            <summary>
+            -w3 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W4">
+            <summary>
+            -w4 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W5">
+            <summary>
+            -w5 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W6">
+            <summary>
+            -w6 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W7">
+            <summary>
+            -w7 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W8">
+            <summary>
+            -w8 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W9">
+            <summary>
+            -w9 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W10">
+            <summary>
+            -w10 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W11">
+            <summary>
+            -w11 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W12">
+            <summary>
+            -w12 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W13">
+            <summary>
+            -w13 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W14">
+            <summary>
+            -w14 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.LibLinearWrapper.Option.W15">
+            <summary>
+            -w15 option in LibLinear training. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector">
+            <summary>
+            Performs feature subset selection
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Main(System.String[])">
+            <summary>
+            Entry point from standard command line
+            </summary>
+            <param name="args">Path to configuration file, followed (optionally) by --option_type --option=value arguments.</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Run(LAIR.MachineLearning.Classifier,LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Runs feature selection for a classification model that has already been built. This method will set all
+            mandatory feature selection options and will use default values for all other options, which can be overridden.
+            </summary>
+            <param name="classifier">Classifier to run</param>
+            <param name="additionalOptions">Additional options</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Run(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Runs feature selection with given options
+            </summary>
+            <param name="options">Option-value lookup</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.GetBestSubset(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper[],LAIR.IO.FileLineReader,System.String[],System.String[],LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer,System.Collections.Generic.Dictionary{System.Int32,System.Int32},LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator,System.Int32)">
+            <summary>
+            Gets the best subset from an array of subsets
+            </summary>
+            <param name="subsets">Subsets to evaluate</param>
+            <param name="trainingVectors">Training vectors</param>
+            <param name="validationVectors">Validation vectors</param>
+            <param name="trueValidationVectorLabels">True validation vectors</param>
+            <param name="scorer">Scorer to use</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <param name="crossFoldValidator">Cross-fold validation setup to use</param>
+            <param name="maxThreads">Maximum number of threads to use for evaluation</param>
+            <returns>The best subset</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.GetBestSubset(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper[],LAIR.IO.FileLineReader,LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator,LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer,System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.Int32)">
+            <summary>
+            Gets the best subset from an array of subsets using cross-validation
+            </summary>
+            <param name="subsets">Subsets to evaluate</param>
+            <param name="allInstances">All instances to use</param>
+            <param name="crossFoldValidator">Cross-fold validation setup to use</param>
+            <param name="scorer">Scorer to use</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <param name="maxThreads">Maximum number of threads to use for evaluation</param>
+            <returns>The best subset</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.GetBestSubset(System.Int32,System.Int32,LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.Wrapper[],LAIR.IO.FileLineReader,System.String[],System.String[],LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer,System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.Int32)">
+            <summary>
+            Gets the best subset from an array of subsets
+            </summary>
+            <param name="instanceStart">Start of instance range</param>
+            <param name="instanceEnd">End of instance range</param>
+            <param name="subsets">Subsets to evaluate</param>
+            <param name="trainingVectors">Training vectors</param>
+            <param name="validationVectors">Validation vectors</param>
+            <param name="trueValidationVectorLabels">True validation vectors</param>
+            <param name="scorer">Scorer to use</param>
+            <param name="featureNumberGroup">Feature number group mapping</param>
+            <param name="maxThreads">Maximum number of threads to use for evaluation</param>
+            <returns>The best subset</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Log(System.String,LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Verbosity,System.Boolean)">
+            <summary>
+            Logs a message to file and to the console
+            </summary>
+            <param name="message">Message to log</param>
+            <param name="verbosity">Verbosity level of message</param>
+            <param name="exit">Whether or not to exit the program after logging the message</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.GetResults(System.String,System.Single@,System.Collections.Generic.Dictionary{System.String,System.Tuple{System.Int32,System.Single}}@)">
+            <summary>
+            Gets the results from a file
+            </summary>
+            <param name="path">Path to log file</param>
+            <param name="score">Overall score</param>
+            <param name="featureRankContribution">Feature rank contribution structure</param>
+            <returns>True if results were found and false otherwise</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.TryGetResults(System.String,System.Single@,System.Collections.Generic.Dictionary{System.String,System.Tuple{System.Int32,System.Single}}@)">
+            <summary>
+            Gets the feature selection results from a log file
+            </summary>
+            <param name="path">Path to log file</param>
+            <param name="score">Overall score</param>
+            <param name="featureRankContribution">Feature rank contribution structure</param>
+            <returns>True if results were found and false otherwise</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.TryGetOptionValue(System.String,System.Enum,System.String@)">
+            <summary>
+            Tries to get the value for an option from a result log
+            </summary>
+            <param name="logPath">Path to log file</param>
+            <param name="option">Option to get value for</param>
+            <param name="value">Value of option</param>
+            <returns>True if option was found and false otherwise</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.RemoveSelectionLogging(System.String,System.String)">
+            <summary>
+            Removes all selection logging, leaving options and final results
+            </summary>
+            <param name="path">Path to log file</param>
+            <param name="outputPath">Where to write output. Can be the same as 'path' or null (in which case 'path' will be overwritten).</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.GetInstanceComment(System.String@)">
+            <summary>
+            Gets comment on instance line and trims comment from line
+            </summary>
+            <param name="line"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.GetType(System.String)">
+            <summary>
+            Gets a type
+            </summary>
+            <param name="typeName">Type name in the format "type" or "type@path", where "type" is the name of the type
+            and "path" is the path to the assembly on disk. Type must have a single parameterless constructor.</param>
+            <returns>Type</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.TryGetOptions(System.String[],LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options@,System.String@)">
+            <summary>
+            Gets complete option-value set from the command line
+            </summary>
+            <param name="args">Command line arguments</param>
+            <param name="options">Options object if successful (null otherwise)</param>
+            <param name="errorMessage">Error message if not successful</param>
+            <returns>True if options were read successfully and false otherwise</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.CreateRestartSubset(System.Int32,System.Int32[],LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options,System.Collections.Generic.Dictionary{System.Int32,System.Single},System.Text.RegularExpressions.Match,System.Type)">
+            <summary>
+            Creates a restart subset
+            </summary>
+            <param name="subsetID">ID of subset to create</param>
+            <param name="groups">Feature groups for subset</param>
+            <param name="featureImprovements">Improvements lookup</param>
+            <param name="options">Options</param>
+            <param name="improvementLineMatch">Improvement line RE match</param>
+            <param name="wrapperType">Type of wrapper to create</param>
+            <returns>Subset</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.TrimComment(System.String,System.Char)">
+            <summary>
+            Trims comment from line
+            </summary>
+            <param name="line">Line to trim comment from</param>
+            <param name="commentChar">Comment character</param>
+            <returns>Trimmed line</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.GetPathScores(System.String)">
+            <summary>
+            Gets the score for each file path in a given directory
+            </summary>
+            <param name="directory">Directory to search</param>
+            <returns>Each file path in directory and its score, if present</returns>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Verbosity">
+            <summary>
+            Verbosity levels
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Verbosity.Essential">
+            <summary>
+            Logs only essential information
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Verbosity.Normal">
+            <summary>
+            Logs essential as well as some other nice information
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Verbosity.All">
+            <summary>
+            Logs all information
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Verbosity.Debug">
+            <summary>
+            Extra output for debugging purposes
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.ExitOnErrorAction">
+            <summary>
+            Actions to take when exiting in response to an error
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.ExitOnErrorAction.ExitEnvironment">
+            <summary>
+            Call Environment.Exit(), which immediately terminates the executing assembly
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.ExitOnErrorAction.ThrowException">
+            <summary>
+            Throw an exception
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option">
+            <summary>
+            FeatureSelector options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.ContinuePreviousSelection">
+            <summary>
+            Whether or not to start current selection from end of previous selection, based on the contents of the log file specified by LogPath. (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.CrossFoldValidator">
+            <summary>
+            Type name of the cross-fold validator to use. If not specified, the default CrossFoldValidator will be used with its default number of folds. (optional)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.EvaluateInteractionsBetweenSelectedFeatures">
+            <summary>
+            Once the final feature set has been selected, you can test feature interactions by combining all possible feature pairs into new features and (using the selected and interaction features) running the selection again. (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.ExitOnErrorAction">
+            <summary>
+            Action to take when exiting the feature selector in response to an error. See FeatureSelector.ExitOnAction enumeration for more information. (ExitEnvironment/ThrowException, default:  ExitEnvironment)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.FeatureFilters">
+            <summary>
+            Comma-separated list of type names of feature filters to use. Only valid when doing forward selection. (optional)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.FeatureNumberGroupFileNumLines">
+            <summary>
+            Number of lines in the feature number group file. Providing this option prevents runtime determination, which is IO-heavy when many features exist. ([0,int.MaxValue], no default)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.FeatureNumberGroupPath">
+            <summary>
+            Path to file that maps each feature number to a feature group ID. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.FloatingSelection">
+            <summary>
+            Whether or not to perform floating selection, where backtracking is performed after each subset round in which a performance increase is observed. See Pudil (1994). (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.GroupNamePath">
+            <summary>
+            Path to file that maps each feature group ID to a longer, more informative name. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.LeaveOneOut">
+            <summary>
+            Whether or not to do leave-one-out evaluation of the feature groups. (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.LogPath">
+            <summary>
+            Path to log file for selection. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.MaxRoundsWithoutImprovement">
+            <summary>
+            Maximum number of rounds to run when no improvement is observed. ([0,int.MaxValue], default:  int.MaxValue)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.MaxThreads">
+            <summary>
+            Maximum number of threads to use. ([1, int.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.NumSelectedFeatureGroups">
+            <summary>
+            Number of feature groups to select. ([1, int.MaxValue], default:  int.MaxValue)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.PerformanceIncreaseRequirement">
+            <summary>
+            Amount performance must increase between rounds in order to continue selection. ([float.MinValue, float.MaxValue], default:  float.MinValue)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.PredefinedSubsetsPath">
+            <summary>
+            Path to file containing predefined subsets, where each line in file is a space-separated sequence of integers corresponding to the feature groups for the subset. (optional)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.Scorer">
+            <summary>
+            Type name of the scorer to use. If not specified, an FMeasureScorer will be used. (optional)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.TrainingInstancesPath">
+            <summary>
+            Path to file that contains training instances. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.TrainingInstancesInMemory">
+            <summary>
+            Whether or not to store training instances in memory. If false, all training instances are read from disk to train each model - this saves memory at the cost of speed. (true/false, default:  true)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.ValidationInstancesPath">
+            <summary>
+            Path to file that contains validation instances. (if CrossFoldValidator.Option.NumFolds is > 1 (the default), this cannot be given; otherwise, this is mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.Verbosity">
+            <summary>
+            Verbosity level. Either Normal or All is required for feature selection restart using ContinuePreviousSelection. See FeatureSelector.Verbosity enumeration for more information. (Essential/Normal/All, default:  Normal)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.FeatureSelector.Option.Wrapper">
+            <summary>
+            Type name of the classification wrapper to use. (mandatory)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator">
+            <summary>
+            Specifies the cross-validation setup
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes options
+            </summary>
+            <param name="options">Options and their values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options,System.Int32[]@)">
+            <summary>
+            Initializes options
+            </summary>
+            <param name="options">Options and their values</param>
+            <param name="instanceOffset">Movement of training instances if randomizing or null if no randomization is performed</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.ModifyValidationScorer(System.Int32,System.Int32,LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.Scorer)">
+            <summary>
+            Modifies the validation scorer - called immediately before subsets are evaluated
+            </summary>
+            <param name="validationStart">Start number of validation instances</param>
+            <param name="validationLength">Length of validation instances </param>
+            <param name="scorer">Scorer to use</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.Cleanup">
+            <summary>
+            Cleans up any resources created/held by this validator
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.Folds">
+            <summary>
+            Gets the number of folds to use (default:  1, i.e., no cross-validation)
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.BlockSizes">
+            <summary>
+            Gets the block sizes for the instances
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.Option">
+            <summary>
+            CrossFoldValidator options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.Option.InstanceBlockRandomizationSeed">
+            <summary>
+            Seed value to use for random number generator that randomizes instance blocks. ([int.MinValue,int.MaxValue], default:  picked by Random() constructor)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.Option.InstanceBlocksPath">
+            <summary>
+            Path to file that defines the instance block sizes. (optional)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.Option.NumFolds">
+            <summary>
+            Number of folds to validate. ([1,int.MaxValue], default:  10)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.CrossFoldValidator.Option.RandomizeInstanceBlocks">
+            <summary>
+            Whether or not to randomize training instances before performing cross-validation. This is essential in situations where instance features or class labels are somehow dependent on the instances' positions in the training instance file. The word "blocks" is used due to the capability of treating groups of instances as a single unit; however, unless InstanceBlocksPath is defined, each training instance is treated as its own block. (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper">
+            <summary>
+            Performs feature selection using SvmPerf
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this wrapper with options
+            </summary>
+            <param name="options">Options and their values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper.GetPredictions(System.Collections.Generic.IEnumerable{System.String},System.String[],System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.String[]@,System.Single[]@)">
+            <summary>
+            Gets predicted labels and their scores
+            </summary>
+            <param name="trainingVectors">Training vectors</param>
+            <param name="validationVectors">Validation vectors</param>
+            <param name="featureNumberGroup">Feature number groups</param>
+            <param name="predictedLabels">Predicted labels</param>
+            <param name="predictionScores">Prediction scores</param>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper.TrainProcessArguments">
+            <summary>
+            Gets the training process arguments. Currently uses "-w 3" and "-l 1" (F1 loss) for all processes.
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper.ValidateProcessArguments">
+            <summary>
+            Gets the validation process arguments
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper.Option">
+            <summary>
+            SvmPerfWrapper options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmPerfWrapper.Option.C">
+            <summary>
+            Tradeoff between training error and margin (-c in SvmPerf training). ([float.MinValue, float.MaxValue], default:  0.01)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer">
+            <summary>
+            Treats each validation instance independently. Scores f-measure. Tunes threshold.
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.GetBest(LAIR.Collections.Generic.Set{LAIR.MachineLearning.Evaluation.ConfusionMatrix},System.Collections.Generic.IEnumerable{System.String},System.Boolean,LAIR.MachineLearning.Evaluation.ConfusionMatrix@,System.Single@)">
+            <summary>
+            Gets the best confusion matrix and score
+            </summary>
+            <param name="matrixes">Matrixes to test</param>
+            <param name="fMeasureLabels">Labels to compute f-measure with</param>
+            <param name="macroAverage">Whether or not to macro-average f-measures</param>
+            <param name="bestMatrix">Best confusion matrix (output)</param>
+            <param name="bestScore">Best score (output)</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes options
+            </summary>
+            <param name="options">Options and their values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.GetScore(System.Int32,System.Int32,System.String[],System.Single[],System.String[],System.String@)">
+            <summary>
+            Scores predictions
+            </summary>
+            <param name="instanceEnd">Start of instance range</param>
+            <param name="instanceStart">End of instance range</param>
+            <param name="predictedLabels">Predicted labels</param>
+            <param name="predictionScores">Prediction scores</param>
+            <param name="trueLabels">True labels</param>
+            <param name="informationToLog">Miscellaneous information to log</param>
+            <returns>Score of predicted labels given true labels</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.GetThresholdedMatrixes">
+            <summary>
+            Gets threshold matrixes
+            </summary>
+            <returns>Thresholded matrixes</returns>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.AddToMatrixes(System.String,System.Single,System.String,LAIR.Collections.Generic.Set{LAIR.MachineLearning.Evaluation.ConfusionMatrix})">
+            <summary>
+            Adds a true/predicted label pair to thresholded prediction matrixes, using the no-judgment class if needed.
+            </summary>
+            <param name="predictedLabel">Predicted label</param>
+            <param name="predictionScore">Prediction score</param>
+            <param name="trueLabel">True label</param>
+            <param name="matrixes">Matrixes to add labels to</param>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.FMeasureLabels">
+            <summary>
+            Gets labels used for f-measure
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.Option">
+            <summary>
+            Options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.Option.BlockScoring">
+            <summary>
+            Whether or not to do block scoring during cross-validation. In block scoring, a block (or group) of instances is classified and the highest scoring instance is selected for scoring (other instances are ignored). This only applies to cross-validation setups in which InstanceBlocksPath is supplied to the cross-validator. (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.Option.LabelsPath">
+            <summary>
+            Path to file that lists all possible labels output by the classifier. (mandatory)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.Option.ThresholdInc">
+            <summary>
+            Threshold increment when doing threshold tuning. ((0, float.MaxValue], default:  0.01)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.Option.ThresholdMax">
+            <summary>
+            Maximum threshold when doing threshold tuning. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.Option.ThresholdMin">
+            <summary>
+            Minimum threshold when doing threshold tuning. ([float.MinValue, float.MaxValue], default:  0)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.FMeasureScorer.Option.UseMacroAverage">
+            <summary>
+            Whether or not to use macro-averaging for multiple classes. (true/false, default:  false)
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.AccuracyScorer">
+            <summary>
+            Scores predictions for accuracy
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.AccuracyScorer.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes the options for this scorer
+            </summary>
+            <param name="options"></param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Scorers.AccuracyScorer.GetScore(System.Int32,System.Int32,System.String[],System.Single[],System.String[],System.String@)">
+            <summary>
+            Gets accuracy score for predictions
+            </summary>
+            <param name="instanceEnd">Start of instance range</param>
+            <param name="instanceStart">End of instance range</param>
+            <param name="predictedLabels">Predicted labels</param>
+            <param name="predictionScores">Prediction scores (not used)</param>
+            <param name="trueLabels">True labels</param>
+            <param name="informationToLog">Extra information to log (output)</param>
+            <returns>Accuracy score</returns>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper">
+            <summary>
+            Performs feature selection using SvmLight
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.InitializeOptions(LAIR.MachineLearning.FeatureSelection.FeatureSelector.Options)">
+            <summary>
+            Initializes this wrapper with options
+            </summary>
+            <param name="options">Options and their values</param>
+        </member>
+        <member name="M:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.GetPredictions(System.Collections.Generic.IEnumerable{System.String},System.String[],System.Collections.Generic.Dictionary{System.Int32,System.Int32},System.String[]@,System.Single[]@)">
+            <summary>
+            Gets predicted labels and their scores
+            </summary>
+            <param name="trainingVectors">Training vectors</param>
+            <param name="validationVectors">Validation vectors</param>
+            <param name="featureNumberGroup">Feature number groups</param>
+            <param name="predictedLabels">Predicted labels</param>
+            <param name="predictionScores">Prediction scores</param>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.TrainProcessArguments">
+            <summary>
+            Gets the training process arguments.
+            </summary>
+        </member>
+        <member name="P:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.ValidateProcessArguments">
+            <summary>
+            Gets the validation process arguments
+            </summary>
+        </member>
+        <member name="T:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.Option">
+            <summary>
+            SvmLightWrapper options
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.Option.C">
+            <summary>
+            Tradeoff between training error and margin. ([float.MinValue, float.MaxValue], default:  [avg. x*x]^-1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.Option.J">
+            <summary>
+            Cost factor, by which training errors on positive examples outweigh errors on negative examples. ([float.MinValue, float.MaxValue], default:  1)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.Option.P">
+            <summary>
+            Fraction of unlabeled exapmles to be classified into the positive class. ([0, 1], default:  ratio in labeled data)
+            </summary>
+        </member>
+        <member name="F:LAIR.MachineLearning.FeatureSelection.FeatureSelector.Wrappers.SvmLightWrapper.Option.M">
+            <summary>
+            Size of cache for kernel evaluations in MB. ([5, int.MaxValue], default:  40)
+            </summary>
+        </member>
+    </members>
+</doc>

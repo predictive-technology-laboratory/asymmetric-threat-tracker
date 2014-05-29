@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LAIR.ResourceAPIs.PostGIS</name>
+    </assembly>
+    <members>
+        <member name="M:LAIR.ResourceAPIs.PostGIS.Geometry.GetPoints(Npgsql.NpgsqlConnection,System.String,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.Double)">
+            <summary>
+            Gets points defining a geometry
+            </summary>
+            <param name="connection">Connection to query</param>
+            <param name="table">Table to query</param>
+            <param name="geometryColumn">Geometry column</param>
+            <param name="idColumn">Column containing a unique ID for each geometry</param>
+            <param name="rowValueConstraint">Additional column constraints for rows to process</param>
+            <param name="filterThreshold">Filter threshold (in units corresponding to the geometry's SRID). Two consecutive points this far apart or nearer will be combined.</param>
+            <returns>List of List of PointF structures</returns>
+        </member>
+    </members>
+</doc>

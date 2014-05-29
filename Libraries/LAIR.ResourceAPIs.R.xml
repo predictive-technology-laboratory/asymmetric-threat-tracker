@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LAIR.ResourceAPIs.R</name>
+    </assembly>
+    <members>
+        <member name="T:LAIR.ResourceAPIs.R.R">
+            <summary>
+            Provides access to R
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.R.R.AddLibPath(System.String)">
+            <summary>
+            Adds a library path to the R environment
+            </summary>
+            <param name="path"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.R.R.CheckForMissingPackages(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Ensures that packages are installed, throwing an exception if they are not.
+            </summary>
+            <param name="packages"></param>
+            <returns>List of missing packages</returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.R.R.InstallPackages(System.Collections.Generic.List{System.String},System.String,System.String)">
+            <summary>
+            Installs a list of packages. Throws an exception if any fail.
+            </summary>
+            <param name="packages">Packages to install</param>
+            <param name="mirror">CRAN mirror to use for installation</param>
+            <param name="installDirectory">Directory into which to install packages (null for default system directory -- may not be writable by default)</param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.R.R.Execute(System.String,System.Boolean)">
+            <summary>
+            Executes a script
+            </summary>
+            <param name="scriptBody"></param>
+            <param name="throwExceptionOnErrorOutput">Whether or not to throw an exception on error output</param>
+            <returns>Content written to standard output</returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.R.R.Execute(System.String,System.String@,System.String@,System.Boolean)">
+            <summary>
+            Executes a script
+            </summary>
+            <param name="scriptBody">Script to execute</param>
+            <param name="output">Output content</param>
+            <param name="error">Error content</param>
+            <param name="throwExceptionOnErrorOutput">Whether or not to throw an exception on error output</param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.R.R.GetAUC(System.Collections.Generic.IEnumerable{System.Drawing.PointF})">
+            <summary>
+            Gets area under curve formed by points
+            </summary>
+            <param name="points"></param>
+            <returns></returns>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.R.R.ExePath">
+            <summary>
+            Path to R executable
+            </summary>
+        </member>
+    </members>
+</doc>

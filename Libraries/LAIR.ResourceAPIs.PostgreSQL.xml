@@ -1,0 +1,327 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LAIR.ResourceAPIs.PostgreSQL</name>
+    </assembly>
+    <members>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool">
+            <summary>
+            Represents a pool of connections to the PostgreSQL server
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.AddParameters(Npgsql.NpgsqlCommand,LAIR.ResourceAPIs.PostgreSQL.Parameter[])">
+            <summary>
+            Adds parameters to a command
+            </summary>
+            <param name="command"></param>
+            <param name="parameters"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.AddParameters(Npgsql.NpgsqlCommand,System.Collections.Generic.IEnumerable{LAIR.ResourceAPIs.PostgreSQL.Parameter})">
+            <summary>
+            Adds parameters to a command
+            </summary>
+            <param name="command"></param>
+            <param name="parameters"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Test(Npgsql.NpgsqlConnection)">
+            <summary>
+            Tests a connection by executing a simple command
+            </summary>
+            <param name="connection"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.#ctor(Npgsql.NpgsqlConnection,System.Int32,System.Int32)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="baseConnection">Base connection</param>
+            <param name="retryLimit">Number of time to retry the connection</param>
+            <param name="commandTimeoutSeconds">Command timeout, in seconds</param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.#ctor(System.String,System.Int32,System.Boolean,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="server"></param>
+            <param name="port"></param>
+            <param name="ssl"></param>
+            <param name="username"></param>
+            <param name="password"></param>
+            <param name="database"></param>
+            <param name="retryLimit"></param>
+            <param name="commandTimeout"></param>
+            <param name="connectionTimeout"></param>
+            <param name="maxPoolSize"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.NewCommand(System.String,LAIR.ResourceAPIs.PostgreSQL.Parameter[])">
+            <summary>
+            Creates a new command associated with an open connection
+            </summary>
+            <param name="commandText"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.NewCommand(System.String,System.Collections.Generic.IEnumerable{LAIR.ResourceAPIs.PostgreSQL.Parameter})">
+            <summary>
+            Creates a new command associated with an open connection
+            </summary>
+            <param name="commandText"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.ExecuteNonQuery(System.String,LAIR.ResourceAPIs.PostgreSQL.Parameter[])">
+            <summary>
+            Executes a non-query command
+            </summary>
+            <param name="commandText">Text of command</param>
+            <param name="parameters">Parameters for command</param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.ExecuteNonQuery(System.String,System.Collections.Generic.IEnumerable{LAIR.ResourceAPIs.PostgreSQL.Parameter})">
+            <summary>
+            Executes a non-query command
+            </summary>
+            <param name="commandText">Text of command</param>
+            <param name="parameters">Parameters for command</param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.ExecuteScalar(System.String,LAIR.ResourceAPIs.PostgreSQL.Parameter[])">
+            <summary>
+            Executes a query and returns the first result
+            </summary>
+            <param name="query"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.ExecuteScalar(System.String,System.Collections.Generic.IEnumerable{LAIR.ResourceAPIs.PostgreSQL.Parameter})">
+            <summary>
+            Executes a query and returns the first result
+            </summary>
+            <param name="query"></param>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Return(Npgsql.NpgsqlConnection)">
+            <summary>
+            Returns a connection to the pool
+            </summary>
+            <param name="c"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.GetSchemas">
+            <summary>
+            Gets all schemas
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.GetTables(System.String)">
+            <summary>
+            Gets all tables
+            </summary>
+            <param name="schema">Schema to scan, or null for all schemas.</param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.SchemaExists(System.String)">
+            <summary>
+            Checks whether a schema exists
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.TableExists(System.String,System.String)">
+            <summary>
+            Checks whether a table exists in a schema
+            </summary>
+            <param name="name">Table name</param>
+            <param name="schema">Schema name</param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CreateNewTable(System.String)">
+            <summary>
+            Creates a new, empty table with the given base name, appending a number to the base name in order to get a valid new table name.
+            </summary>
+            <param name="baseName">Base name of table</param>
+            <returns>The name of the table.</returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.ValuesExist(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Checks whether values within a column within a table exist
+            </summary>
+            <param name="table">Table to check</param>
+            <param name="column">Column to check</param>
+            <param name="values">Values to check. Must be properly quoted if strings</param>
+            <returns>Bools</returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CreateTables(System.Collections.Generic.IEnumerable{System.Reflection.Assembly})">
+            <summary>
+            Creates tables for attributed types within the given assemblies
+            </summary>
+            <param name="assemblies"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CreateTables(System.Collections.Generic.IEnumerable{System.Type})">
+            <summary>
+            Creates tables for attributed types
+            </summary>
+            <param name="types"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CreateTables(System.Type,System.Collections.Generic.Dictionary{System.Type,System.Collections.Generic.IEnumerable{System.Type}},Npgsql.NpgsqlConnection)">
+            <summary>
+            Creates tables for an attributed type
+            </summary>
+            <param name="type"></param>
+            <param name="typeDependencies"></param>
+            <param name="connection"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Dispose">
+            <summary>
+            Closes all open connections
+            </summary>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.RetryLimit">
+            <summary>
+            Number of times to retry the connection before throwing an exception
+            </summary>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CommandTimeoutSeconds">
+            <summary>
+            Command-level timeout
+            </summary>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.OpenConnection">
+            <summary>
+            Gets a new open connection to the server
+            </summary>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CreateTable">
+            <summary>
+            Attribute for methods that create tables
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CreateTable.#ctor(System.Type[])">
+            <summary>
+            Constructor
+            </summary>
+            <param name="dependencies">Types upon which the method to which this attribute is applied depends</param>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.CreateTable.Dependencies">
+            <summary>
+            Gets or sets dependencies for the table created by the method to which this attribute is applied
+            </summary>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.Reflector">
+            <summary>
+            Provides reflection functionality for table column definitions
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Reflector.GetFields(System.Type,System.Type[])">
+            <summary>
+            Gets fields within a type that contain an attribute, sorted by field value.
+            </summary>
+            <param name="attribute"></param>
+            <param name="types"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Reflector.GetInsertColumns(System.Type[])">
+            <summary>
+            Gets columns to be inserted for a type
+            </summary>
+            <param name="types"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Reflector.GetInsertColumns(LAIR.Collections.Generic.Set{System.String},System.Type[])">
+            <summary>
+            Gets columns to be inserted for a type
+            </summary>
+            <param name="exclude">Columns to exclude</param>
+            <param name="types"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Reflector.GetSelectColumns(System.String,System.Type[])">
+            <summary>
+            Gets (possibly calculated) columns to be selected for a type
+            </summary>
+            <param name="tableName"></param>
+            <param name="types"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Reflector.GetSelectColumns(System.String,System.Collections.Generic.IEnumerable{System.String},System.Type[])">
+            <summary>
+            Gets (possibly calculated) columns to be selected for a type
+            </summary>
+            <param name="tableName"></param>
+            <param name="additionalSelects"></param>
+            <param name="types"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Reflector.GetUpdateColumns(System.Type[])">
+            <summary>
+            Gets columns to be updated for a type
+            </summary>
+            <param name="types"></param>
+            <returns></returns>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.Reflector.Insert">
+            <summary>
+            Place on fields that should be inserted into the database
+            </summary>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.Reflector.Select">
+            <summary>
+            Place on (possibly calculated) fields that should be selected from the database
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Reflector.Select.#ctor(System.Boolean)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="alias"></param>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.Reflector.Select.Alias">
+            <summary>
+            Gets whether or not to create a selection alias for the field
+            </summary>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.Reflector.Update">
+            <summary>
+            Place on fields that should be updated within the database
+            </summary>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.Parameter">
+            <summary>
+            Represents a PostgreSQL parameter
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Parameter.#ctor(System.String,NpgsqlTypes.NpgsqlDbType,System.Object)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="name"></param>
+            <param name="type"></param>
+            <param name="value"></param>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.Parameter.Name">
+            <summary>
+            Gets or sets the name
+            </summary>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.Parameter.Type">
+            <summary>
+            Gets or sets the type
+            </summary>
+        </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.Parameter.Value">
+            <summary>
+            Gets or sets the value
+            </summary>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.PostgreSQL.Util">
+            <summary>
+            Utility methods
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.Util.Escape(System.String)">
+            <summary>
+            Escapes a string value
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
