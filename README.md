@@ -25,7 +25,7 @@ After you run the installer, edit the configuration files in the Config sub-dire
   * Go to Tools -> Extensions and Updates, then search for and install the License Header Manager. This is used to apply license text to each source code file.
   * Install the [InstallShield Limited Edition for Visual Studio](http://learn.flexerasoftware.com/content/IS-EVAL-InstallShield-Limited-Edition-Visual-Studio) add-on if you want to build the installer package.
 * Obtain the source code:
-  * Clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker).
+  * Clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker.git).
   * Source archives:
     * 1.3 (5/27/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip),  [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
 * If you're going to build the installer or cut releases, edit "Installer\Installer.isl" replacing "C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker" (or whatever appears) with the appropriate path to your local repository. This assumes that you have installed the InstallShield add-on as described above. If you're not going to work with the installer, skip this step.
