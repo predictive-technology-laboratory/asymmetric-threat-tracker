@@ -17,6 +17,9 @@ Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "Installer", "Installer\Inst
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Doc", "Doc", "{994C712A-8EA2-44A1-9BB3-39F4D12FA71F}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE.txt = LICENSE.txt
+		NOTICE.txt = NOTICE.txt
 		README.md = README.md
 		RELEASE.txt = RELEASE.txt
 	EndProjectSection
