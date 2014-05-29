@@ -27,10 +27,7 @@ After you run the installer, edit the configuration files in the Config sub-dire
 * Obtain the source code:
   * Download the source archive for the version of interest:
     * 1.3 (5/27/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip),  [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
-  * To get the most recent version, clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker). In your clone command, pass "--recursive" to retrieve necessary sub-projects. For example:
-    ```
-    git clone --recursive git@github.com:MatthewGerber/asymmetric-threat-tracker.git
-    ```
+  * To get the most recent version, clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker).
 * If you're going to build the installer or cut releases, edit "Installer\Installer.isl" replacing "C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker" (or whatever appears) with the appropriate path to your local repository. This assumes that you have installed the InstallShield add-on as described above. If you're not going to work with the installer, skip this step.
 * Open the ATT solution in Visual Studio by double-clicking the "ATT.sln" file.
 * If you're not going to build the installer, unload the Installer project.
