@@ -23,6 +23,7 @@ using LAIR.ResourceAPIs.PostgreSQL;
 using LAIR.XML;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.IO.Compression;
 using LAIR.IO;
 
 namespace PTL.ATT.Importers
@@ -147,6 +148,12 @@ namespace PTL.ATT.Importers
         {
             if (!System.IO.File.Exists(_path) && !string.IsNullOrWhiteSpace(_sourceURI))
                 Network.Download(_sourceURI, _path);
+
+            string parentDirectory = System.IO.Directory.GetParent(_path).FullName;
+            string potentialZipFilePath = parentDirectory.Substring(0, parentDirectory.LastIndexOf('_'));
+            string extension = System.IO.Path.GetExtension(potentialZipFilePath);
+            if (!System.IO.Directory.Exists(parentDirectory) && System.IO.File.Exists(potentialZipFilePath) && extension == ".zip")
+                ZipFile.ExtractToDirectory(potentialZipFilePath, parentDirectory);
         }
 
         public void Save(bool deleteFirst)

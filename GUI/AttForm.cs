@@ -347,9 +347,9 @@ namespace PTL.ATT.GUI
                            f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), Shapefile.ShapefileType.Area, "type", new Action<object, EventArgs>((o, args) =>
                                {
                                    ComboBox cb = o as ComboBox;
-                                   Control[] panels = f.Controls.Find("containment_box_size", true);
-                                   if (panels.Length > 0)
-                                       (panels[0] as Panel).Visible = (Shapefile.ShapefileType)cb.SelectedItem == Shapefile.ShapefileType.Area;
+                                   NumericUpDown boxSizeUpDown = f.GetControl<NumericUpDown>("containment_box_size");
+                                   if (boxSizeUpDown != null)
+                                       boxSizeUpDown.Parent.Visible = (Shapefile.ShapefileType)cb.SelectedItem == Shapefile.ShapefileType.Area;
                                }));
                            f.AddNumericUpdown("Area containment box size (meters):", 1000, 0, 1, decimal.MaxValue, 1, "containment_box_size");
                            return f;
@@ -543,7 +543,19 @@ namespace PTL.ATT.GUI
                     DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
 
                     importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
-                    importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileBrowserFilter);
+                    importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileBrowserFilter, textChanged: (o, e) =>
+                        {
+                            TextBox pathTextBox = o as TextBox;
+                            ComboBox fileTypeCombo = importerForm.GetControl<ComboBox>("file_type");
+                            string path = pathTextBox.Text.Trim().ToLower();
+                            string extension = Path.GetExtension(path);
+                            bool pathIsDirectory = Directory.Exists(path);
+                            if (!pathIsDirectory)
+                                if (extension == ".zip")
+                                    fileTypeCombo.SelectedItem = "Zip";
+                                else
+                                    fileTypeCombo.SelectedItem = "Plain";
+                        });
                     importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
                     importerForm.AddDropDown("File type:", new string[] { "Plain", "Zip" }, "Plain", "file_type");
                     importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
@@ -557,7 +569,7 @@ namespace PTL.ATT.GUI
 
                     if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
-                        string p = importerForm.GetValue<string>("path");
+                        string p = importerForm.GetValue<string>("path").Trim();
                         bool pathIsDirectory = Directory.Exists(p);
 
                         if (pathIsDirectory)
@@ -597,7 +609,8 @@ namespace PTL.ATT.GUI
                             {
                                 string destinationDirectory = pathToUnzip + "_unzipped";
                                 Console.Out.WriteLine("Unzipping \"" + pathToUnzip + "\" to \"" + destinationDirectory + "\"...");
-                                ZipFile.ExtractToDirectory(pathToUnzip, destinationDirectory);
+                                try { ZipFile.ExtractToDirectory(pathToUnzip, destinationDirectory); }
+                                catch (Exception) { }
                                 if (!pathIsDirectory)
                                     p = destinationDirectory;
                             }

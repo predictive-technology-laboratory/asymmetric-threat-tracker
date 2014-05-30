@@ -98,7 +98,7 @@ namespace PTL.ATT.GUI
             TopMost = true;
         }
 
-        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false, bool addFileBrowsingButtons = false, string initialBrowsingDirectory = null, string fileFilter = null)
+        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false, bool addFileBrowsingButtons = false, string initialBrowsingDirectory = null, string fileFilter = null, Action<object, EventArgs> textChanged = null)
         {
             Label l = new Label();
             l.Text = label;
@@ -120,6 +120,9 @@ namespace PTL.ATT.GUI
                         args.Handled = true;
                     }
                 });
+
+            if (textChanged != null)
+                tb.TextChanged += new EventHandler(textChanged);
 
             if (onlyUseTextWidth)
                 tb.Text = "";
@@ -151,7 +154,6 @@ namespace PTL.ATT.GUI
             }
 
             p.Size = p.PreferredSize;
-            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<string>(() => tb.Text));
@@ -178,7 +180,6 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(ud);
             p.Size = p.PreferredSize;
-            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
@@ -187,11 +188,11 @@ namespace PTL.ATT.GUI
         public void AddCheckBox(string label, ContentAlignment checkAlign, bool isChecked, string valueId)
         {
             CheckBox cb = new CheckBox();
+            cb.Name = valueId;
             cb.Text = label;
             cb.CheckAlign = checkAlign;
             cb.Checked = isChecked;
             cb.Size = cb.PreferredSize;
-            cb.Name = valueId;
 
             _mainPanel.Controls.Add(cb);
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
@@ -205,6 +206,7 @@ namespace PTL.ATT.GUI
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
 
             ComboBox cb = new ComboBox();
+            cb.Name = valueId;
             cb.DropDownStyle = ComboBoxStyle.DropDownList;
             foreach (object o in values)
                 cb.Items.Add(o);
@@ -220,7 +222,6 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(cb);
             p.Size = p.PreferredSize;
-            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.SelectedItem));
@@ -239,6 +240,7 @@ namespace PTL.ATT.GUI
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
 
             ListBox lb = new ListBox();
+            lb.Name = valueId;
             lb.SelectionMode = selectionMode;
             foreach (object o in values)
                 lb.Items.Add(o);
@@ -251,7 +253,6 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(lb);
             p.Size = p.PreferredSize;
-            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, new Func<object>(() => lb.SelectedItems));
@@ -269,6 +270,7 @@ namespace PTL.ATT.GUI
             l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
 
+            control.Name = valueId;
             control.Size = control.PreferredSize;
 
             FlowLayoutPanel p = new FlowLayoutPanel();
@@ -276,10 +278,20 @@ namespace PTL.ATT.GUI
             p.Controls.Add(l);
             p.Controls.Add(control);
             p.Size = p.PreferredSize;
-            p.Name = valueId;
 
             _mainPanel.Controls.Add(p);
             _valueIdReturn.Add(valueId, returnValueFunction);
+        }
+
+        public T GetControl<T>(string valueId) where T : Control
+        {
+            Control[] controls = Controls.Find(valueId, true);
+            if (controls.Length == 0)
+                return null;
+            else if (controls.Length == 1)
+                return (T)controls[0];
+            else
+                throw new Exception("Multiple controls with ID of \"" + valueId + "\" were found.");
         }
 
         public T GetValue<T>(string valueId)
