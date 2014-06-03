@@ -98,6 +98,7 @@ namespace PTL.ATT.Importers
 
         private string _name;
         private string _path;
+        private string _relativePath;
         private string _sourceURI;        
         private string _insertTable;
         private string _insertColumns;
@@ -112,6 +113,12 @@ namespace PTL.ATT.Importers
         public string Path
         {
             get { return _path; }
+            set { _path = value; }
+        }
+
+        public string RelativePath
+        {
+            get { return _relativePath; }
         }
 
         public string SourceURI
@@ -137,10 +144,11 @@ namespace PTL.ATT.Importers
             set { _id = value; }
         }
 
-        public Importer(string name, string path, string sourceURI)
+        public Importer(string name, string path, string relativePath, string sourceURI)
         {
             _name = name;
             _path = path;
+            _relativePath = relativePath;
             _sourceURI = sourceURI;
         }
 
@@ -174,6 +182,7 @@ namespace PTL.ATT.Importers
 
             updateRequest("Name", _name, null, GetUpdateRequestId("name"));
             updateRequest("Path", _path, null, GetUpdateRequestId("path"));
+            updateRequest("Relative path", _relativePath, null, GetUpdateRequestId("relative_path"));
             updateRequest("Source URI", _sourceURI, null, GetUpdateRequestId("uri"));
         }
 
@@ -181,6 +190,7 @@ namespace PTL.ATT.Importers
         {
             _name = Convert.ToString(updateKeyValue[GetUpdateRequestId("name")]);
             _path = Convert.ToString(updateKeyValue[GetUpdateRequestId("path")]);
+            _relativePath = Convert.ToString(updateKeyValue[GetUpdateRequestId("relative_path")]);
             _sourceURI = Convert.ToString(updateKeyValue[GetUpdateRequestId("uri")]);
         }
 

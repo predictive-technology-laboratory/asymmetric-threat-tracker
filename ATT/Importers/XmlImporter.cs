@@ -276,8 +276,8 @@ namespace PTL.ATT.Importers
         private string _rootElementName;
         private string _rowElementName;
 
-        public XmlImporter(string name, string path, string sourceURI, XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
-            : base(name, path, sourceURI)
+        public XmlImporter(string name, string path, string relativePath, string sourceURI, XmlRowInserter xmlRowInserter, string rootElementName, string rowElementName)
+            : base(name, path, relativePath, sourceURI)
         {
             _xmlRowInserter = xmlRowInserter;
             _rootElementName = rootElementName;

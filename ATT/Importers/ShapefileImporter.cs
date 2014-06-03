@@ -40,8 +40,8 @@ namespace PTL.ATT.Importers
             get { return _importedShapefile; }
         }
 
-        public ShapefileImporter(string name, string path, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever)
-            : base(name, path, sourceURI)
+        public ShapefileImporter(string name, string path, string relativePath, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever)
+            : base(name, path, relativePath, sourceURI)
         {
             _sourceSRID = sourceSRID;
             _targetSRID = targetSRID;

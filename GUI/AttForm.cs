@@ -55,7 +55,14 @@ namespace PTL.ATT.GUI
 {
     public partial class AttForm : Form
     {
-        #region classes/types/delegates
+        #region classes/types/delegates/enums
+        public enum PathRelativizationId
+        {
+            EventDirectory,
+            IncidentDirectory,
+            ShapefileDirectory
+        }
+
         [Serializable]
         public class ShapefileInfoRetriever : IShapefileInfoRetriever
         {
@@ -131,10 +138,10 @@ namespace PTL.ATT.GUI
 
         public enum ManageImporterAction
         {
-            Import,
+            Load,
             Edit,
             Run,
-            Export,
+            Store,
             Delete
         }
         #endregion
@@ -359,17 +366,18 @@ namespace PTL.ATT.GUI
                        {
                            int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                            int targetSRID = Convert.ToInt32(importerForm.GetValue<decimal>("target_srid"));
+                           Shapefile.ShapefileType shapefileType = importerForm.GetValue<Shapefile.ShapefileType>("type");
 
                            ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
+                           string relativePath = RelativizePath(path, Configuration.PostGisShapefileDirectory, PathRelativizationId.ShapefileDirectory);
 
-                           Shapefile.ShapefileType shapefileType = importerForm.GetValue<Shapefile.ShapefileType>("type");
                            if (shapefileType == Shapefile.ShapefileType.Area)
                            {
                                int containmentBoxSize = Convert.ToInt32(importerForm.GetValue<decimal>("containment_box_size"));
-                               return new AreaShapefileImporter(name, path, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, containmentBoxSize);
+                               return new AreaShapefileImporter(name, path, relativePath, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, containmentBoxSize);
                            }
                            else if (shapefileType == Shapefile.ShapefileType.Feature)
-                               return new FeatureShapefileImporter(name, path, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever);
+                               return new FeatureShapefileImporter(name, path, relativePath, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever);
                            else
                                throw new NotImplementedException("Unrecognized shapefile type:  " + shapefileType);
                        }),
@@ -406,7 +414,7 @@ namespace PTL.ATT.GUI
                            Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray();
                            string[] databaseColumns = new string[] { XmlImporter.PointfileXmlRowInserter.Columns.X, XmlImporter.PointfileXmlRowInserter.Columns.Y, XmlImporter.PointfileXmlRowInserter.Columns.Time };
 
-                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
+                           return CreateXmlImporter(name, path, Configuration.EventsImportDirectory, PathRelativizationId.EventDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
                                                     {
                                                         return new XmlImporter.PointfileXmlRowInserter(databaseColumnInputColumn, sourceSRID, importArea);
                                                     });
@@ -494,7 +502,7 @@ namespace PTL.ATT.GUI
                            Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
                            string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
 
-                           return CreateXmlImporter(name, path, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
+                           return CreateXmlImporter(name, path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
                                                     {
                                                         return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
                                                     });
@@ -664,7 +672,7 @@ namespace PTL.ATT.GUI
             t.Start();
         }
 
-        private XmlImporter CreateXmlImporter(string name, string path, string sourceURI, Type[] rowInserterTypes, string[] databaseColumns, CreateXmlRowInserterDelegate createXmlRowInserter)
+        private XmlImporter CreateXmlImporter(string name, string path, string relativePathBase, PathRelativizationId relativizationId, string sourceURI, Type[] rowInserterTypes, string[] databaseColumns, CreateXmlRowInserterDelegate createXmlRowInserter)
         {
             DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
 
@@ -684,7 +692,7 @@ namespace PTL.ATT.GUI
                 foreach (string databaseColumn in databaseColumns)
                     databaseColumnInputColumn.Add(databaseColumn, rowInserterForm.GetValue<string>(databaseColumn));
 
-                importer = new XmlImporter(name, path, sourceURI, createXmlRowInserter(databaseColumnInputColumn), "row", "row");
+                importer = new XmlImporter(name, path, RelativizePath(path, relativePathBase, relativizationId), sourceURI, createXmlRowInserter(databaseColumnInputColumn), "row", "row");
             }
 
             return importer;
@@ -713,7 +721,7 @@ namespace PTL.ATT.GUI
                         {
                             ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
 
-                            if (action == ManageImporterAction.Import)
+                            if (action == ManageImporterAction.Load)
                             {
                                 DynamicForm df = new DynamicForm("Select importer source...");
                                 df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
@@ -734,7 +742,23 @@ namespace PTL.ATT.GUI
                                             {
                                                 try
                                                 {
-                                                    (bf.Deserialize(fs) as Importer).Save(false);
+                                                    Importer importer = bf.Deserialize(fs) as Importer;
+
+                                                    int relativizationIdEnd = importer.RelativePath.IndexOf('}');
+                                                    string relativizationId = importer.RelativePath.Substring(0, relativizationIdEnd + 1).Trim('{', '}');
+                                                    PathRelativizationId pathRelativizationId = (PathRelativizationId)Enum.Parse(typeof(PathRelativizationId), relativizationId);
+                                                    string absolutePath = importer.RelativePath.Substring(relativizationIdEnd).Trim('}', Path.DirectorySeparatorChar);
+                                                    if (pathRelativizationId == PathRelativizationId.EventDirectory)
+                                                        absolutePath = Path.Combine(Configuration.EventsImportDirectory, absolutePath);
+                                                    else if (pathRelativizationId == PathRelativizationId.IncidentDirectory)
+                                                        absolutePath = Path.Combine(Configuration.IncidentsImportDirectory, absolutePath);
+                                                    else if (pathRelativizationId == PathRelativizationId.ShapefileDirectory)
+                                                        absolutePath = Path.Combine(Configuration.PostGisShapefileDirectory, absolutePath);
+                                                    else
+                                                        throw new NotImplementedException("Unrecognized path relativization id:  " + pathRelativizationId);
+
+                                                    importer.Path = absolutePath;
+                                                    importer.Save(false);
                                                     fs.Close();
                                                     refreshStoredImporters = true;
                                                 }
@@ -785,7 +809,7 @@ namespace PTL.ATT.GUI
                                             refreshStoredImporters = true;
                                         }
                                     }
-                                    else if (action == ManageImporterAction.Export)
+                                    else if (action == ManageImporterAction.Store)
                                     {
                                         if (exportDirectory == null)
                                             exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
@@ -1985,6 +2009,14 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region miscellaneous
+        private string RelativizePath(string path, string relativePathBase, PathRelativizationId relativizationId)
+        {
+            if (!path.StartsWith(relativePathBase))
+                return path;
+
+            return "{" + relativizationId + "}" + Path.DirectorySeparatorChar + path.Substring(relativePathBase.Length).Trim(Path.DirectorySeparatorChar);
+        }
+
         private string ReplaceInvalidFilenameCharacters(string fileName)
         {
             return new string(fileName.Select(c => c == ' ' || Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
