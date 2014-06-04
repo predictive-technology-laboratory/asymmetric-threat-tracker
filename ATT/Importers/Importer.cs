@@ -159,11 +159,9 @@ namespace PTL.ATT.Importers
 
         public virtual void Import()
         {
-            string parentDirectory = System.IO.Directory.GetParent(_path).FullName;
-
             if (!System.IO.File.Exists(_path) && !string.IsNullOrWhiteSpace(_sourceURI))
             {
-                // if the import path used to reside within an unzipped archive that no longer exists, download to the original archive path (we'll unzip below)
+                // if the import path used to reside within an unzipped archive that no longer exists, download the source URI to the original archive path (we'll unzip below)
                 string downloadDestinationPath = _path;
                 string downloadDestinationParent = System.IO.Directory.GetParent(downloadDestinationPath).FullName;
                 if (!System.IO.Directory.Exists(downloadDestinationParent) && downloadDestinationParent.EndsWith("_unzipped") && !System.IO.File.Exists(downloadDestinationParent.Substring(0, downloadDestinationParent.LastIndexOf('_'))))
@@ -176,7 +174,8 @@ namespace PTL.ATT.Importers
                     Network.Download(_sourceURI, downloadDestinationPath);
             }
 
-            // if the import path resides in a zipped archive that exists but hasn't been unzipped, unzip the archive
+            // if the import path resides in a zipped archive that exists but hasn't been unzipped yet, unzip the archive
+            string parentDirectory = System.IO.Directory.GetParent(_path).FullName;
             int unzippedIndex = parentDirectory.LastIndexOf("_unzipped");
             if (unzippedIndex >= 0)
             {

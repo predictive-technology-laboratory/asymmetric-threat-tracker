@@ -1,9 +1,7 @@
-ATT.v12.suo
-ATT/bin
-ATT/obj
+*.suo
+*/bin
+*/obj
 Data/**/*unzipped
-GUI/bin
-GUI/obj
 GUI/Config/att_config.xml
 GUI/Config/gui_config.xml
 Installer/Installer
