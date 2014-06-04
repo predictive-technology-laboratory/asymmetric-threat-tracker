@@ -56,6 +56,12 @@ namespace PTL.ATT.GUI
     public partial class AttForm : Form
     {
         #region classes/types/delegates/enums
+        public enum ImportFileType
+        {
+            Plain,
+            Zip
+        }
+
         public enum PathRelativizationId
         {
             EventDirectory,
@@ -560,12 +566,12 @@ namespace PTL.ATT.GUI
                             bool pathIsDirectory = Directory.Exists(path);
                             if (!pathIsDirectory)
                                 if (extension == ".zip")
-                                    fileTypeCombo.SelectedItem = "Zip";
+                                    fileTypeCombo.SelectedItem = ImportFileType.Zip;
                                 else
-                                    fileTypeCombo.SelectedItem = "Plain";
+                                    fileTypeCombo.SelectedItem = ImportFileType.Plain;
                         });
                     importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
-                    importerForm.AddDropDown("File type:", new string[] { "Plain", "Zip" }, "Plain", "file_type");
+                    importerForm.AddDropDown("File type:", Enum.GetValues(typeof(ImportFileType)), ImportFileType.Plain, "file_type");
                     importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
                     importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, false, "save_importer");
 
@@ -578,6 +584,7 @@ namespace PTL.ATT.GUI
                     if (importerForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
                         string p = importerForm.GetValue<string>("path").Trim();
+                        ImportFileType fileType = (ImportFileType)importerForm.GetValue<object>("file_type");
                         bool pathIsDirectory = Directory.Exists(p);
 
                         if (pathIsDirectory)
@@ -589,7 +596,7 @@ namespace PTL.ATT.GUI
                         {
                             if (string.IsNullOrWhiteSpace(p) || pathIsDirectory)
                             {
-                                p = Path.Combine(downloadDirectory, ReplaceInvalidFilenameCharacters("uri_download_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToLongTimeString()));
+                                p = Path.Combine(downloadDirectory, ReplaceInvalidFilenameCharacters("uri_download_" + DateTime.Now.ToShortDateString() + "_" + DateTime.Now.ToLongTimeString() + (fileType == ImportFileType.Zip ? ".zip" : "")));
                                 pathIsDirectory = false;
                             }
 
@@ -607,7 +614,7 @@ namespace PTL.ATT.GUI
                         #endregion
 
                         #region decompress zip files if the user is providing them
-                        if (importerForm.GetValue<string>("file_type") == "Zip")
+                        if (fileType == ImportFileType.Zip)
                         {
                             string[] pathsToUnzip = new string[] { p };
                             if (pathIsDirectory)
@@ -615,7 +622,7 @@ namespace PTL.ATT.GUI
 
                             foreach (string pathToUnzip in pathsToUnzip)
                             {
-                                string destinationDirectory = pathToUnzip + "_unzipped";
+                                string destinationDirectory = Importer.GetImportUnzipDirectory(pathToUnzip);
                                 Console.Out.WriteLine("Unzipping \"" + pathToUnzip + "\" to \"" + destinationDirectory + "\"...");
                                 try { ZipFile.ExtractToDirectory(pathToUnzip, destinationDirectory); }
                                 catch (Exception) { }

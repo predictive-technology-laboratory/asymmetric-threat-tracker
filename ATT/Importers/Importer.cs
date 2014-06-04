@@ -96,6 +96,11 @@ namespace PTL.ATT.Importers
             }
         }
 
+        public static string GetImportUnzipDirectory(string zipfilePath)
+        {
+            return zipfilePath + "_unzipped";
+        }
+
         private string _name;
         private string _path;
         private string _relativePath;
@@ -154,14 +159,32 @@ namespace PTL.ATT.Importers
 
         public virtual void Import()
         {
-            if (!System.IO.File.Exists(_path) && !string.IsNullOrWhiteSpace(_sourceURI))
-                Network.Download(_sourceURI, _path);
-
             string parentDirectory = System.IO.Directory.GetParent(_path).FullName;
-            string potentialZipFilePath = parentDirectory.Substring(0, parentDirectory.LastIndexOf('_'));
-            string extension = System.IO.Path.GetExtension(potentialZipFilePath);
-            if (!System.IO.Directory.Exists(parentDirectory) && System.IO.File.Exists(potentialZipFilePath) && extension == ".zip")
-                ZipFile.ExtractToDirectory(potentialZipFilePath, parentDirectory);
+
+            if (!System.IO.File.Exists(_path) && !string.IsNullOrWhiteSpace(_sourceURI))
+            {
+                // if the import path used to reside within an unzipped archive that no longer exists, download to the original archive path (we'll unzip below)
+                string downloadDestinationPath = _path;
+                string downloadDestinationParent = System.IO.Directory.GetParent(downloadDestinationPath).FullName;
+                if (!System.IO.Directory.Exists(downloadDestinationParent) && downloadDestinationParent.EndsWith("_unzipped") && !System.IO.File.Exists(downloadDestinationParent.Substring(0, downloadDestinationParent.LastIndexOf('_'))))
+                {
+                    downloadDestinationPath = downloadDestinationParent.Substring(0, downloadDestinationParent.LastIndexOf('_'));
+                    downloadDestinationParent = System.IO.Directory.GetParent(downloadDestinationPath).FullName;
+                }
+
+                if (System.IO.Directory.Exists(downloadDestinationParent))
+                    Network.Download(_sourceURI, downloadDestinationPath);
+            }
+
+            // if the import path resides in a zipped archive that exists but hasn't been unzipped, unzip the archive
+            int unzippedIndex = parentDirectory.LastIndexOf("_unzipped");
+            if (unzippedIndex >= 0)
+            {
+                string potentialZipFilePath = parentDirectory.Substring(0, unzippedIndex);
+                string extension = System.IO.Path.GetExtension(potentialZipFilePath);
+                if (!System.IO.Directory.Exists(parentDirectory) && System.IO.File.Exists(potentialZipFilePath) && extension == ".zip")
+                    ZipFile.ExtractToDirectory(potentialZipFilePath, parentDirectory);
+            }
         }
 
         public void Save(bool deleteFirst)
@@ -173,7 +196,7 @@ namespace PTL.ATT.Importers
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
             _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@" + Columns.Importer + ") RETURNING " + Columns.Id, new Parameter(Columns.Importer, NpgsqlTypes.NpgsqlDbType.Bytea, ms.ToArray())));
-        }  
+        }
 
         public virtual void GetUpdateRequests(UpdateRequestDelegate updateRequest)
         {
