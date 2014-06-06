@@ -570,6 +570,7 @@ namespace PTL.ATT.GUI
                                 else
                                     fileTypeCombo.SelectedItem = ImportFileType.Plain;
                         });
+
                     importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
                     importerForm.AddDropDown("File type:", Enum.GetValues(typeof(ImportFileType)), ImportFileType.Plain, "file_type");
                     importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
