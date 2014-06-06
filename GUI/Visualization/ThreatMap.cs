@@ -240,6 +240,7 @@ namespace PTL.ATT.GUI.Visualization
                     displayPredictionPointsCheckbox.CheckBoxCheckedChanged += new EventHandler(DisplayPredictionPoints_CheckedChanged);
                     displayPredictionPointsCheckbox.LabelClicked += new EventHandler(DisplayPredictionPoints_LabelClicked);
                     overlayCheckBoxes.Controls.Add(displayPredictionPointsCheckbox);
+                    _displayPredictionPoints = displayPredictionPointsCheckbox.Checked;
 
                     _regionBottomLeftInMeters = new PointF(minPointX, minPointY);
                     _regionSizeInMeters = new SizeF(maxPointX - minPointX, maxPointY - minPointY);
