@@ -23,6 +23,6 @@ namespace PTL.ATT.Models
 {
     public interface IFeatureBasedDCM : IDiscreteChoiceModel
     {
-        ICollection<Feature> Features { get; }
+        List<Feature> Features { get; }
     }
 }

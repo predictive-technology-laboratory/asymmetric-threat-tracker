@@ -37,18 +37,12 @@ namespace PTL.ATT.Classifiers
             get { return Assembly.GetAssembly(typeof(Classifier)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Classifier))).Select(t => Activator.CreateInstance(t)).Cast<Classifier>(); }
         }
 
-        private int _modelId;
+        private FeatureBasedDCM _model;
         private bool _runFeatureSelection;
 
-        public int ModelId
+        public FeatureBasedDCM Model
         {
-            get { return _modelId; }
-            set { _modelId = value; }
-        }
-
-        public IFeatureBasedDCM Model
-        {
-            get { return DiscreteChoiceModel.Instantiate(_modelId) as IFeatureBasedDCM; }
+            get { return _model; }
         }
 
         public bool RunFeatureSelection
@@ -68,13 +62,13 @@ namespace PTL.ATT.Classifiers
         }
 
         protected Classifier()
-            : this(false, -1)
+            : this(false, null)
         {
         }
 
-        protected Classifier(bool runFeatureSelection, int modelId)
+        protected Classifier(bool runFeatureSelection, FeatureBasedDCM model)
         {
-            _modelId = modelId;
+            _model = model;
             _runFeatureSelection = runFeatureSelection;
         }
 

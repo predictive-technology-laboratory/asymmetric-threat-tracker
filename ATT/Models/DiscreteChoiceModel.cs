@@ -35,44 +35,25 @@ using System.IO;
 
 namespace PTL.ATT.Models
 {
+    [Serializable]
     public abstract class DiscreteChoiceModel : IDiscreteChoiceModel
     {
         #region static members
-        public const string Table = "discrete_choice_model";
-        public const string OptimalSeriesName = "Optimal";
-
-        private static Dictionary<int, DiscreteChoiceModel> _modelCache;
+        public const string Table = "model";
 
         public class Columns
         {
             [Reflector.Select(true)]
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string IncidentTypes = "incident_types";
-            [Reflector.Select(true)]
-            public const string ModelDirectory = "model_directory";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Name = "name";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string PointSpacing = "point_spacing";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Smoothers = "smoothers";
-            [Reflector.Insert, Reflector.Select(true)]
+            public const string Model = "model";
+            [Reflector.Insert]
+            public const string PredictionAreaId = "prediction_area_id";
+            [Reflector.Insert]
             public const string TrainingAreaId = "training_area_id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingEnd = "training_end";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingStart = "training_start";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Type = "type";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
-        }
-
-        static DiscreteChoiceModel()
-        {
-            _modelCache = new Dictionary<int, DiscreteChoiceModel>();
         }
 
         [ConnectionPool.CreateTable(typeof(Area))]
@@ -80,72 +61,20 @@ namespace PTL.ATT.Models
         {
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
                    Columns.Id + " SERIAL PRIMARY KEY," +
-                   Columns.IncidentTypes + " VARCHAR[] DEFAULT '{}'," +
-                   Columns.ModelDirectory + " VARCHAR," +
-                   Columns.Name + " VARCHAR," +
-                   Columns.PointSpacing + " INT," +
-                   Columns.Smoothers + " BYTEA[]," +
-                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," +
-                   Columns.TrainingEnd + " TIMESTAMP," +
-                   Columns.TrainingStart + " TIMESTAMP," +
-                   Columns.Type + " VARCHAR);";
-        }
-
-        protected static int Create(NpgsqlConnection connection,
-                                    string name,
-                                    int pointSpacing,
-                                    Type type,
-                                    Area trainingArea,
-                                    DateTime trainingStart,
-                                    DateTime trainingEnd,
-                                    IEnumerable<string> incidentTypes,
-                                    IEnumerable<Smoother> smoothers)
-        {
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('{" + incidentTypes.Select(i => "\"" + i + "\"").Concatenate(",") + "}'," +
-                                                                                                              "'" + name + "'," +
-                                                                                                              pointSpacing + "," +
-                                                                                                              "ARRAY[" + smoothers.Select((s, i) => "@smoother_" + i).Concatenate(",") + "]::bytea[]," +
-                                                                                                              trainingArea.Id + "," +
-                                                                                                              "@training_end," +
-                                                                                                              "@training_start,'" + type + "') RETURNING " + Columns.Id, connection);
-
-
-
-            ConnectionPool.AddParameters(cmd, new Parameter("training_start", NpgsqlDbType.Timestamp, trainingStart),
-                                              new Parameter("training_end", NpgsqlDbType.Timestamp, trainingEnd));
-
-            BinaryFormatter bf = new BinaryFormatter();
-            int smootherNum = 0;
-            foreach (Smoother smoother in smoothers)
-            {
-                MemoryStream ms = new MemoryStream();
-                bf.Serialize(ms, smoother);
-                ConnectionPool.AddParameters(cmd, new Parameter("smoother_" + smootherNum++, NpgsqlDbType.Bytea, ms.ToArray()));
-            }
-
-            int dcmId = Convert.ToInt32(cmd.ExecuteScalar());
-
-            string modelDirectory = Path.Combine(Configuration.ModelsDirectory, dcmId.ToString());
-
-            if (Directory.Exists(modelDirectory))
-                Directory.Delete(modelDirectory);
-
-            Directory.CreateDirectory(modelDirectory);
-
-            cmd.CommandText = "UPDATE " + Table + " SET " + Columns.ModelDirectory + "='" + modelDirectory + "' WHERE " + Columns.Id + "=" + dcmId;
-            cmd.ExecuteNonQuery();
-
-            return dcmId;
+                   Columns.Model + " BYTEA," +
+                   Columns.PredictionAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," +
+                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT;";
         }
 
         public static IEnumerable<DiscreteChoiceModel> GetAll(bool excludeThoseCopiedForPredictions)
         {
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
+            BinaryFormatter bf = new BinaryFormatter();
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                DiscreteChoiceModel model = Instantiate(reader);
+                DiscreteChoiceModel model = bf.Deserialize(new MemoryStream(reader[Table + "_" + Columns.Model] as byte[])) as DiscreteChoiceModel;
                 if (!excludeThoseCopiedForPredictions || (!model.HasMadePredictions && !model.IsMakingAPrediction))
                     models.Add(model);
             }
@@ -160,49 +89,15 @@ namespace PTL.ATT.Models
         {
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
             foreach (DiscreteChoiceModel model in GetAll(excludeThoseCopiedForPredictions))
-                if (model.TrainingAreaId == area.Id)
+                if (model.TrainingArea.Id == area.Id)
                     models.Add(model);
 
             return models;
         }
 
-        public static DiscreteChoiceModel Instantiate(int id)
-        {
-            DiscreteChoiceModel m;
-            if (!_modelCache.TryGetValue(id, out m))
-            {
-                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Id + "=" + id);
-                NpgsqlDataReader reader = cmd.ExecuteReader();
-                reader.Read();
-                m = Instantiate(reader);
-                reader.Close();
-                DB.Connection.Return(cmd.Connection);
-            }
-
-            return m;
-        }
-
-        protected static DiscreteChoiceModel Instantiate(NpgsqlDataReader reader)
-        {
-            int id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
-
-            DiscreteChoiceModel m;
-            if (!_modelCache.TryGetValue(id, out m))
-            {
-                Type type = Type.GetType(Convert.ToString(reader[Table + "_" + Columns.Type]));
-                ConstructorInfo constructor = type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { id.GetType() }, null);
-
-                m = constructor.Invoke(new object[] { id }) as DiscreteChoiceModel;
-                if (m == null)
-                    throw new NullReferenceException("Failed to construct model");
-
-                _modelCache.Add(m.Id, m);
-            }
-
-            return m;
-        }
-
         #region evaluation
+        public const string OptimalSeriesName = "Optimal";
+
         public static void Evaluate(Prediction prediction, int plotWidth, int plotHeight)
         {
             List<Incident> newIncidents = new List<Incident>();
@@ -264,7 +159,6 @@ namespace PTL.ATT.Models
             }
 
             prediction.MostRecentlyEvaluatedIncidentTime = incidents.Max(i => i.Time);
-            prediction.UpdateEvaluation();
             prediction.ReleaseLazyLoadedData();
         }
 
@@ -299,11 +193,12 @@ namespace PTL.ATT.Models
         private string _name;
         private int _pointSpacing;
         private Set<string> _incidentTypes;
-        private int _trainingAreaId;
+        private Area _trainingArea;
         private DateTime _trainingStart;
         private DateTime _trainingEnd;
         private List<Smoother> _smoothers;
         private string _modelDirectory;
+        private Area _predictionArea;
 
         #region properties
         public int Id
@@ -324,26 +219,36 @@ namespace PTL.ATT.Models
         public Set<string> IncidentTypes
         {
             get { return _incidentTypes; }
-        }
-
-        public int TrainingAreaId
-        {
-            get { return _trainingAreaId; }
+            set
+            {
+                _incidentTypes = value;
+                Update();
+            }
         }
 
         public Area TrainingArea
         {
-            get { return new Area(_trainingAreaId); }
+            get { return _trainingArea; }
         }
 
         public DateTime TrainingStart
         {
             get { return _trainingStart; }
+            set
+            {
+                _trainingStart = value;
+                Update();
+            }
         }
 
         public DateTime TrainingEnd
         {
             get { return _trainingEnd; }
+            set
+            {
+                _trainingEnd = value;
+                Update();
+            }
         }
 
         public List<Smoother> Smoothers
@@ -351,76 +256,62 @@ namespace PTL.ATT.Models
             get { return _smoothers; }
         }
 
-        public List<Prediction> Predictions
-        {
-            get { return Prediction.GetForModel(this); }
-        }
-
-        public bool HasMadePredictions
-        {
-            get
-            {
-                return Convert.ToBoolean(DB.Connection.ExecuteScalar("SELECT COUNT(*) > 0 " +
-                                                                     "FROM " + Prediction.Table + " " +
-                                                                     "WHERE " + Prediction.Table + "." + Prediction.Columns.ModelId + "=" + _id + " AND " +
-                                                                                Prediction.Table + "." + Prediction.Columns.Done + "=TRUE"));
-            }
-        }
-
-        public bool IsMakingAPrediction
-        {
-            get
-            {
-                return Convert.ToBoolean(DB.Connection.ExecuteScalar("SELECT COUNT(*) > 0 " +
-                                                                     "FROM " + Prediction.Table + " " +
-                                                                     "WHERE " + Prediction.Table + "." + Prediction.Columns.ModelId + "=" + _id + " AND " +
-                                                                                Prediction.Table + "." + Prediction.Columns.Done + "=FALSE"));
-            }
-        }
-
         public string ModelDirectory
         {
             get { return _modelDirectory; }
         }
+
+        public Area PredictionArea
+        {
+            get { return _predictionArea; }
+            set
+            {
+                _predictionArea = value;
+                Update();
+            }
+        }
+
+        public List<Prediction> Predictions
+        {
+            get { return Prediction.GetForModel(this, true); }
+        }
+
+        public bool HasMadePredictions
+        {
+            get { return Prediction.GetForModel(this, true).Count > 0;}
+        }
+
+        public bool IsMakingAPrediction
+        {
+            get { return Prediction.GetForModel(this, false).Any(p => !p.Done); }
+        }
         #endregion
 
-        protected virtual void Construct(NpgsqlDataReader reader)
+        protected DiscreteChoiceModel(string name,
+                                      int pointSpacing,
+                                      IEnumerable<string> incidentTypes,
+                                      Area trainingArea,
+                                      DateTime trainingStart,
+                                      DateTime trainingEnd,
+                                      IEnumerable<Smoother> smoothers)
         {
-            _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
-            _name = Convert.ToString(reader[Table + "_" + Columns.Name]);
-            _pointSpacing = Convert.ToInt32(reader[Table + "_" + Columns.PointSpacing]);
-            _incidentTypes = new Set<string>(reader[Table + "_" + Columns.IncidentTypes] as string[]);
-            _trainingAreaId = Convert.ToInt32(reader[Table + "_" + Columns.TrainingAreaId]);
-            _trainingStart = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingStart]);
-            _trainingEnd = Convert.ToDateTime(reader[Table + "_" + Columns.TrainingEnd]);
-            _modelDirectory = Convert.ToString(reader[Table + "_" + Columns.ModelDirectory]);
-
-            BinaryFormatter bf = new BinaryFormatter();
-
-            _smoothers = new List<Smoother>();
-
-            IEnumerable<byte[]> smootherByteArrays = reader[Table + "_" + Columns.Smoothers] as IEnumerable<byte[]>;
-            if (smootherByteArrays == null)
-                throw new NullReferenceException("Failed to get smoother byte arrays");
-
-            foreach (byte[] smootherBytes in smootherByteArrays)
-            {
-                MemoryStream ms = new MemoryStream(smootherBytes);
-                ms.Position = 0;
-                _smoothers.Add(bf.Deserialize(ms) as Smoother);
-            }
+            _name = name;
+            _pointSpacing = pointSpacing;
+            _incidentTypes = new Set<string>(incidentTypes.ToArray());
+            _trainingArea = trainingArea;
+            _trainingStart = trainingStart;
+            _trainingEnd = trainingEnd;
+            _smoothers = new List<Smoother>(smoothers);
         }
 
         public int Run(Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-
             DiscreteChoiceModel modelCopy = null;
             Prediction prediction = null;
             try
             {
-                modelCopy = DiscreteChoiceModel.Instantiate(Copy());
-                prediction = new Prediction(Prediction.Create(cmd.Connection, modelCopy.Id, newRun, predictionName, predictionArea.Id, startTime, endTime, true));
+                modelCopy = Copy(true);
+                prediction = new Prediction(modelCopy, newRun, predictionName, predictionArea, startTime, endTime, true);
                 modelCopy.Run(prediction);
                 prediction.Done = true;
 
@@ -438,10 +329,6 @@ namespace PTL.ATT.Models
                 catch (Exception ex2) { Console.Out.WriteLine("Failed to delete model:  " + ex2.Message); }
 
                 throw ex;
-            }
-            finally
-            {
-                DB.Connection.Return(cmd.Connection);
             }
         }
 
@@ -477,71 +364,41 @@ namespace PTL.ATT.Models
             return (indentLevel > 0 ? Environment.NewLine : "") + indent + "Type:  " + GetType() + Environment.NewLine +
                    indent + "ID:  " + _id + Environment.NewLine +
                    indent + "Name:  " + _name + Environment.NewLine +
-                   (_modelDirectory == "" ? "" : indent + "Model directory:  " + _modelDirectory + Environment.NewLine) +
+                   indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
                    indent + "Incident types:  " + _incidentTypes.Concatenate(",") + Environment.NewLine +
+                   indent + "Training area:  " + TrainingArea.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Training start:  " + _trainingStart.ToShortDateString() + " " + _trainingStart.ToShortTimeString() + Environment.NewLine +
                    indent + "Training end:  " + _trainingEnd.ToShortDateString() + " " + _trainingEnd.ToShortTimeString() + Environment.NewLine +
-                   indent + "Training area:  " + TrainingArea.GetDetails(indentLevel + 1) + Environment.NewLine +
-                   indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
-                   indent + "Smoothers:  " + _smoothers.Select(s => s.GetSmoothingDetails()).Concatenate(", ");
+                   indent + "Smoothers:  " + _smoothers.Select(s => s.GetSmoothingDetails()).Concatenate(", ") + Environment.NewLine +
+                   (_modelDirectory == "" ? "" : indent + "Model directory:  " + _modelDirectory);
         }
 
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, IEnumerable<string> incidentTypes, IEnumerable<Smoother> smoothers)
+        public void Save()
         {
-            _incidentTypes = new Set<string>(incidentTypes.ToArray());
-            _name = name;
-            _pointSpacing = pointSpacing;
-            _trainingAreaId = trainingArea.Id;
-            _trainingEnd = trainingEnd;
-            _trainingStart = trainingStart;
-            _smoothers = smoothers.ToList();
+            Delete();
 
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, this);
+            _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@bytes," + _trainingArea.Id + "," + _trainingArea.Id + ") RETURNING " + Columns.Id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray())));
 
-            List<Parameter> parameters = new List<Parameter>();
-            parameters.Add(new Parameter("training_end", NpgsqlDbType.Timestamp, trainingEnd));
-            parameters.Add(new Parameter("training_start", NpgsqlDbType.Timestamp, trainingStart));
+            _modelDirectory = Path.Combine(Configuration.ModelsDirectory, _id.ToString());
 
-            int smootherNum = 0;
-            foreach (Smoother smoother in smoothers)
-            {
-                ms = new MemoryStream();
-                bf.Serialize(ms, smoother);
-                parameters.Add(new Parameter("smoother_" + smootherNum++, NpgsqlDbType.Bytea, ms.ToArray()));
-            }
+            if (Directory.Exists(_modelDirectory))
+                Directory.Delete(_modelDirectory);
 
-            DB.Connection.ExecuteScalar("UPDATE " + Table + " SET " +
-                                        Columns.IncidentTypes + "='{" + incidentTypes.Concatenate(",") + "}'," +
-                                        Columns.Name + "='" + name + "'," +
-                                        Columns.PointSpacing + "=" + pointSpacing + "," +
-                                        Columns.TrainingAreaId + "=" + trainingArea.Id + "," +
-                                        Columns.TrainingEnd + "=@training_end," +
-                                        Columns.TrainingStart + "=@training_start," +
-                                        Columns.Smoothers + "=ARRAY[" + smoothers.Select((s, i) => "@smoother_" + i).Concatenate(",") + "]::bytea[] " +
-                                        "WHERE " + Columns.Id + "=" + _id, parameters.ToArray());
-
-            _modelCache.Remove(_id);
+            Directory.CreateDirectory(_modelDirectory);
         }
 
-        public abstract int Copy();
-
-        public abstract void UpdateFeatureIdsFrom(DiscreteChoiceModel original);
-
-        protected void Smooth(Prediction prediction)
+        public void Update()
         {
-            foreach (Smoother smoother in _smoothers)
-            {
-                Console.Out.WriteLine("Smoothing prediction with " + smoother.GetType().FullName);
+            if (_id == -1)
+                throw new Exception("Cannot update a model before it has been saved.");
 
-                smoother.Apply(prediction);
-            }
-        }
-
-        public void DeletePredictions()
-        {
-            foreach (Prediction prediction in Prediction.GetForModel(this))
-                prediction.Delete();
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, this);
+            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Model + "=@bytes WHERE " + Columns.Id + "=" + _id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray()));
         }
 
         public void Delete()
@@ -558,8 +415,31 @@ namespace PTL.ATT.Models
 
             try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete model from table:  " + ex.Message); }
+        }
 
-            _modelCache.Remove(_id);
+        public abstract DiscreteChoiceModel Copy(bool save);
+
+        public abstract void UpdateFeatureIdsFrom(DiscreteChoiceModel original);
+
+        protected void Smooth(Prediction prediction)
+        {
+            foreach (Smoother smoother in _smoothers)
+            {
+                Console.Out.WriteLine("Smoothing prediction with " + smoother.GetType().FullName);
+                smoother.Apply(prediction);
+            }
+        }
+
+        public void DeletePredictions(bool onlyFinishedPredictions)
+        {
+            foreach (Prediction prediction in Prediction.GetForModel(this, onlyFinishedPredictions))
+            {
+                if (!onlyFinishedPredictions)
+                    while (!prediction.Done)
+                        Thread.Sleep(0);
+
+                prediction.Delete();
+            }
         }
     }
 }

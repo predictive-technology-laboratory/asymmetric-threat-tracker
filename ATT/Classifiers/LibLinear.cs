@@ -63,12 +63,12 @@ namespace PTL.ATT.Classifiers
         }
 
         public LibLinear()
-            : this(false, -1, PositiveClassWeighting.None)
+            : this(false, null, PositiveClassWeighting.None)
         {
         }
 
-        public LibLinear(bool runFeatureSelection, int modelId, PositiveClassWeighting positiveClassWeighting)
-            : base(runFeatureSelection, modelId)
+        public LibLinear(bool runFeatureSelection, FeatureBasedDCM model, PositiveClassWeighting positiveClassWeighting)
+            : base(runFeatureSelection, model)
         {
             _positiveClassWeighting = positiveClassWeighting;
         }
@@ -291,7 +291,7 @@ namespace PTL.ATT.Classifiers
 
         public override Classifier Copy()
         {
-            return new LibLinear(RunFeatureSelection, ModelId, _positiveClassWeighting);
+            return new LibLinear(RunFeatureSelection, Model, _positiveClassWeighting);
         }
 
         internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)

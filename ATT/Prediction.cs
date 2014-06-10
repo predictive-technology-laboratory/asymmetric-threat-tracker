@@ -44,29 +44,13 @@ namespace PTL.ATT
         public class Columns
         {
             [Reflector.Select(true)]
-            public const string Analysis = "analysis";
-            [Reflector.Select(true)]
-            public const string AssessmentPlots = "assessment_plots";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Done = "done";
-            [Reflector.Select(true)]
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string ModelId = "model_id";
             [Reflector.Insert, Reflector.Select(true)]
-            public const string MostRecentlyEvaluatedIncidentTime = "most_recently_evaluated_incident_time";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Name = "name";
+            public const string Prediction = "prediction";
             [Reflector.Insert, Reflector.Select(true)]
             public const string PredictionAreaId = "prediction_area_id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string PredictionEndTime = "prediction_end_time";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string PredictionStartTime = "prediction_start_time";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string RunId = "run_id";
-            [Reflector.Select(true)]
-            public const string Smoothing = "smoothing";
 
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
             public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
@@ -76,49 +60,13 @@ namespace PTL.ATT
         private static string CreateTable(ConnectionPool connection)
         {
             return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                   Columns.Analysis + " VARCHAR," +
-                   Columns.AssessmentPlots + " BYTEA," +
-                   Columns.Done + " BOOLEAN," +
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
-                   Columns.MostRecentlyEvaluatedIncidentTime + " TIMESTAMP," +
-                   Columns.Name + " VARCHAR," +
-                   Columns.PredictionAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," + // must delete predictions with Prediction.Delete (to clean up some tables)
-                   Columns.PredictionEndTime + " TIMESTAMP," +
-                   Columns.PredictionStartTime + " TIMESTAMP," +
-                   Columns.RunId + " INT," +
-                   Columns.Smoothing + " VARCHAR);" +
+                   Columns.Prediction + " BYTEA," +
+                   Columns.PredictionAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT);" + // must delete predictions with Prediction.Delete (to clean up some tables)
                    (connection.TableExists(Table) ? "" :
-                   "CREATE INDEX ON " + Table + " (" + Columns.Done + ");" +
                    "CREATE INDEX ON " + Table + " (" + Columns.ModelId + ");" +
-                   "CREATE INDEX ON " + Table + " (" + Columns.PredictionAreaId + ");" +
-                   "CREATE INDEX ON " + Table + " (" + Columns.RunId + ");");
-        }
-
-        internal static int Create(NpgsqlConnection connection, int modelId, bool newRun, string name, int predictionAreaId, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
-        {
-            int runId = Convert.ToInt32(DB.Connection.ExecuteScalar("SELECT CASE WHEN COUNT(*) > 0 THEN MAX(" + Columns.RunId + ") ELSE -1 END FROM " + Table));
-            runId += newRun ? 1 : 0;
-
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (FALSE," + 
-                                                                                                              modelId + "," +
-                                                                                                              "@most_recently_evaluated_incident_time," +
-                                                                                                              "'" + name + "'," +
-                                                                                                              predictionAreaId + "," +
-                                                                                                              "@prediction_end_time," +
-                                                                                                              "@prediction_start_time," +
-                                                                                                              runId + ") RETURNING " + Columns.Id, connection);
-
-            ConnectionPool.AddParameters(cmd, new Parameter("most_recently_evaluated_incident_time", NpgsqlDbType.Timestamp, DateTime.MinValue),
-                                              new Parameter("prediction_start_time", NpgsqlDbType.Timestamp, predictionStartTime),
-                                              new Parameter("prediction_end_time", NpgsqlDbType.Timestamp, predictionEndTime));
-
-            int id = Convert.ToInt32(cmd.ExecuteScalar());
-
-            if (vacuum)
-                VacuumTable();
-
-            return id;
+                   "CREATE INDEX ON " + Table + " (" + Columns.PredictionAreaId + ");");
         }
 
         public static void VacuumTable()
@@ -129,10 +77,15 @@ namespace PTL.ATT
         public static List<Prediction> GetAll()
         {
             List<Prediction> predictions = new List<Prediction>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE");
+            BinaryFormatter bf = new BinaryFormatter();
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
-                predictions.Add(new Prediction(reader));
+            {
+                Prediction prediction = bf.Deserialize(new MemoryStream(reader[Table + "_" + Columns.Prediction] as byte[])) as Prediction;
+                if (prediction.Done)
+                    predictions.Add(prediction);
+            }
 
             reader.Close();
             DB.Connection.Return(cmd.Connection);
@@ -140,43 +93,26 @@ namespace PTL.ATT
             return predictions;
         }
 
-        public static List<Prediction> GetForModel(DiscreteChoiceModel model)
+        public static List<Prediction> GetForModel(DiscreteChoiceModel model, bool onlyFinishedPredictions)
         {
-            List<Prediction> predictions = new List<Prediction>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Done + "=TRUE AND " + Columns.ModelId + "=" + model.Id);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                predictions.Add(new Prediction(reader));
-
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
-
-            return predictions;
+            return GetAll().Where(p => (!onlyFinishedPredictions || p.Done) && p.Model.Id == model.Id).ToList();
         }
 
-        public static List<Prediction> GetForArea(Area area)
+        public static List<Prediction> GetForArea(Area area, bool onlyFinishedPredictions)
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " + 
-                                                         "FROM " + Table + " JOIN " + DiscreteChoiceModel.Table + " ON " + DiscreteChoiceModel.Table + "." + DiscreteChoiceModel.Columns.Id + "=" + Prediction.Table + "." + Columns.ModelId + " " +  
-                                                         "WHERE " + Columns.Done + "=TRUE AND (" + DiscreteChoiceModel.Columns.TrainingAreaId + "=" + area.Id + " OR " + Columns.PredictionAreaId + "=" + area.Id + ")");
-
-            List<Prediction> predictions = new List<Prediction>();
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                predictions.Add(new Prediction(reader));
-
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
-
-            return predictions;
+            return GetAll().Where(p => (!onlyFinishedPredictions || p.Done) && (p.Model.TrainingArea.Id == area.Id || p.Model.PredictionArea.Id == area.Id)).ToList();
         }
 
-        private bool _done;
+        public static int MaxRunId
+        {
+            get { return GetAll().Max(p => p.RunId); }
+        }
+
         private int _id;
+        private bool _done;
         private int _runId;
-        private int _modelId;
+        private DiscreteChoiceModel _model;
         private string _name;
-        private int _predictionAreaId;
         private Area _predictionArea;
         private DateTime _predictionStartTime;
         private DateTime _predictionEndTime;
@@ -196,8 +132,7 @@ namespace PTL.ATT
                     return;
 
                 _smoothing = value;
-                
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Smoothing + "='" + _smoothing + "' WHERE " + Columns.Id + "=" + _id);
+                Update();
             }
         }
 
@@ -207,8 +142,7 @@ namespace PTL.ATT
             set
             {
                 _done = value;
-
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Done + "=" + _done + " WHERE " + Columns.Id + "=" + _id);
+                Update();
             }
         }
 
@@ -226,8 +160,7 @@ namespace PTL.ATT
                     return;
 
                 _runId = value;
-
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.RunId + "=" + _runId + " WHERE " + Columns.Id + "=" + _id);
+                Update();
             }
         }
 
@@ -236,19 +169,9 @@ namespace PTL.ATT
             get { return Path.Combine(Model.ModelDirectory, "point_predictions.gz"); }
         }
 
-        public int ModelId
-        {
-            get { return _modelId; }
-            set
-            {
-                _modelId = value;
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.ModelId + "=" + _modelId + " WHERE " + Columns.Id + "=" + _id);
-            }
-        }
-
         public DiscreteChoiceModel Model
         {
-            get { return DiscreteChoiceModel.Instantiate(_modelId); }
+            get { return _model; }
         }
 
         public string Name
@@ -273,31 +196,16 @@ namespace PTL.ATT
                     }
 
                 if (updateEvaluation)
-                    UpdateEvaluation();
+                    Update();
 
                 _name = value;
-
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Name + "='" + _name + "' WHERE " + Columns.Id + "=" + _id);
+                Update();
             }
-        }
-
-        public int PredictionAreaId
-        {
-            get { return _predictionAreaId; }
         }
 
         public Area PredictionArea
         {
-            get
-            {
-                lock (this)
-                {
-                    if (_predictionArea == null)
-                        _predictionArea = new Area(_predictionAreaId);
-                }
-
-                return _predictionArea;
-            }
+            get { return _predictionArea; }
         }
 
         public DateTime PredictionStartTime
@@ -313,13 +221,21 @@ namespace PTL.ATT
         public DateTime MostRecentlyEvaluatedIncidentTime
         {
             get { return _mostRecentlyEvaluatedIncidentTime; }
-            set { _mostRecentlyEvaluatedIncidentTime = value; }
+            set
+            {
+                _mostRecentlyEvaluatedIncidentTime = value;
+                Update();
+            }
         }
 
         public List<Plot> AssessmentPlots
         {
             get { return _assessmentPlots; }
-            set { _assessmentPlots = value; }
+            set
+            {
+                _assessmentPlots = value;
+                Update();
+            }
         }
 
         public string ModelDetails
@@ -331,8 +247,7 @@ namespace PTL.ATT
                     return;
 
                 _modelDetails = value;
-
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Analysis + "='" + _modelDetails + "' WHERE " + Columns.Id + "=" + _id);
+                Update();
             }
         }
 
@@ -382,50 +297,44 @@ namespace PTL.ATT
 
                 return _pointPredictions;
             }
-        }        
-
-        public Prediction(int id)
-        {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.Id + "=" + id);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            Construct(reader);
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
         }
 
-        private Prediction(NpgsqlDataReader reader)
+        public Prediction(DiscreteChoiceModel model, bool newRun, string name, Area predictionArea, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
         {
-            Construct(reader);
+            _model = model;
+            _runId = MaxRunId + (newRun ? 1 : 0);
+            _name = name;
+            _predictionArea = predictionArea;
+            _predictionStartTime = predictionStartTime;
+            _predictionEndTime = predictionEndTime;
         }
 
-        private void Construct(NpgsqlDataReader reader)
+        public void Save()
         {
-            _done = Convert.ToBoolean(reader[Table + "_" + Columns.Done]);
-            _id = Convert.ToInt32(reader[Table + "_" + Columns.Id]);
-            _runId = Convert.ToInt32(reader[Table + "_" + Columns.RunId]);
-            _modelId = Convert.ToInt32(reader[Table + "_" + Columns.ModelId]);
-            _name = Convert.ToString(reader[Table + "_" + Columns.Name]);
-            _predictionAreaId = Convert.ToInt32(reader[Table + "_" + Columns.PredictionAreaId]);
-            _predictionStartTime = Convert.ToDateTime(reader[Table + "_" + Columns.PredictionStartTime]);
-            _predictionEndTime = Convert.ToDateTime(reader[Table + "_" + Columns.PredictionEndTime]);
-            _mostRecentlyEvaluatedIncidentTime = Convert.ToDateTime(reader[Table + "_" + Columns.MostRecentlyEvaluatedIncidentTime]);
-            _modelDetails = Convert.ToString(reader[Table + "_" + Columns.Analysis]);
-            _smoothing = Convert.ToString(reader[Table + "_" + Columns.Smoothing]);
+            Delete();
 
-            _assessmentPlots = new List<Plot>();
-            if (!(reader[Table + "_" + Columns.AssessmentPlots] is DBNull))
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                MemoryStream plotsBytes = new MemoryStream(reader[Table + "_" + Columns.AssessmentPlots] as byte[]);
-                plotsBytes.Position = 0;
-                _assessmentPlots = bf.Deserialize(plotsBytes) as List<Plot>;
-            }
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, this);
+            _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + _model.Id + ",@bytes," + _predictionArea.Id + ") RETURNING " + Columns.Id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray())));
+
+            VacuumTable();
         }
 
-        public override string ToString()
+        public void Update()
         {
-            return _name;
+            if (_id == -1)
+                throw new Exception("Cannot update a prediction before it has been saved.");
+
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, this);
+            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " " +
+                                          "SET " + Columns.ModelId + "=" + _model.Id + "," +
+                                                   Columns.Prediction + "=@bytes" + "," +
+                                                   Columns.PredictionAreaId + "=" + _predictionArea.Id + " " +
+                                          "WHERE " + Columns.Id + "=" + _id,
+                                          new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray()));
         }
 
         public void Delete()
@@ -443,23 +352,16 @@ namespace PTL.ATT
 
             try { Model.Delete(); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete model for prediction:  " + ex.Message); }
+
+            VacuumTable();
         }
 
-        public void UpdateEvaluation()
+        public override string ToString()
         {
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, _assessmentPlots);
-
-            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " " +
-                                          "SET " + Columns.AssessmentPlots + "=@" + Columns.AssessmentPlots + "," +
-                                                   Columns.MostRecentlyEvaluatedIncidentTime + "=@" + Columns.MostRecentlyEvaluatedIncidentTime + " " +
-                                          "WHERE " + Columns.Id + "=" + _id,
-                                          new Parameter(Columns.AssessmentPlots, NpgsqlDbType.Bytea, ms.ToArray()),
-                                          new Parameter(Columns.MostRecentlyEvaluatedIncidentTime, NpgsqlDbType.Timestamp, _mostRecentlyEvaluatedIncidentTime));
+            return _name;
         }
 
-        public int Copy(string newName, bool newRun, bool vacuum)
+        public Prediction Copy(string newName, bool newRun, bool vacuum)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
@@ -467,7 +369,8 @@ namespace PTL.ATT
 
             try
             {
-                copiedPrediction = new Prediction(Create(cmd.Connection, Model.Copy(), newRun, newName, _predictionAreaId, _predictionStartTime, _predictionEndTime, false));
+                copiedPrediction = new Prediction(Model.Copy(true), newRun, newName, _predictionArea, _predictionStartTime, _predictionEndTime, false);
+                copiedPrediction.Save();
 
                 string copiedPointTable = Point.CreateTable(copiedPrediction.Id, PredictionArea.SRID);
                 cmd.CommandText = "INSERT INTO " + copiedPointTable + " (" + Point.Columns.Insert + ") " +
@@ -516,7 +419,7 @@ namespace PTL.ATT
                 }
             }
 
-            return copiedPrediction.Id;
+            return copiedPrediction;
         }
 
         public string GetDetails(int indentLevel)

@@ -22,6 +22,7 @@ using LAIR.MachineLearning;
 
 namespace PTL.ATT.Models
 {
+    [Serializable]
     public abstract class FeatureExtractor
     {
         public abstract IEnumerable<Feature> GetAvailableFeatures(Area area);

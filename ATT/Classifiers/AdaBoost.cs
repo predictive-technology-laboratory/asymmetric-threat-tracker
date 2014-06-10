@@ -24,6 +24,7 @@ using System.IO;
 using LAIR.ResourceAPIs.R;
 using LAIR.MachineLearning.ClassifierWrappers;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
+using PTL.ATT.Models;
 
 namespace PTL.ATT.Classifiers
 {
@@ -57,12 +58,12 @@ namespace PTL.ATT.Classifiers
         private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, "Predictions.csv"); } }
 
         public AdaBoost()
-            : this(false, -1, 50)
+            : this(false, null, 50)
         {
         }
 
-        public AdaBoost(bool runFeatureSelection, int modelId, int iterations)
-            : base(runFeatureSelection, modelId)
+        public AdaBoost(bool runFeatureSelection, FeatureBasedDCM model, int iterations)
+            : base(runFeatureSelection, model)
         {
             _iterations = iterations;
         }
@@ -152,7 +153,7 @@ if(length(cls)==2) {
 
         public override IEnumerable<int> SelectFeatures(Prediction prediction)
         {
-            throw new NotImplementedException("Feature selection has not been implemented for AdaBoost");
+            throw new NotImplementedException("Feature selection has not been implemented for AdaBoost classifiers.");
         }
 
         public override void Classify(FeatureVectorList featureVectors)
@@ -265,7 +266,7 @@ write.table(mult, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.name
 
         public override Classifier Copy()
         {
-            return new AdaBoost(RunFeatureSelection, ModelId, _iterations);
+            return new AdaBoost(RunFeatureSelection, Model, _iterations);
         }
 
         internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)

@@ -26,74 +26,14 @@ using LAIR.Extensions;
 
 namespace PTL.ATT.Models
 {
+    [Serializable]
     public class Feature : IComparable<Feature>
     {
-        public const string Table = "feature";
-
-        public class Columns
-        {
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Description = "description";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string EnumType = "enum_type";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string EnumValue = "enum_value";
-            [Reflector.Select(true)]
-            public const string Id = "id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string ModelId = "model_id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string ParameterValues = "parameter_values";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string PredictionResourceId = "prediction_resource_id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingResourceId = "training_resource_id";
-
-            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return Reflector.GetSelectColumns(Table, typeof(Columns)); } }
-        }
-
-        [ConnectionPool.CreateTable(typeof(Prediction))]
-        private static string CreateTable(ConnectionPool connection)
-        {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                    Columns.Description + " VARCHAR," +
-                    Columns.EnumType + " VARCHAR," +
-                    Columns.EnumValue + " VARCHAR," +
-                    Columns.Id + " SERIAL PRIMARY KEY," +
-                    Columns.ModelId + " INT REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
-                    Columns.ParameterValues + " VARCHAR[]," +
-                    Columns.PredictionResourceId + " VARCHAR," +
-                    Columns.TrainingResourceId + " VARCHAR);" +
-                    (connection.TableExists(Table) ? "" :
-                    "CREATE INDEX ON " + Table + " (" + Columns.EnumType + ");" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.EnumValue + ");" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.ModelId + ");" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.PredictionResourceId + ");" +
-                    "CREATE INDEX ON " + Table + " (" + Columns.TrainingResourceId + ");");
-        }
-
-        public static int Create(NpgsqlConnection connection, string description, Type enumType, Enum enumValue, DiscreteChoiceModel model, string trainingResourceId, string predictionResourceId, Dictionary<string, string> parameterValues, bool vacuum)
-        {
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + description + "','" + enumType + "','" + enumValue + "'," + model.Id + ",'{" + parameterValues.Select(kvp => "\"" + kvp.Key + "\",\"" + kvp.Value + "\"").Concatenate(",") + "}'," + (predictionResourceId == null ? "NULL" : "'" + predictionResourceId + "'") + "," + (trainingResourceId == null ? "NULL" : "'" + trainingResourceId + "'") + ") RETURNING " + Columns.Id, connection);
-            int id = Convert.ToInt32(cmd.ExecuteScalar());
-
-            if (vacuum)
-                VacuumTable();
-
-            return id;
-        }
-
-        internal static void VacuumTable()
-        {
-            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
-        }
-
         private int _id;
+        private DiscreteChoiceModel _model;
         private Type _enumType;
         private Enum _enumValue;
         private string _description;
-        private int _modelId;
         private string _trainingResourceId;
         private string _predictionResourceId;
         private Dictionary<string, string> _parameterValue;
@@ -101,6 +41,12 @@ namespace PTL.ATT.Models
         public int Id
         {
             get { return _id; }
+        }
+
+        public DiscreteChoiceModel Model
+        {
+            get { return _model; }
+            set { _model = value; }
         }
 
         public Type EnumType
@@ -118,11 +64,6 @@ namespace PTL.ATT.Models
             get { return _description; }
         }
 
-        public int ModelId
-        {
-            get { return _modelId; }
-        }
-
         public string TrainingResourceId
         {
             get { return _trainingResourceId; }
@@ -133,9 +74,13 @@ namespace PTL.ATT.Models
             get { return _predictionResourceId; }
             set
             {
-                _predictionResourceId = value;
+                if (value != _predictionResourceId)
+                {
+                    _predictionResourceId = value;
 
-                DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.PredictionResourceId + "='" + value + "' WHERE " + Columns.Id + "=" + _id);
+                    if (_model != null)
+                        _model.Update();
+                }
             }
         }
 
@@ -150,39 +95,8 @@ namespace PTL.ATT.Models
             get { return _enumType + "-" + _enumValue + "-" + _trainingResourceId; }
         }
 
-        internal Feature(NpgsqlDataReader reader)
-        {
-            Construct(reader);
-        }
-
         public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, Dictionary<string, string> parameterValue)
         {
-            Construct(-1, -1, enumType, enumValue, trainingResourceId, predictionResourceId, description, parameterValue);
-        }
-
-        private void Construct(NpgsqlDataReader reader)
-        {
-            Type enumType = Reflection.GetType(Convert.ToString(reader[Table + "_" + Columns.EnumType]));
-
-            Dictionary<string, string> parameterValue = new Dictionary<string, string>();
-            string[] paramValueParts = reader[Table + "_" + Columns.ParameterValues] as string[];
-            for (int i = 0; i < paramValueParts.Length; i += 2)
-                parameterValue.Add(paramValueParts[i], paramValueParts[i + 1]);
-
-            Construct(Convert.ToInt32(reader[Table + "_" + Columns.Id]),
-                      Convert.ToInt32(reader[Table + "_" + Columns.ModelId]),
-                      enumType,
-                      (Enum)Enum.Parse(enumType, Convert.ToString(reader[Table + "_" + Columns.EnumValue])),
-                      Convert.ToString(reader[Table + "_" + Columns.TrainingResourceId]),
-                      Convert.ToString(reader[Table + "_" + Columns.PredictionResourceId]),
-                      Convert.ToString(reader[Table + "_" + Columns.Description]),
-                      parameterValue);
-        }
-
-        private void Construct(int id, int modelId, Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, Dictionary<string, string> parameterValue)
-        {
-            _id = id;
-            _modelId = modelId;
             _enumType = enumType;
             _enumValue = enumValue;
             _description = description;
@@ -192,6 +106,8 @@ namespace PTL.ATT.Models
 
             if (_parameterValue == null)
                 _parameterValue = new Dictionary<string, string>();
+
+            _id = FeatureBasedDCM.MaxFeatureId + 1;
         }
 
         public override string ToString()

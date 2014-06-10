@@ -31,62 +31,13 @@ using PTL.ATT.Smoothers;
 
 namespace PTL.ATT.Models
 {
+    [Serializable]
     public class KernelDensityDCM : DiscreteChoiceModel
     {
         static KernelDensityDCM()
         {
             if (Configuration.RCranMirror != null)
                 R.InstallPackages(R.CheckForMissingPackages(new string[] { "ks" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
-        }
-
-        private new const string Table = "kernel_density_dcm";
-
-        private new class Columns
-        {
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Id = "id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Normalize = "normalize";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingSampleSize = "training_sample_size";
-
-            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return DiscreteChoiceModel.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
-            public static string JoinDiscreteChoiceModel { get { return DiscreteChoiceModel.Table + " JOIN " + Table + " ON " + DiscreteChoiceModel.Table + "." + DiscreteChoiceModel.Columns.Id + "=" + Table + "." + Id; } }
-        }
-
-        [ConnectionPool.CreateTable(typeof(DiscreteChoiceModel))]
-        private static string CreateTable(ConnectionPool connection)
-        {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                    Columns.Id + " INT PRIMARY KEY REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
-                    Columns.Normalize + " BOOLEAN," +
-                    Columns.TrainingSampleSize + " INT);";
-        }
-
-        public static int Create(string name,
-                                 int pointSpacing,
-                                 Area trainingArea,
-                                 DateTime trainingStart,
-                                 DateTime trainingEnd,
-                                 int trainingSampleSize,
-                                 IEnumerable<string> incidentTypes,
-                                 bool normalize,
-                                 IEnumerable<Smoother> smoothers)
-        {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("BEGIN");
-            cmd.ExecuteNonQuery();
-
-            int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, typeof(KernelDensityDCM), trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
-
-            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + dcmId + "," + 
-                                                                                              normalize + "," + 
-                                                                                              trainingSampleSize + ");COMMIT;";
-            cmd.ExecuteNonQuery();
-
-            DB.Connection.Return(cmd.Connection);
-
-            return dcmId;
         }
 
         public static List<float> GetDensityEstimate(IEnumerable<PostGIS.Point> inputPoints, int inputSampleSize, bool binned, float bGridSizeX, float bGridSizeY, IEnumerable<PostGIS.Point> evalPoints, bool normalize)
@@ -203,51 +154,32 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             }
         }
 
-        private bool _normalize;
         private int _trainingSampleSize;
-
-        public bool Normalize
-        {
-            get { return _normalize; }
-        }
+        private bool _normalize;
 
         public int TrainingSampleSize
         {
             get { return _trainingSampleSize; }
         }
 
-        internal KernelDensityDCM(int id)
+        public bool Normalize
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
-                                                         "FROM " + Columns.JoinDiscreteChoiceModel + " " +
-                                                         "WHERE " + Table + "." + Columns.Id + "=" + id);
-
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            Construct(reader);
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
+            get { return _normalize; }
         }
 
-        protected override void Construct(NpgsqlDataReader reader)
+        public KernelDensityDCM(string name,
+                                int pointSpacing,
+                                IEnumerable<string> incidentTypes,
+                                Area trainingArea,
+                                DateTime trainingStart,
+                                DateTime trainingEnd,
+                                IEnumerable<Smoother> smoothers,
+                                int trainingSampleSize,
+                                bool normalize)
+            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
-            base.Construct(reader);
-
-            _normalize = Convert.ToBoolean(reader[Table + "_" + Columns.Normalize]);
-            _trainingSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.TrainingSampleSize]);
-        }
-
-        public void Update(string name, int pointSpacing, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, IEnumerable<string> incidentTypes, bool normalize, IEnumerable<Smoother> smoothers)
-        {
-            base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
-
-            _normalize = normalize;
             _trainingSampleSize = trainingSampleSize;
-
-            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
-                                          Columns.Normalize + "=" + _normalize + "," +
-                                          Columns.TrainingSampleSize + "=" + _trainingSampleSize + " " + 
-                                          "WHERE " + Columns.Id + "=" + Id);
+            _normalize = normalize;
         }
 
         protected override void Run(Prediction prediction)
@@ -327,9 +259,14 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             return "No information is available for " + typeof(KernelDensityDCM).Name + " models.";
         }
 
-        public override int Copy()
+        public override DiscreteChoiceModel Copy(bool save)
         {
-            return Create(Name, PointSpacing, TrainingArea, TrainingStart, TrainingEnd, _trainingSampleSize, IncidentTypes, _normalize, Smoothers);
+            DiscreteChoiceModel copy = new KernelDensityDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _trainingSampleSize, _normalize);
+
+            if (save)
+                copy.Save();
+
+            return copy;
         }
 
         public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)

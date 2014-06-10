@@ -33,6 +33,7 @@ using PTL.ATT.Smoothers;
 
 namespace PTL.ATT.Models
 {
+    [Serializable]
     public class TimeSliceDCM : FeatureBasedDCM
     {
         public enum TimeSliceFeature
@@ -88,79 +89,6 @@ namespace PTL.ATT.Models
             Night
         }
 
-        public new const string Table = "time_slice_dcm";
-
-        public new class Columns
-        {
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Id = "id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string PeriodTimeSlices = "period_time_slices";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TimeSliceHours = "time_slice_hours";
-
-            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return FeatureBasedDCM.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
-            public static string JoinFeatureBasedDCM { get { return FeatureBasedDCM.Columns.JoinDiscreteChoiceModel + " JOIN " + Table + " ON " + FeatureBasedDCM.Table + "." + FeatureBasedDCM.Columns.Id + "=" + Table + "." + Columns.Id; } }
-        }
-
-        [ConnectionPool.CreateTable(typeof(FeatureBasedDCM))]
-        private static string CreateTable(ConnectionPool connection)
-        {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                   Columns.Id + " INT PRIMARY KEY REFERENCES " + FeatureBasedDCM.Table + " ON DELETE CASCADE," +
-                   Columns.PeriodTimeSlices + " INT," +
-                   Columns.TimeSliceHours + " INT);";
-        }
-
-        public static int Create(NpgsqlConnection connection,
-                                 string name,
-                                 int pointSpacing,
-                                 int featureDistanceThreshold,
-                                 Type type,
-                                 Area trainingArea,
-                                 DateTime trainingStart,
-                                 DateTime trainingEnd,
-                                 int trainingSampleSize,
-                                 int predictionSampleSize,
-                                 IEnumerable<string> incidentTypes,
-                                 PTL.ATT.Classifiers.Classifier classifier,
-                                 IEnumerable<Smoother> smoothers,
-                                 List<Feature> features,
-                                 int timeSliceHours,
-                                 int periodTimeSlices)
-        {
-            NpgsqlCommand cmd = new NpgsqlCommand(null, connection);
-
-            bool returnConnection = false;
-            if (cmd.Connection == null)
-            {
-                cmd.Connection = DB.Connection.OpenConnection;
-                cmd.CommandText = "BEGIN";
-                cmd.ExecuteNonQuery();
-                returnConnection = true;
-            }
-
-            if (type == null)
-                type = typeof(TimeSliceDCM);
-
-            int featureBasedDcmId = FeatureBasedDCM.Create(cmd.Connection, name, pointSpacing, featureDistanceThreshold, type, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
-
-            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + featureBasedDcmId + "," + periodTimeSlices + "," + timeSliceHours + ")";
-            cmd.ExecuteNonQuery();
-
-            if (returnConnection)
-            {
-                cmd.CommandText = "COMMIT";
-                cmd.ExecuteNonQuery();
-                DB.Connection.Return(cmd.Connection);
-
-                (FeatureBasedDCM.Instantiate(featureBasedDcmId) as TimeSliceDCM).Features = features;
-            }
-
-            return featureBasedDcmId;
-        }
-
         public new static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
             foreach (Feature f in FeatureBasedDCM.GetAvailableFeatures(area))
@@ -176,7 +104,7 @@ namespace PTL.ATT.Models
         }
 
         private int _timeSliceHours;
-        private long _periodTimeSlices;
+        private int _periodTimeSlices;
         private long _timeSliceTicks;
 
         public int TimeSliceHours
@@ -184,7 +112,7 @@ namespace PTL.ATT.Models
             get { return _timeSliceHours; }
         }
 
-        public long PeriodTimeSlices
+        public int PeriodTimeSlices
         {
             get { return _periodTimeSlices; }
         }
@@ -194,40 +122,25 @@ namespace PTL.ATT.Models
             get { return _timeSliceTicks; }
         }
 
-        internal TimeSliceDCM(int id)
+        public TimeSliceDCM(string name,
+                            int pointSpacing,
+                            IEnumerable<string> incidentTypes,
+                            Area trainingArea,
+                            DateTime trainingStart,
+                            DateTime trainingEnd,
+                            IEnumerable<Smoother> smoothers,
+                            int featureDistanceThreshold,
+                            int trainingSampleSize,
+                            int predictionSampleSize,
+                            PTL.ATT.Classifiers.Classifier classifier,
+                            IEnumerable<Feature> features,
+                            int timeSliceHours,
+                            int periodTimeSlices)
+            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, featureDistanceThreshold, trainingSampleSize, predictionSampleSize, classifier, features)
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
-                                                         "FROM " + Columns.JoinFeatureBasedDCM + " " +
-                                                         "WHERE " + Table + "." + Columns.Id + "=" + id);
-
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            Construct(reader);
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
-        }
-
-        protected override void Construct(NpgsqlDataReader reader)
-        {
-            base.Construct(reader);
-
-            _timeSliceHours = Convert.ToInt32(reader[Table + "_" + Columns.TimeSliceHours]);
-            _periodTimeSlices = Convert.ToInt32(reader[Table + "_" + Columns.PeriodTimeSlices]);
-            _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
-        }
-
-        public void Update(string name, int pointSpacing, int featureDistanceThreshold, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, List<Feature> features, int timeSliceHours, int periodTimeSlices)
-        {
-            base.Update(name, pointSpacing, featureDistanceThreshold, trainingArea, trainingStart, trainingEnd, trainingSampleSize, predictionSampleSize, incidentTypes, classifier, smoothers, features);
-
             _timeSliceHours = timeSliceHours;
             _periodTimeSlices = periodTimeSlices;
             _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
-
-            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
-                                          Columns.TimeSliceHours + "=" + timeSliceHours + "," +
-                                          Columns.PeriodTimeSlices + "=" + periodTimeSlices + " " +
-                                          "WHERE " + Columns.Id + "=" + Id);
         }
 
         protected override IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
@@ -364,9 +277,14 @@ namespace PTL.ATT.Models
             return slice + "-" + id;
         }
 
-        public override int Copy()
+        public override DiscreteChoiceModel Copy(bool save)
         {
-            return Create(null, Name, PointSpacing, FeatureDistanceThreshold, GetType(), TrainingArea, TrainingStart, TrainingEnd, TrainingSampleSize, PredictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, Features.ToList(), (int)_timeSliceHours, (int)_periodTimeSlices);
+            DiscreteChoiceModel copy = new TimeSliceDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, FeatureDistanceThreshold, TrainingSampleSize, PredictionSampleSize, Classifier, Features, _timeSliceHours, _periodTimeSlices);
+
+            if (save)
+                copy.Save();
+
+            return copy;
         }
 
         public override string ToString()

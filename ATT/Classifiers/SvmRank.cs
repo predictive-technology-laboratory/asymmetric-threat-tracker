@@ -26,6 +26,7 @@ using System.IO;
 using System.IO.Compression;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using LAIR.MachineLearning.ClassifierWrappers;
+using PTL.ATT.Models;
 
 namespace PTL.ATT.Classifiers
 {
@@ -48,12 +49,12 @@ namespace PTL.ATT.Classifiers
         }
 
         public SvmRank()
-            : this(0.01f, false, -1)
+            : this(false, null, 0.01f)
         {
         }
 
-        public SvmRank(float c, bool runFeatureSelection, int modelId)
-            : base(runFeatureSelection, modelId)
+        public SvmRank(bool runFeatureSelection, FeatureBasedDCM model, float c)
+            : base(runFeatureSelection, model)
         {
             _c = c;
         }
@@ -115,7 +116,7 @@ namespace PTL.ATT.Classifiers
 
         public override IEnumerable<int> SelectFeatures(Prediction prediction)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Feature selection is not implemented for SVM Rank classifiers.");
         }
 
         public override void Classify(FeatureVectorList featureVectors)
@@ -145,7 +146,7 @@ namespace PTL.ATT.Classifiers
 
         public override Classifier Copy()
         {
-            return new SvmRank(_c, RunFeatureSelection, ModelId);
+            return new SvmRank(RunFeatureSelection, Model, _c);
         }
 
         public override string GetDetails(int indentLevel)

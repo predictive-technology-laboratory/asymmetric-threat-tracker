@@ -24,6 +24,7 @@ using System.IO;
 using LAIR.ResourceAPIs.R;
 using LAIR.MachineLearning.ClassifierWrappers;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
+using PTL.ATT.Models;
 
 namespace PTL.ATT.Classifiers
 {
@@ -55,12 +56,12 @@ namespace PTL.ATT.Classifiers
         private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, @"Predictions.csv"); } }
 
         public RandomForest()
-            : this(false, -1, 500)
+            : this(false, null, 500)
         {
         }
 
-        public RandomForest(bool runFeatureSelection, int modelId, int numTrees)
-            : base(runFeatureSelection, modelId)
+        public RandomForest(bool runFeatureSelection, FeatureBasedDCM model, int numTrees)
+            : base(runFeatureSelection, model)
         {
             _numTrees = numTrees;
         }
@@ -224,7 +225,7 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
 
         public override Classifier Copy()
         {
-            return new RandomForest(RunFeatureSelection, ModelId, _numTrees);
+            return new RandomForest(RunFeatureSelection, Model, _numTrees);
         }
 
         internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
