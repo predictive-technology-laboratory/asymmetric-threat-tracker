@@ -101,26 +101,33 @@ namespace PTL.ATT.Models
             }
         }
 
-        internal static int MaxFeatureId
-        {
-            get { return DiscreteChoiceModel.GetAll(false).Where(m => m is FeatureBasedDCM).Cast<FeatureBasedDCM>().SelectMany(m => m.Features).Max(f => f.Id); }
-        }
-
         private PTL.ATT.Classifiers.Classifier _classifier;
         private int _featureDistanceThreshold;
-        private FeatureExtractor _externalFeatureExtractor;
         private List<Feature> _features;
         private int _trainingSampleSize;
         private int _predictionSampleSize;
+        [NonSerialized]
+        private FeatureExtractor _externalFeatureExtractor;
 
         public PTL.ATT.Classifiers.Classifier Classifier
         {
             get { return _classifier; }
+            set
+            {
+                _classifier = value;
+                _classifier.Model = this;
+                Update();
+            }
         }
 
         public int FeatureDistanceThreshold
         {
             get { return _featureDistanceThreshold; }
+            set
+            {
+                _featureDistanceThreshold = value;
+                Update();
+            }
         }
 
         public FeatureExtractor ExternalFeatureExtractor
@@ -134,11 +141,6 @@ namespace PTL.ATT.Models
             set
             {
                 _features = value;
-
-                if (_features != null)
-                    foreach (Feature f in _features)
-                        f.Model = this;
-
                 Update();
             }
         }
@@ -146,12 +148,24 @@ namespace PTL.ATT.Models
         public int TrainingSampleSize
         {
             get { return _trainingSampleSize; }
+            set
+            {
+                _trainingSampleSize = value;
+                Update();
+            }
         }
 
         public int PredictionSampleSize
         {
             get { return _predictionSampleSize; }
+            set
+            {
+                _predictionSampleSize = value;
+                Update();
+            }
         }
+
+        public FeatureBasedDCM() : base() { }
 
         public FeatureBasedDCM(string name,
                                int pointSpacing,
@@ -171,6 +185,7 @@ namespace PTL.ATT.Models
             _trainingSampleSize = trainingSampleSize;
             _predictionSampleSize = predictionSampleSize;
             _classifier = classifier;
+            _classifier.Model = this;
             _features = new List<Feature>(features);
 
             if (Configuration.TryGetFeatureExtractor(GetType(), out _externalFeatureExtractor))
@@ -179,7 +194,7 @@ namespace PTL.ATT.Models
 
         protected virtual void InsertPointsIntoPrediction(NpgsqlConnection connection, Prediction prediction, bool training, bool vacuum)
         {
-            Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
+            Area area = training ? prediction.Model.TrainingArea : prediction.Model.PredictionArea;
 
             List<Tuple<PostGIS.Point, string, DateTime>> incidentPoints = new List<Tuple<PostGIS.Point, string, DateTime>>();
             Set<Tuple<double, double>> incidentLocations = new Set<Tuple<double, double>>(false);
@@ -235,9 +250,9 @@ namespace PTL.ATT.Models
         {
             int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (_externalFeatureExtractor == null ? 0 : _externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
 
-            Dictionary<int, NumericFeature> idNumericFeature = new Dictionary<int, NumericFeature>();
+            Dictionary<string, NumericFeature> idNumericFeature = new Dictionary<string, NumericFeature>();
             foreach (Feature f in Features)
-                idNumericFeature.Add(f.Id, new NumericFeature(f.Id.ToString()));
+                idNumericFeature.Add(f.Id, new NumericFeature(f.Id));
 
             FeatureVectorList featureVectors = new FeatureVectorList(prediction.Points.Count);
             Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>(prediction.Points.Count);
@@ -321,7 +336,7 @@ namespace PTL.ATT.Models
             if (spatialDensityFeatures.Count > 0)
             {
                 List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
-                Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(spatialDensityFeatures.Count);
+                Dictionary<string, List<float>> featureIdDensityEstimates = new Dictionary<string, List<float>>(spatialDensityFeatures.Count);
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
@@ -354,7 +369,7 @@ namespace PTL.ATT.Models
                 foreach (Thread t in threads)
                     t.Join();
 
-                foreach (int featureId in featureIdDensityEstimates.Keys)
+                foreach (string featureId in featureIdDensityEstimates.Keys)
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
@@ -368,7 +383,7 @@ namespace PTL.ATT.Models
             if (kdeFeatures.Count > 0)
             {
                 List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
-                Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(kdeFeatures.Count);
+                Dictionary<string, List<float>> featureIdDensityEstimates = new Dictionary<string, List<float>>(kdeFeatures.Count);
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
@@ -399,7 +414,7 @@ namespace PTL.ATT.Models
                 foreach (Thread t in threads)
                     t.Join();
 
-                foreach (int featureId in featureIdDensityEstimates.Keys)
+                foreach (string featureId in featureIdDensityEstimates.Keys)
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
@@ -423,7 +438,7 @@ namespace PTL.ATT.Models
             _classifier.Initialize();
 
             Console.Out.WriteLine("Selecting features");
-            Set<int> selectedFeatureIds = new Set<int>(_classifier.SelectFeatures(prediction).ToArray());
+            Set<string> selectedFeatureIds = new Set<string>(_classifier.SelectFeatures(prediction).ToArray());
             Features = Features.Where(f => selectedFeatureIds.Contains(f.Id)).ToList();
 
             if (runPredictionAfterSelect)
@@ -572,9 +587,9 @@ namespace PTL.ATT.Models
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
         /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
         /// <returns></returns>
-        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null)
+        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null)
         {
-            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> log = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>();
+            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> log = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>();
 
             using (FileStream pointPredictionLogFile = new FileStream(pointPredictionLogPath, FileMode.Open, FileAccess.Read))
             using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Decompress))
@@ -600,16 +615,16 @@ namespace PTL.ATT.Models
                             labelConfidences.Add(new Tuple<string, double>(label, confidence));
                         }
 
-                        List<Tuple<int, double>> featureValues = new List<Tuple<int, double>>();
+                        List<Tuple<string, double>> featureValues = new List<Tuple<string, double>>();
                         XmlParser featureValuesP = new XmlParser(pointP.OuterXML("fvs"));
                         string featureValueXML;
                         while ((featureValueXML = featureValuesP.OuterXML("fv")) != null)
                         {
                             XmlParser featureValueP = new XmlParser(featureValueXML);
-                            featureValues.Add(new Tuple<int, double>(int.Parse(featureValueP.AttributeValue("fv", "id")), double.Parse(featureValueP.ElementText("fv"))));
+                            featureValues.Add(new Tuple<string, double>(featureValueP.AttributeValue("fv", "id"), double.Parse(featureValueP.ElementText("fv"))));
                         }
 
-                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(labelConfidences, featureValues));
+                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(labelConfidences, featureValues));
 
                         if (pointIds != null)
                         {
@@ -632,7 +647,7 @@ namespace PTL.ATT.Models
         /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
         /// list contains the label confidence scores and the second list contains the feature ID values.</param>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
-        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
+        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
         {
             using (StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(pointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress)))
             {
@@ -643,7 +658,7 @@ namespace PTL.ATT.Models
                         pointPredictionLog.Write("<l c=\"" + labelConfidence.Item2 + "\"><![CDATA[" + labelConfidence.Item1 + "]]></l>");
 
                     pointPredictionLog.Write("</ls><fvs>");
-                    foreach (Tuple<int, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
+                    foreach (Tuple<string, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
                         pointPredictionLog.Write("<fv id=\"" + featureIdValue.Item1 + "\">" + featureIdValue.Item2 + "</fv>");
 
                     pointPredictionLog.WriteLine("</fvs></p>");
@@ -664,7 +679,7 @@ namespace PTL.ATT.Models
 
         public override DiscreteChoiceModel Copy(bool save)
         {
-            DiscreteChoiceModel copy = new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _trainingSampleSize, _predictionSampleSize, _classifier, _features);
+            DiscreteChoiceModel copy = new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
 
             if (save)
                 copy.Save();
@@ -675,21 +690,21 @@ namespace PTL.ATT.Models
         public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
         {
             FeatureBasedDCM originalFeatureBasedDCM = original as FeatureBasedDCM;
-            Dictionary<int, int> oldNewFeatureId = new Dictionary<int, int>();
-            foreach (Tuple<int, int> oldNew in originalFeatureBasedDCM.Features.Zip(Features, new Func<Feature, Feature, Tuple<int, int>>((f1, f2) => new Tuple<int, int>(f1.Id, f2.Id))))
+            Dictionary<string, string> oldNewFeatureId = new Dictionary<string, string>();
+            foreach (Tuple<string, string> oldNew in originalFeatureBasedDCM.Features.Zip(Features, new Func<Feature, Feature, Tuple<string, string>>((f1, f2) => new Tuple<string, string>(f1.Id, f2.Id))))
                 oldNewFeatureId.Add(oldNew.Item1, oldNew.Item2);
 
             foreach (Prediction prediction in Prediction.GetForModel(this, true))
             {
-                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> originalLog = ReadPointPredictionLog(prediction.PointPredictionLogPath);
-                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> updatedLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>(originalLog.Count);
+                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> originalLog = ReadPointPredictionLog(prediction.PointPredictionLogPath);
+                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> updatedLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>(originalLog.Count);
                 foreach (string originalPointId in originalLog.Keys)
                 {
-                    List<Tuple<int, double>> updatedFeatureValues = new List<Tuple<int, double>>(originalLog[originalPointId].Item2.Count);
-                    foreach (Tuple<int, double> originalFeatureValue in originalLog[originalPointId].Item2)
-                        updatedFeatureValues.Add(new Tuple<int, double>(oldNewFeatureId[originalFeatureValue.Item1], originalFeatureValue.Item2));
+                    List<Tuple<string, double>> updatedFeatureValues = new List<Tuple<string, double>>(originalLog[originalPointId].Item2.Count);
+                    foreach (Tuple<string, double> originalFeatureValue in originalLog[originalPointId].Item2)
+                        updatedFeatureValues.Add(new Tuple<string, double>(oldNewFeatureId[originalFeatureValue.Item1], originalFeatureValue.Item2));
 
-                    updatedLog.Add(originalPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(originalLog[originalPointId].Item1, updatedFeatureValues));
+                    updatedLog.Add(originalPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(originalLog[originalPointId].Item1, updatedFeatureValues));
                 }
 
                 WritePointPredictionLog(updatedLog, prediction.PointPredictionLogPath);

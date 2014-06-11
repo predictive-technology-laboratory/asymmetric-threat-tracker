@@ -234,5 +234,14 @@ namespace PTL.ATT.GUI
                         _parameterizeFeature.ParameterValue[parameter] = f.GetValue<string>(parameter);
             }
         }
+
+        internal void CommitValues(FeatureBasedDCM model)
+        {
+            model.TrainingSampleSize = TrainingSampleSize;
+            model.PredictionSampleSize = PredictionSampleSize;
+            model.FeatureDistanceThreshold = FeatureDistanceThreshold;
+            model.Classifier = Classifier;
+            model.Features = Features;
+        }
     }
 }

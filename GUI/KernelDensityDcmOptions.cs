@@ -82,5 +82,11 @@ namespace PTL.ATT.GUI
         {
             return "";
         }
+
+        internal void CommitValues(KernelDensityDCM model)
+        {
+            model.TrainingSampleSize = TrainingSampleSize;
+            model.Normalize = Normalize;
+        }
     }
 }

@@ -29,8 +29,14 @@ namespace PTL.ATT.Models
     [Serializable]
     public class Feature : IComparable<Feature>
     {
-        private int _id;
-        private DiscreteChoiceModel _model;
+        private static int _featureNumber;
+
+        static Feature()
+        {
+            _featureNumber = 0;
+        }
+
+        private string _id;
         private Type _enumType;
         private Enum _enumValue;
         private string _description;
@@ -38,15 +44,9 @@ namespace PTL.ATT.Models
         private string _predictionResourceId;
         private Dictionary<string, string> _parameterValue;
 
-        public int Id
+        public string Id
         {
             get { return _id; }
-        }
-
-        public DiscreteChoiceModel Model
-        {
-            get { return _model; }
-            set { _model = value; }
         }
 
         public Type EnumType
@@ -72,16 +72,7 @@ namespace PTL.ATT.Models
         public string PredictionResourceId
         {
             get { return _predictionResourceId; }
-            set
-            {
-                if (value != _predictionResourceId)
-                {
-                    _predictionResourceId = value;
-
-                    if (_model != null)
-                        _model.Update();
-                }
-            }
+            set { _predictionResourceId = value; }
         }
 
         public Dictionary<string, string> ParameterValue
@@ -97,6 +88,7 @@ namespace PTL.ATT.Models
 
         public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, Dictionary<string, string> parameterValue)
         {
+            _id = _featureNumber++.ToString();
             _enumType = enumType;
             _enumValue = enumValue;
             _description = description;
@@ -106,8 +98,6 @@ namespace PTL.ATT.Models
 
             if (_parameterValue == null)
                 _parameterValue = new Dictionary<string, string>();
-
-            _id = FeatureBasedDCM.MaxFeatureId + 1;
         }
 
         public override string ToString()

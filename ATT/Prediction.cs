@@ -37,6 +37,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace PTL.ATT
 {
+    [Serializable]
     public class Prediction : IComparable<Prediction>
     {
         public const string Table = "prediction";
@@ -74,7 +75,7 @@ namespace PTL.ATT
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
         }
 
-        public static List<Prediction> GetAll()
+        public static List<Prediction> GetAll(bool onlyFinishedPredictions)
         {
             List<Prediction> predictions = new List<Prediction>();
             BinaryFormatter bf = new BinaryFormatter();
@@ -83,7 +84,7 @@ namespace PTL.ATT
             while (reader.Read())
             {
                 Prediction prediction = bf.Deserialize(new MemoryStream(reader[Table + "_" + Columns.Prediction] as byte[])) as Prediction;
-                if (prediction.Done)
+                if (!onlyFinishedPredictions || prediction.Done)
                     predictions.Add(prediction);
             }
 
@@ -95,33 +96,42 @@ namespace PTL.ATT
 
         public static List<Prediction> GetForModel(DiscreteChoiceModel model, bool onlyFinishedPredictions)
         {
-            return GetAll().Where(p => (!onlyFinishedPredictions || p.Done) && p.Model.Id == model.Id).ToList();
+            return GetAll(onlyFinishedPredictions).Where(p => p.Model.Id == model.Id).ToList();
         }
 
         public static List<Prediction> GetForArea(Area area, bool onlyFinishedPredictions)
         {
-            return GetAll().Where(p => (!onlyFinishedPredictions || p.Done) && (p.Model.TrainingArea.Id == area.Id || p.Model.PredictionArea.Id == area.Id)).ToList();
+            return GetAll(onlyFinishedPredictions).Where(p => p.Model.TrainingArea.Id == area.Id || p.Model.PredictionArea.Id == area.Id).ToList();
         }
 
         public static int MaxRunId
         {
-            get { return GetAll().Max(p => p.RunId); }
+            get
+            {
+                List<Prediction> predictions = GetAll(false);
+                if (predictions.Count == 0)
+                    return 0;
+                else
+                    return predictions.Max(p => p.RunId);
+            }
         }
 
-        private int _id;
-        private bool _done;
-        private int _runId;
         private DiscreteChoiceModel _model;
+        private int _runId;
         private string _name;
         private Area _predictionArea;
         private DateTime _predictionStartTime;
         private DateTime _predictionEndTime;
+        private int _id;
+        private bool _done;
         private DateTime _mostRecentlyEvaluatedIncidentTime;
         private List<Plot> _assessmentPlots;
         private string _modelDetails;
-        private List<Point> _points;
-        private List<PointPrediction> _pointPredictions;
         private string _smoothing;
+        [NonSerialized]
+        private List<Point> _points;
+        [NonSerialized]
+        private List<PointPrediction> _pointPredictions;
 
         public string Smoothing
         {
@@ -187,18 +197,12 @@ namespace PTL.ATT
                 if (_name == value)
                     return;
 
-                bool updateEvaluation = false;
                 foreach (Plot assessmentPlot in _assessmentPlots)
                     if (assessmentPlot.Title.Contains(_name))
-                    {
                         assessmentPlot.Title = assessmentPlot.Title.Replace(_name, value);
-                        updateEvaluation = true;
-                    }
-
-                if (updateEvaluation)
-                    Update();
 
                 _name = value;
+
                 Update();
             }
         }
@@ -307,12 +311,15 @@ namespace PTL.ATT
             _predictionArea = predictionArea;
             _predictionStartTime = predictionStartTime;
             _predictionEndTime = predictionEndTime;
+            _assessmentPlots = new List<Plot>();
+            _id = -1;
+
+            if (vacuum)
+                VacuumTable();
         }
 
         public void Save()
         {
-            Delete();
-
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
@@ -324,7 +331,7 @@ namespace PTL.ATT
         public void Update()
         {
             if (_id == -1)
-                throw new Exception("Cannot update a prediction before it has been saved.");
+                return;
 
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
@@ -432,6 +439,7 @@ namespace PTL.ATT
                    indent + "Name:  " + _name + Environment.NewLine +
                    indent + "Run:  " + _runId + Environment.NewLine +
                    indent + "Model:  " + Model.GetDetails(indentLevel + 1) + Environment.NewLine +
+                   indent + "Prediction area:  " + _predictionArea.GetDetails(indentLevel + 1) + Environment.NewLine + 
                    indent + "Prediction start:  " + _predictionStartTime.ToShortDateString() + " " + _predictionStartTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Prediction end:  " + _predictionEndTime.ToShortDateString() + " " + _predictionEndTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Smoothing:  " + _smoothing + Environment.NewLine +
@@ -448,7 +456,6 @@ namespace PTL.ATT
         /// </summary>
         public void ReleaseLazyLoadedData()
         {
-            _predictionArea = null;
             _points = null;
             _pointPredictions = null;
         }

@@ -160,12 +160,24 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
         public int TrainingSampleSize
         {
             get { return _trainingSampleSize; }
+            set
+            {
+                _trainingSampleSize = value;
+                Update();
+            }
         }
 
         public bool Normalize
         {
             get { return _normalize; }
+            set
+            {
+                _normalize = value;
+                Update();
+            }
         }
+
+        public KernelDensityDCM() : base() { }
 
         public KernelDensityDCM(string name,
                                 int pointSpacing,
@@ -294,12 +306,12 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
         }
 
-        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, LAIR.Collections.Generic.Set<string> pointIds = null)
+        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, LAIR.Collections.Generic.Set<string> pointIds = null)
         {
             throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
         }
 
-        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
+        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
         {
             throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
         }

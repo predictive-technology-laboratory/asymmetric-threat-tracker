@@ -1048,7 +1048,7 @@ namespace PTL.ATT.GUI.Visualization
                             incidentCols.Add(incidentCol);
                         }
 
-                        Dictionary<int, int> featureIdCol = new Dictionary<int, int>();
+                        Dictionary<string, int> featureIdCol = new Dictionary<string, int>();
                         Set<int> featureCols = new Set<int>();
                         if (model is IFeatureBasedDCM)
                         {
@@ -1067,7 +1067,7 @@ namespace PTL.ATT.GUI.Visualization
                         try
                         {
                             Set<string> logPointIdsToGet = new Set<string>(pointPredictions.Select(p => model.GetPointIdForLog(p.PointId, p.Time)).ToArray());
-                            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointPredictionLog = model.ReadPointPredictionLog(DisplayedPrediction.PointPredictionLogPath, logPointIdsToGet);
+                            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointPredictionLog = model.ReadPointPredictionLog(DisplayedPrediction.PointPredictionLogPath, logPointIdsToGet);
                             for (int i = 0; i < pointPredictions.Length; ++i)
                             {
                                 PointPrediction pointPrediction = pointPredictions[i];
@@ -1080,7 +1080,7 @@ namespace PTL.ATT.GUI.Visualization
                                     if (labelConfidence.Item1 != PointPrediction.NullLabel)
                                         dataView[incidentProbCol[labelConfidence.Item1], i].Value = Math.Round(labelConfidence.Item2, 3);
 
-                                foreach (Tuple<int, double> featureIdValue in pointPredictionLog[logPointId].Item2)
+                                foreach (Tuple<string, double> featureIdValue in pointPredictionLog[logPointId].Item2)
                                     dataView[featureIdCol[featureIdValue.Item1], i].Value = Math.Round(featureIdValue.Item2, 3);
                             }
                         }

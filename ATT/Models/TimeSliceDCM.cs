@@ -110,17 +110,30 @@ namespace PTL.ATT.Models
         public int TimeSliceHours
         {
             get { return _timeSliceHours; }
+            set
+            {
+                _timeSliceHours = value;
+                _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
+                Update();
+            }
         }
 
         public int PeriodTimeSlices
         {
             get { return _periodTimeSlices; }
+            set
+            {
+                _periodTimeSlices = value;
+                Update();
+            }
         }
 
         public long TimeSliceTicks
         {
             get { return _timeSliceTicks; }
         }
+
+        public TimeSliceDCM() : base() { }
 
         public TimeSliceDCM(string name,
                             int pointSpacing,
@@ -147,7 +160,7 @@ namespace PTL.ATT.Models
         {
             foreach (FeatureVectorList vectors in base.ExtractFeatureVectors(prediction, training))
             {
-                Dictionary<TimeSliceFeature, int> featureId = new Dictionary<TimeSliceFeature, int>();
+                Dictionary<TimeSliceFeature, string> featureId = new Dictionary<TimeSliceFeature, string>();
                 Dictionary<TimeSliceFeature, NumericFeature> featureNumeric = new Dictionary<TimeSliceFeature, NumericFeature>();
                 Dictionary<TimeSliceFeature, NominalFeature> featureNominal = new Dictionary<TimeSliceFeature, NominalFeature>();
                 foreach (Feature f in Features)
@@ -156,8 +169,8 @@ namespace PTL.ATT.Models
                         TimeSliceFeature feature = (TimeSliceFeature)f.EnumValue;
 
                         featureId.Add(feature, f.Id);
-                        featureNumeric.Add(feature, new NumericFeature(f.Id.ToString()));
-                        featureNominal.Add(feature, new NominalFeature(f.Id.ToString()));
+                        featureNumeric.Add(feature, new NumericFeature(f.Id));
+                        featureNominal.Add(feature, new NominalFeature(f.Id));
                     }
 
                 long sliceTicks = TimeSliceTicks;
@@ -196,9 +209,9 @@ namespace PTL.ATT.Models
                                     int interval = i % 8;
                                     if (coveredIntervals.Add(interval))
                                     {
-                                        int id;
+                                        string id;
                                         if (featureId.TryGetValue(dayIntervals[interval], out id))
-                                            intervalFeatures.Add(new NumericFeature(id.ToString()));
+                                            intervalFeatures.Add(new NumericFeature(id));
                                     }
                                     else
                                         break;

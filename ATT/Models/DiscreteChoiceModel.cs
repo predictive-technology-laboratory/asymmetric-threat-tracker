@@ -43,7 +43,6 @@ namespace PTL.ATT.Models
 
         public class Columns
         {
-            [Reflector.Select(true)]
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Model = "model";
@@ -63,7 +62,7 @@ namespace PTL.ATT.Models
                    Columns.Id + " SERIAL PRIMARY KEY," +
                    Columns.Model + " BYTEA," +
                    Columns.PredictionAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT," +
-                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT;";
+                   Columns.TrainingAreaId + " INT REFERENCES " + Area.Table + " ON DELETE RESTRICT);";
         }
 
         public static IEnumerable<DiscreteChoiceModel> GetAll(bool excludeThoseCopiedForPredictions)
@@ -209,11 +208,21 @@ namespace PTL.ATT.Models
         public string Name
         {
             get { return _name; }
+            set
+            {
+                _name = value;
+                Update();
+            }
         }
 
         public int PointSpacing
         {
             get { return _pointSpacing; }
+            set
+            {
+                _pointSpacing = value;
+                Update();
+            }
         }
 
         public Set<string> IncidentTypes
@@ -229,6 +238,11 @@ namespace PTL.ATT.Models
         public Area TrainingArea
         {
             get { return _trainingArea; }
+            set
+            {
+                _trainingArea = value;
+                Update();
+            }
         }
 
         public DateTime TrainingStart
@@ -254,6 +268,11 @@ namespace PTL.ATT.Models
         public List<Smoother> Smoothers
         {
             get { return _smoothers; }
+            set
+            {
+                _smoothers = value;
+                Update();
+            }
         }
 
         public string ModelDirectory
@@ -271,11 +290,6 @@ namespace PTL.ATT.Models
             }
         }
 
-        public List<Prediction> Predictions
-        {
-            get { return Prediction.GetForModel(this, true); }
-        }
-
         public bool HasMadePredictions
         {
             get { return Prediction.GetForModel(this, true).Count > 0;}
@@ -287,6 +301,11 @@ namespace PTL.ATT.Models
         }
         #endregion
 
+        protected DiscreteChoiceModel()
+        {
+            _id = -1;
+        }
+
         protected DiscreteChoiceModel(string name,
                                       int pointSpacing,
                                       IEnumerable<string> incidentTypes,
@@ -294,6 +313,7 @@ namespace PTL.ATT.Models
                                       DateTime trainingStart,
                                       DateTime trainingEnd,
                                       IEnumerable<Smoother> smoothers)
+            : this()
         {
             _name = name;
             _pointSpacing = pointSpacing;
@@ -311,7 +331,9 @@ namespace PTL.ATT.Models
             try
             {
                 modelCopy = Copy(true);
+                modelCopy.PredictionArea = predictionArea;
                 prediction = new Prediction(modelCopy, newRun, predictionName, predictionArea, startTime, endTime, true);
+                prediction.Save();
                 modelCopy.Run(prediction);
                 prediction.Done = true;
 
@@ -343,7 +365,7 @@ namespace PTL.ATT.Models
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
         /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
         /// <returns></returns>
-        public abstract Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null);
+        public abstract Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null);
 
         /// <summary>
         /// Writes the point log for this prediction.
@@ -351,7 +373,7 @@ namespace PTL.ATT.Models
         /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
         /// list contains the label confidence scores and the second list contains the feature ID values.</param>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
-        public abstract void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath);
+        public abstract void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath);
 
         public abstract string GetDetails(Prediction prediction);
 
@@ -375,8 +397,6 @@ namespace PTL.ATT.Models
 
         public void Save()
         {
-            Delete();
-
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
@@ -385,20 +405,26 @@ namespace PTL.ATT.Models
             _modelDirectory = Path.Combine(Configuration.ModelsDirectory, _id.ToString());
 
             if (Directory.Exists(_modelDirectory))
-                Directory.Delete(_modelDirectory);
+                Directory.Delete(_modelDirectory, true);
 
             Directory.CreateDirectory(_modelDirectory);
+
+            Update();
         }
 
         public void Update()
         {
             if (_id == -1)
-                throw new Exception("Cannot update a model before it has been saved.");
+                return;
 
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
-            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " + Columns.Model + "=@bytes WHERE " + Columns.Id + "=" + _id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray()));
+            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
+                                          Columns.Model + "=@bytes," +
+                                          Columns.PredictionAreaId + "=" + (_predictionArea == null ? _trainingArea.Id : _predictionArea.Id) + "," +
+                                          Columns.TrainingAreaId + "=" + _trainingArea.Id + " " +
+                                          "WHERE " + Columns.Id + "=" + _id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray()));
         }
 
         public void Delete()
@@ -427,18 +453,6 @@ namespace PTL.ATT.Models
             {
                 Console.Out.WriteLine("Smoothing prediction with " + smoother.GetType().FullName);
                 smoother.Apply(prediction);
-            }
-        }
-
-        public void DeletePredictions(bool onlyFinishedPredictions)
-        {
-            foreach (Prediction prediction in Prediction.GetForModel(this, onlyFinishedPredictions))
-            {
-                if (!onlyFinishedPredictions)
-                    while (!prediction.Done)
-                        Thread.Sleep(0);
-
-                prediction.Delete();
             }
         }
     }

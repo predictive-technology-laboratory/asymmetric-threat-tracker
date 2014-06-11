@@ -129,7 +129,7 @@ namespace PTL.ATT.Classifiers
             System.IO.File.Delete(_libLinear.TrainingInstancesPath);
         }
 
-        public override IEnumerable<int> SelectFeatures(Prediction prediction)
+        public override IEnumerable<string> SelectFeatures(Prediction prediction)
         {
             _libLinear.LoadClassificationModelFiles();
 
@@ -183,13 +183,13 @@ namespace PTL.ATT.Classifiers
             }
 
             string groupNamePath = Path.GetTempFileName();
-            Dictionary<string, int> groupNameFeatureId = new Dictionary<string, int>();
+            Dictionary<string, string> groupNameFeatureId = new Dictionary<string, string>();
             using (StreamWriter groupNameFile = new StreamWriter(groupNamePath))
             {
                 foreach (PTL.ATT.Models.Feature feature in Model.Features)
                 {
                     int featureNumber;
-                    if (_libLinear.TryGetFeatureNumber(feature.Id.ToString(), out featureNumber))
+                    if (_libLinear.TryGetFeatureNumber(feature.Id, out featureNumber))
                     {
                         string groupName = feature.ToString().ReplacePunctuation(" ").RemoveRepeatedWhitespace().Replace(' ', '_').Trim('_');
                         groupNameFile.WriteLine(featureNumber + " " + groupName);
@@ -252,18 +252,18 @@ namespace PTL.ATT.Classifiers
             _libLinear.Classify(featureVectors);
         }
 
-        internal override string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation)
+        internal override string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation)
         {
             StringBuilder report = new StringBuilder("Details for model created by prediction \"" + prediction.Name + "\"" + Environment.NewLine);
             Dictionary<int, Dictionary<int, double>> classFeatureWeight = LibLinearClassifier.GetFeatureWeights(Path.Combine(Model.ModelDirectory, LibLinearClassifier.ModelFileName));
             LabelMap labelMap = new LabelMap(Path.Combine(Model.ModelDirectory, LibLinearClassifier.LabelMapFileName));
             MemoryNumericFeatureNameTransform featureNameTransform = new MemoryNumericFeatureNameTransform(Path.Combine(Model.ModelDirectory, LibLinearClassifier.FeatureNameTransformFileName));
 
-            Dictionary<int, int> liblinearFeatureNumberAttFeatureId = new Dictionary<int, int>();
+            Dictionary<int, string> liblinearFeatureNumberAttFeatureId = new Dictionary<int, string>();
             foreach (string attFeatureId in featureNameTransform)
-                liblinearFeatureNumberAttFeatureId.Add(featureNameTransform.GetFeatureNumber(attFeatureId), int.Parse(attFeatureId));
+                liblinearFeatureNumberAttFeatureId.Add(featureNameTransform.GetFeatureNumber(attFeatureId), attFeatureId);
 
-            Dictionary<int, string> attFeatureIdDesc = new Dictionary<int, string>();
+            Dictionary<string, string> attFeatureIdDesc = new Dictionary<string, string>();
             foreach (PTL.ATT.Models.Feature f in Model.Features)
                 attFeatureIdDesc.Add(f.Id, "Feature \"" + f.Description + "\"");
 
@@ -276,7 +276,7 @@ namespace PTL.ATT.Classifiers
                 {
                     string desc = attFeatureIdDesc[liblinearFeatureNumberAttFeatureId[liblinearFeatureNumber]];
                     double weight = classFeatureWeight[classNumber][liblinearFeatureNumber];
-                    int attFeatureId = liblinearFeatureNumberAttFeatureId[liblinearFeatureNumber];
+                    string attFeatureId = liblinearFeatureNumberAttFeatureId[liblinearFeatureNumber];
                     string information = (attFeatureIdInformation == null || !attFeatureIdInformation.ContainsKey(attFeatureId) ? "" : Environment.NewLine +
                                          "\t\t\tInformation:  " + attFeatureIdInformation[attFeatureId] + Environment.NewLine);
 
@@ -294,11 +294,11 @@ namespace PTL.ATT.Classifiers
             return new LibLinear(RunFeatureSelection, Model, _positiveClassWeighting);
         }
 
-        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId)
         {
             Dictionary<string, string> oldNameNewName = new Dictionary<string, string>();
-            foreach (int oldFeatureId in oldNewFeatureId.Keys)
-                oldNameNewName.Add(oldFeatureId.ToString(), oldNewFeatureId[oldFeatureId].ToString());
+            foreach (string oldFeatureId in oldNewFeatureId.Keys)
+                oldNameNewName.Add(oldFeatureId, oldNewFeatureId[oldFeatureId]);
 
             NumberedFeatureClassifier.ChangeFeatureNames(Model.ModelDirectory, oldNameNewName);
         }

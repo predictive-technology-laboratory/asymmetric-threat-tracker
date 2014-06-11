@@ -33,7 +33,7 @@ namespace PTL.ATT.Models
 
         public abstract string GetDetails(int indentLevel);
 
-        public abstract Dictionary<int, string> GetDetails(Prediction p);
+        public abstract Dictionary<string, string> GetDetails(Prediction p);
 
         public abstract int GetNumFeaturesExtractedFor(Prediction p, Type modelType);
     }

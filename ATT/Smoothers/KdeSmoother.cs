@@ -88,11 +88,6 @@ namespace PTL.ATT.Smoothers
             prediction.Smoothing = GetSmoothingDetails();
         }        
 
-        public void Update(int sampleSize)
-        {
-            _sampleSize = sampleSize;
-        }
-
         public override string GetSmoothingDetails()
         {
             return base.GetSmoothingDetails() + "normalize=" + _normalize + ", sample size=" + _sampleSize;

@@ -94,7 +94,7 @@ namespace PTL.ATT.Classifiers
                         foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                         {
                             object value;
-                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                            if (vector.TryGetValue(f.Id, out value))
                                 trainingFile.Write("," + value);
                             else
                                 trainingFile.Write(",0");
@@ -151,7 +151,7 @@ if(length(cls)==2) {
             File.Delete(RawTrainPath);
         }
 
-        public override IEnumerable<int> SelectFeatures(Prediction prediction)
+        public override IEnumerable<string> SelectFeatures(Prediction prediction)
         {
             throw new NotImplementedException("Feature selection has not been implemented for AdaBoost classifiers.");
         }
@@ -173,7 +173,7 @@ if(length(cls)==2) {
                         foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                         {
                             object value;
-                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                            if (vector.TryGetValue(f.Id, out value))
                                 predictionsFile.Write("," + value);
                             else
                                 predictionsFile.Write(",0");
@@ -259,7 +259,7 @@ write.table(mult, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.name
             }
         }
 
-        internal override string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation)
+        internal override string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation)
         {
             return "No details available for AdaBoost predictions.";
         }
@@ -269,7 +269,7 @@ write.table(mult, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.name
             return new AdaBoost(RunFeatureSelection, Model, _iterations);
         }
 
-        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId)
         {
         }
 

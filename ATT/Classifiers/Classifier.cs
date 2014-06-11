@@ -43,6 +43,7 @@ namespace PTL.ATT.Classifiers
         public FeatureBasedDCM Model
         {
             get { return _model; }
+            set { _model = value; }
         }
 
         public bool RunFeatureSelection
@@ -112,7 +113,7 @@ namespace PTL.ATT.Classifiers
 
         protected abstract void BuildModel();
 
-        public abstract IEnumerable<int> SelectFeatures(Prediction prediction);
+        public abstract IEnumerable<string> SelectFeatures(Prediction prediction);
 
         public abstract void Classify(FeatureVectorList featureVectors);
 
@@ -128,8 +129,8 @@ namespace PTL.ATT.Classifiers
 
         public abstract Classifier Copy();
 
-        internal abstract string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation);
+        internal abstract string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation);
 
-        internal abstract void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId);
+        internal abstract void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId);
     }
 }

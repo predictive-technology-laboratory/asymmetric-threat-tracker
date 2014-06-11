@@ -30,14 +30,22 @@ namespace PTL.ATT.GUI
 {
     public partial class FeatureBasedDcmForm : Form
     {
+        private FeatureBasedDCM _resultingModel;
+
+        public FeatureBasedDCM ResultingModel
+        {
+            get { return _resultingModel; }
+        }
+
+        
         public FeatureBasedDcmForm()
         {
             InitializeComponent();
 
-            discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += new EventHandler((o, e) =>
+            discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += (o, e) =>
                 {
                     featureBasedDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
-                });
+                };
 
             featureBasedDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => FeatureBasedDCM.GetAvailableFeatures(a).ToList());
 
@@ -58,6 +66,13 @@ namespace PTL.ATT.GUI
                 MessageBox.Show(errors);
                 return;
             }
+
+            _resultingModel = featureBasedDcmOptions.FeatureBasedDCM;
+            if (_resultingModel == null)
+                _resultingModel = new FeatureBasedDCM();
+
+            discreteChoiceModelOptions.CommitValues(_resultingModel);
+            featureBasedDcmOptions.CommitValues(_resultingModel);
 
             DialogResult = System.Windows.Forms.DialogResult.OK;
             Close();

@@ -30,14 +30,21 @@ namespace PTL.ATT.GUI
 {
     public partial class TimeSliceDcmForm : Form
     {
+        private TimeSliceDCM _resultingModel;
+
+        public TimeSliceDCM ResultingModel
+        {
+            get { return _resultingModel; }
+        }
+
         public TimeSliceDcmForm()
         {
             InitializeComponent();
 
-            discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += new EventHandler((o, e) =>
+            discreteChoiceModelOptions.trainingAreas.SelectedValueChanged += (o, e) =>
                 {
                     featureBasedDcmOptions.TrainingArea = discreteChoiceModelOptions.TrainingArea;
-                });
+                };
 
             featureBasedDcmOptions.GetFeatures = new Func<Area, List<Feature>>(a => TimeSliceDCM.GetAvailableFeatures(a).ToList());
 
@@ -58,6 +65,14 @@ namespace PTL.ATT.GUI
                 MessageBox.Show(errors);
                 return;
             }
+
+            _resultingModel = timeSliceDcmOptions.TimeSliceDCM;
+            if (_resultingModel == null)
+                _resultingModel = new TimeSliceDCM();
+
+            discreteChoiceModelOptions.CommitValues(_resultingModel);
+            featureBasedDcmOptions.CommitValues(_resultingModel);
+            timeSliceDcmOptions.CommitValues(_resultingModel);
 
             DialogResult = System.Windows.Forms.DialogResult.OK;
             Close();

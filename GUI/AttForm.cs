@@ -883,55 +883,26 @@ namespace PTL.ATT.GUI
                     {
                         KernelDensityDcmForm f = new KernelDensityDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            model = new KernelDensityDCM(f.discreteChoiceModelOptions.ModelName,
-                                                         f.discreteChoiceModelOptions.PointSpacing,
-                                                         f.discreteChoiceModelOptions.IncidentTypes,
-                                                         f.discreteChoiceModelOptions.TrainingArea,
-                                                         f.discreteChoiceModelOptions.TrainingStart,
-                                                         f.discreteChoiceModelOptions.TrainingEnd,
-                                                         f.discreteChoiceModelOptions.Smoothers,
-                                                         f.kernelDensityDcmOptions.TrainingSampleSize,
-                                                         f.kernelDensityDcmOptions.Normalize);
+                            model = f.ResultingModel;
                     }
                     else if (modelType == typeof(FeatureBasedDCM))
                     {
                         FeatureBasedDcmForm f = new FeatureBasedDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            model = new FeatureBasedDCM(f.discreteChoiceModelOptions.ModelName,
-                                                        f.discreteChoiceModelOptions.PointSpacing,
-                                                        f.discreteChoiceModelOptions.IncidentTypes,
-                                                        f.discreteChoiceModelOptions.TrainingArea,
-                                                        f.discreteChoiceModelOptions.TrainingStart,
-                                                        f.discreteChoiceModelOptions.TrainingEnd,
-                                                        f.discreteChoiceModelOptions.Smoothers,
-                                                        f.featureBasedDcmOptions.FeatureDistanceThreshold,
-                                                        f.featureBasedDcmOptions.TrainingSampleSize,
-                                                        f.featureBasedDcmOptions.PredictionSampleSize,
-                                                        f.featureBasedDcmOptions.Classifier,
-                                                        f.featureBasedDcmOptions.Features);
+                            model = f.ResultingModel;
                     }
                     else if (modelType == typeof(TimeSliceDCM))
                     {
                         TimeSliceDcmForm f = new TimeSliceDcmForm();
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                            model = new TimeSliceDCM(f.discreteChoiceModelOptions.ModelName,
-                                                     f.discreteChoiceModelOptions.PointSpacing,
-                                                     f.discreteChoiceModelOptions.IncidentTypes,
-                                                     f.discreteChoiceModelOptions.TrainingArea,
-                                                     f.discreteChoiceModelOptions.TrainingStart,
-                                                     f.discreteChoiceModelOptions.TrainingEnd,
-                                                     f.discreteChoiceModelOptions.Smoothers,
-                                                     f.featureBasedDcmOptions.FeatureDistanceThreshold,
-                                                     f.featureBasedDcmOptions.TrainingSampleSize,
-                                                     f.featureBasedDcmOptions.PredictionSampleSize,
-                                                     f.featureBasedDcmOptions.Classifier,
-                                                     f.featureBasedDcmOptions.Features,
-                                                     f.timeSliceDcmOptions.TimeSliceHours,
-                                                     f.timeSliceDcmOptions.TimeSlicesPerPeriod);
+                            model = f.ResultingModel;
                     }
 
                     if (model != null)
+                    {
+                        model.Save();
                         RefreshModels(model.Id);
+                    }
                 }
             }
         }
@@ -946,24 +917,21 @@ namespace PTL.ATT.GUI
 
                 if (m is TimeSliceDCM)
                 {
-                    TimeSliceDCM ts = m as TimeSliceDCM;
-                    TimeSliceDcmForm f = new TimeSliceDcmForm(ts);
+                    TimeSliceDcmForm f = new TimeSliceDcmForm(m as TimeSliceDCM);
                     if (f.ShowDialog() == DialogResult.OK)
-                        ts.Update();
+                        f.ResultingModel.Update();
                 }
                 else if (m is FeatureBasedDCM)
                 {
-                    FeatureBasedDCM fb = m as FeatureBasedDCM;
-                    FeatureBasedDcmForm f = new FeatureBasedDcmForm(fb);
+                    FeatureBasedDcmForm f = new FeatureBasedDcmForm(m as FeatureBasedDCM);
                     if (f.ShowDialog() == DialogResult.OK)
-                        fb.Update();
+                        f.ResultingModel.Update();
                 }
                 else if (m is KernelDensityDCM)
                 {
-                    KernelDensityDCM kde = m as KernelDensityDCM;
-                    KernelDensityDcmForm f = new KernelDensityDcmForm(kde);
+                    KernelDensityDcmForm f = new KernelDensityDcmForm(m as KernelDensityDCM);
                     if (f.ShowDialog() == DialogResult.OK)
-                        kde.Update();
+                        f.ResultingModel.Update();
                 }
 
                 RefreshModels(m.Id);
@@ -1348,11 +1316,11 @@ namespace PTL.ATT.GUI
                                 ICollection<Feature> features = (p.Model as IFeatureBasedDCM).Features;
                                 if (features.Count > 0)
                                 {
-                                    Dictionary<int, int> featureIdViewPriority = new Dictionary<int, int>();
+                                    Dictionary<string, int> featureIdViewPriority = new Dictionary<string, int>();
                                     foreach (Feature f in features.OrderBy(f => f.Id))
                                         featureIdViewPriority.Add(f.Id, featureIdViewPriority.Count + 1);
 
-                                    int minId = features.Min(f => f.Id);
+                                    string minId = features.Min(f => f.Id);
                                     foreach (Feature f in features)
                                     {
                                         Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
@@ -1419,7 +1387,9 @@ namespace PTL.ATT.GUI
                 Set<int> selectedIds = new Set<int>(selectedPredictions.Select(p => p.Id).ToArray());
                 if (threatMap.DisplayedPrediction != null && selectedIds.Contains(threatMap.DisplayedPrediction.Id))
                 {
-                    threatMap.DisplayedPrediction.AssessmentPlots = selectedPredictions.Where(p => p.Id == threatMap.DisplayedPrediction.Id).First().AssessmentPlots;
+                    List<Plot> newPlots = selectedPredictions.Where(p => p.Id == threatMap.DisplayedPrediction.Id).First().AssessmentPlots.ToList();
+                    threatMap.DisplayedPrediction.AssessmentPlots.Clear();
+                    threatMap.DisplayedPrediction.AssessmentPlots.AddRange(newPlots);
                     RefreshAssessmentPlots();
                 }
 
@@ -1527,8 +1497,8 @@ namespace PTL.ATT.GUI
                                     if (File.Exists(selectedPrediction.PointPredictionLogPath))
                                     {
                                         DiscreteChoiceModel model = selectedPrediction.Model;
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>();
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>();
                                         foreach (PointPrediction pointPrediction in selectedPrediction.PointPredictions)
                                         {
                                             List<Tuple<string, double>> smoothedIncidentScore = new List<Tuple<string, double>>();
@@ -1536,7 +1506,7 @@ namespace PTL.ATT.GUI
                                                 smoothedIncidentScore.Add(new Tuple<string, double>(incident, Math.Round(pointPrediction.IncidentScore[incident], 3)));
 
                                             string logPointId = model.GetPointIdForLog(pointPrediction.PointId, pointPrediction.Time);
-                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
+                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
                                         }
 
                                         model.WritePointPredictionLog(newLog, selectedPrediction.PointPredictionLogPath);
@@ -1544,7 +1514,7 @@ namespace PTL.ATT.GUI
                                 }
 
                                 RefreshPredictions(selectedPredictions.Select(p => p.Id).ToArray());
-                                if (threatMap.DisplayedPrediction != null && selectedPredictions.Contains(threatMap.DisplayedPrediction))
+                                if (threatMap.DisplayedPrediction != null && selectedPredictions.Select(p => p.Id).Contains(threatMap.DisplayedPrediction.Id))
                                 {
                                     RefreshPredictions(threatMap.DisplayedPrediction.Id);
                                     displayPredictionToolStripMenuItem_Click(sender, e);
@@ -1837,7 +1807,7 @@ namespace PTL.ATT.GUI
             predictions.Nodes.Clear();
             toolTip.SetToolTip(predictions, null);
 
-            List<Prediction> allPredictions = Prediction.GetAll();
+            List<Prediction> allPredictions = Prediction.GetAll(true);
             allPredictions.Sort(new Comparison<Prediction>((p1, p2) => p1.Id.CompareTo(p2.Id)));
             foreach (PredictionGroup group in Group(allPredictions, _groups, 0))
                 AddToTree(predictions.Nodes, group);

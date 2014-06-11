@@ -114,7 +114,7 @@ namespace PTL.ATT.Classifiers
             File.Delete(_svmRank.TrainingInstancesPath);
         }
 
-        public override IEnumerable<int> SelectFeatures(Prediction prediction)
+        public override IEnumerable<string> SelectFeatures(Prediction prediction)
         {
             throw new NotImplementedException("Feature selection is not implemented for SVM Rank classifiers.");
         }
@@ -139,7 +139,7 @@ namespace PTL.ATT.Classifiers
             }
         }
 
-        internal override string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation)
+        internal override string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation)
         {
             return "No details available for SVM Rank classifiers.";
         }
@@ -159,10 +159,10 @@ namespace PTL.ATT.Classifiers
                    indent + "C:  " + _c;
         }
 
-        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId)
         {
             Dictionary<string, string> oldNameNewName = new Dictionary<string, string>();
-            foreach (int oldFeatureId in oldNewFeatureId.Keys)
+            foreach (string oldFeatureId in oldNewFeatureId.Keys)
                 oldNameNewName.Add(oldFeatureId.ToString(), oldNewFeatureId[oldFeatureId].ToString());
 
             NumberedFeatureClassifier.ChangeFeatureNames(Model.ModelDirectory, oldNameNewName);
