@@ -305,9 +305,15 @@ namespace PTL.ATT.Models
 
         public override string GetDetails(int indentLevel)
         {
+            string indent = "";
+            for (int i = 0; i < indentLevel; ++i)
+                indent += "\t";
+
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(TimeSliceDCM));
             return base.GetDetails(indentLevel) + Environment.NewLine +
-                   "Time slice hours:  " + _timeSliceHours + Environment.NewLine +
-                   "Time slices per period:  " + _periodTimeSlices;
+                   indent + "Time slice hours:  " + _timeSliceHours + Environment.NewLine +
+                   indent + "Time slices per period:  " + _periodTimeSlices + Environment.NewLine +
+                   indent + "External feature extractor (" + typeof(TimeSliceDCM) + "):  " + (externalFeatureExtractor == null ? "None" : externalFeatureExtractor.GetDetails(indentLevel + 1));
         }
     }
 }
