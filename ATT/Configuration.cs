@@ -23,6 +23,7 @@ using System.IO;
 using LAIR.MachineLearning.ClassifierWrappers.LibLinear;
 using LAIR.ResourceAPIs.R;
 using PTL.ATT.Models;
+using System.Reflection;
 
 namespace PTL.ATT
 {
@@ -179,7 +180,7 @@ namespace PTL.ATT
             get { return Configuration._javaExePath; }
             set { Configuration._javaExePath = value; }
         }
-        #endregion        
+        #endregion
 
         #region system
         private static int _processorCount;
@@ -205,11 +206,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
             }
         }
 
+        private static string _externalFeatureExtractorDirectory;
+
         public static void Initialize(string path, bool initializeDB)
         {
             XmlParser p = new XmlParser(File.ReadAllText(path));
 
-            XmlParser postgresP = new XmlParser(p.OuterXML("postgres")); 
+            XmlParser postgresP = new XmlParser(p.OuterXML("postgres"));
             _postgresHost = postgresP.ElementText("host");
             _postgresPort = int.Parse(postgresP.ElementText("port"));
             _postgresSSL = bool.Parse(postgresP.ElementText("ssl"));
@@ -298,7 +301,17 @@ Unless required by applicable law or agreed to in writing, software distributed 
                         configOptions.Add(option, featureExtractorConfigP.AttributeValue("feature_extractor", option));
 
                     Type modelType = Reflection.GetType(configOptions["model_type"]);
-                    Type featureExtractorType = Reflection.GetType(featureExtractorConfigP.ElementText("feature_extractor"), null);
+
+                    // if the configuration is referencing a feature extractor in an external DLL file, copy the DLL into the executing directory so that it can be found when deserializing models of the given type
+                    string featureExtractorTypeStr = featureExtractorConfigP.ElementText("feature_extractor");
+                    string[] parts = featureExtractorTypeStr.Split('@');
+                    if (parts.Length > 1)
+                    {
+                        _externalFeatureExtractorDirectory = Path.GetDirectoryName(parts[1]);
+                        AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(LoadExternalFeatureExtractorAssembly);
+                    }
+
+                    Type featureExtractorType = Reflection.GetType(featureExtractorTypeStr, null);
 
                     _modelTypeFeatureExtractorType.Add(modelType, featureExtractorType);
                     _modelTypeFeatureExtractorConfigOptions.Add(modelType, configOptions);
@@ -315,6 +328,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
             if (initializeDB)
                 DB.Initialize();
+        }
+
+        private static Assembly LoadExternalFeatureExtractorAssembly(object sender, ResolveEventArgs args)
+        {
+            string assemblyPath = Path.Combine(_externalFeatureExtractorDirectory, new AssemblyName(args.Name).Name + ".dll");
+            if (!File.Exists(assemblyPath))
+            {
+                assemblyPath = Path.Combine(_externalFeatureExtractorDirectory, new AssemblyName(args.Name).Name + ".exe");
+                if (!File.Exists(assemblyPath))
+                    return null;
+            }
+
+            return Assembly.LoadFrom(assemblyPath);
         }
 
         public static bool TryGetFeatureExtractor(Type modelType, out FeatureExtractor featureExtractor)

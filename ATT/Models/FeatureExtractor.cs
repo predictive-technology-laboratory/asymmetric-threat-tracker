@@ -22,14 +22,13 @@ using LAIR.MachineLearning;
 
 namespace PTL.ATT.Models
 {
-    [Serializable]
     public abstract class FeatureExtractor
     {
         public abstract IEnumerable<Feature> GetAvailableFeatures(Area area);
 
-        public abstract void Initialize(DiscreteChoiceModel model, Dictionary<string, string> configurationOptions);
+        public abstract void Initialize(IFeatureBasedDCM model, Type modelType, Dictionary<string, string> configurationOptions);
 
-        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Type callingType, Prediction prediction, FeatureVectorList vectors, bool training);
+        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Prediction prediction, FeatureVectorList vectors, bool training);
 
         public abstract string GetDetails(int indentLevel);
 

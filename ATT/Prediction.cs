@@ -391,8 +391,6 @@ namespace PTL.ATT
 
                 copiedPrediction.SmoothingDetails = _smoothingDetails;
                 copiedPrediction.Done = true;
-
-                copiedPrediction.Model.UpdateFeatureIdsFrom(Model);
             }
             catch (Exception ex)
             {

@@ -80,13 +80,10 @@ namespace PTL.ATT.Models
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentKernelDensityEstimate, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValue);
             }
 
-            FeatureExtractor externalFeatureExtractor;
-            if (Configuration.TryGetFeatureExtractor(typeof(FeatureBasedDCM), out externalFeatureExtractor))
-            {
-                externalFeatureExtractor.Initialize(null, Configuration.GetFeatureExtractorConfigOptions(typeof(FeatureBasedDCM)));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(null, typeof(FeatureBasedDCM));
+            if (externalFeatureExtractor != null)
                 foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
                     yield return f;
-            }
         }
 
         internal static IEnumerable<Tuple<string, Parameter>> GetPointPredictionValues(FeatureVectorList featureVectors)
@@ -101,13 +98,20 @@ namespace PTL.ATT.Models
             }
         }
 
+        protected static FeatureExtractor InitializeExternalFeatureExtractor(IFeatureBasedDCM model, Type modelType)
+        {
+            FeatureExtractor externalFeatureExtractor;
+            if (Configuration.TryGetFeatureExtractor(modelType, out externalFeatureExtractor))
+                externalFeatureExtractor.Initialize(model, modelType, Configuration.GetFeatureExtractorConfigOptions(modelType));
+
+            return externalFeatureExtractor;
+        }
+
         private PTL.ATT.Classifiers.Classifier _classifier;
         private int _featureDistanceThreshold;
         private List<Feature> _features;
         private int _trainingSampleSize;
         private int _predictionSampleSize;
-        [NonSerialized]
-        private FeatureExtractor _externalFeatureExtractor;
 
         public PTL.ATT.Classifiers.Classifier Classifier
         {
@@ -129,12 +133,6 @@ namespace PTL.ATT.Models
                 Update();
             }
         }
-
-        public FeatureExtractor ExternalFeatureExtractor
-        {
-            get { return _externalFeatureExtractor; }
-        }
-
         public List<Feature> Features
         {
             get { return _features; }
@@ -247,10 +245,9 @@ namespace PTL.ATT.Models
 
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
         {
-            if (Configuration.TryGetFeatureExtractor(GetType(), out _externalFeatureExtractor))
-                _externalFeatureExtractor.Initialize(this, Configuration.GetFeatureExtractorConfigOptions(GetType()));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
 
-            int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (_externalFeatureExtractor == null ? 0 : _externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
+            int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
 
             Dictionary<string, NumericFeature> idNumericFeature = new Dictionary<string, NumericFeature>();
             foreach (Feature f in Features)
@@ -288,7 +285,7 @@ namespace PTL.ATT.Models
                                 Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDistanceFeature.TrainingResourceId : spatialDistanceFeature.PredictionResourceId));
                                 string shapefileGeometryTableName = ShapefileGeometry.GetTableName(shapefile);
                                 NpgsqlCommand cmd = new NpgsqlCommand("SELECT points." + Point.Columns.Id + " as points_" + Point.Columns.Id + "," +
-                                                                             "CASE WHEN COUNT(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + featureValueWhenBeyondThreshold + " " + 
+                                                                             "CASE WHEN COUNT(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + featureValueWhenBeyondThreshold + " " +
                                                                              "ELSE min(st_distance(st_closestpoint(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ",points." + Point.Columns.Location + "),points." + Point.Columns.Location + ")) " +
                                                                              "END as feature_value " +
 
@@ -425,10 +422,10 @@ namespace PTL.ATT.Models
             }
             #endregion
 
-            if (_externalFeatureExtractor != null)
+            if (externalFeatureExtractor != null)
             {
                 Console.Out.WriteLine("Running external feature extractor for " + typeof(FeatureBasedDCM));
-                foreach (FeatureVectorList externalFeatureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(FeatureBasedDCM), prediction, featureVectors, training))
+                foreach (FeatureVectorList externalFeatureVectors in externalFeatureExtractor.ExtractFeatures(prediction, featureVectors, training))
                     yield return externalFeatureVectors;
             }
             else
@@ -530,9 +527,9 @@ namespace PTL.ATT.Models
 
                             _classifier.Classify(featureVectors);
 
+                            #region log feature values
                             foreach (FeatureVector vector in featureVectors.OrderBy(v => (v.DerivedFrom as Point).Id))  // sort by point ID so prediction log is sorted
                             {
-                                #region log feature values
                                 Point p = vector.DerivedFrom as Point;
                                 if (p == null)
                                     throw new NullReferenceException("Expected Point in vector.DerivedFrom");
@@ -557,8 +554,8 @@ namespace PTL.ATT.Models
                                 }
 
                                 pointPredictionLog.WriteLine("</fvs></p>");
-                                #endregion
                             }
+                            #endregion
 
                             PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction.Id, true);
                         }
@@ -672,7 +669,8 @@ namespace PTL.ATT.Models
 
         public override string GetDetails(Prediction prediction)
         {
-            string details = _classifier.GetDetails(prediction, _externalFeatureExtractor == null ? null : _externalFeatureExtractor.GetDetails(prediction));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            string details = _classifier.GetDetails(prediction, externalFeatureExtractor == null ? null : externalFeatureExtractor.GetDetails(prediction));
 
             prediction.ModelDetails = details;
 
@@ -682,32 +680,6 @@ namespace PTL.ATT.Models
         public override DiscreteChoiceModel Copy()
         {
             return new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
-        }
-
-        public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
-        {
-            FeatureBasedDCM originalFeatureBasedDCM = original as FeatureBasedDCM;
-            Dictionary<string, string> oldNewFeatureId = new Dictionary<string, string>();
-            foreach (Tuple<string, string> oldNew in originalFeatureBasedDCM.Features.Zip(Features, new Func<Feature, Feature, Tuple<string, string>>((f1, f2) => new Tuple<string, string>(f1.Id, f2.Id))))
-                oldNewFeatureId.Add(oldNew.Item1, oldNew.Item2);
-
-            foreach (Prediction prediction in Prediction.GetForModel(this, true))
-            {
-                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> originalLog = ReadPointPredictionLog(prediction.PointPredictionLogPath);
-                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> updatedLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>(originalLog.Count);
-                foreach (string originalPointId in originalLog.Keys)
-                {
-                    List<Tuple<string, double>> updatedFeatureValues = new List<Tuple<string, double>>(originalLog[originalPointId].Item2.Count);
-                    foreach (Tuple<string, double> originalFeatureValue in originalLog[originalPointId].Item2)
-                        updatedFeatureValues.Add(new Tuple<string, double>(oldNewFeatureId[originalFeatureValue.Item1], originalFeatureValue.Item2));
-
-                    updatedLog.Add(originalPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(originalLog[originalPointId].Item1, updatedFeatureValues));
-                }
-
-                WritePointPredictionLog(updatedLog, prediction.PointPredictionLogPath);
-            }
-
-            _classifier.ChangeFeatureIds(oldNewFeatureId);
         }
 
         public override string ToString()
@@ -722,11 +694,11 @@ namespace PTL.ATT.Models
                 indent += "\t";
 
             int featuresToDisplay = 10; // can have hundreds of features, which makes the tooltip excrutiatingly slow
-
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
             return base.GetDetails(indentLevel) + Environment.NewLine +
                    indent + "Classifier:  " + _classifier.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Features:  " + Features.Where((f, i) => i < featuresToDisplay).Select(f => f.ToString()).Concatenate(", ") + (Features.Count > featuresToDisplay ? " ... (" + (Features.Count - featuresToDisplay) + " not shown)" : "") + Environment.NewLine +
-                   indent + "External feature extractor:  " + (_externalFeatureExtractor == null ? "None" : _externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
+                   indent + "External feature extractor:  " + (externalFeatureExtractor == null ? "None" : externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
                    indent + "Feature distance threshold:  " + _featureDistanceThreshold + Environment.NewLine +
                    indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +
                    indent + "Prediction sample size:  " + _predictionSampleSize;

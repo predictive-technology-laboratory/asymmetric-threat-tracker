@@ -278,10 +278,6 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             return new KernelDensityDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _trainingSampleSize, _normalize);
         }
 
-        public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
-        {
-        }
-
         public override string ToString()
         {
             return "KDE DCM:  " + Name;

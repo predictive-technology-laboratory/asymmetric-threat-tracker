@@ -97,8 +97,8 @@ namespace PTL.ATT.Models
             foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
                 yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString(), null);
 
-            FeatureExtractor externalFeatureExtractor;
-            if (Configuration.TryGetFeatureExtractor(typeof(TimeSliceDCM), out externalFeatureExtractor))
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(null, typeof(TimeSliceDCM));
+            if (externalFeatureExtractor != null)
                 foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
                     yield return f;
         }
@@ -160,6 +160,8 @@ namespace PTL.ATT.Models
 
         protected override IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
         {
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(TimeSliceDCM));
+
             foreach (FeatureVectorList vectors in base.ExtractFeatureVectors(prediction, training))
             {
                 Dictionary<TimeSliceFeature, string> featureId = new Dictionary<TimeSliceFeature, string>();
@@ -180,7 +182,7 @@ namespace PTL.ATT.Models
                 long lastSlice = (long)((training ? prediction.Model.TrainingEnd.Ticks : prediction.PredictionEndTime.Ticks) / sliceTicks);
                 int numSlices = (int)(lastSlice - firstSlice + 1);
                 long ticksPerHour = new TimeSpan(1, 0, 0).Ticks;
-                int numFeatures = Features.Count(f => f.EnumType == typeof(TimeSliceFeature)) + (ExternalFeatureExtractor == null ? 0 : ExternalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
+                int numTimeSliceFeatures = Features.Count(f => f.EnumType == typeof(TimeSliceFeature)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
                 List<TimeSliceFeature> dayIntervals = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
 
                 Console.Out.WriteLine("Extracting " + featureId.Count + " time slice features for " + vectors.Count + " spatial points across " + numSlices + " time slices");
@@ -232,7 +234,7 @@ namespace PTL.ATT.Models
                                     else
                                         continue;
 
-                                    FeatureVector timeSliceVector = new FeatureVector(timeSlicePoint, numFeatures);
+                                    FeatureVector timeSliceVector = new FeatureVector(timeSlicePoint, vector.Count + numTimeSliceFeatures);
                                     timeSliceVector.DerivedFrom.TrueClass = spatialPoint.TrueClass;
                                     timeSliceVector.Add(vector);
 
@@ -274,11 +276,10 @@ namespace PTL.ATT.Models
 
                 coreFeatureVectors = null;
 
-                if (ExternalFeatureExtractor != null)
+                if (externalFeatureExtractor != null)
                 {
                     Console.Out.WriteLine("Running external feature extractor for " + typeof(TimeSliceDCM));
-
-                    foreach (FeatureVectorList externalVectors in ExternalFeatureExtractor.ExtractFeatures(typeof(TimeSliceDCM), prediction, timeSliceVectors, training))
+                    foreach (FeatureVectorList externalVectors in externalFeatureExtractor.ExtractFeatures(prediction, timeSliceVectors, training))
                         yield return externalVectors;
                 }
                 else

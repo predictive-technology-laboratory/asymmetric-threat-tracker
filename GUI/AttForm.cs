@@ -1102,7 +1102,8 @@ namespace PTL.ATT.GUI
                         m.TrainingStart = trainingStart;
                         m.TrainingEnd = trainingEnd;
                         m.IncidentTypes = incidentTypes;
-                        RefreshPredictions(mostRecentPrediction.Id);
+
+                        RefreshPredictions(mostRecentPrediction);
 
                         if (runFinishedCallback != null)
                             Invoke(new Action(delegate() { runFinishedCallback(mostRecentPrediction.Id); }));
@@ -1190,7 +1191,7 @@ namespace PTL.ATT.GUI
             else
                 _groups.Remove(groupByModelToolStripMenuItem.Text);
 
-            RefreshPredictions(SelectedPredictions.Select(s => s.Id).ToArray());
+            RefreshPredictions(SelectedPredictions.ToArray());
         }
 
         private void groupByIncidentTypesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
@@ -1203,7 +1204,7 @@ namespace PTL.ATT.GUI
             else
                 _groups.Remove(groupByIncidentTypesToolStripMenuItem.Text);
 
-            RefreshPredictions(SelectedPredictions.Select(s => s.Id).ToArray());
+            RefreshPredictions(SelectedPredictions.ToArray());
         }
 
         private void groupByPredictionIntervalToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
@@ -1216,7 +1217,7 @@ namespace PTL.ATT.GUI
             else
                 _groups.Remove(groupByPredictionIntervalToolStripMenuItem.Text);
 
-            RefreshPredictions(SelectedPredictions.Select(s => s.Id).ToArray());
+            RefreshPredictions(SelectedPredictions.ToArray());
         }
 
         private void groupByRunToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
@@ -1229,7 +1230,7 @@ namespace PTL.ATT.GUI
             else
                 _groups.Remove(groupByRunToolStripMenuItem.Text);
 
-            RefreshPredictions(SelectedPredictions.Select(s => s.Id).ToArray());
+            RefreshPredictions(SelectedPredictions.ToArray());
         }
 
         private void submenu_Closing(object sender, ToolStripDropDownClosingEventArgs e)
@@ -1388,7 +1389,7 @@ namespace PTL.ATT.GUI
                     RefreshAssessmentPlots();
                 }
 
-                RefreshPredictions(selectedIds);
+                RefreshPredictions(selectedPredictions.ToArray());
             }
         }
 
@@ -1407,7 +1408,7 @@ namespace PTL.ATT.GUI
                     foreach (Prediction prediction in SelectedPredictions)
                         prediction.RunId = newRunId;
 
-                RefreshPredictions(SelectedPredictions.Select(p => p.Id));
+                RefreshPredictions(SelectedPredictions.ToArray());
             }
         }
 
@@ -1453,7 +1454,7 @@ namespace PTL.ATT.GUI
                             Console.Out.WriteLine(msg);
                             Notify(msg, "");
 
-                            RefreshPredictions(selectedPredictions.Select(p => p.Id).ToArray());
+                            RefreshPredictions(selectedPredictions.ToArray());
                         }));
 
                     t.Start();
@@ -1508,10 +1509,10 @@ namespace PTL.ATT.GUI
                                     }
                                 }
 
-                                RefreshPredictions(selectedPredictions.Select(p => p.Id).ToArray());
+                                RefreshPredictions(selectedPredictions.ToArray());
                                 if (threatMap.DisplayedPrediction != null && selectedPredictions.Select(p => p.Id).Contains(threatMap.DisplayedPrediction.Id))
                                 {
-                                    RefreshPredictions(threatMap.DisplayedPrediction.Id);
+                                    RefreshPredictions(threatMap.DisplayedPrediction);
                                     displayPredictionToolStripMenuItem_Click(sender, e);
                                 }
 
@@ -1661,7 +1662,7 @@ namespace PTL.ATT.GUI
                         Console.Out.WriteLine(msg);
                         Notify(msg, "");
 
-                        RefreshPredictions(-1);
+                        RefreshPredictions();
                         threatMap.Clear();
                         Invoke(new Action(() => assessments.ClearPlots()));
                     }));
@@ -1734,7 +1735,7 @@ namespace PTL.ATT.GUI
             {
                 RefreshModels(-1);
                 RefreshPredictionAreas();
-                RefreshPredictions(-1);
+                RefreshPredictions();
             }
             catch (Exception ex)
             {
@@ -1784,16 +1785,21 @@ namespace PTL.ATT.GUI
                 predictionAreas.SelectedIndex = 0;
         }
 
-        public void RefreshPredictions(int predictionIdToSelect)
+        public void RefreshPredictions()
         {
-            RefreshPredictions(predictionIdToSelect == -1 ? null : new int[] { predictionIdToSelect });
+            RefreshPredictions(new Prediction[] { });
+        }
+        
+        public void RefreshPredictions(Prediction predictionToSelect)
+        {
+            RefreshPredictions(new Prediction[] { predictionToSelect });
         }
 
-        public void RefreshPredictions(IEnumerable<int> predictionIdsToSelect)
+        public void RefreshPredictions(Prediction[] predictionsToSelect)
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<IEnumerable<int>>(RefreshPredictions), predictionIdsToSelect);
+                Invoke(new Action<Prediction[]>(RefreshPredictions), new object[] { predictionsToSelect });
                 return;
             }
 
@@ -1809,10 +1815,10 @@ namespace PTL.ATT.GUI
 
             predictions.EndUpdate();
 
-            if (predictionIdsToSelect != null)
+            if (predictionsToSelect != null && predictionsToSelect.Length > 0)
             {
-                _setPredictionsToolTip = predictionIdsToSelect.Count() == 1;
-                TraversePredictionTree().Where(n => n.Tag is Prediction && predictionIdsToSelect.Contains((n.Tag as Prediction).Id)).Select(n => n.Checked = true).ToArray();
+                _setPredictionsToolTip = predictionsToSelect.Count() == 1;
+                TraversePredictionTree().Where(n => n.Tag is Prediction && predictionsToSelect.Select(p => p.Id).Contains((n.Tag as Prediction).Id)).Select(n => n.Checked = true).ToArray();
             }
 
             _setPredictionsToolTip = true;

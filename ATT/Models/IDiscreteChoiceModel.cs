@@ -15,6 +15,7 @@
 #endregion
 
 using LAIR.Collections.Generic;
+using PTL.ATT.Smoothers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,12 +26,22 @@ namespace PTL.ATT.Models
 {
     public interface IDiscreteChoiceModel
     {
-        Set<string> IncidentTypes { get; }
+        Set<string> IncidentTypes { get; set; }
 
         string ModelDirectory { get; }
 
-        Area TrainingArea { get; }
+        Area TrainingArea { get; set; }
 
-        int PointSpacing { get; }
+        int PointSpacing { get; set; }
+
+        DateTime TrainingStart { get; set; }
+
+        DateTime TrainingEnd { get; set; }
+
+        string Name { get; set; }
+
+        List<Smoother> Smoothers { get; set; }
+
+        void Update();
     }
 }

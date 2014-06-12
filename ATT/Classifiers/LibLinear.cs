@@ -278,9 +278,9 @@ namespace PTL.ATT.Classifiers
                     double weight = classFeatureWeight[classNumber][liblinearFeatureNumber];
                     string attFeatureId = liblinearFeatureNumberAttFeatureId[liblinearFeatureNumber];
                     string information = (attFeatureIdInformation == null || !attFeatureIdInformation.ContainsKey(attFeatureId) ? "" : Environment.NewLine +
-                                         "\t\t\tInformation:  " + attFeatureIdInformation[attFeatureId] + Environment.NewLine);
+                                         "\t\t\tInformation:  " + attFeatureIdInformation[attFeatureId]);
 
-                    report.AppendLine(string.Format("\t\t{0,-" + maxFeatureNameWidth + "}: weight = {1:0.00}", desc, weight) + information);
+                    report.AppendLine(string.Format("\t\t{0,-" + maxFeatureNameWidth + "}: weight = {1:0.00}", desc, weight) + information + Environment.NewLine);
                 }
 
                 report.AppendLine();

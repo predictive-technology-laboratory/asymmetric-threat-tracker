@@ -112,7 +112,7 @@ namespace PTL.ATT.Models
 
             Feature f = obj as Feature;
 
-            return _enumType == f.EnumType && _enumValue.ToString() == f.EnumValue.ToString() && _trainingResourceId == f.TrainingResourceId && _predictionResourceId == f.PredictionResourceId;
+            return _enumType.FullName == f.EnumType.FullName && _enumValue.ToString() == f.EnumValue.ToString() && _trainingResourceId == f.TrainingResourceId && _predictionResourceId == f.PredictionResourceId;
         }
 
         public override int GetHashCode()

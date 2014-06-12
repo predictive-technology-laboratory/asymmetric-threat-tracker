@@ -67,6 +67,8 @@ namespace PTL.ATT.Models
 
         public static IEnumerable<DiscreteChoiceModel> GetAll(bool excludeThoseCopiedForPredictions)
         {
+            FeatureExtractor fex;
+            Configuration.TryGetFeatureExtractor(typeof(FeatureBasedDCM),out fex);
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
             BinaryFormatter bf = new BinaryFormatter();
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
@@ -336,6 +338,8 @@ namespace PTL.ATT.Models
             _trainingStart = trainingStart;
             _trainingEnd = trainingEnd;
             _smoothers = new List<Smoother>(smoothers);
+
+            Update();
         }
 
         public Prediction Run(Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
@@ -439,8 +443,6 @@ namespace PTL.ATT.Models
         }
 
         public abstract DiscreteChoiceModel Copy();
-
-        public abstract void UpdateFeatureIdsFrom(DiscreteChoiceModel original);
 
         protected void Smooth(Prediction prediction)
         {
