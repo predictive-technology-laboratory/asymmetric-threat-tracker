@@ -98,7 +98,7 @@ namespace PTL.ATT.Models
             }
         }
 
-        protected static FeatureExtractor InitializeExternalFeatureExtractor(IFeatureBasedDCM model, Type modelType)
+        public static FeatureExtractor InitializeExternalFeatureExtractor(IFeatureBasedDCM model, Type modelType)
         {
             FeatureExtractor externalFeatureExtractor;
             if (Configuration.TryGetFeatureExtractor(modelType, out externalFeatureExtractor))
@@ -133,6 +133,7 @@ namespace PTL.ATT.Models
                 Update();
             }
         }
+
         public List<Feature> Features
         {
             get { return _features; }
@@ -165,18 +166,18 @@ namespace PTL.ATT.Models
 
         public FeatureBasedDCM() : base() { }
 
-        protected FeatureBasedDCM(string name,
-                                  int pointSpacing,
-                                  IEnumerable<string> incidentTypes,
-                                  Area trainingArea,
-                                  DateTime trainingStart,
-                                  DateTime trainingEnd,
-                                  IEnumerable<Smoother> smoothers,
-                                  int featureDistanceThreshold,
-                                  int trainingSampleSize,
-                                  int predictionSampleSize,
-                                  PTL.ATT.Classifiers.Classifier classifier,
-                                  IEnumerable<Feature> features)
+        public FeatureBasedDCM(string name,
+                               int pointSpacing,
+                               IEnumerable<string> incidentTypes,
+                               Area trainingArea,
+                               DateTime trainingStart,
+                               DateTime trainingEnd,
+                               IEnumerable<Smoother> smoothers,
+                               int featureDistanceThreshold,
+                               int trainingSampleSize,
+                               int predictionSampleSize,
+                               PTL.ATT.Classifiers.Classifier classifier,
+                               IEnumerable<Feature> features)
             : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
             _featureDistanceThreshold = featureDistanceThreshold;

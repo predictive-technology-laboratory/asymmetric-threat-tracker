@@ -179,15 +179,15 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
         public KernelDensityDCM() : base() { }
 
-        protected KernelDensityDCM(string name,
-                                   int pointSpacing,
-                                   IEnumerable<string> incidentTypes,
-                                   Area trainingArea,
-                                   DateTime trainingStart,
-                                   DateTime trainingEnd,
-                                   IEnumerable<Smoother> smoothers,
-                                   int trainingSampleSize,
-                                   bool normalize)
+        public KernelDensityDCM(string name,
+                                int pointSpacing,
+                                IEnumerable<string> incidentTypes,
+                                Area trainingArea,
+                                DateTime trainingStart,
+                                DateTime trainingEnd,
+                                IEnumerable<Smoother> smoothers,
+                                int trainingSampleSize,
+                                bool normalize)
             : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
             _trainingSampleSize = trainingSampleSize;

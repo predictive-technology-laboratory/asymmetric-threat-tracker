@@ -135,20 +135,20 @@ namespace PTL.ATT.Models
 
         public TimeSliceDCM() : base() { }
 
-        protected TimeSliceDCM(string name,
-                               int pointSpacing,
-                               IEnumerable<string> incidentTypes,
-                               Area trainingArea,
-                               DateTime trainingStart,
-                               DateTime trainingEnd,
-                               IEnumerable<Smoother> smoothers,
-                               int featureDistanceThreshold,
-                               int trainingSampleSize,
-                               int predictionSampleSize,
-                               PTL.ATT.Classifiers.Classifier classifier,
-                               IEnumerable<Feature> features,
-                               int timeSliceHours,
-                               int periodTimeSlices)
+        public TimeSliceDCM(string name,
+                            int pointSpacing,
+                            IEnumerable<string> incidentTypes,
+                            Area trainingArea,
+                            DateTime trainingStart,
+                            DateTime trainingEnd,
+                            IEnumerable<Smoother> smoothers,
+                            int featureDistanceThreshold,
+                            int trainingSampleSize,
+                            int predictionSampleSize,
+                            PTL.ATT.Classifiers.Classifier classifier,
+                            IEnumerable<Feature> features,
+                            int timeSliceHours,
+                            int periodTimeSlices)
             : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, featureDistanceThreshold, trainingSampleSize, predictionSampleSize, classifier, features)
         {
             _timeSliceHours = timeSliceHours;
