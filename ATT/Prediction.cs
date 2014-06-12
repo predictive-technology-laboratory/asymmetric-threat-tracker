@@ -122,26 +122,26 @@ namespace PTL.ATT
         private Area _predictionArea;
         private DateTime _predictionStartTime;
         private DateTime _predictionEndTime;
+        private List<Plot> _assessmentPlots;
         private int _id;
         private bool _done;
         private DateTime _mostRecentlyEvaluatedIncidentTime;
-        private List<Plot> _assessmentPlots;
         private string _modelDetails;
-        private string _smoothing;
+        private string _smoothingDetails;
         [NonSerialized]
         private List<Point> _points;
         [NonSerialized]
         private List<PointPrediction> _pointPredictions;
 
-        public string Smoothing
+        public string SmoothingDetails
         {
-            get { return _smoothing; }
+            get { return _smoothingDetails; }
             set
             {
-                if (_smoothing == value)
+                if (_smoothingDetails == value)
                     return;
 
-                _smoothing = value;
+                _smoothingDetails = value;
                 Update();
             }
         }
@@ -303,7 +303,7 @@ namespace PTL.ATT
             }
         }
 
-        public Prediction(DiscreteChoiceModel model, bool newRun, string name, Area predictionArea, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
+        internal Prediction(DiscreteChoiceModel model, bool newRun, string name, Area predictionArea, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
         {
             _model = model;
             _runId = MaxRunId + (newRun ? 1 : 0);
@@ -312,27 +312,21 @@ namespace PTL.ATT
             _predictionStartTime = predictionStartTime;
             _predictionEndTime = predictionEndTime;
             _assessmentPlots = new List<Plot>();
-            _id = -1;
+            _done = false;
+            _mostRecentlyEvaluatedIncidentTime = DateTime.MinValue;
+            _modelDetails = _smoothingDetails = null;
 
-            if (vacuum)
-                VacuumTable();
-        }
-
-        public void Save()
-        {
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
             _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (" + _model.Id + ",@bytes," + _predictionArea.Id + ") RETURNING " + Columns.Id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray())));
 
-            VacuumTable();
+            if (vacuum)
+                VacuumTable();
         }
 
         public void Update()
         {
-            if (_id == -1)
-                return;
-
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
@@ -376,8 +370,7 @@ namespace PTL.ATT
 
             try
             {
-                copiedPrediction = new Prediction(Model.Copy(true), newRun, newName, _predictionArea, _predictionStartTime, _predictionEndTime, false);
-                copiedPrediction.Save();
+                copiedPrediction = new Prediction(Model.Copy(), newRun, newName, _predictionArea, _predictionStartTime, _predictionEndTime, false);
 
                 string copiedPointTable = Point.CreateTable(copiedPrediction.Id, PredictionArea.SRID);
                 cmd.CommandText = "INSERT INTO " + copiedPointTable + " (" + Point.Columns.Insert + ") " +
@@ -396,7 +389,7 @@ namespace PTL.ATT
                 foreach (string path in Directory.GetFiles(Model.ModelDirectory))
                     File.Copy(path, Path.Combine(copiedPrediction.Model.ModelDirectory, Path.GetFileName(path)));
 
-                copiedPrediction.Smoothing = _smoothing;
+                copiedPrediction.SmoothingDetails = _smoothingDetails;
                 copiedPrediction.Done = true;
 
                 copiedPrediction.Model.UpdateFeatureIdsFrom(Model);
@@ -442,7 +435,7 @@ namespace PTL.ATT
                    indent + "Prediction area:  " + _predictionArea.GetDetails(indentLevel + 1) + Environment.NewLine + 
                    indent + "Prediction start:  " + _predictionStartTime.ToShortDateString() + " " + _predictionStartTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Prediction end:  " + _predictionEndTime.ToShortDateString() + " " + _predictionEndTime.ToShortTimeString() + Environment.NewLine +
-                   indent + "Smoothing:  " + _smoothing + Environment.NewLine +
+                   indent + "Smoothing:  " + _smoothingDetails + Environment.NewLine +
                    indent + "Time of most recently evaluated incident:  " + (_mostRecentlyEvaluatedIncidentTime == DateTime.MinValue ? "Never" : _mostRecentlyEvaluatedIncidentTime.ToShortDateString() + " " + _mostRecentlyEvaluatedIncidentTime.ToShortTimeString());
         }
 

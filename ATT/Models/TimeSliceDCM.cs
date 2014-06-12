@@ -135,25 +135,27 @@ namespace PTL.ATT.Models
 
         public TimeSliceDCM() : base() { }
 
-        public TimeSliceDCM(string name,
-                            int pointSpacing,
-                            IEnumerable<string> incidentTypes,
-                            Area trainingArea,
-                            DateTime trainingStart,
-                            DateTime trainingEnd,
-                            IEnumerable<Smoother> smoothers,
-                            int featureDistanceThreshold,
-                            int trainingSampleSize,
-                            int predictionSampleSize,
-                            PTL.ATT.Classifiers.Classifier classifier,
-                            IEnumerable<Feature> features,
-                            int timeSliceHours,
-                            int periodTimeSlices)
+        protected TimeSliceDCM(string name,
+                               int pointSpacing,
+                               IEnumerable<string> incidentTypes,
+                               Area trainingArea,
+                               DateTime trainingStart,
+                               DateTime trainingEnd,
+                               IEnumerable<Smoother> smoothers,
+                               int featureDistanceThreshold,
+                               int trainingSampleSize,
+                               int predictionSampleSize,
+                               PTL.ATT.Classifiers.Classifier classifier,
+                               IEnumerable<Feature> features,
+                               int timeSliceHours,
+                               int periodTimeSlices)
             : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, featureDistanceThreshold, trainingSampleSize, predictionSampleSize, classifier, features)
         {
             _timeSliceHours = timeSliceHours;
             _periodTimeSlices = periodTimeSlices;
             _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
+
+            Update();
         }
 
         protected override IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
@@ -290,14 +292,9 @@ namespace PTL.ATT.Models
             return slice + "-" + id;
         }
 
-        public override DiscreteChoiceModel Copy(bool save)
+        public override DiscreteChoiceModel Copy()
         {
-            DiscreteChoiceModel copy = new TimeSliceDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, FeatureDistanceThreshold, TrainingSampleSize, PredictionSampleSize, Classifier, Features, _timeSliceHours, _periodTimeSlices);
-
-            if (save)
-                copy.Save();
-
-            return copy;
+            return new TimeSliceDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, FeatureDistanceThreshold, TrainingSampleSize, PredictionSampleSize, Classifier, Features, _timeSliceHours, _periodTimeSlices);
         }
 
         public override string ToString()

@@ -303,7 +303,21 @@ namespace PTL.ATT.Models
 
         protected DiscreteChoiceModel()
         {
-            _id = -1;
+            BinaryFormatter bf = new BinaryFormatter();
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, this);
+            string trainingAreaId = _trainingArea == null ? "NULL" : _trainingArea.Id.ToString();
+            string predictionAreaId = _predictionArea == null ? "NULL" : _predictionArea.Id.ToString();
+            _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@bytes," + predictionAreaId + "," + trainingAreaId + ") RETURNING " + Columns.Id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray())));
+
+            _modelDirectory = Path.Combine(Configuration.ModelsDirectory, _id.ToString());
+
+            if (Directory.Exists(_modelDirectory))
+                Directory.Delete(_modelDirectory, true);
+
+            Directory.CreateDirectory(_modelDirectory);
+
+            Update();
         }
 
         protected DiscreteChoiceModel(string name,
@@ -324,20 +338,19 @@ namespace PTL.ATT.Models
             _smoothers = new List<Smoother>(smoothers);
         }
 
-        public int Run(Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
+        public Prediction Run(Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
         {
             DiscreteChoiceModel modelCopy = null;
             Prediction prediction = null;
             try
             {
-                modelCopy = Copy(true);
+                modelCopy = Copy();
                 modelCopy.PredictionArea = predictionArea;
                 prediction = new Prediction(modelCopy, newRun, predictionName, predictionArea, startTime, endTime, true);
-                prediction.Save();
                 modelCopy.Run(prediction);
                 prediction.Done = true;
 
-                return prediction.Id;
+                return prediction;
             }
             catch (Exception ex)
             {
@@ -395,35 +408,17 @@ namespace PTL.ATT.Models
                    (_modelDirectory == "" ? "" : indent + "Model directory:  " + _modelDirectory);
         }
 
-        public void Save()
-        {
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream();
-            bf.Serialize(ms, this);
-            _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@bytes," + _trainingArea.Id + "," + _trainingArea.Id + ") RETURNING " + Columns.Id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray())));
-
-            _modelDirectory = Path.Combine(Configuration.ModelsDirectory, _id.ToString());
-
-            if (Directory.Exists(_modelDirectory))
-                Directory.Delete(_modelDirectory, true);
-
-            Directory.CreateDirectory(_modelDirectory);
-
-            Update();
-        }
-
         public void Update()
         {
-            if (_id == -1)
-                return;
-
             BinaryFormatter bf = new BinaryFormatter();
             MemoryStream ms = new MemoryStream();
             bf.Serialize(ms, this);
+            string trainingAreaId = _trainingArea == null ? "NULL" : _trainingArea.Id.ToString();
+            string predictionAreaId = _predictionArea == null ? "NULL" : _predictionArea.Id.ToString();
             DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
                                           Columns.Model + "=@bytes," +
-                                          Columns.PredictionAreaId + "=" + (_predictionArea == null ? _trainingArea.Id : _predictionArea.Id) + "," +
-                                          Columns.TrainingAreaId + "=" + _trainingArea.Id + " " +
+                                          Columns.PredictionAreaId + "=" + predictionAreaId + "," +
+                                          Columns.TrainingAreaId + "=" + trainingAreaId + " " +
                                           "WHERE " + Columns.Id + "=" + _id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray()));
         }
 
@@ -443,7 +438,7 @@ namespace PTL.ATT.Models
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete model from table:  " + ex.Message); }
         }
 
-        public abstract DiscreteChoiceModel Copy(bool save);
+        public abstract DiscreteChoiceModel Copy();
 
         public abstract void UpdateFeatureIdsFrom(DiscreteChoiceModel original);
 

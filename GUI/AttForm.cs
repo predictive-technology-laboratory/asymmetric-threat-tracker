@@ -899,10 +899,7 @@ namespace PTL.ATT.GUI
                     }
 
                     if (model != null)
-                    {
-                        model.Save();
                         RefreshModels(model.Id);
-                    }
                 }
             }
         }
@@ -1049,11 +1046,9 @@ namespace PTL.ATT.GUI
 
                 Thread t = new Thread(new ThreadStart(delegate()
                     {
-                        int mostRecentPredictionId = -1;
-
                         DateTime trainingStart = m.TrainingStart;
                         DateTime trainingEnd = m.TrainingEnd;
-
+                        Prediction mostRecentPrediction = null;
                         for (int i = (int)startPrediction.Value - 1; i < numPredictions.Value; ++i)
                         {
                             Console.Out.WriteLine("Running prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
@@ -1071,7 +1066,7 @@ namespace PTL.ATT.GUI
                                         m.TrainingStart = trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L));
                                         m.TrainingEnd = trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L));
                                         m.IncidentTypes = new Set<string>(new string[] { incidentType });
-                                        mostRecentPredictionId = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                        mostRecentPrediction = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                         newRun = false;
                                     }
                                     catch (Exception ex)
@@ -1089,7 +1084,7 @@ namespace PTL.ATT.GUI
                                 {
                                     m.TrainingStart = trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L));
                                     m.TrainingEnd = trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L));
-                                    mostRecentPredictionId = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                    mostRecentPrediction = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
                                     newRun = false;
                                 }
                                 catch (Exception ex)
@@ -1107,10 +1102,10 @@ namespace PTL.ATT.GUI
                         m.TrainingStart = trainingStart;
                         m.TrainingEnd = trainingEnd;
                         m.IncidentTypes = incidentTypes;
-                        RefreshPredictions(mostRecentPredictionId);
+                        RefreshPredictions(mostRecentPrediction.Id);
 
                         if (runFinishedCallback != null)
-                            Invoke(new Action(delegate() { runFinishedCallback(mostRecentPredictionId); }));
+                            Invoke(new Action(delegate() { runFinishedCallback(mostRecentPrediction.Id); }));
 
                         Notify("Done running predictions", "");
                     }));

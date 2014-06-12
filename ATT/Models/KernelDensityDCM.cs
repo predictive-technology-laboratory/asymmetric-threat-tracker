@@ -179,19 +179,21 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
         public KernelDensityDCM() : base() { }
 
-        public KernelDensityDCM(string name,
-                                int pointSpacing,
-                                IEnumerable<string> incidentTypes,
-                                Area trainingArea,
-                                DateTime trainingStart,
-                                DateTime trainingEnd,
-                                IEnumerable<Smoother> smoothers,
-                                int trainingSampleSize,
-                                bool normalize)
+        protected KernelDensityDCM(string name,
+                                   int pointSpacing,
+                                   IEnumerable<string> incidentTypes,
+                                   Area trainingArea,
+                                   DateTime trainingStart,
+                                   DateTime trainingEnd,
+                                   IEnumerable<Smoother> smoothers,
+                                   int trainingSampleSize,
+                                   bool normalize)
             : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
             _trainingSampleSize = trainingSampleSize;
             _normalize = normalize;
+
+            Update();
         }
 
         protected override void Run(Prediction prediction)
@@ -271,14 +273,9 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             return "No information is available for " + typeof(KernelDensityDCM).Name + " models.";
         }
 
-        public override DiscreteChoiceModel Copy(bool save)
+        public override DiscreteChoiceModel Copy()
         {
-            DiscreteChoiceModel copy = new KernelDensityDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _trainingSampleSize, _normalize);
-
-            if (save)
-                copy.Save();
-
-            return copy;
+            return new KernelDensityDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _trainingSampleSize, _normalize);
         }
 
         public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)

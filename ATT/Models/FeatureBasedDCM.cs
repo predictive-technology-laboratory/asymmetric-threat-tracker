@@ -167,18 +167,18 @@ namespace PTL.ATT.Models
 
         public FeatureBasedDCM() : base() { }
 
-        public FeatureBasedDCM(string name,
-                               int pointSpacing,
-                               IEnumerable<string> incidentTypes,
-                               Area trainingArea,
-                               DateTime trainingStart,
-                               DateTime trainingEnd,
-                               IEnumerable<Smoother> smoothers,
-                               int featureDistanceThreshold,
-                               int trainingSampleSize,
-                               int predictionSampleSize,
-                               PTL.ATT.Classifiers.Classifier classifier,
-                               IEnumerable<Feature> features)
+        protected FeatureBasedDCM(string name,
+                                  int pointSpacing,
+                                  IEnumerable<string> incidentTypes,
+                                  Area trainingArea,
+                                  DateTime trainingStart,
+                                  DateTime trainingEnd,
+                                  IEnumerable<Smoother> smoothers,
+                                  int featureDistanceThreshold,
+                                  int trainingSampleSize,
+                                  int predictionSampleSize,
+                                  PTL.ATT.Classifiers.Classifier classifier,
+                                  IEnumerable<Feature> features)
             : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
             _featureDistanceThreshold = featureDistanceThreshold;
@@ -188,8 +188,7 @@ namespace PTL.ATT.Models
             _classifier.Model = this;
             _features = new List<Feature>(features);
 
-            if (Configuration.TryGetFeatureExtractor(GetType(), out _externalFeatureExtractor))
-                _externalFeatureExtractor.Initialize(this, Configuration.GetFeatureExtractorConfigOptions(GetType()));
+            Update();
         }
 
         protected virtual void InsertPointsIntoPrediction(NpgsqlConnection connection, Prediction prediction, bool training, bool vacuum)
@@ -248,6 +247,9 @@ namespace PTL.ATT.Models
 
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
         {
+            if (Configuration.TryGetFeatureExtractor(GetType(), out _externalFeatureExtractor))
+                _externalFeatureExtractor.Initialize(this, Configuration.GetFeatureExtractorConfigOptions(GetType()));
+
             int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (_externalFeatureExtractor == null ? 0 : _externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
 
             Dictionary<string, NumericFeature> idNumericFeature = new Dictionary<string, NumericFeature>();
@@ -677,14 +679,9 @@ namespace PTL.ATT.Models
             return prediction.ModelDetails;
         }
 
-        public override DiscreteChoiceModel Copy(bool save)
+        public override DiscreteChoiceModel Copy()
         {
-            DiscreteChoiceModel copy = new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
-
-            if (save)
-                copy.Save();
-
-            return copy;
+            return new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
         }
 
         public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)

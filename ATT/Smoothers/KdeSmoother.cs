@@ -85,7 +85,7 @@ namespace PTL.ATT.Smoothers
                 PointPrediction.UpdateThreatScores(pointPredictions, prediction.Id);
             }
 
-            prediction.Smoothing = GetSmoothingDetails();
+            prediction.SmoothingDetails = GetSmoothingDetails();
         }        
 
         public override string GetSmoothingDetails()
