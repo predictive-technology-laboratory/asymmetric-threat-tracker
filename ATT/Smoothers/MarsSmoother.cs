@@ -121,7 +121,7 @@ write.table(prediction,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.nam
 
                 PointPrediction.UpdateThreatScores(pointPredictions, prediction.Id);
 
-                prediction.Smoothing = GetSmoothingDetails();
+                prediction.SmoothingDetails = GetSmoothingDetails();
             }
         }
 

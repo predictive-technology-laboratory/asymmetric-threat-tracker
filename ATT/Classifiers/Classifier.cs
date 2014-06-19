@@ -37,18 +37,13 @@ namespace PTL.ATT.Classifiers
             get { return Assembly.GetAssembly(typeof(Classifier)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(Classifier))).Select(t => Activator.CreateInstance(t)).Cast<Classifier>(); }
         }
 
-        private int _modelId;
+        private FeatureBasedDCM _model;
         private bool _runFeatureSelection;
 
-        public int ModelId
+        public FeatureBasedDCM Model
         {
-            get { return _modelId; }
-            set { _modelId = value; }
-        }
-
-        public IFeatureBasedDCM Model
-        {
-            get { return DiscreteChoiceModel.Instantiate(_modelId) as IFeatureBasedDCM; }
+            get { return _model; }
+            set { _model = value; }
         }
 
         public bool RunFeatureSelection
@@ -68,13 +63,13 @@ namespace PTL.ATT.Classifiers
         }
 
         protected Classifier()
-            : this(false, -1)
+            : this(false, null)
         {
         }
 
-        protected Classifier(bool runFeatureSelection, int modelId)
+        protected Classifier(bool runFeatureSelection, FeatureBasedDCM model)
         {
-            _modelId = modelId;
+            _model = model;
             _runFeatureSelection = runFeatureSelection;
         }
 
@@ -118,7 +113,7 @@ namespace PTL.ATT.Classifiers
 
         protected abstract void BuildModel();
 
-        public abstract IEnumerable<int> SelectFeatures(Prediction prediction);
+        public abstract IEnumerable<string> SelectFeatures(Prediction prediction);
 
         public abstract void Classify(FeatureVectorList featureVectors);
 
@@ -134,8 +129,8 @@ namespace PTL.ATT.Classifiers
 
         public abstract Classifier Copy();
 
-        internal abstract string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation);
+        internal abstract string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation);
 
-        internal abstract void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId);
+        internal abstract void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId);
     }
 }

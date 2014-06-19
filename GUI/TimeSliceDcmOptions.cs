@@ -77,5 +77,11 @@ namespace PTL.ATT.GUI
         {
             return "";
         }
+
+        internal void CommitValues(TimeSliceDCM model)
+        {
+            model.TimeSliceHours = TimeSliceHours;
+            model.PeriodTimeSlices = TimeSlicesPerPeriod;
+        }
     }
 }

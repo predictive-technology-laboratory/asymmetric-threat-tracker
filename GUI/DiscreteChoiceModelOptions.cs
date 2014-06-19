@@ -26,11 +26,12 @@ using System.Windows.Forms;
 using System.Threading;
 using PTL.ATT.Models;
 using PTL.ATT.Smoothers;
+using LAIR.Collections.Generic;
 
 namespace PTL.ATT.GUI
 {
     public partial class DiscreteChoiceModelOptions : UserControl
-    {     
+    {
         private DiscreteChoiceModel _discreteChoiceModel;
         private bool _setIncidentsToolTip;
         private bool _initializing;
@@ -60,14 +61,14 @@ namespace PTL.ATT.GUI
             get { return trainingEnd.Value; }
         }
 
-        public string[] IncidentTypes
+        public Set<string> IncidentTypes
         {
-            get { return incidentTypes.SelectedItems.Cast<string>().ToArray(); }
+            get { return new Set<string>(incidentTypes.SelectedItems.Cast<string>().ToArray()); }
         }
 
-        public Smoother[] Smoothers
+        public List<Smoother> Smoothers
         {
-            get { return smoothers.SelectedItems.Cast<Smoother>().ToArray(); }
+            get { return smoothers.SelectedItems.Cast<Smoother>().ToList(); }
         }
 
         public DiscreteChoiceModel DiscreteChoiceModel
@@ -81,6 +82,7 @@ namespace PTL.ATT.GUI
                     RefreshAll();
             }
         }
+
         public DiscreteChoiceModelOptions()
         {
             _initializing = true;
@@ -154,8 +156,8 @@ namespace PTL.ATT.GUI
             if (_setIncidentsToolTip)
             {
                 int numIncidents = 0;
-                if (TrainingArea != null && IncidentTypes.Length > 0)
-                    numIncidents = Incident.Count(trainingStart.Value, trainingEnd.Value, TrainingArea, IncidentTypes);
+                if (TrainingArea != null && IncidentTypes.Count > 0)
+                    numIncidents = Incident.Count(trainingStart.Value, trainingEnd.Value, TrainingArea, IncidentTypes.ToArray());
 
                 toolTip.SetToolTip(incidentTypes, numIncidents + " total incidents selected");
             }
@@ -165,7 +167,7 @@ namespace PTL.ATT.GUI
         #region refreshing
         public void RefreshAll()
         {
-            if (_initializing)
+            if (_initializing || DB.Connection == null) // DB.Connection is null when the designer is using the form
                 return;
 
             _setIncidentsToolTip = true;
@@ -179,8 +181,8 @@ namespace PTL.ATT.GUI
                 pointSpacing.Value = 200;
                 Incident firstIncident = Incident.GetFirst(TrainingArea);
                 Incident lastIncident = Incident.GetLast(TrainingArea);
-                trainingStart.Value = firstIncident == null ? DateTime.Today.Add(new TimeSpan(-7, 0, 0, 0)) : firstIncident.Time;
-                trainingEnd.Value = lastIncident == null ? trainingStart.Value.Add(new TimeSpan(6, 23, 59, 59)) : lastIncident.Time;
+                trainingStart.Value = firstIncident == null ? DateTime.Today.Add(new TimeSpan(-7, 0, 0, 0)) : new DateTime(firstIncident.Time.Year, firstIncident.Time.Month, firstIncident.Time.Day, 0, 0, 0);
+                trainingEnd.Value = lastIncident == null ? trainingStart.Value.Add(new TimeSpan(6, 23, 59, 59)) : new DateTime(lastIncident.Time.Year, lastIncident.Time.Month, lastIncident.Time.Day, 23, 59, 59);
                 RefreshIncidentTypes();
             }
             else
@@ -263,10 +265,21 @@ namespace PTL.ATT.GUI
             if (TrainingArea == null)
                 errors.AppendLine("A training area must be selected.");
 
-            if (IncidentTypes.Length == 0)
+            if (IncidentTypes.Count == 0)
                 errors.AppendLine("One or more incident types must be selected.");
 
             return errors.ToString();
+        }
+
+        internal void CommitValues(DiscreteChoiceModel model)
+        {
+            model.Name = ModelName;
+            model.TrainingArea = TrainingArea;
+            model.PointSpacing = PointSpacing;
+            model.TrainingStart = TrainingStart;
+            model.TrainingEnd = TrainingEnd;
+            model.IncidentTypes = IncidentTypes;
+            model.Smoothers = Smoothers;
         }
     }
 }

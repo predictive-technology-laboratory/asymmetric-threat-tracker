@@ -24,6 +24,7 @@ using System.IO;
 using LAIR.ResourceAPIs.R;
 using LAIR.MachineLearning.ClassifierWrappers;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
+using PTL.ATT.Models;
 
 namespace PTL.ATT.Classifiers
 {
@@ -57,12 +58,12 @@ namespace PTL.ATT.Classifiers
         private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, "Predictions.csv"); } }
 
         public AdaBoost()
-            : this(false, -1, 50)
+            : this(false, null, 50)
         {
         }
 
-        public AdaBoost(bool runFeatureSelection, int modelId, int iterations)
-            : base(runFeatureSelection, modelId)
+        public AdaBoost(bool runFeatureSelection, FeatureBasedDCM model, int iterations)
+            : base(runFeatureSelection, model)
         {
             _iterations = iterations;
         }
@@ -93,7 +94,7 @@ namespace PTL.ATT.Classifiers
                         foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                         {
                             object value;
-                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                            if (vector.TryGetValue(f.Id, out value))
                                 trainingFile.Write("," + value);
                             else
                                 trainingFile.Write(",0");
@@ -150,9 +151,9 @@ if(length(cls)==2) {
             File.Delete(RawTrainPath);
         }
 
-        public override IEnumerable<int> SelectFeatures(Prediction prediction)
+        public override IEnumerable<string> SelectFeatures(Prediction prediction)
         {
-            throw new NotImplementedException("Feature selection has not been implemented for AdaBoost");
+            throw new NotImplementedException("Feature selection has not been implemented for AdaBoost classifiers.");
         }
 
         public override void Classify(FeatureVectorList featureVectors)
@@ -172,7 +173,7 @@ if(length(cls)==2) {
                         foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                         {
                             object value;
-                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                            if (vector.TryGetValue(f.Id, out value))
                                 predictionsFile.Write("," + value);
                             else
                                 predictionsFile.Write(",0");
@@ -258,17 +259,17 @@ write.table(mult, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.name
             }
         }
 
-        internal override string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation)
+        internal override string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation)
         {
             return "No details available for AdaBoost predictions.";
         }
 
         public override Classifier Copy()
         {
-            return new AdaBoost(RunFeatureSelection, ModelId, _iterations);
+            return new AdaBoost(RunFeatureSelection, Model, _iterations);
         }
 
-        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId)
         {
         }
 

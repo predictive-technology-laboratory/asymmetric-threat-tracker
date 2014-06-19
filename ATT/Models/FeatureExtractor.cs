@@ -26,13 +26,13 @@ namespace PTL.ATT.Models
     {
         public abstract IEnumerable<Feature> GetAvailableFeatures(Area area);
 
-        public abstract void Initialize(DiscreteChoiceModel model, Dictionary<string, string> configurationOptions);
+        public abstract void Initialize(IFeatureBasedDCM model, Type modelType, Dictionary<string, string> configurationOptions);
 
-        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Type callingType, Prediction prediction, FeatureVectorList vectors, bool training);
+        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Prediction prediction, FeatureVectorList vectors, bool training, DateTime start, DateTime end);
 
         public abstract string GetDetails(int indentLevel);
 
-        public abstract Dictionary<int, string> GetDetails(Prediction p);
+        public abstract Dictionary<string, string> GetDetails(Prediction p);
 
         public abstract int GetNumFeaturesExtractedFor(Prediction p, Type modelType);
     }

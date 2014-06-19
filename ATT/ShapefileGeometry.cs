@@ -49,7 +49,7 @@ namespace PTL.ATT
             string tableName = GetTableName(shapefile);
 
             NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + tableName + " (" + Columns.Insert + ") " +
-                                                  "SELECT " + geometryColumn + ",'-infinity' " +
+                                                  "SELECT " + geometryColumn + ",'-infinity'::timestamp " +
                                                   "FROM " + geometryTable, connection);
 
             cmd.ExecuteNonQuery();

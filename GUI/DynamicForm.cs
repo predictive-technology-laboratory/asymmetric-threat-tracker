@@ -31,6 +31,11 @@ namespace PTL.ATT.GUI
         private Dictionary<string, Func<object>> _valueIdReturn;
         private MessageBoxButtons _buttons;
 
+        public IEnumerable<string> ValueIds
+        {
+            get { return _valueIdReturn.Keys; }
+        }
+
         public DynamicForm(string title = "", MessageBoxButtons buttons = MessageBoxButtons.OKCancel)
         {
             InitializeComponent();

@@ -28,7 +28,14 @@ using PTL.ATT.Models;
 namespace PTL.ATT.GUI
 {
     public partial class KernelDensityDcmForm : Form
-    {      
+    {
+        private KernelDensityDCM _resultingModel;
+
+        public KernelDensityDCM ResultingModel
+        {
+            get { return _resultingModel; }
+        }
+
         public KernelDensityDcmForm()
         {
             InitializeComponent();
@@ -50,6 +57,13 @@ namespace PTL.ATT.GUI
                 MessageBox.Show(errors);
                 return;
             }
+
+            _resultingModel = kernelDensityDcmOptions.KernelDensityDCM;
+            if (_resultingModel == null)
+                _resultingModel = new KernelDensityDCM();
+
+            discreteChoiceModelOptions.CommitValues(_resultingModel);
+            kernelDensityDcmOptions.CommitValues(_resultingModel);
 
             DialogResult = System.Windows.Forms.DialogResult.OK;
             Close();

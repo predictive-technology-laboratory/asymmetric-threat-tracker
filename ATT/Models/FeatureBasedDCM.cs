@@ -38,6 +38,7 @@ using LAIR.ResourceAPIs.PostGIS;
 
 namespace PTL.ATT.Models
 {
+    [Serializable]
     public class FeatureBasedDCM : DiscreteChoiceModel, IFeatureBasedDCM
     {
         public enum FeatureType
@@ -58,127 +59,41 @@ namespace PTL.ATT.Models
             MinimumDistanceToGeometry
         }
 
-        public new const string Table = "feature_based_dcm";
-
-        public new class Columns
-        {
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Classifier = "classifier";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string FeatureDistanceThreshold = "feature_distance_threshold";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string Id = "id";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string PredictionSampleSize = "prediction_sample_size";
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string TrainingSampleSize = "training_sample_size";
-
-            public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
-            public static string Select { get { return DiscreteChoiceModel.Columns.Select + "," + Reflector.GetSelectColumns(Table, typeof(Columns)); } }
-            public static string JoinDiscreteChoiceModel { get { return DiscreteChoiceModel.Table + " JOIN " + Table + " ON " + DiscreteChoiceModel.Table + "." + DiscreteChoiceModel.Columns.Id + "=" + Table + "." + Columns.Id; } }
-        }
-
-        [ConnectionPool.CreateTable(typeof(DiscreteChoiceModel))]
-        private static string CreateTable(ConnectionPool connection)
-        {
-            return "CREATE TABLE IF NOT EXISTS " + Table + " (" +
-                   Columns.Classifier + " BYTEA," +
-                   Columns.FeatureDistanceThreshold + " INT," +
-                   Columns.Id + " INT PRIMARY KEY REFERENCES " + DiscreteChoiceModel.Table + " ON DELETE CASCADE," +
-                   Columns.PredictionSampleSize + " INT," +
-                   Columns.TrainingSampleSize + " INT);";
-        }
-
-        public static int Create(NpgsqlConnection connection,
-                                 string name,
-                                 int pointSpacing,
-                                 int featureDistanceThreshold,
-                                 Type type,
-                                 Area trainingArea,
-                                 DateTime trainingStart,
-                                 DateTime trainingEnd,
-                                 int trainingSampleSize,
-                                 int predictionSampleSize,
-                                 IEnumerable<string> incidentTypes,
-                                 PTL.ATT.Classifiers.Classifier classifier,
-                                 IEnumerable<Smoother> smoothers,
-                                 List<Feature> features)
-        {
-            NpgsqlCommand cmd = new NpgsqlCommand(null, connection);
-
-            bool returnConnection = false;
-            if (cmd.Connection == null)
-            {
-                cmd.Connection = DB.Connection.OpenConnection;
-                cmd.CommandText = "BEGIN";
-                cmd.ExecuteNonQuery();
-                returnConnection = true;
-            }
-
-            if (type == null)
-                type = typeof(FeatureBasedDCM);
-
-            int dcmId = DiscreteChoiceModel.Create(cmd.Connection, name, pointSpacing, type, trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
-
-            MemoryStream ms = new MemoryStream();
-
-            if (classifier != null)
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                classifier.ModelId = dcmId;
-                bf.Serialize(ms, classifier);
-            }
-
-            ConnectionPool.AddParameters(cmd, new Parameter("classifier", NpgsqlDbType.Bytea, ms.ToArray()));
-
-            cmd.CommandText = "INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@classifier," +
-                                                                                          featureDistanceThreshold + "," +
-                                                                                          dcmId + "," +
-                                                                                          predictionSampleSize + "," +
-                                                                                          trainingSampleSize + ")";
-            cmd.ExecuteNonQuery();
-
-            if (returnConnection)
-            {
-                cmd.CommandText = "COMMIT";
-                cmd.ExecuteNonQuery();
-                DB.Connection.Return(cmd.Connection);
-
-                FeatureBasedDCM featureBasedDCM = FeatureBasedDCM.Instantiate(dcmId) as FeatureBasedDCM;
-                featureBasedDCM.Features = features;
-            }
-
-            return dcmId;
-        }
-
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
+            // spatial distance features
             foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                 if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                    yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", null);
+                {
+                    Dictionary<string, string> parameterValue = new Dictionary<string, string>();
+                    parameterValue.Add("Lag days", "30");
+                    yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameterValue);
+                }
 
+            // spatial density features
             foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                 if (shapefile.Type == Shapefile.ShapefileType.Feature)
                 {
                     Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Sample size", "500");
+                    parameterValue.Add("Lag days", "30");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameterValue);
                 }
 
+            // incident density features
             foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
             {
                 Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                 parameterValue.Add("Sample size", "500");
+                parameterValue.Add("Lag days", "30");
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentKernelDensityEstimate, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValue);
             }
 
-            FeatureExtractor externalFeatureExtractor;
-            if (Configuration.TryGetFeatureExtractor(typeof(FeatureBasedDCM), out externalFeatureExtractor))
-            {
-                externalFeatureExtractor.Initialize(null, Configuration.GetFeatureExtractorConfigOptions(typeof(FeatureBasedDCM)));
+            // external features
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(null, typeof(FeatureBasedDCM));
+            if (externalFeatureExtractor != null)
                 foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
                     yield return f;
-            }
         }
 
         internal static IEnumerable<Tuple<string, Parameter>> GetPointPredictionValues(FeatureVectorList featureVectors)
@@ -193,150 +108,141 @@ namespace PTL.ATT.Models
             }
         }
 
+        public static FeatureExtractor InitializeExternalFeatureExtractor(IFeatureBasedDCM model, Type modelType)
+        {
+            FeatureExtractor externalFeatureExtractor;
+            if (Configuration.TryGetFeatureExtractor(modelType, out externalFeatureExtractor))
+                externalFeatureExtractor.Initialize(model, modelType, Configuration.GetFeatureExtractorConfigOptions(modelType));
+
+            return externalFeatureExtractor;
+        }
+
         private PTL.ATT.Classifiers.Classifier _classifier;
         private int _featureDistanceThreshold;
-        private FeatureExtractor _externalFeatureExtractor;
         private List<Feature> _features;
         private int _trainingSampleSize;
         private int _predictionSampleSize;
+        private Dictionary<string, NumericFeature> _idNumericFeature;
+        private Dictionary<string, NominalFeature> _idNominalFeature;
 
         public PTL.ATT.Classifiers.Classifier Classifier
         {
             get { return _classifier; }
-        }
-
-        public FeatureExtractor ExternalFeatureExtractor
-        {
-            get { return _externalFeatureExtractor; }
+            set
+            {
+                _classifier = value;
+                _classifier.Model = this;
+                Update();
+            }
         }
 
         public int FeatureDistanceThreshold
         {
             get { return _featureDistanceThreshold; }
-        }
-
-        public ICollection<Feature> Features
-        {
-            get
-            {
-                if (_features == null)
-                {
-                    _features = new List<Feature>();
-
-                    NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-                    try
-                    {
-                        cmd.CommandText = "SELECT " + Feature.Columns.Select + " FROM " + Feature.Table + " WHERE " + Feature.Columns.ModelId + "=" + Id + " ORDER BY " + Feature.Columns.Id;
-                        NpgsqlDataReader reader = cmd.ExecuteReader();
-                        while (reader.Read())
-                            _features.Add(new Feature(reader));
-
-                        reader.Close();
-                    }
-                    finally { DB.Connection.Return(cmd.Connection); }
-                }
-
-                return _features;
-            }
             set
             {
-                _features = null;
+                _featureDistanceThreshold = value;
+                Update();
+            }
+        }
 
-                NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-                try
+        public List<Feature> Features
+        {
+            get { return _features; }
+            set
+            {
+                _features = value;
+
+                _idNumericFeature.Clear();
+                _idNominalFeature.Clear();
+                foreach (Feature f in _features)
                 {
-                    cmd.CommandText = "DELETE FROM " + Feature.Table + " WHERE " + Feature.Columns.ModelId + "=" + Id;
-                    cmd.ExecuteNonQuery();
-
-                    if (value != null)
-                        foreach (Feature feature in value.OrderBy(f => f.Id))
-                            Feature.Create(cmd.Connection, feature.Description, feature.EnumType, feature.EnumValue, this, feature.TrainingResourceId, feature.PredictionResourceId, feature.ParameterValue, false);
-
-                    Feature.VacuumTable();
+                    _idNumericFeature.Add(f.Id, new NumericFeature(f.Id));
+                    _idNominalFeature.Add(f.Id, new NominalFeature(f.Id));
                 }
-                finally { DB.Connection.Return(cmd.Connection); }
+
+                Update();
             }
         }
 
         public int TrainingSampleSize
         {
             get { return _trainingSampleSize; }
+            set
+            {
+                _trainingSampleSize = value;
+                Update();
+            }
         }
 
         public int PredictionSampleSize
         {
             get { return _predictionSampleSize; }
+            set
+            {
+                _predictionSampleSize = value;
+                Update();
+            }
         }
 
-        protected FeatureBasedDCM() { }
-
-        internal FeatureBasedDCM(int id)
+        protected Dictionary<string, NumericFeature> IdNumericFeature
         {
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " " +
-                                                         "FROM " + Columns.JoinDiscreteChoiceModel + " " +
-                                                         "WHERE " + Table + "." + Columns.Id + "=" + id);
-
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            Construct(reader);
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
+            get { return _idNumericFeature; }
         }
 
-        protected override void Construct(NpgsqlDataReader reader)
+        protected Dictionary<string, NominalFeature> IdNominalFeature
         {
-            base.Construct(reader);
-
-            _featureDistanceThreshold = Convert.ToInt32(reader[Table + "_" + Columns.FeatureDistanceThreshold]);
-            _trainingSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.TrainingSampleSize]);
-            _predictionSampleSize = Convert.ToInt32(reader[Table + "_" + Columns.PredictionSampleSize]);
-
-            if (Configuration.TryGetFeatureExtractor(GetType(), out _externalFeatureExtractor))
-                _externalFeatureExtractor.Initialize(this, Configuration.GetFeatureExtractorConfigOptions(GetType()));
-
-            BinaryFormatter bf = new BinaryFormatter();
-            MemoryStream ms = new MemoryStream(reader[Table + "_" + Columns.Classifier] as byte[]);
-            ms.Position = 0;
-            _classifier = bf.Deserialize(ms) as PTL.ATT.Classifiers.Classifier;
+            get { return _idNominalFeature; }
         }
 
-        public void Update(string name, int pointSpacing, int featureDistanceThreshold, Area trainingArea, DateTime trainingStart, DateTime trainingEnd, int trainingSampleSize, int predictionSampleSize, IEnumerable<string> incidentTypes, PTL.ATT.Classifiers.Classifier classifier, IEnumerable<Smoother> smoothers, List<Feature> features)
+        public FeatureBasedDCM()
+            : base()
         {
-            base.Update(name, pointSpacing, trainingArea, trainingStart, trainingEnd, incidentTypes, smoothers);
+            Construct();
+        }
 
+        public FeatureBasedDCM(string name,
+                               int pointSpacing,
+                               IEnumerable<string> incidentTypes,
+                               Area trainingArea,
+                               DateTime trainingStart,
+                               DateTime trainingEnd,
+                               IEnumerable<Smoother> smoothers,
+                               int featureDistanceThreshold,
+                               int trainingSampleSize,
+                               int predictionSampleSize,
+                               PTL.ATT.Classifiers.Classifier classifier,
+                               IEnumerable<Feature> features)
+            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
+        {
             _featureDistanceThreshold = featureDistanceThreshold;
-            _classifier = classifier;
             _trainingSampleSize = trainingSampleSize;
             _predictionSampleSize = predictionSampleSize;
+            _classifier = classifier;
+            _classifier.Model = this;
 
-            Features = features;
+            Construct(); // initializes feature lookups
 
-            MemoryStream ms = new MemoryStream();
+            Features = new List<Feature>(features); // saves features and fills feature lookups
 
-            if (_classifier != null)
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                classifier.ModelId = Id;
-                bf.Serialize(ms, _classifier);
-            }
+            Update();
+        }
 
-            DB.Connection.ExecuteNonQuery("UPDATE " + Table + " SET " +
-                                          Columns.Classifier + "=@classifier," +
-                                          Columns.FeatureDistanceThreshold + "=" + _featureDistanceThreshold + "," +
-                                          Columns.TrainingSampleSize + "=" + _trainingSampleSize + "," +
-                                          Columns.PredictionSampleSize + "=" + _predictionSampleSize + " " +
-                                          "WHERE " + Columns.Id + "=" + Id, new Parameter("classifier", NpgsqlDbType.Bytea, ms.ToArray()));
+        private void Construct()
+        {
+            _idNumericFeature = new Dictionary<string, NumericFeature>();
+            _idNominalFeature = new Dictionary<string, NominalFeature>();
         }
 
         protected virtual void InsertPointsIntoPrediction(NpgsqlConnection connection, Prediction prediction, bool training, bool vacuum)
         {
-            Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
+            Area area = training ? prediction.Model.TrainingArea : prediction.Model.PredictionArea;
 
             List<Tuple<PostGIS.Point, string, DateTime>> incidentPoints = new List<Tuple<PostGIS.Point, string, DateTime>>();
             Set<Tuple<double, double>> incidentLocations = new Set<Tuple<double, double>>(false);
             foreach (Incident i in Incident.Get(prediction.Model.TrainingStart, prediction.Model.TrainingEnd, area, prediction.Model.IncidentTypes.ToArray()))
             {
-                incidentPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue));
+                incidentPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue)); // training points are labeled and have a time associated with them
                 incidentLocations.Add(new Tuple<double, double>(i.Location.X, i.Location.Y));
             }
 
@@ -348,13 +254,13 @@ namespace PTL.ATT.Models
             double areaMaxX = area.BoundingBox.MaxX;
             double areaMinY = area.BoundingBox.MinY;
             double areaMaxY = area.BoundingBox.MaxY;
-            for (double x = areaMinX + prediction.Model.PointSpacing / 2d; x <= areaMaxX; x += prediction.Model.PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
+            for (double x = areaMinX + prediction.Model.PointSpacing / 2d; x <= areaMaxX; x += prediction.Model.PointSpacing) // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + prediction.Model.PointSpacing / 2d; y <= areaMaxY; y += prediction.Model.PointSpacing)
                 {
                     Tuple<double, double> location = new Tuple<double, double>(x, y);
                     PostGIS.Point point = new PostGIS.Point(x, y, area.SRID);
                     if (!incidentLocations.Contains(location))
-                        nullPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue));
+                        nullPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue)); // null points are never labeled and never have times
                 }
 
             List<int> nullPointIds = Point.Insert(connection, nullPoints, prediction.Id, area, true, vacuum);
@@ -382,22 +288,40 @@ namespace PTL.ATT.Models
             Point.Insert(connection, incidentPoints, prediction.Id, area, false, vacuum);
         }
 
-        protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training)
+        protected virtual int GetNumFeaturesExtractedFor(Prediction prediction)
         {
-            int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (_externalFeatureExtractor == null ? 0 : _externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            return Features.Count(f => f.EnumType == typeof(FeatureType)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
+        }
 
-            Dictionary<int, NumericFeature> idFeature = new Dictionary<int, NumericFeature>();
-            foreach (Feature f in Features)
-                idFeature.Add(f.Id, new NumericFeature(f.Id.ToString()));
-
-            FeatureVectorList featureVectors = new FeatureVectorList(prediction.Points.Count);
-            Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>(prediction.Points.Count);
-            foreach (Point point in prediction.Points)
+        /// <summary>
+        /// Extracts feature vectors from points in a time range.
+        /// </summary>
+        /// <param name="prediction">Prediction to extract vectors for.</param>
+        /// <param name="training">Whether or not this is the training phase.</param>
+        /// <param name="start">Start time (points without a time are always included).</param>
+        /// <param name="end">End time (points without a time are always included).</param>
+        /// <returns></returns>
+        protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, DateTime start, DateTime end)
+        {
+            // this can be called concurrently, so lock on prediction to get the point objects and their vectors
+            FeatureVectorList featureVectors;
+            Dictionary<int, FeatureVector> pointIdFeatureVector;
+            int numFeatures;
+            lock (prediction)
             {
-                point.TrueClass = point.IncidentType;
-                FeatureVector vector = new FeatureVector(point, numFeatures);
-                featureVectors.Add(vector);
-                pointIdFeatureVector.Add(point.Id, vector);
+                prediction.ReleasePoints(); // so that we get new point objects each time -- their times might be modified by a sub-class (e.g., TimeSliceDCM).
+                featureVectors = new FeatureVectorList(prediction.Points.Count);
+                pointIdFeatureVector = new Dictionary<int, FeatureVector>(prediction.Points.Count);
+                numFeatures = GetNumFeaturesExtractedFor(prediction);
+                foreach (Point point in prediction.Points)
+                    if (point.Time == DateTime.MinValue || (point.Time >= start && point.Time <= end))
+                    {
+                        point.TrueClass = point.IncidentType;
+                        FeatureVector vector = new FeatureVector(point, numFeatures);
+                        featureVectors.Add(vector);
+                        pointIdFeatureVector.Add(point.Id, vector);
+                    }
             }
 
             Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
@@ -408,7 +332,7 @@ namespace PTL.ATT.Models
             if (spatialDistanceFeatures.Count > 0)
             {
                 Console.Out.WriteLine("Extracting spatial distance feature values");
-                float featureValueWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2));
+                float distanceWhenBeyondThreshold = (float)Math.Sqrt(2.0 * Math.Pow(FeatureDistanceThreshold, 2)); // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box.
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
@@ -422,31 +346,53 @@ namespace PTL.ATT.Models
                                 Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDistanceFeature.TrainingResourceId : spatialDistanceFeature.PredictionResourceId));
                                 string shapefileGeometryTableName = ShapefileGeometry.GetTableName(shapefile);
                                 NpgsqlCommand cmd = new NpgsqlCommand("SELECT points." + Point.Columns.Id + " as points_" + Point.Columns.Id + "," +
-                                                                             "CASE WHEN COUNT(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + featureValueWhenBeyondThreshold + " " + // with a bounding box of FeatureDistanceThreshold around each point, the maximum distance between a point and some feature shapefile geometry would be sqrt(2*FeatureDistanceThreshold^2). That is, the feature shapefile geometry would be positioned in one of the corners of the bounding box. 
+                                                                             "CASE WHEN COUNT(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + distanceWhenBeyondThreshold + " " +
                                                                              "ELSE min(st_distance(st_closestpoint(" + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ",points." + Point.Columns.Location + "),points." + Point.Columns.Location + ")) " +
                                                                              "END as feature_value " +
 
                                                                       "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " +
                                                                             "FROM " + pointTableName + " " +
-                                                                            "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + ") points " +
+                                                                            "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
+                                                                                       "(" +
+                                                                                          pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                            "(" +
+                                                                                                pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
+                                                                                                pointTableName + "." + Point.Columns.Time + "<=@point_end" +
+                                                                                            ")" +
+                                                                                       ")" +
+                                                                            ") points " +
 
                                                                             "LEFT JOIN " + shapefileGeometryTableName + " " +
 
-                                                                            "ON points.bounding_box && " + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + " " +
+                                                                            "ON points.bounding_box && " + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + " AND " +
+                                                                                "(" +
+                                                                                    shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                    "(" +
+                                                                                        shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " +
+                                                                                        shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + "<=@geometry_end" +
+                                                                                    ")" +
+                                                                                ")" +
 
                                                                       "GROUP BY points." + Point.Columns.Id, threadConnection);
 
+                                TimeSpan spatialDistanceFeatureLag = new TimeSpan(spatialDistanceFeature.GetIntegerParameterValue("Lag days"), 0, 0, 0);
+                                ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
+                                                                  new Parameter("point_end", NpgsqlDbType.Timestamp, end),
+                                                                  new Parameter("geometry_start", NpgsqlDbType.Timestamp, start - spatialDistanceFeatureLag),
+                                                                  new Parameter("geometry_end", NpgsqlDbType.Timestamp, start - new TimeSpan(1)));
+
                                 NpgsqlDataReader reader = cmd.ExecuteReader();
+                                NumericFeature distanceFeature = _idNumericFeature[spatialDistanceFeature.Id];
                                 while (reader.Read())
                                 {
                                     FeatureVector vector = pointIdFeatureVector[Convert.ToInt32(reader["points_" + Point.Columns.Id])];
                                     double value = Convert.ToDouble(reader["feature_value"]);
 
                                     // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again and reset appropriately
-                                    if (value > featureValueWhenBeyondThreshold)
-                                        value = featureValueWhenBeyondThreshold;
+                                    if (value > distanceWhenBeyondThreshold)
+                                        value = distanceWhenBeyondThreshold;
 
-                                    vector.Add(idFeature[spatialDistanceFeature.Id], value, false);
+                                    vector.Add(distanceFeature, value, false); // don't update range here because the features are being accessed concurrently
                                 }
                                 reader.Close();
                             }
@@ -461,6 +407,7 @@ namespace PTL.ATT.Models
                 foreach (Thread t in threads)
                     t.Join();
 
+                // update feature ranges since they weren't updated above due to concurrent access
                 foreach (FeatureVector vector in featureVectors)
                     foreach (LAIR.MachineLearning.Feature f in vector)
                         f.UpdateRange(vector[f]);
@@ -472,7 +419,7 @@ namespace PTL.ATT.Models
             if (spatialDensityFeatures.Count > 0)
             {
                 List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
-                Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(spatialDensityFeatures.Count);
+                Dictionary<string, List<float>> featureIdDensityEstimates = new Dictionary<string, List<float>>(spatialDensityFeatures.Count);
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
@@ -481,13 +428,17 @@ namespace PTL.ATT.Models
                             int skip = (int)o;
                             NpgsqlConnection connection = DB.Connection.OpenConnection;
                             foreach (Feature spatialDensityFeature in spatialDensityFeatures)
-                                if (skip-- == 0)
+                                if (skip-- <= 0)
                                 {
                                     Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                     Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
 
-                                    List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, null, -1).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
-                                    int sampleSize = int.Parse(spatialDensityFeature.ParameterValue["Sample size"]);
+                                    string geometryRecordWhereClause = "WHERE " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR (" + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " + ShapefileGeometry.Columns.Time + "<=@geometry_end)";
+                                    TimeSpan spatialDensityFeatureLag = new TimeSpan(spatialDensityFeature.GetIntegerParameterValue("Lag days"), 0, 0, 0);
+                                    Parameter geometryStart = new Parameter("geometry_start", NpgsqlDbType.Timestamp, start - spatialDensityFeatureLag);
+                                    Parameter geometryEnd = new Parameter("geometry_end", NpgsqlDbType.Timestamp, start - new TimeSpan(1));
+                                    List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, geometryRecordWhereClause, -1, geometryStart.NpgsqlParameter, geometryEnd.NpgsqlParameter).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
+                                    int sampleSize = spatialDensityFeature.GetIntegerParameterValue("Sample size");
                                     List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, true);
                                     if (densityEstimates.Count == densityEvalPoints.Count)
                                         lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
@@ -505,21 +456,22 @@ namespace PTL.ATT.Models
                 foreach (Thread t in threads)
                     t.Join();
 
-                foreach (int featureId in featureIdDensityEstimates.Keys)
+                foreach (string featureId in featureIdDensityEstimates.Keys)
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
+                    NumericFeature densityFeature = _idNumericFeature[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(idFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(densityFeature, densityEstimates[i]);
                 }
             }
             #endregion
 
-            #region kde
+            #region incident density features
             List<Feature> kdeFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.IncidentKernelDensityEstimate)).ToList();
             if (kdeFeatures.Count > 0)
             {
                 List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
-                Dictionary<int, List<float>> featureIdDensityEstimates = new Dictionary<int, List<float>>(kdeFeatures.Count);
+                Dictionary<string, List<float>> featureIdDensityEstimates = new Dictionary<string, List<float>>(kdeFeatures.Count);
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
@@ -533,8 +485,9 @@ namespace PTL.ATT.Models
 
                                     Console.Out.WriteLine("Computing spatial density of \"" + incident + "\"");
 
-                                    IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(TrainingStart, TrainingEnd, area, incident).Select(inc => inc.Location);
-                                    int sampleSize = int.Parse(kdeFeature.ParameterValue["Sample size"]);
+                                    TimeSpan kdeFeatureLag = new TimeSpan(kdeFeature.GetIntegerParameterValue("Lag days"), 0, 0, 0);
+                                    IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(start - kdeFeatureLag, start - new TimeSpan(1), area, incident).Select(inc => inc.Location);
+                                    int sampleSize = kdeFeature.GetIntegerParameterValue("Sample size");
                                     List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, true);
                                     if (densityEstimates.Count == densityEvalPoints.Count)
                                         lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
@@ -550,19 +503,21 @@ namespace PTL.ATT.Models
                 foreach (Thread t in threads)
                     t.Join();
 
-                foreach (int featureId in featureIdDensityEstimates.Keys)
+                foreach (string featureId in featureIdDensityEstimates.Keys)
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
+                    NumericFeature densityFeature = _idNumericFeature[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(idFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(densityFeature, densityEstimates[i]);
                 }
             }
             #endregion
 
-            if (_externalFeatureExtractor != null)
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            if (externalFeatureExtractor != null)
             {
                 Console.Out.WriteLine("Running external feature extractor for " + typeof(FeatureBasedDCM));
-                foreach (FeatureVectorList externalFeatureVectors in _externalFeatureExtractor.ExtractFeatures(typeof(FeatureBasedDCM), prediction, featureVectors, training))
+                foreach (FeatureVectorList externalFeatureVectors in externalFeatureExtractor.ExtractFeatures(prediction, featureVectors, training, start, end))
                     yield return externalFeatureVectors;
             }
             else
@@ -574,7 +529,7 @@ namespace PTL.ATT.Models
             _classifier.Initialize();
 
             Console.Out.WriteLine("Selecting features");
-            Set<int> selectedFeatureIds = new Set<int>(_classifier.SelectFeatures(prediction).ToArray());
+            Set<string> selectedFeatureIds = new Set<string>(_classifier.SelectFeatures(prediction).ToArray());
             Features = Features.Where(f => selectedFeatureIds.Contains(f.Id)).ToList();
 
             if (runPredictionAfterSelect)
@@ -582,10 +537,9 @@ namespace PTL.ATT.Models
                 Console.Out.WriteLine("Re-running prediction");
                 PointPrediction.DeleteTable(prediction.Id);
                 Point.DeleteTable(prediction.Id);
-                prediction.ReleaseLazyLoadedData();
+                prediction.ReleaseAllLazyLoadedData();
                 Run(prediction, true, false, true);
                 prediction.MostRecentlyEvaluatedIncidentTime = DateTime.MinValue;
-                prediction.UpdateEvaluation();
             }
         }
 
@@ -625,7 +579,7 @@ namespace PTL.ATT.Models
                     {
                         Console.Out.WriteLine("Running feature selection");
 
-                        foreach (FeatureVectorList vectors in ExtractFeatureVectors(prediction, true))
+                        foreach (FeatureVectorList vectors in ExtractFeatureVectors(prediction, true, TrainingStart, TrainingEnd))
                             _classifier.Consume(vectors);
 
                         _classifier.Train();
@@ -634,7 +588,7 @@ namespace PTL.ATT.Models
                     }
                     #endregion
 
-                    foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, true))
+                    foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, true, TrainingStart, TrainingEnd))
                         _classifier.Consume(featureVectors);
 
                     Console.Out.WriteLine("Training model");
@@ -642,7 +596,7 @@ namespace PTL.ATT.Models
                     _classifier.Train();
 
                     Point.DeleteTable(prediction.Id);
-                    prediction.ReleaseLazyLoadedData();
+                    prediction.ReleaseAllLazyLoadedData();
                 }
                 #endregion
 
@@ -659,15 +613,15 @@ namespace PTL.ATT.Models
                     using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Compress))
                     using (StreamWriter pointPredictionLog = new StreamWriter(pointPredictionLogGzip))
                     {
-                        foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, false))
+                        foreach (FeatureVectorList featureVectors in ExtractFeatureVectors(prediction, false, prediction.PredictionStartTime, prediction.PredictionEndTime))
                         {
                             Console.Out.WriteLine("Making predictions");
 
                             _classifier.Classify(featureVectors);
 
+                            #region log feature values
                             foreach (FeatureVector vector in featureVectors.OrderBy(v => (v.DerivedFrom as Point).Id))  // sort by point ID so prediction log is sorted
                             {
-                                #region log feature values
                                 Point p = vector.DerivedFrom as Point;
                                 if (p == null)
                                     throw new NullReferenceException("Expected Point in vector.DerivedFrom");
@@ -692,11 +646,12 @@ namespace PTL.ATT.Models
                                 }
 
                                 pointPredictionLog.WriteLine("</fvs></p>");
-                                #endregion
                             }
+                            #endregion
 
                             PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction.Id, true);
                         }
+
                         pointPredictionLog.Close();
                     }
 
@@ -724,9 +679,9 @@ namespace PTL.ATT.Models
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
         /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
         /// <returns></returns>
-        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null)
+        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null)
         {
-            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> log = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>();
+            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> log = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>();
 
             using (FileStream pointPredictionLogFile = new FileStream(pointPredictionLogPath, FileMode.Open, FileAccess.Read))
             using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Decompress))
@@ -752,16 +707,16 @@ namespace PTL.ATT.Models
                             labelConfidences.Add(new Tuple<string, double>(label, confidence));
                         }
 
-                        List<Tuple<int, double>> featureValues = new List<Tuple<int, double>>();
+                        List<Tuple<string, double>> featureValues = new List<Tuple<string, double>>();
                         XmlParser featureValuesP = new XmlParser(pointP.OuterXML("fvs"));
                         string featureValueXML;
                         while ((featureValueXML = featureValuesP.OuterXML("fv")) != null)
                         {
                             XmlParser featureValueP = new XmlParser(featureValueXML);
-                            featureValues.Add(new Tuple<int, double>(int.Parse(featureValueP.AttributeValue("fv", "id")), double.Parse(featureValueP.ElementText("fv"))));
+                            featureValues.Add(new Tuple<string, double>(featureValueP.AttributeValue("fv", "id"), double.Parse(featureValueP.ElementText("fv"))));
                         }
 
-                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(labelConfidences, featureValues));
+                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(labelConfidences, featureValues));
 
                         if (pointIds != null)
                         {
@@ -784,7 +739,7 @@ namespace PTL.ATT.Models
         /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
         /// list contains the label confidence scores and the second list contains the feature ID values.</param>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
-        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
+        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
         {
             using (StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(pointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress)))
             {
@@ -795,7 +750,7 @@ namespace PTL.ATT.Models
                         pointPredictionLog.Write("<l c=\"" + labelConfidence.Item2 + "\"><![CDATA[" + labelConfidence.Item1 + "]]></l>");
 
                     pointPredictionLog.Write("</ls><fvs>");
-                    foreach (Tuple<int, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
+                    foreach (Tuple<string, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
                         pointPredictionLog.Write("<fv id=\"" + featureIdValue.Item1 + "\">" + featureIdValue.Item2 + "</fv>");
 
                     pointPredictionLog.WriteLine("</fvs></p>");
@@ -807,42 +762,17 @@ namespace PTL.ATT.Models
 
         public override string GetDetails(Prediction prediction)
         {
-            string details = _classifier.GetDetails(prediction, _externalFeatureExtractor == null ? null : _externalFeatureExtractor.GetDetails(prediction));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            string details = _classifier.GetDetails(prediction, externalFeatureExtractor == null ? null : externalFeatureExtractor.GetDetails(prediction));
 
             prediction.ModelDetails = details;
 
             return prediction.ModelDetails;
         }
 
-        public override int Copy()
+        public override DiscreteChoiceModel Copy()
         {
-            return Create(null, Name, PointSpacing, _featureDistanceThreshold, GetType(), TrainingArea, TrainingStart, TrainingEnd, _trainingSampleSize, _predictionSampleSize, IncidentTypes, Classifier.Copy(), Smoothers, Features.ToList());
-        }
-
-        public override void UpdateFeatureIdsFrom(DiscreteChoiceModel original)
-        {
-            FeatureBasedDCM originalFeatureBasedDCM = original as FeatureBasedDCM;
-            Dictionary<int, int> oldNewFeatureId = new Dictionary<int, int>();
-            foreach (Tuple<int, int> oldNew in originalFeatureBasedDCM.Features.Zip(Features, new Func<Feature, Feature, Tuple<int, int>>((f1, f2) => new Tuple<int, int>(f1.Id, f2.Id))))
-                oldNewFeatureId.Add(oldNew.Item1, oldNew.Item2);
-
-            foreach (Prediction prediction in Prediction.GetForModel(this))
-            {
-                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> originalLog = ReadPointPredictionLog(prediction.PointPredictionLogPath);
-                Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>> updatedLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>>(originalLog.Count);
-                foreach (string originalPointId in originalLog.Keys)
-                {
-                    List<Tuple<int, double>> updatedFeatureValues = new List<Tuple<int, double>>(originalLog[originalPointId].Item2.Count);
-                    foreach (Tuple<int, double> originalFeatureValue in originalLog[originalPointId].Item2)
-                        updatedFeatureValues.Add(new Tuple<int, double>(oldNewFeatureId[originalFeatureValue.Item1], originalFeatureValue.Item2));
-
-                    updatedLog.Add(originalPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<int, double>>>(originalLog[originalPointId].Item1, updatedFeatureValues));
-                }
-
-                WritePointPredictionLog(updatedLog, prediction.PointPredictionLogPath);
-            }
-
-            _classifier.ChangeFeatureIds(oldNewFeatureId);
+            return new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
         }
 
         public override string ToString()
@@ -857,11 +787,11 @@ namespace PTL.ATT.Models
                 indent += "\t";
 
             int featuresToDisplay = 10; // can have hundreds of features, which makes the tooltip excrutiatingly slow
-
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
             return base.GetDetails(indentLevel) + Environment.NewLine +
                    indent + "Classifier:  " + _classifier.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Features:  " + Features.Where((f, i) => i < featuresToDisplay).Select(f => f.ToString()).Concatenate(", ") + (Features.Count > featuresToDisplay ? " ... (" + (Features.Count - featuresToDisplay) + " not shown)" : "") + Environment.NewLine +
-                   indent + "External feature extractor:  " + (_externalFeatureExtractor == null ? "None" : _externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
+                   indent + "External feature extractor (" + typeof(FeatureBasedDCM) + "):  " + (externalFeatureExtractor == null ? "None" : externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
                    indent + "Feature distance threshold:  " + _featureDistanceThreshold + Environment.NewLine +
                    indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +
                    indent + "Prediction sample size:  " + _predictionSampleSize;

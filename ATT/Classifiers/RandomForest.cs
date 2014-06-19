@@ -24,6 +24,7 @@ using System.IO;
 using LAIR.ResourceAPIs.R;
 using LAIR.MachineLearning.ClassifierWrappers;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
+using PTL.ATT.Models;
 
 namespace PTL.ATT.Classifiers
 {
@@ -48,19 +49,19 @@ namespace PTL.ATT.Classifiers
 
         private string ColumnMaxMinPath { get { return Path.Combine(Model.ModelDirectory, "MaxMin.csv"); } }
 
-        private string RandomForestModelPath { get { return Path.Combine(Model.ModelDirectory, @"rf.RData"); } }
+        private string RandomForestModelPath { get { return Path.Combine(Model.ModelDirectory, "rf.RData"); } }
 
         private string RawPredictionInstancesPath { get { return Path.Combine(Model.ModelDirectory, "PredRaw.csv"); } }
 
-        private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, @"Predictions.csv"); } }
+        private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, "Predictions.csv"); } }
 
         public RandomForest()
-            : this(false, -1, 500)
+            : this(false, null, 500)
         {
         }
 
-        public RandomForest(bool runFeatureSelection, int modelId, int numTrees)
-            : base(runFeatureSelection, modelId)
+        public RandomForest(bool runFeatureSelection, FeatureBasedDCM model, int numTrees)
+            : base(runFeatureSelection, model)
         {
             _numTrees = numTrees;
         }
@@ -91,7 +92,7 @@ namespace PTL.ATT.Classifiers
                         foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                         {
                             object value;
-                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                            if (vector.TryGetValue(f.Id, out value))
                                 trainingFile.Write("," + value);
                             else
                                 trainingFile.Write(",0");
@@ -130,7 +131,7 @@ save(rf, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
             File.Delete(RawTrainPath);
         }
 
-        public override IEnumerable<int> SelectFeatures(Prediction prediction)
+        public override IEnumerable<string> SelectFeatures(Prediction prediction)
         {
             throw new NotImplementedException("Feature selection has not been implemented for RandomForest classifiers.");
         }
@@ -152,7 +153,7 @@ save(rf, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
                         foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                         {
                             object value;
-                            if (vector.TryGetValue(f.Id.ToString(), out value))
+                            if (vector.TryGetValue(f.Id, out value))
                                 predictionsFile.Write("," + value);
                             else
                                 predictionsFile.Write(",0");
@@ -217,17 +218,17 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
             }
         }
 
-        internal override string GetDetails(Prediction prediction, Dictionary<int, string> attFeatureIdInformation)
+        internal override string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation)
         {
             return "No details available for RandomForest predictions.";
         }
 
         public override Classifier Copy()
         {
-            return new RandomForest(RunFeatureSelection, ModelId, _numTrees);
+            return new RandomForest(RunFeatureSelection, Model, _numTrees);
         }
 
-        internal override void ChangeFeatureIds(Dictionary<int, int> oldNewFeatureId)
+        internal override void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId)
         {
         }
 
