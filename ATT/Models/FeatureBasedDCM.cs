@@ -66,7 +66,7 @@ namespace PTL.ATT.Models
                 if (shapefile.Type == Shapefile.ShapefileType.Feature)
                 {
                     Dictionary<string, string> parameterValue = new Dictionary<string, string>();
-                    parameterValue.Add("Lag days", "0");
+                    parameterValue.Add("Lag days", "30");
                     yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameterValue);
                 }
 
@@ -76,7 +76,7 @@ namespace PTL.ATT.Models
                 {
                     Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Sample size", "500");
-                    parameterValue.Add("Lag days", "0");
+                    parameterValue.Add("Lag days", "30");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameterValue);
                 }
 
@@ -85,7 +85,7 @@ namespace PTL.ATT.Models
             {
                 Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                 parameterValue.Add("Sample size", "500");
-                parameterValue.Add("Lag days", "0");
+                parameterValue.Add("Lag days", "30");
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentKernelDensityEstimate, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValue);
             }
 
