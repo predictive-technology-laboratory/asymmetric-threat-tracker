@@ -36,7 +36,6 @@ namespace PTL.ATT.GUI
         {
             get { return _resultingModel; }
         }
-
         
         public FeatureBasedDcmForm()
         {

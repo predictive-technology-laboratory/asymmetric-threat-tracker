@@ -311,6 +311,11 @@
             Gets or sets the value
             </summary>
         </member>
+        <member name="P:LAIR.ResourceAPIs.PostgreSQL.Parameter.NpgsqlParameter">
+            <summary>
+            Gets the Npgsql version of this parameter
+            </summary>
+        </member>
         <member name="T:LAIR.ResourceAPIs.PostgreSQL.Util">
             <summary>
             Utility methods

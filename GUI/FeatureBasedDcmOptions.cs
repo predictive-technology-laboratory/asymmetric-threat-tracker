@@ -35,7 +35,6 @@ namespace PTL.ATT.GUI
         private bool _initializing;
         private Area _trainingArea;
         private Func<Area, List<Feature>> _getFeatures;
-        private Feature _parameterizeFeature;
 
         public int TrainingSampleSize
         {
@@ -214,25 +213,47 @@ namespace PTL.ATT.GUI
                 int index = features.IndexFromPoint(e.Location);
                 if (index != -1)
                 {
-                    _parameterizeFeature = features.Items[index] as Feature;
-                    parameterizeFeatureToolStripMenuItem.Text = "Parameterize \"" + _parameterizeFeature.Description + "\"...";
-                    parameterizeFeatureToolStripMenuItem.Enabled = _parameterizeFeature.ParameterValue.Count > 0;
+                    Feature feature = features.Items[index] as Feature;
+                    parameterizeFeatureToolStripMenuItem.Text = "Parameterize \"" + feature.Description + "\"...";
+                    parameterizeFeatureToolStripMenuItem.Visible = feature.ParameterValue.Count > 0;
+                    parameterizeFeatureToolStripMenuItem.Tag = feature;
                 }
+
+                parameterizeSelectedFeaturesToolStripMenuItem.Text = "Parameterize all " + Features.Count + " selected features...";
+                parameterizeSelectedFeaturesToolStripMenuItem.Visible = Features.Count > 1;
             }
         }
 
-        private void parameterizeFeatureToolStripMenuItem_Click(object sender, EventArgs e)
+        private void parameterizeFeaturesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (_parameterizeFeature != null && _parameterizeFeature.ParameterValue.Count > 0)
-            {
-                DynamicForm f = new DynamicForm("Parameterize \"" + _parameterizeFeature.Description + "\"...", MessageBoxButtons.OKCancel);
-                foreach (string parameter in _parameterizeFeature.ParameterValue.Keys.OrderBy(k => k))
-                    f.AddTextBox(parameter + ":", _parameterizeFeature.ParameterValue[parameter], 20, parameter);
+            Feature feature = parameterizeFeatureToolStripMenuItem.Tag as Feature;
+            DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", MessageBoxButtons.OKCancel);
+            foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
+                f.AddTextBox(parameter + ":", feature.ParameterValue[parameter], 20, parameter);
 
-                if (f.ShowDialog() == DialogResult.OK)
-                    foreach (string parameter in _parameterizeFeature.ParameterValue.Keys.OrderBy(k => k))
-                        _parameterizeFeature.ParameterValue[parameter] = f.GetValue<string>(parameter);
+            if (f.ShowDialog() == DialogResult.OK)
+                foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
+                    feature.ParameterValue[parameter] = f.GetValue<string>(parameter);
+        }
+
+        private void parameterizeSelectedFeaturesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DynamicForm f = new DynamicForm("Parameterize " + Features.Count + " features...", MessageBoxButtons.OKCancel);
+            foreach (string parameter in Features.SelectMany(feature => feature.ParameterValue.Keys).Distinct().OrderBy(p => p))
+            {
+                string currentValue = "";
+                List<string> distinctValues = Features.Select(feature => feature.ParameterValue.ContainsKey(parameter) ? feature.ParameterValue[parameter] : null).Where(s => s != null).Distinct().ToList();
+                if (distinctValues.Count == 1)
+                    currentValue = distinctValues[0];
+
+                f.AddTextBox(parameter + ":", currentValue, 20, parameter);
             }
+
+            if (f.ShowDialog() == DialogResult.OK)
+                foreach (Feature feature in Features)
+                    foreach (string parameter in f.ValueIds)
+                        if (feature.ParameterValue.ContainsKey(parameter))
+                            feature.ParameterValue[parameter] = f.GetValue<string>(parameter);
         }
 
         internal void CommitValues(FeatureBasedDCM model)

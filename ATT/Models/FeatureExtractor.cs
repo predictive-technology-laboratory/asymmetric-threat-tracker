@@ -28,7 +28,7 @@ namespace PTL.ATT.Models
 
         public abstract void Initialize(IFeatureBasedDCM model, Type modelType, Dictionary<string, string> configurationOptions);
 
-        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Prediction prediction, FeatureVectorList vectors, bool training);
+        public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Prediction prediction, FeatureVectorList vectors, bool training, DateTime start, DateTime end);
 
         public abstract string GetDetails(int indentLevel);
 

@@ -100,6 +100,11 @@ namespace PTL.ATT.Models
                 _parameterValue = new Dictionary<string, string>();
         }
 
+        public int GetIntegerParameterValue(string parameterName)
+        {
+            return int.Parse(_parameterValue[parameterName]);
+        }
+
         public override string ToString()
         {
             return _description + (_predictionResourceId == _trainingResourceId ? "" : " --> " + _predictionResourceId);

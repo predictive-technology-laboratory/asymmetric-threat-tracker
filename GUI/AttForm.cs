@@ -1298,7 +1298,7 @@ namespace PTL.ATT.GUI
                                 {
                                     Area area = o as Area;
                                     Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                    constraints.Add(AreaGeometry.Columns.AreaId, "'" + area.Id + "'");
+                                    constraints.Add(AreaGeometry.Columns.AreaId, area.Id.ToString());
                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
                                     lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, AreaGeometry.GetTableName(p.PredictionArea.SRID), AreaGeometry.Columns.Geometry, AreaGeometry.Columns.Id, constraints, pointDistanceThreshold), Color.Black, true, 0)); }
                                     DB.Connection.Return(connection);
@@ -1327,7 +1327,7 @@ namespace PTL.ATT.GUI
                                                 {
                                                     Shapefile shapefile = new Shapefile(int.Parse(feature.PredictionResourceId));
                                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                    List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, null, pointDistanceThreshold);
+                                                    List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
                                                     DB.Connection.Return(connection);
                                                     lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }
