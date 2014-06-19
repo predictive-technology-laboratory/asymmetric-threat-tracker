@@ -340,7 +340,7 @@ namespace PTL.ATT
 
         public void Delete()
         {
-            ReleaseLazyLoadedData();
+            ReleaseAllLazyLoadedData();
 
             try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete prediction from table:  " + ex.Message); }
@@ -440,15 +440,20 @@ namespace PTL.ATT
         public int CompareTo(Prediction other)
         {
             return _id.CompareTo(other.Id);
-        }        
+        }     
 
-        /// <summary>
-        /// Releases all data that was lazy-loaded into memory (e.g., points). Often this data can be large and needs to be cleaned up.
-        /// </summary>
-        public void ReleaseLazyLoadedData()
+        public void ReleasePoints()
         {
             _points = null;
             _pointPredictions = null;
+        }
+
+        /// <summary>
+        /// Releases all data that was lazy-loaded into memory (e.g., points). Often this data can be large and needs to be cleaned up periodically.
+        /// </summary>
+        public void ReleaseAllLazyLoadedData()
+        {
+            ReleasePoints();
         }
     }
 }

@@ -158,29 +158,27 @@ namespace PTL.ATT.Models
             Update();
         }
 
+        protected override int GetNumFeaturesExtractedFor(Prediction prediction)
+        {
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(TimeSliceDCM));
+            return base.GetNumFeaturesExtractedFor(prediction) + Features.Where(f => f.EnumType == typeof(TimeSliceFeature)).Count() + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
+        }
+
         protected override IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, DateTime start, DateTime end)
         {
             FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(TimeSliceDCM));
 
-            #region create feature lookups
             Dictionary<TimeSliceFeature, string> featureId = new Dictionary<TimeSliceFeature, string>();
-            Dictionary<TimeSliceFeature, NumericFeature> featureNumeric = new Dictionary<TimeSliceFeature, NumericFeature>();
-            Dictionary<TimeSliceFeature, NominalFeature> featureNominal = new Dictionary<TimeSliceFeature, NominalFeature>();
             foreach (Feature f in Features.Where(f => f.EnumType == typeof(TimeSliceFeature)))
             {
                 TimeSliceFeature feature = (TimeSliceFeature)f.EnumValue;
-
                 featureId.Add(feature, f.Id);
-                featureNumeric.Add(feature, new NumericFeature(f.Id));
-                featureNominal.Add(feature, new NominalFeature(f.Id));
             }
-            #endregion
 
             long firstSlice = (long)((training ? prediction.Model.TrainingStart.Ticks : prediction.PredictionStartTime.Ticks) / _timeSliceTicks);
             long lastSlice = (long)((training ? prediction.Model.TrainingEnd.Ticks : prediction.PredictionEndTime.Ticks) / _timeSliceTicks);
             int numSlices = (int)(lastSlice - firstSlice + 1);
             long ticksPerHour = new TimeSpan(1, 0, 0).Ticks;
-            int numTimeSliceFeatures = featureId.Count + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
             int slicesPerCore = (numSlices / Configuration.ProcessorCount) + 1;
             List<TimeSliceFeature> dayIntervalFeatures = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
 
@@ -195,12 +193,14 @@ namespace PTL.ATT.Models
                         FeatureVectorList featureVectors = new FeatureVectorList(slicesPerCore * prediction.Points.Count);
                         for (long slice = startSliceEndSlice.Item1; slice <= startSliceEndSlice.Item2; ++slice)
                         {
+                            Console.Out.WriteLine("Processing slice " + (slice - startSliceEndSlice.Item1 + 1) + " of " + (startSliceEndSlice.Item2 - startSliceEndSlice.Item1 + 1));
+
                             DateTime sliceStart = new DateTime(slice * _timeSliceTicks);
                             DateTime sliceEnd = sliceStart.Add(new TimeSpan(_timeSliceTicks - 1));
                             DateTime sliceMid = new DateTime((sliceStart.Ticks + sliceEnd.Ticks) / 2L);
 
-                            #region get interval features
-                            List<LAIR.MachineLearning.Feature> intervalFeatures = new List<LAIR.MachineLearning.Feature>();
+                            #region get interval features that are true for all points in the current slice
+                            List<NominalFeature> intervalFeatures = new List<NominalFeature>();
                             int dayIntervalStart = sliceStart.Hour / 3;
                             int dayIntervalEnd = (int)(((sliceEnd.Ticks - sliceStart.Ticks) / ticksPerHour) / 3);
                             Set<int> coveredIntervals = new Set<int>(false);
@@ -211,7 +211,7 @@ namespace PTL.ATT.Models
                                 {
                                     string id;
                                     if (featureId.TryGetValue(dayIntervalFeatures[interval], out id))
-                                        intervalFeatures.Add(new NumericFeature(id));
+                                        intervalFeatures.Add(IdNominalFeature[id]);
                                 }
                                 else
                                     break;
@@ -227,43 +227,32 @@ namespace PTL.ATT.Models
                                 {
                                     Point point = vector.DerivedFrom as Point;
 
-                                    Point timeSlicePoint;
                                     if (point.Time == DateTime.MinValue)
-                                        timeSlicePoint = new Point(point.Id, point.IncidentType, point.Location, sliceMid);
-                                    else if ((long)(point.Time.Ticks / _timeSliceTicks) == slice)
-                                        timeSlicePoint = new Point(point.Id, point.IncidentType, point.Location, point.Time);
-                                    else
+                                        point.Time = sliceMid;
+                                    else if ((long)(point.Time.Ticks / _timeSliceTicks) != slice)
                                         throw new Exception("Point should not be in slice:  " + point);
 
-                                    FeatureVector timeSliceVector = new FeatureVector(timeSlicePoint, vector.Count + numTimeSliceFeatures);
-                                    timeSliceVector.DerivedFrom.TrueClass = point.TrueClass;
-                                    timeSliceVector.Add(vector);
-
                                     foreach (LAIR.MachineLearning.Feature feature in intervalFeatures)
-                                        timeSliceVector.Add(feature, 1);
+                                        vector.Add(feature, true);
 
                                     foreach (TimeSliceFeature feature in featureId.Keys)
                                     {
-                                        double percent = (slice % _periodTimeSlices) / (double)(_periodTimeSlices - 1);
-                                        double degrees = 360 * percent;
-                                        double radians = degrees * (Math.PI / 180d);
+                                        double percentThroughPeriod = (slice % _periodTimeSlices) / (double)(_periodTimeSlices - 1);
+                                        double radians = 2 * Math.PI * percentThroughPeriod;
 
                                         if (feature == TimeSliceFeature.CosinePeriodPosition)
-                                            timeSliceVector.Add(featureNumeric[feature], Math.Cos(radians));
+                                            vector.Add(IdNumericFeature[featureId[feature]], Math.Cos(radians));
                                         else if (feature == TimeSliceFeature.SinePeriodPosition)
-                                            timeSliceVector.Add(featureNumeric[feature], Math.Sin(radians));
+                                            vector.Add(IdNumericFeature[featureId[feature]], Math.Sin(radians));
                                     }
 
-                                    featureVectors.Add(timeSliceVector);
+                                    featureVectors.Add(vector);
                                 }
                             }
                             #endregion
                         }
 
-                        lock (coreFeatureVectors)
-                        {
-                            coreFeatureVectors.Add(featureVectors);
-                        }
+                        lock (coreFeatureVectors) { coreFeatureVectors.Add(featureVectors); }
                     }));
 
                 long startSlice = firstSlice + core * slicesPerCore;

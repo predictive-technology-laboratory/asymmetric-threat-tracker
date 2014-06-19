@@ -160,7 +160,7 @@ namespace PTL.ATT.Models
             }
 
             prediction.MostRecentlyEvaluatedIncidentTime = incidents.Max(i => i.Time);
-            prediction.ReleaseLazyLoadedData();
+            prediction.ReleaseAllLazyLoadedData();
         }
 
         public static Plot EvaluateAggregate(IEnumerable<Prediction> predictions, int plotWidth, int plotHeight, string seriesName, string plotTitle)
@@ -178,7 +178,7 @@ namespace PTL.ATT.Models
                 foreach (string location in locationThreats.Keys)
                     aggregateLocationThreats.Add(prediction.Id + "-" + location, locationThreats[location]);
 
-                prediction.ReleaseLazyLoadedData();
+                prediction.ReleaseAllLazyLoadedData();
             }
 
             Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();

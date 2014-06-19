@@ -195,7 +195,11 @@ namespace PTL.ATT.Models
             get { return _idNominalFeature; }
         }
 
-        public FeatureBasedDCM() : base() { }
+        public FeatureBasedDCM()
+            : base()
+        {
+            Construct();
+        }
 
         public FeatureBasedDCM(string name,
                                int pointSpacing,
@@ -216,11 +220,18 @@ namespace PTL.ATT.Models
             _predictionSampleSize = predictionSampleSize;
             _classifier = classifier;
             _classifier.Model = this;
-            _features = new List<Feature>(features);
-            _idNumericFeature = new Dictionary<string, NumericFeature>();
-            _idNominalFeature = new Dictionary<string, NominalFeature>();
+
+            Construct(); // initializes feature lookups
+
+            Features = new List<Feature>(features); // saves features and fills feature lookups
 
             Update();
+        }
+
+        private void Construct()
+        {
+            _idNumericFeature = new Dictionary<string, NumericFeature>();
+            _idNominalFeature = new Dictionary<string, NominalFeature>();
         }
 
         protected virtual void InsertPointsIntoPrediction(NpgsqlConnection connection, Prediction prediction, bool training, bool vacuum)
@@ -277,6 +288,12 @@ namespace PTL.ATT.Models
             Point.Insert(connection, incidentPoints, prediction.Id, area, false, vacuum);
         }
 
+        protected virtual int GetNumFeaturesExtractedFor(Prediction prediction)
+        {
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            return Features.Count(f => f.EnumType == typeof(FeatureType)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
+        }
+
         /// <summary>
         /// Extracts feature vectors from points in a time range.
         /// </summary>
@@ -287,20 +304,24 @@ namespace PTL.ATT.Models
         /// <returns></returns>
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, DateTime start, DateTime end)
         {
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
-
-            int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
-
-            FeatureVectorList featureVectors = new FeatureVectorList(prediction.Points.Count);
-            Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>(prediction.Points.Count);
-            foreach (Point point in prediction.Points)
-                if (point.Time == DateTime.MinValue || (point.Time >= start && point.Time <= end))
-                {
-                    point.TrueClass = point.IncidentType;
-                    FeatureVector vector = new FeatureVector(point, numFeatures);
-                    featureVectors.Add(vector);
-                    pointIdFeatureVector.Add(point.Id, vector);
-                }
+            FeatureVectorList featureVectors;
+            Dictionary<int, FeatureVector> pointIdFeatureVector;
+            int numFeatures;
+            lock (prediction)
+            {
+                prediction.ReleasePoints(); // so that we get new point objects each time -- their times might be modified by a sub-class (e.g., TimeSliceDCM).
+                featureVectors = new FeatureVectorList(prediction.Points.Count);
+                pointIdFeatureVector = new Dictionary<int, FeatureVector>(prediction.Points.Count);
+                numFeatures = GetNumFeaturesExtractedFor(prediction);
+                foreach (Point point in prediction.Points)
+                    if (point.Time == DateTime.MinValue || (point.Time >= start && point.Time <= end))
+                    {
+                        point.TrueClass = point.IncidentType;
+                        FeatureVector vector = new FeatureVector(point, numFeatures);
+                        featureVectors.Add(vector);
+                        pointIdFeatureVector.Add(point.Id, vector);
+                    }
+            }
 
             Area area = training ? prediction.Model.TrainingArea : prediction.PredictionArea;
             Set<Thread> threads = new Set<Thread>();
@@ -360,6 +381,7 @@ namespace PTL.ATT.Models
                                                                   new Parameter("geometry_end", NpgsqlDbType.Timestamp, start - new TimeSpan(1)));
 
                                 NpgsqlDataReader reader = cmd.ExecuteReader();
+                                NumericFeature distanceFeature = _idNumericFeature[spatialDistanceFeature.Id];
                                 while (reader.Read())
                                 {
                                     FeatureVector vector = pointIdFeatureVector[Convert.ToInt32(reader["points_" + Point.Columns.Id])];
@@ -369,7 +391,7 @@ namespace PTL.ATT.Models
                                     if (value > distanceWhenBeyondThreshold)
                                         value = distanceWhenBeyondThreshold;
 
-                                    vector.Add(_idNumericFeature[spatialDistanceFeature.Id], value, false); // don't update range here because the features are being accessed concurrently
+                                    vector.Add(distanceFeature, value, false); // don't update range here because the features are being accessed concurrently
                                 }
                                 reader.Close();
                             }
@@ -436,8 +458,9 @@ namespace PTL.ATT.Models
                 foreach (string featureId in featureIdDensityEstimates.Keys)
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
+                    NumericFeature densityFeature = _idNumericFeature[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(_idNumericFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(densityFeature, densityEstimates[i]);
                 }
             }
             #endregion
@@ -482,12 +505,14 @@ namespace PTL.ATT.Models
                 foreach (string featureId in featureIdDensityEstimates.Keys)
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
+                    NumericFeature densityFeature = _idNumericFeature[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(_idNumericFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(densityFeature, densityEstimates[i]);
                 }
             }
             #endregion
 
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
             if (externalFeatureExtractor != null)
             {
                 Console.Out.WriteLine("Running external feature extractor for " + typeof(FeatureBasedDCM));
@@ -511,7 +536,7 @@ namespace PTL.ATT.Models
                 Console.Out.WriteLine("Re-running prediction");
                 PointPrediction.DeleteTable(prediction.Id);
                 Point.DeleteTable(prediction.Id);
-                prediction.ReleaseLazyLoadedData();
+                prediction.ReleaseAllLazyLoadedData();
                 Run(prediction, true, false, true);
                 prediction.MostRecentlyEvaluatedIncidentTime = DateTime.MinValue;
             }
@@ -570,7 +595,7 @@ namespace PTL.ATT.Models
                     _classifier.Train();
 
                     Point.DeleteTable(prediction.Id);
-                    prediction.ReleaseLazyLoadedData();
+                    prediction.ReleaseAllLazyLoadedData();
                 }
                 #endregion
 

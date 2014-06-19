@@ -228,6 +228,7 @@ namespace PTL.ATT
         public DateTime Time
         {
             get { return _time; }
+            set { _time = value; }
         }
 
         internal Point(NpgsqlDataReader reader, string table)
