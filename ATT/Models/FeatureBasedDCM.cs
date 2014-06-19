@@ -304,6 +304,7 @@ namespace PTL.ATT.Models
         /// <returns></returns>
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, DateTime start, DateTime end)
         {
+            // this can be called concurrently, so lock on prediction to get the point objects and their vectors
             FeatureVectorList featureVectors;
             Dictionary<int, FeatureVector> pointIdFeatureVector;
             int numFeatures;
