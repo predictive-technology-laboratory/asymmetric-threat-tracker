@@ -180,9 +180,9 @@ namespace PTL.ATT.Models
             long lastSlice = (long)((training ? prediction.Model.TrainingEnd.Ticks : prediction.PredictionEndTime.Ticks) / _timeSliceTicks);
             int numSlices = (int)(lastSlice - firstSlice + 1);
             long ticksPerHour = new TimeSpan(1, 0, 0).Ticks;
-            int numTimeSliceFeatures = Features.Count(f => f.EnumType == typeof(TimeSliceFeature)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
+            int numTimeSliceFeatures = featureId.Count + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
             int slicesPerCore = (numSlices / Configuration.ProcessorCount) + 1;
-            List<TimeSliceFeature> dayIntervals = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
+            List<TimeSliceFeature> dayIntervalFeatures = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
 
             List<FeatureVectorList> coreFeatureVectors = new List<FeatureVectorList>(Configuration.ProcessorCount);
             Set<Thread> threads = new Set<Thread>();
@@ -192,7 +192,7 @@ namespace PTL.ATT.Models
                     {
                         Tuple<long, long> startSliceEndSlice = o as Tuple<long, long>;
 
-                        FeatureVectorList featureVectors = new FeatureVectorList(0);
+                        FeatureVectorList featureVectors = new FeatureVectorList(slicesPerCore * prediction.Points.Count);
                         for (long slice = startSliceEndSlice.Item1; slice <= startSliceEndSlice.Item2; ++slice)
                         {
                             DateTime sliceStart = new DateTime(slice * _timeSliceTicks);
@@ -210,7 +210,7 @@ namespace PTL.ATT.Models
                                 if (coveredIntervals.Add(interval))
                                 {
                                     string id;
-                                    if (featureId.TryGetValue(dayIntervals[interval], out id))
+                                    if (featureId.TryGetValue(dayIntervalFeatures[interval], out id))
                                         intervalFeatures.Add(new NumericFeature(id));
                                 }
                                 else
@@ -221,22 +221,22 @@ namespace PTL.ATT.Models
                             #region extract feature vectors
                             foreach (FeatureVectorList vectors in base.ExtractFeatureVectors(prediction, training, sliceStart, sliceEnd))
                             {
-                                Console.Out.WriteLine("Extracting " + featureId.Count + " time slice features for " + vectors.Count + " spatial points across " + numSlices + " time slices");
+                                Console.Out.WriteLine("Extracting " + featureId.Count + " time slice features for " + vectors.Count + " points.");
 
                                 foreach (FeatureVector vector in vectors)
                                 {
-                                    Point spatialPoint = vector.DerivedFrom as Point;
+                                    Point point = vector.DerivedFrom as Point;
 
                                     Point timeSlicePoint;
-                                    if (spatialPoint.Time == DateTime.MinValue)
-                                        timeSlicePoint = new Point(spatialPoint.Id, spatialPoint.IncidentType, spatialPoint.Location, sliceMid);
-                                    else if ((long)(spatialPoint.Time.Ticks / _timeSliceTicks) == slice)
-                                        timeSlicePoint = new Point(spatialPoint.Id, spatialPoint.IncidentType, spatialPoint.Location, spatialPoint.Time);
+                                    if (point.Time == DateTime.MinValue)
+                                        timeSlicePoint = new Point(point.Id, point.IncidentType, point.Location, sliceMid);
+                                    else if ((long)(point.Time.Ticks / _timeSliceTicks) == slice)
+                                        timeSlicePoint = new Point(point.Id, point.IncidentType, point.Location, point.Time);
                                     else
-                                        throw new Exception("Point should not be in slice:  " + spatialPoint);
+                                        throw new Exception("Point should not be in slice:  " + point);
 
                                     FeatureVector timeSliceVector = new FeatureVector(timeSlicePoint, vector.Count + numTimeSliceFeatures);
-                                    timeSliceVector.DerivedFrom.TrueClass = spatialPoint.TrueClass;
+                                    timeSliceVector.DerivedFrom.TrueClass = point.TrueClass;
                                     timeSliceVector.Add(vector);
 
                                     foreach (LAIR.MachineLearning.Feature feature in intervalFeatures)

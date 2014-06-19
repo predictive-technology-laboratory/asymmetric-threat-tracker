@@ -122,6 +122,8 @@ namespace PTL.ATT.Models
         private List<Feature> _features;
         private int _trainingSampleSize;
         private int _predictionSampleSize;
+        private Dictionary<string, NumericFeature> _idNumericFeature;
+        private Dictionary<string, NominalFeature> _idNominalFeature;
 
         public PTL.ATT.Classifiers.Classifier Classifier
         {
@@ -150,6 +152,15 @@ namespace PTL.ATT.Models
             set
             {
                 _features = value;
+
+                _idNumericFeature.Clear();
+                _idNominalFeature.Clear();
+                foreach (Feature f in _features)
+                {
+                    _idNumericFeature.Add(f.Id, new NumericFeature(f.Id));
+                    _idNominalFeature.Add(f.Id, new NominalFeature(f.Id));
+                }
+
                 Update();
             }
         }
@@ -174,6 +185,16 @@ namespace PTL.ATT.Models
             }
         }
 
+        protected Dictionary<string, NumericFeature> IdNumericFeature
+        {
+            get { return _idNumericFeature; }
+        }
+
+        protected Dictionary<string, NominalFeature> IdNominalFeature
+        {
+            get { return _idNominalFeature; }
+        }
+
         public FeatureBasedDCM() : base() { }
 
         public FeatureBasedDCM(string name,
@@ -196,6 +217,8 @@ namespace PTL.ATT.Models
             _classifier = classifier;
             _classifier.Model = this;
             _features = new List<Feature>(features);
+            _idNumericFeature = new Dictionary<string, NumericFeature>();
+            _idNominalFeature = new Dictionary<string, NominalFeature>();
 
             Update();
         }
@@ -208,7 +231,7 @@ namespace PTL.ATT.Models
             Set<Tuple<double, double>> incidentLocations = new Set<Tuple<double, double>>(false);
             foreach (Incident i in Incident.Get(prediction.Model.TrainingStart, prediction.Model.TrainingEnd, area, prediction.Model.IncidentTypes.ToArray()))
             {
-                incidentPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue));
+                incidentPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue)); // training points are labeled and have a time associated with them
                 incidentLocations.Add(new Tuple<double, double>(i.Location.X, i.Location.Y));
             }
 
@@ -220,13 +243,13 @@ namespace PTL.ATT.Models
             double areaMaxX = area.BoundingBox.MaxX;
             double areaMinY = area.BoundingBox.MinY;
             double areaMaxY = area.BoundingBox.MaxY;
-            for (double x = areaMinX + prediction.Model.PointSpacing / 2d; x <= areaMaxX; x += prediction.Model.PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
+            for (double x = areaMinX + prediction.Model.PointSpacing / 2d; x <= areaMaxX; x += prediction.Model.PointSpacing) // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + prediction.Model.PointSpacing / 2d; y <= areaMaxY; y += prediction.Model.PointSpacing)
                 {
                     Tuple<double, double> location = new Tuple<double, double>(x, y);
                     PostGIS.Point point = new PostGIS.Point(x, y, area.SRID);
                     if (!incidentLocations.Contains(location))
-                        nullPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue));
+                        nullPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue)); // null points are never labeled and never have times
                 }
 
             List<int> nullPointIds = Point.Insert(connection, nullPoints, prediction.Id, area, true, vacuum);
@@ -254,15 +277,19 @@ namespace PTL.ATT.Models
             Point.Insert(connection, incidentPoints, prediction.Id, area, false, vacuum);
         }
 
+        /// <summary>
+        /// Extracts feature vectors from points in a time range.
+        /// </summary>
+        /// <param name="prediction">Prediction to extract vectors for.</param>
+        /// <param name="training">Whether or not this is the training phase.</param>
+        /// <param name="start">Start time (points without a time are always included).</param>
+        /// <param name="end">End time (points without a time are always included).</param>
+        /// <returns></returns>
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, DateTime start, DateTime end)
         {
             FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
 
             int numFeatures = Features.Count(f => f.EnumType == typeof(FeatureType)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
-
-            Dictionary<string, NumericFeature> idNumericFeature = new Dictionary<string, NumericFeature>();
-            foreach (Feature f in Features)
-                idNumericFeature.Add(f.Id, new NumericFeature(f.Id));
 
             FeatureVectorList featureVectors = new FeatureVectorList(prediction.Points.Count);
             Dictionary<int, FeatureVector> pointIdFeatureVector = new Dictionary<int, FeatureVector>(prediction.Points.Count);
@@ -303,26 +330,26 @@ namespace PTL.ATT.Models
 
                                                                       "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " +
                                                                             "FROM " + pointTableName + " " +
-                                                                            "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + " AND " + 
-                                                                                       "(" + 
-                                                                                          pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " + 
-                                                                                            "(" + 
-                                                                                                pointTableName + "." + Point.Columns.Time + ">=@point_start AND " + 
-                                                                                                pointTableName + "." + Point.Columns.Time + "<=@point_end" + 
-                                                                                            ")" + 
+                                                                            "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
+                                                                                       "(" +
+                                                                                          pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                            "(" +
+                                                                                                pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
+                                                                                                pointTableName + "." + Point.Columns.Time + "<=@point_end" +
+                                                                                            ")" +
                                                                                        ")" +
                                                                             ") points " +
 
                                                                             "LEFT JOIN " + shapefileGeometryTableName + " " +
 
                                                                             "ON points.bounding_box && " + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + " AND " +
-                                                                                "(" + 
-                                                                                    shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR " + 
-                                                                                    "(" + 
-                                                                                        shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " + 
-                                                                                        shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + "<=@geometry_end" + 
-                                                                                    ")" + 
-                                                                                ")" + 
+                                                                                "(" +
+                                                                                    shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                    "(" +
+                                                                                        shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " +
+                                                                                        shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Time + "<=@geometry_end" +
+                                                                                    ")" +
+                                                                                ")" +
 
                                                                       "GROUP BY points." + Point.Columns.Id, threadConnection);
 
@@ -342,7 +369,7 @@ namespace PTL.ATT.Models
                                     if (value > distanceWhenBeyondThreshold)
                                         value = distanceWhenBeyondThreshold;
 
-                                    vector.Add(idNumericFeature[spatialDistanceFeature.Id], value, false); // don't update range here because the features are being accessed concurrently
+                                    vector.Add(_idNumericFeature[spatialDistanceFeature.Id], value, false); // don't update range here because the features are being accessed concurrently
                                 }
                                 reader.Close();
                             }
@@ -378,7 +405,7 @@ namespace PTL.ATT.Models
                             int skip = (int)o;
                             NpgsqlConnection connection = DB.Connection.OpenConnection;
                             foreach (Feature spatialDensityFeature in spatialDensityFeatures)
-                                if (skip-- == 0)
+                                if (skip-- <= 0)
                                 {
                                     Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                     Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
@@ -410,7 +437,7 @@ namespace PTL.ATT.Models
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(idNumericFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(_idNumericFeature[featureId], densityEstimates[i]);
                 }
             }
             #endregion
@@ -456,7 +483,7 @@ namespace PTL.ATT.Models
                 {
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(idNumericFeature[featureId], densityEstimates[i]);
+                        featureVectors[i].Add(_idNumericFeature[featureId], densityEstimates[i]);
                 }
             }
             #endregion
