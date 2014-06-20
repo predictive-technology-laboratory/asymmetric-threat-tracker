@@ -113,13 +113,14 @@ namespace PTL.ATT.Importers
 
                 shapefileId = Shapefile.Create(cmd.Connection, name, toSRID, type);
                 tempTable = "shapefile_import_" + shapefileId;
+                const string tempTableGeometryColumn = "geom";
 
                 string sql;
                 string error;
                 using (Process process = new Process())
                 {
                     process.StartInfo.FileName = Configuration.Shp2PgsqlPath;
-                    process.StartInfo.Arguments = "-I -g geom -s " + reprojection + " \"" + Path + "\" " + tempTable;
+                    process.StartInfo.Arguments = "-I -g " + tempTableGeometryColumn + " -s " + reprojection + " \"" + Path + "\" " + tempTable;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.RedirectStandardError = true;
@@ -141,7 +142,7 @@ namespace PTL.ATT.Importers
 
                 Console.Out.WriteLine("Importing shapefile into database");
                 _importedShapefile = new Shapefile(shapefileId);
-                ShapefileGeometry.Create(cmd.Connection, _importedShapefile, tempTable, "geom");
+                ShapefileGeometry.Create(cmd.Connection, _importedShapefile, tempTable, tempTableGeometryColumn);
             }
             catch (Exception ex)
             {
