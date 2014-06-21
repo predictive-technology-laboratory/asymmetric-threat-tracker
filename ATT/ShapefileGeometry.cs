@@ -44,28 +44,26 @@ namespace PTL.ATT
             return "shapefile_geometry_" + shapefile.Id;
         }
 
-        internal static void Create(NpgsqlConnection connection, Shapefile shapefile, string geometryTable, string geometryColumn)
-        {
-            string tableName = GetTableName(shapefile);
-
-            NpgsqlCommand cmd = new NpgsqlCommand("INSERT INTO " + tableName + " (" + Columns.Insert + ") " +
-                                                  "SELECT " + geometryColumn + ",'-infinity'::timestamp " +
-                                                  "FROM " + geometryTable, connection);
-
-            cmd.ExecuteNonQuery();
-        }
-
-        public static void Create(NpgsqlConnection connection, Shapefile shapefile, List<Tuple<Geometry, DateTime>> geometryTimes)
+        public static void Create(Shapefile shapefile, List<Tuple<Geometry, DateTime>> geometryTimes)
         {
             if (geometryTimes.Count == 0)
                 return;
 
             string tableName = GetTableName(shapefile);
 
+            DB.Connection.ExecuteNonQuery(
+                "CREATE TABLE " + tableName + " (" +
+                Columns.Geometry + " GEOMETRY(GEOMETRY," + shapefile.SRID + ")," +
+                Columns.Id + " SERIAL PRIMARY KEY," +
+                Columns.Time + " TIMESTAMP);" +
+                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
+                "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");");
+
             int numPerBatch = 1000;
             int num = 0;
             StringBuilder cmdTxt = new StringBuilder();
             List<Parameter> cmdParams = new List<Parameter>(numPerBatch);
+            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
             foreach (Tuple<Geometry, DateTime> geometryTime in geometryTimes)
             {
                 string timeParamName = "time_" + num;
@@ -74,36 +72,26 @@ namespace PTL.ATT
 
                 if (++num == numPerBatch)
                 {
-                    NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString(), connection);
+                    cmd.CommandText = cmdTxt.ToString();
                     ConnectionPool.AddParameters(cmd, cmdParams);
                     cmd.ExecuteNonQuery();
                     cmdTxt.Clear();
                     cmdParams.Clear();
+                    cmd.CommandText = null;
                     num = 0;
                 }
             }
 
             if (num > 0)
             {
-                NpgsqlCommand cmd = new NpgsqlCommand(cmdTxt.ToString(), connection);
+                cmd.CommandText = cmdTxt.ToString();
                 ConnectionPool.AddParameters(cmd, cmdParams);
                 cmd.ExecuteNonQuery();
                 cmdTxt.Clear();
                 cmdParams.Clear();
+                cmd.CommandText = null;
                 num = 0;
             }
-        }
-
-        internal static void CreateTable(Shapefile shapefile)
-        {
-            string tableName = GetTableName(shapefile);
-            DB.Connection.ExecuteNonQuery(
-                "CREATE TABLE " + tableName + " (" +
-                Columns.Geometry + " GEOMETRY(GEOMETRY," + shapefile.SRID + ")," +
-                Columns.Id + " SERIAL PRIMARY KEY," +
-                Columns.Time + " TIMESTAMP);" +
-                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
-                "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");");
         }
 
         public static string GetValue(Geometry geometry, int targetSRID, string timeParamName)

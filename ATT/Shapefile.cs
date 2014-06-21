@@ -66,11 +66,9 @@ namespace PTL.ATT
                    "CREATE INDEX ON " + Table + " (" + Columns.Type + ");");
         }
 
-        public static int Create(NpgsqlConnection connection, string name, int srid, ShapefileType type)
+        public static int Create(string name, int srid, ShapefileType type)
         {
-            Shapefile shapefile = new Shapefile(Convert.ToInt32(new NpgsqlCommand("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id, connection).ExecuteScalar()));
-            ShapefileGeometry.CreateTable(shapefile);
-            return shapefile.Id;
+            return Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id));
         }        
 
         public static IEnumerable<Shapefile> GetAll()

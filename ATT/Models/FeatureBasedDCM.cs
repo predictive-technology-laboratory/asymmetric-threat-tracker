@@ -56,28 +56,35 @@ namespace PTL.ATT.Models
             /// <summary>
             /// Shortest distance to geometries in a shapefile
             /// </summary>
-            MinimumDistanceToGeometry
+            MinimumDistanceToGeometry,
+
+            /// <summary>
+            /// Attribute value for a geometry
+            /// </summary>
+            GeometryAttributeValue
         }
 
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
-            // spatial distance features
+            // shapefile-based features
             foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                 if (shapefile.Type == Shapefile.ShapefileType.Feature)
                 {
+                    // spatial distance features
                     Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Lag days", "30");
                     yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameterValue);
-                }
 
-            // spatial density features
-            foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
-                if (shapefile.Type == Shapefile.ShapefileType.Feature)
-                {
-                    Dictionary<string, string> parameterValue = new Dictionary<string, string>();
+                    // spatial density features
+                    parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Sample size", "500");
                     parameterValue.Add("Lag days", "30");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameterValue);
+
+                    // geometry attribute value features
+                    parameterValue.Add("Attribute column", "");
+                    parameterValue.Add("Attribute type", "");
+                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttributeValue, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameterValue);
                 }
 
             // incident density features

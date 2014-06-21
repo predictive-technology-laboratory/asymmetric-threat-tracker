@@ -54,9 +54,8 @@ namespace PTL.ATT.Importers
 
             Console.Out.WriteLine("Importing shapefile from \"" + Path + "\"...");
 
-            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
             int shapefileId = -1;
-            string tempTable = null;
+            string shapefileGeometryTable = null;
             try
             {
                 Dictionary<string, string> importOptionValue = new Dictionary<string, string>();
@@ -72,7 +71,7 @@ namespace PTL.ATT.Importers
                     importOptionValue["reprojection"] = _sourceSRID + ":" + _targetSRID;
 
                 if (!string.IsNullOrWhiteSpace(Name))
-                    importOptionValue["name"] = Name;  
+                    importOptionValue["name"] = Name;
 
                 List<string> neededValues = new List<string>();
                 if (!importOptionValue.ContainsKey("reprojection") || string.IsNullOrWhiteSpace(importOptionValue["reprojection"])) neededValues.Add("reprojection");
@@ -111,16 +110,16 @@ namespace PTL.ATT.Importers
                 else
                     throw new NotImplementedException("Unrecognized shapefile importer type:  " + GetType());
 
-                shapefileId = Shapefile.Create(cmd.Connection, name, toSRID, type);
-                tempTable = "shapefile_import_" + shapefileId;
-                const string tempTableGeometryColumn = "geom";
+                shapefileId = Shapefile.Create(name, toSRID, type);
+                _importedShapefile = new Shapefile(shapefileId);
+                shapefileGeometryTable = ShapefileGeometry.GetTableName(_importedShapefile);
 
                 string sql;
                 string error;
                 using (Process process = new Process())
                 {
                     process.StartInfo.FileName = Configuration.Shp2PgsqlPath;
-                    process.StartInfo.Arguments = "-I -g " + tempTableGeometryColumn + " -s " + reprojection + " \"" + Path + "\" " + tempTable;
+                    process.StartInfo.Arguments = "-I -g " + ShapefileGeometry.Columns.Geometry + " -s " + reprojection + " \"" + Path + "\" " + shapefileGeometryTable;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.RedirectStandardError = true;
@@ -137,37 +136,30 @@ namespace PTL.ATT.Importers
 
                 Console.Out.WriteLine(error);
 
-                cmd.CommandText = sql;
-                cmd.ExecuteNonQuery();
+                DB.Connection.ExecuteNonQuery(sql.Trim(';') + ";" + // not sure if shp2pgsql adds semicolon at end
+                                              "ALTER TABLE " + shapefileGeometryTable + " RENAME COLUMN gid TO " + ShapefileGeometry.Columns.Id + ";" + 
+                                              "ALTER TABLE " + shapefileGeometryTable + " ADD COLUMN " + ShapefileGeometry.Columns.Time + " TIMESTAMP;" +
+                                              "UPDATE " + shapefileGeometryTable + " SET " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp;" +
+                                              "CREATE INDEX ON " + shapefileGeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
 
-                Console.Out.WriteLine("Importing shapefile into database");
-                _importedShapefile = new Shapefile(shapefileId);
-                ShapefileGeometry.Create(cmd.Connection, _importedShapefile, tempTable, tempTableGeometryColumn);
+                Console.Out.WriteLine("Shapefile import succeeded.");
             }
             catch (Exception ex)
             {
                 try
                 {
-                    cmd.CommandText = "DELETE FROM " + Shapefile.Table + " WHERE " + Shapefile.Columns.Id + "=" + shapefileId;
-                    cmd.ExecuteNonQuery();
+                    try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Shapefile.Table + " WHERE " + Shapefile.Columns.Id + "=" + shapefileId); }
+                    catch (Exception) { }
+
+                    try { DB.Connection.ExecuteNonQuery("DROP TABLE " + shapefileGeometryTable); }
+                    catch (Exception) { }
+
+                    _importedShapefile = null;
                 }
                 catch (Exception ex2) { Console.Out.WriteLine("Failed to delete shapefile:  " + ex2.Message); }
 
-                throw new Exception("Failed to import shape file(s):  " + ex.Message);
+                throw new Exception("Shapefile import failed:  " + ex.Message);
             }
-            finally
-            {
-                try
-                {
-                    cmd.CommandText = "DROP TABLE " + tempTable + ";";
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex2) { Console.Out.WriteLine("Falied to drop table \"" + tempTable + "\":  " + ex2.Message); }
-
-                DB.Connection.Return(cmd.Connection);
-            }
-
-            Console.Out.WriteLine("Shapefile import completed.");
         }
     }
 }

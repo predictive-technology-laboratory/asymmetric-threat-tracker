@@ -195,11 +195,18 @@ namespace PTL.ATT.Importers
 
                 _rowNum = 0;
 
-                NpgsqlConnection connection = DB.Connection.OpenConnection;
-                Shapefile shapefile = new Shapefile(Shapefile.Create(connection, XmlImporter.Name, _importArea.SRID, Shapefile.ShapefileType.Feature));
-                DB.Connection.Return(connection);
+                Shapefile shapefile = new Shapefile(Shapefile.Create(XmlImporter.Name, _importArea.SRID, Shapefile.ShapefileType.Feature));
 
-                base.Initialize(ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Insert);
+                string shapefileGeometryTableName = ShapefileGeometry.GetTableName(shapefile);
+                DB.Connection.ExecuteNonQuery(
+                    "CREATE TABLE " + shapefileGeometryTableName + " (" +
+                    ShapefileGeometry.Columns.Geometry + " GEOMETRY(GEOMETRY," + shapefile.SRID + ")," +
+                    ShapefileGeometry.Columns.Id + " SERIAL PRIMARY KEY," +
+                    ShapefileGeometry.Columns.Time + " TIMESTAMP);" +
+                    "CREATE INDEX ON " + shapefileGeometryTableName + " USING GIST (" + ShapefileGeometry.Columns.Geometry + ");" +
+                    "CREATE INDEX ON " + shapefileGeometryTableName + " (" + ShapefileGeometry.Columns.Time + ");");
+
+                base.Initialize(shapefileGeometryTableName, ShapefileGeometry.Columns.Insert);
             }
 
             public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)

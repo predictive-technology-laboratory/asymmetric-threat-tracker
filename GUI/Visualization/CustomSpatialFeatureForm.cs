@@ -104,12 +104,11 @@ namespace PTL.ATT.GUI.Visualization
                         MessageBox.Show("Invalid name:  must not be blank.");
                     else
                     {
-                        NpgsqlCommand cmd = DB.Connection.NewCommand(null);
                         Shapefile shapefile = null;
                         try
                         {
-                            shapefile = new Shapefile(Shapefile.Create(cmd.Connection, name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.Feature));
-                            ShapefileGeometry.Create(cmd.Connection, shapefile, elements.Items.Cast<Geometry>().Select(g => new Tuple<Geometry, DateTime>(g, DateTime.MinValue)).ToList());
+                            shapefile = new Shapefile(Shapefile.Create(name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.Feature));
+                            ShapefileGeometry.Create(shapefile, elements.Items.Cast<Geometry>().Select(g => new Tuple<Geometry, DateTime>(g, DateTime.MinValue)).ToList());
                             MessageBox.Show("Shapefile \"" + name + "\" created.");
                             elements.Items.Clear();
                             points.Items.Clear();
@@ -120,10 +119,6 @@ namespace PTL.ATT.GUI.Visualization
 
                             try { shapefile.Delete(); }
                             catch (Exception ex2) { Console.Out.WriteLine("Failed to delete failed shapefile:  " + ex2.Message); }
-                        }
-                        finally
-                        {
-                            DB.Connection.Return(cmd.Connection);
                         }
                     }
                 }

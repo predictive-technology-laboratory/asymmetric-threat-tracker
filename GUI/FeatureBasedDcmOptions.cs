@@ -224,7 +224,7 @@ namespace PTL.ATT.GUI
             }
         }
 
-        private void parameterizeFeaturesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void parameterizeFeatureToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Feature feature = parameterizeFeatureToolStripMenuItem.Tag as Feature;
             DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", MessageBoxButtons.OKCancel);
