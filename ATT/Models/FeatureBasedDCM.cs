@@ -567,6 +567,9 @@ namespace PTL.ATT.Models
             if (badFeatures.Length > 0)
                 throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction (or perhaps they were remapped incorrectly).");
 
+            if (prediction.PredictionArea.Id != TrainingArea.Id && Features.Count(f => f.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryAttributeValue)) > 0)
+                throw new Exception("Cannot use geometry attributes in feature-remapped predictions.");
+
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
             try

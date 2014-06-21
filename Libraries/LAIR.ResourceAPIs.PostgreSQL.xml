@@ -118,6 +118,13 @@
             <param name="schema">Schema to scan, or null for all schemas.</param>
             <returns></returns>
         </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.GetColumnNames(System.String)">
+            <summary>
+            Gets the column names for a table
+            </summary>
+            <param name="table">Table to get column names for</param>
+            <returns></returns>
+        </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.SchemaExists(System.String)">
             <summary>
             Checks whether a schema exists

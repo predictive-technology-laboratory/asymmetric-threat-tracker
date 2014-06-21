@@ -229,7 +229,12 @@ namespace PTL.ATT.GUI
             Feature feature = parameterizeFeatureToolStripMenuItem.Tag as Feature;
             DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", MessageBoxButtons.OKCancel);
             foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
-                f.AddTextBox(parameter + ":", feature.ParameterValue[parameter], 20, parameter);
+                if (parameter == "Attribute column")
+                    f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(ShapefileGeometry.GetTableName(new Shapefile(int.Parse(feature.TrainingResourceId)))).ToArray(), feature.ParameterValue[parameter], parameter);
+                else if (parameter == "Attribute type")
+                    f.AddDropDown(parameter + ":", new string[] { "Numeric", "Nominal" }, feature.ParameterValue[parameter], parameter);
+                else
+                    f.AddTextBox(parameter + ":", feature.ParameterValue[parameter], 20, parameter);
 
             if (f.ShowDialog() == DialogResult.OK)
                 foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
