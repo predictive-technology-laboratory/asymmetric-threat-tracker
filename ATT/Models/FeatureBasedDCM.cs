@@ -51,7 +51,7 @@ namespace PTL.ATT.Models
             /// <summary>
             /// Value of incident density derived from the training incidents
             /// </summary>
-            IncidentKernelDensityEstimate,
+            IncidentDensity,
 
             /// <summary>
             /// Shortest distance to geometries in a shapefile
@@ -59,9 +59,9 @@ namespace PTL.ATT.Models
             MinimumDistanceToGeometry,
 
             /// <summary>
-            /// Attribute value for a geometry
+            /// Attribute for a geometry
             /// </summary>
-            GeometryAttributeValue
+            GeometryAttribute
         }
 
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
@@ -70,21 +70,22 @@ namespace PTL.ATT.Models
             foreach (Shapefile shapefile in Shapefile.GetForSRID(area.SRID).OrderBy(s => s.Name))
                 if (shapefile.Type == Shapefile.ShapefileType.Feature)
                 {
-                    // spatial distance features
+                    // spatial distance
                     Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Lag days", "30");
                     yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameterValue);
 
-                    // spatial density features
+                    // spatial density
                     parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Sample size", "500");
                     parameterValue.Add("Lag days", "30");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameterValue);
 
-                    // geometry attribute value features
+                    // geometry attribute
+                    parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Attribute column", "");
                     parameterValue.Add("Attribute type", "");
-                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttributeValue, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameterValue);
+                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttribute, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameterValue);
                 }
 
             // incident density features
@@ -93,7 +94,7 @@ namespace PTL.ATT.Models
                 Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                 parameterValue.Add("Sample size", "500");
                 parameterValue.Add("Lag days", "30");
-                yield return new Feature(typeof(FeatureType), FeatureType.IncidentKernelDensityEstimate, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValue);
+                yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValue);
             }
 
             // external features
@@ -107,12 +108,13 @@ namespace PTL.ATT.Models
         {
             int pointNum = 0; // must use this because point IDs get repeated for the timeslice model
             foreach (FeatureVector featureVector in featureVectors)
-            {
-                Point point = featureVector.DerivedFrom as Point;
-                string timeParameterName = "@time_" + pointNum++;
-                IEnumerable<KeyValuePair<string, double>> incidentScore = point.PredictionConfidenceScores.Where(kvp => kvp.Key != PointPrediction.NullLabel).Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value));
-                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, incidentScore, incidentScore.Sum(kvp => kvp.Value)), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time));
-            }
+                if (featureVector.Count > 0) // sometimes points might have no extracted feature (e.g., for geometry attributes that don't cover the entire area). such cases can have strange probabilities that are not comparable to probabilities of points with features, so exclude them. this means that the surveillance plots might not reach (1,1) since all the area won't be surveilled -- seems okay.
+                {
+                    Point point = featureVector.DerivedFrom as Point;
+                    string timeParameterName = "@time_" + pointNum++;
+                    IEnumerable<KeyValuePair<string, double>> incidentScore = point.PredictionConfidenceScores.Where(kvp => kvp.Key != PointPrediction.NullLabel).Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value));
+                    yield return new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, incidentScore, incidentScore.Sum(kvp => kvp.Value)), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time));
+                }
         }
 
         public static FeatureExtractor InitializeExternalFeatureExtractor(IFeatureBasedDCM model, Type modelType)
@@ -473,8 +475,90 @@ namespace PTL.ATT.Models
             }
             #endregion
 
+            #region geometry attribute
+            List<Feature> geometryAttributeFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.GeometryAttribute)).ToList();
+            if (geometryAttributeFeatures.Count > 0)
+            {
+                Console.Out.WriteLine("Extracting geometry attribute features.");
+                threads.Clear();
+                for (int i = 0; i < Configuration.ProcessorCount; ++i)
+                {
+                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                        {
+                            int core = (int)o;
+                            NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
+                            string pointTableName = Point.GetTableName(prediction.Id);
+                            foreach (Feature geometryAttributeFeature in geometryAttributeFeatures)
+                            {
+                                Shapefile shapefile = new Shapefile(int.Parse(training ? geometryAttributeFeature.TrainingResourceId : geometryAttributeFeature.PredictionResourceId));
+                                string shapefileGeometryTableName = ShapefileGeometry.GetTableName(shapefile);
+                                string attributeColumn = geometryAttributeFeature.ParameterValue["Attribute column"];
+                                NpgsqlCommand cmd = new NpgsqlCommand("SELECT " + pointTableName + "." + Point.Columns.Id + " as point_id," + shapefileGeometryTableName + "." + attributeColumn + " as geometry_attribute " +
+                                                                      "FROM " + pointTableName + " " +
+                                                                      "JOIN " + shapefileGeometryTableName + " " +
+                                                                      "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefileGeometryTableName + "." + ShapefileGeometry.Columns.Geometry + ") AND " +
+                                                                          pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
+                                                                          "(" +
+                                                                              pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                              "(" +
+                                                                                  pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
+                                                                                  pointTableName + "." + Point.Columns.Time + "<=@point_end" +
+                                                                              ")" +
+                                                                          ") " +
+                                                                      "ORDER BY " + pointTableName + "." + Point.Columns.Id, threadConnection);
+
+                                ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
+                                                                  new Parameter("point_end", NpgsqlDbType.Timestamp, end));
+
+                                List<object> values = new List<object>();
+                                int currPointId = -1;
+                                int pointId = -1;
+                                string attributeType = geometryAttributeFeature.ParameterValue["Attribute type"];
+                                LAIR.MachineLearning.Feature attributeFeature = attributeType == "Numeric" ? _idNumericFeature[geometryAttributeFeature.Id] as LAIR.MachineLearning.Feature : _idNominalFeature[geometryAttributeFeature.Id] as LAIR.MachineLearning.Feature;
+                                Action addFeatureToVector = new Action(() =>
+                                    {
+                                        if (values.Count > 0)
+                                        {
+                                            FeatureVector vector = pointIdFeatureVector[currPointId];
+                                            if (attributeFeature is NumericFeature)
+                                                vector.Add(attributeFeature, values.Select(v => Convert.ToSingle(v)).Average());
+                                            else if (values.Count == 1)
+                                                vector.Add(attributeFeature, Convert.ToString(values[0]));
+                                            else
+                                                throw new Exception("Nominal geometry attribute \"" + attributeColumn + "\" of shapefile \"" + shapefileGeometryTableName + "\" has multiple values at point \"" + (vector.DerivedFrom as Point).Location + "\".");
+                                        }
+
+                                        values.Clear();
+                                        currPointId = pointId;
+                                    });
+
+                                NpgsqlDataReader reader = cmd.ExecuteReader();
+                                while (reader.Read())
+                                {
+                                    pointId = Convert.ToInt32(reader["point_id"]);
+                                    if (pointId != currPointId)
+                                        addFeatureToVector();
+
+                                    values.Add(reader["geometry_attribute"]);
+                                }
+
+                                addFeatureToVector();
+                            }
+
+                            DB.Connection.Return(threadConnection);
+                        }));
+
+                    t.Start(i);
+                    threads.Add(t);
+                }
+
+                foreach (Thread t in threads)
+                    t.Join();
+            }
+            #endregion
+
             #region incident density features
-            List<Feature> kdeFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.IncidentKernelDensityEstimate)).ToList();
+            List<Feature> kdeFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.IncidentDensity)).ToList();
             if (kdeFeatures.Count > 0)
             {
                 List<PostGIS.Point> densityEvalPoints = featureVectors.Select(v => (v.DerivedFrom as Point).Location).ToList();
@@ -567,7 +651,7 @@ namespace PTL.ATT.Models
             if (badFeatures.Length > 0)
                 throw new Exception("Features \"" + badFeatures + "\" are not valid for the prediction area (" + prediction.PredictionArea.Name + "). These features must be remapped for prediction (or perhaps they were remapped incorrectly).");
 
-            if (prediction.PredictionArea.Id != TrainingArea.Id && Features.Count(f => f.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryAttributeValue)) > 0)
+            if (prediction.PredictionArea.Id != TrainingArea.Id && Features.Count(f => f.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryAttribute)) > 0)
                 throw new Exception("Cannot use geometry attributes in feature-remapped predictions.");
 
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);

@@ -125,6 +125,13 @@
             <param name="table">Table to get column names for</param>
             <returns></returns>
         </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.GetPrimaryKeyColumns(System.String)">
+            <summary>
+            Gets primary key columns for a table
+            </summary>
+            <param name="table">Table to examine</param>
+            <returns></returns>
+        </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.SchemaExists(System.String)">
             <summary>
             Checks whether a schema exists

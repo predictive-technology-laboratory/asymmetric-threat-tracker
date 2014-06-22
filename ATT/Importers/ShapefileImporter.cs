@@ -136,8 +136,23 @@ namespace PTL.ATT.Importers
 
                 Console.Out.WriteLine(error);
 
-                DB.Connection.ExecuteNonQuery(sql.Trim(';') + ";" + // not sure if shp2pgsql adds semicolon at end
-                                              "ALTER TABLE " + shapefileGeometryTable + " RENAME COLUMN gid TO " + ShapefileGeometry.Columns.Id + ";" + 
+                DB.Connection.ExecuteNonQuery(sql);
+
+                // rename primary key column to Id
+                List<string> primaryKeyColumns = DB.Connection.GetPrimaryKeyColumns(shapefileGeometryTable).ToList();
+                if (primaryKeyColumns.Count == 1)
+                {
+                    if (primaryKeyColumns[0] != ShapefileGeometry.Columns.Id)
+                    {
+                        DB.Connection.ExecuteNonQuery("ALTER TABLE " + shapefileGeometryTable + " DROP COLUMN IF EXISTS " + ShapefileGeometry.Columns.Id + ";" +
+                                                      "ALTER TABLE " + shapefileGeometryTable + " RENAME COLUMN " + primaryKeyColumns[0] + " TO " + ShapefileGeometry.Columns.Id);
+                    }
+                }
+                else
+                    throw new Exception("Imported shapefile database does not contain a single primary key column.");
+
+                // add time column - this is an interim solution, since we might want to keep a shapefile's time column but we're not quite sure how to do that in a way that will work
+                DB.Connection.ExecuteNonQuery("ALTER TABLE " + shapefileGeometryTable + " DROP COLUMN IF EXISTS " + ShapefileGeometry.Columns.Time + ";" + 
                                               "ALTER TABLE " + shapefileGeometryTable + " ADD COLUMN " + ShapefileGeometry.Columns.Time + " TIMESTAMP;" +
                                               "UPDATE " + shapefileGeometryTable + " SET " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp;" +
                                               "CREATE INDEX ON " + shapefileGeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
