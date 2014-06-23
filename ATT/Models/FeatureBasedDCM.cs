@@ -475,7 +475,7 @@ namespace PTL.ATT.Models
             }
             #endregion
 
-            #region geometry attribute
+            #region geometry attribute features
             List<Feature> geometryAttributeFeatures = Features.Where(f => f.EnumValue.Equals(FeatureType.GeometryAttribute)).ToList();
             if (geometryAttributeFeatures.Count > 0)
             {

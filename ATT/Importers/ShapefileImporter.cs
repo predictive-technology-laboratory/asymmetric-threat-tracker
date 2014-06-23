@@ -107,6 +107,8 @@ namespace PTL.ATT.Importers
                     type = Shapefile.ShapefileType.Feature;
                 else if (this is AreaShapefileImporter)
                     type = Shapefile.ShapefileType.Area;
+                else if (this is IncidentShapefileImporter)
+                    type = Shapefile.ShapefileType.Incident;
                 else
                     throw new NotImplementedException("Unrecognized shapefile importer type:  " + GetType());
 
@@ -150,12 +152,6 @@ namespace PTL.ATT.Importers
                 }
                 else
                     throw new Exception("Imported shapefile database does not contain a single primary key column.");
-
-                // add time column - this is an interim solution, since we might want to keep a shapefile's time column but we're not quite sure how to do that in a way that will work
-                DB.Connection.ExecuteNonQuery("ALTER TABLE " + shapefileGeometryTable + " DROP COLUMN IF EXISTS " + ShapefileGeometry.Columns.Time + ";" + 
-                                              "ALTER TABLE " + shapefileGeometryTable + " ADD COLUMN " + ShapefileGeometry.Columns.Time + " TIMESTAMP;" +
-                                              "UPDATE " + shapefileGeometryTable + " SET " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp;" +
-                                              "CREATE INDEX ON " + shapefileGeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
 
                 Console.Out.WriteLine("Shapefile import succeeded.");
             }

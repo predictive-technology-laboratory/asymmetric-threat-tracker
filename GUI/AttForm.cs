@@ -113,6 +113,27 @@ namespace PTL.ATT.GUI
             }
         }
 
+        [Serializable]
+        public class IncidentShapefileImportInfoRetriever : IShapefileIncidentMappingRetriever
+        {
+            public Dictionary<string, string> MapIncidentColumnsToShapefileColumns(string shapefileGeometryTable)
+            {
+                string[] shapefileColumns = DB.Connection.GetColumnNames(shapefileGeometryTable).ToArray();
+                DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", MessageBoxButtons.OK);
+                string[] incidentColumns = new string[] { Incident.Columns.Location, Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type };
+                foreach (string incidentColumn in incidentColumns)
+                    f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn);
+
+                f.ShowDialog();
+
+                Dictionary<string, string> incidentColumnShapefileColumn = new Dictionary<string, string>();
+                foreach (string incidentTableColumn in incidentColumns)
+                    incidentColumnShapefileColumn.Add(incidentTableColumn, f.GetValue<string>(incidentTableColumn));
+
+                return incidentColumnShapefileColumn;
+            }
+        }
+
         /// <summary>
         /// Completes a dynamic importer creation form.
         /// </summary>
@@ -493,7 +514,7 @@ namespace PTL.ATT.GUI
                            }
 
                            f.AddDropDown("Import into area:", areas, null, "area");
-                           f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                           f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
 
                            return f;
@@ -505,13 +526,25 @@ namespace PTL.ATT.GUI
                            int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                            int hourOffset = Convert.ToInt32(importerForm.GetValue<decimal>("offset"));
 
-                           Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
-                           string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
+                           string extension = Path.GetExtension(path).ToLower();
+                           if (extension == ".xml")
+                           {
+                               Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
+                               string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
 
-                           return CreateXmlImporter(name, path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
-                                                    {
-                                                        return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
-                                                    });
+                               return CreateXmlImporter(name, path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
+                                                        {
+                                                            return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
+                                                        });
+                           }
+                           else if (extension == ".shp")
+                           {
+                               int targetSRID = importArea.SRID;
+                               ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
+                               return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, importArea, new IncidentShapefileImportInfoRetriever(), hourOffset);
+                           }
+                           else
+                               throw new NotImplementedException("Unrecognized incident import file extension:  " + extension);
                        }),
 
                    Configuration.IncidentsImportDirectory,

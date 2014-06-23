@@ -96,7 +96,9 @@
     <Compile Include="Classifiers\SvmRank.cs" />
     <Compile Include="Importers\AreaShapefileImporter.cs" />
     <Compile Include="Importers\FeatureShapefileImporter.cs" />
+    <Compile Include="Importers\IShapefileIncidentMappingRetriever.cs" />
     <Compile Include="Importers\Importer.cs" />
+    <Compile Include="Importers\IncidentShapefileImporter.cs" />
     <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Importers\IShapefileInfoRetriever.cs" />

@@ -69,11 +69,12 @@ namespace PTL.ATT
 
             if (!DB.Connection.TableExists(tableName))
                 DB.Connection.ExecuteNonQuery(
+                    "CREATE SEQUENCE native_id_seq;" + 
                     "CREATE TABLE " + tableName + " (" +
                     Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
                     Columns.Location + " GEOMETRY(POINT," + area.SRID + ")," +
-                    Columns.NativeId + " INT," +
+                    Columns.NativeId + " INT DEFAULT nextval('native_id_seq')," +
                     Columns.Simulated + " BOOLEAN," +
                     Columns.Time + " TIMESTAMP," +
                     Columns.Type + " VARCHAR," +

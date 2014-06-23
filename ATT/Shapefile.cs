@@ -34,7 +34,8 @@ namespace PTL.ATT
         public enum ShapefileType
         {
             Area,
-            Feature
+            Feature,
+            Incident
         }
 
         internal const string Table = "shapefile";
