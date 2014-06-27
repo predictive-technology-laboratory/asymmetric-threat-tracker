@@ -44,14 +44,14 @@ namespace PTL.ATT.Importers
             Console.Out.WriteLine("Converting shapefile data to incident data.");
 
             Dictionary<string, string> incidentTableColumnShapefileTableColumn = _shapefileIncidentMappingRetriever.MapIncidentColumnsToShapefileColumns(ImportedShapefile.GeometryTable);
-            DB.Connection.ExecuteNonQuery("INSERT INTO " + Incident.GetTableName(_importArea) + " (" + Incident.Columns.Insert + ") " +
+            DB.Connection.ExecuteNonQuery("INSERT INTO " + Incident.GetTableName(_importArea, true) + " (" + Incident.Columns.Insert + ") " +
 
                                           "SELECT " + _importArea.Id + "," +
                                                       incidentTableColumnShapefileTableColumn[Incident.Columns.Location] + "," +
-                                                      (incidentTableColumnShapefileTableColumn.ContainsKey(Incident.Columns.NativeId) ? incidentTableColumnShapefileTableColumn[Incident.Columns.NativeId] : "DEFAULT") + "," +
+                                                      (incidentTableColumnShapefileTableColumn.ContainsKey(Incident.Columns.NativeId) ? incidentTableColumnShapefileTableColumn[Incident.Columns.NativeId] + "::VARCHAR" : "DEFAULT") + "," +
                                                       "false," +
-                                                      incidentTableColumnShapefileTableColumn[Incident.Columns.Time] + " + INTERVAL '" + _hourOffset + " HOUR'," +
-                                                      "trim(both from " + incidentTableColumnShapefileTableColumn[Incident.Columns.Type] + ") " +
+                                                      incidentTableColumnShapefileTableColumn[Incident.Columns.Time] + "::TIMESTAMP + INTERVAL '" + _hourOffset + " HOUR'," +
+                                                      "TRIM(BOTH FROM " + incidentTableColumnShapefileTableColumn[Incident.Columns.Type] + "::VARCHAR) " +
 
                                           "FROM " + ImportedShapefile.GeometryTable + ";" +
                                           "DROP TABLE " + ImportedShapefile.GeometryTable + ";");

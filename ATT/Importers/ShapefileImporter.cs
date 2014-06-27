@@ -136,7 +136,14 @@ namespace PTL.ATT.Importers
 
                 DB.Connection.ExecuteNonQuery(sql);
 
-                // rename primary key column to Id
+                // if there's an id column already, rename it native_id
+                if (DB.Connection.GetColumnNames(_importedShapefile.GeometryTable).Select(c => c.ToLower()).Contains("id"))
+                {
+                    DB.Connection.ExecuteNonQuery("ALTER TABLE " + _importedShapefile.GeometryTable + " DROP COLUMN IF EXISTS native_id;" +
+                                                  "ALTER TABLE " + _importedShapefile.GeometryTable + " RENAME COLUMN id TO native_id");
+                }
+
+                // rename primary key column to ShapefileGeometry.Columns.Id
                 List<string> primaryKeyColumns = DB.Connection.GetPrimaryKeyColumns(_importedShapefile.GeometryTable).ToList();
                 if (primaryKeyColumns.Count == 1)
                 {

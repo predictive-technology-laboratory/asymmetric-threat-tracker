@@ -97,7 +97,9 @@ namespace PTL.ATT.Importers
             private Area _importArea;
             private int _hourOffset;
             private int _sourceSRID;
-            private Set<int> _existingNativeIDs;
+
+            [NonSerialized]
+            private Set<string> _existingNativeIDs;
 
             public IncidentXmlRowInserter(Dictionary<string, string> dbColInputCol, Area importArea, int hourOffset, int sourceSRID)
             {
@@ -112,7 +114,7 @@ namespace PTL.ATT.Importers
                 if (_importArea == null || !Area.GetAll().Any(a => a.Id == _importArea.Id))
                     throw new Exception("No import area is defined for these incidents. If you're running a stored importer, try editing the importer and selecting an import area.");
 
-                base.Initialize(Incident.GetTableName(_importArea), Incident.Columns.Insert);
+                base.Initialize(Incident.GetTableName(_importArea, true), Incident.Columns.Insert);
 
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
@@ -138,7 +140,7 @@ namespace PTL.ATT.Importers
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser rowXmlParser)
             {
-                int nativeId = int.Parse(rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.NativeId])); rowXmlParser.Reset();
+                string nativeId = rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.NativeId]).Trim(); rowXmlParser.Reset();
 
                 if (_existingNativeIDs.Add(nativeId))
                 {

@@ -61,8 +61,7 @@ namespace PTL.ATT
             try
             {
                 area = new Area(Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Area.Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + shapefile.Id + ") RETURNING " + Columns.Id)));
-
-                Console.Out.WriteLine("Creating area bounding boxes");
+                
                 AreaBoundingBoxes.Create(area, pointContainmentBoundingBoxSize);
 
                 return area;
@@ -70,7 +69,7 @@ namespace PTL.ATT
             catch (Exception ex)
             {
                 try { area.Delete(); }
-                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete area from table:  " + ex2.Message); }
+                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete area:  " + ex2.Message); }
 
                 throw ex;
             }
@@ -100,16 +99,7 @@ namespace PTL.ATT
 
         public static List<Area> GetForShapefile(Shapefile shapefile)
         {
-            List<Area> areas = new List<Area>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table + " WHERE " + Columns.ShapefileId + "=" + shapefile.Id);
-            NpgsqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-                areas.Add(new Area(reader));
-
-            reader.Close();
-            DB.Connection.Return(cmd.Connection);
-
-            return areas;
+            return GetAll().Where(a => a.Shapefile.Id == shapefile.Id).ToList();
         }
         #endregion
 

@@ -72,6 +72,8 @@ namespace PTL.ATT
 
         internal static void Create(Area area, int pointContainmentBoundingBoxSize)
         {
+            Console.Out.WriteLine("Creating bounding boxes for area \"" + area + "\".");
+
             string tableName = CreateTable(area);
 
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT min(st_xmin(" + ShapefileGeometry.Columns.Geometry + "))," +

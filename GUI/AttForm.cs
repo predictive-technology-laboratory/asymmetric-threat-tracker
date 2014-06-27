@@ -410,7 +410,7 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.PostGisShapefileDirectory,
-                   "Shapefiles (*.shp;*.zip)|*.shp;*.zip", "*.shp",
+                   "Shapefiles (*.shp;*.zip)|*.shp;*.zip", new string[] { "*.shp" },
                    new ImportCompletionDelegate(() => { RefreshPredictionAreas(); }));
         }
 
@@ -548,7 +548,9 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.IncidentsImportDirectory,
-                   null, null, null);
+                   "Incident files (*.shp;*.xml;*.zip)|*.shp;*.xml;*.zip",
+                   new string[] { "*.xml", "*.shp" },
+                   null);
         }
 
         public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -580,7 +582,7 @@ namespace PTL.ATT.GUI
                             CreateImporterDelegate createImporter,
                             string initialBrowsingDirectory,
                             string fileBrowserFilter,
-                            string importFileSearchPattern,
+                            string[] importFileSearchPatterns,
                             ImportCompletionDelegate completionCallback)
         {
             Thread t = new Thread(new ThreadStart(delegate()
@@ -670,7 +672,7 @@ namespace PTL.ATT.GUI
 
                         string[] paths = new string[] { p };
                         if (pathIsDirectory)
-                            paths = Directory.GetFiles(p, importFileSearchPattern == null ? "*" : importFileSearchPattern, SearchOption.AllDirectories);
+                            paths = importFileSearchPatterns == null ? Directory.GetFiles(p, "*", SearchOption.AllDirectories) : importFileSearchPatterns.SelectMany(pattern => Directory.GetFiles(p, pattern, SearchOption.AllDirectories)).ToArray();
 
                         foreach (string path in paths)
                             if (File.Exists(path))
