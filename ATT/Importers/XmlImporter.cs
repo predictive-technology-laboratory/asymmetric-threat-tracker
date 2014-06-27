@@ -73,6 +73,11 @@ namespace PTL.ATT.Importers
             /// <returns>Insertion value with parameters</returns>
             public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
 
+            /// <summary>
+            /// Cleans up any unnecessary memory
+            /// </summary>
+            internal abstract void Cleanup();
+
             public virtual void GetUpdateRequests(UpdateRequestDelegate updateRequest)
             {
             }
@@ -161,6 +166,11 @@ namespace PTL.ATT.Importers
                 else
                     return null;
             }
+
+            internal override void Cleanup()
+            {
+                _existingNativeIDs = null;
+            }   
         }
 
         /// <summary>
@@ -195,25 +205,24 @@ namespace PTL.ATT.Importers
 
                 _rowNum = 0;
 
-                Shapefile shapefile = new Shapefile(Shapefile.Create(XmlImporter.Name, _importArea.SRID, Shapefile.ShapefileType.Feature));
+                Shapefile shapefile = Shapefile.Create(XmlImporter.Name, _importArea.Shapefile.SRID, Shapefile.ShapefileType.Feature);
 
-                string shapefileGeometryTableName = ShapefileGeometry.GetTableName(shapefile);
                 DB.Connection.ExecuteNonQuery(
-                    "CREATE TABLE " + shapefileGeometryTableName + " (" +
+                    "CREATE TABLE " + shapefile.GeometryTable + " (" +
                     ShapefileGeometry.Columns.Geometry + " GEOMETRY(GEOMETRY," + shapefile.SRID + ")," +
                     ShapefileGeometry.Columns.Id + " SERIAL PRIMARY KEY," +
                     ShapefileGeometry.Columns.Time + " TIMESTAMP);" +
-                    "CREATE INDEX ON " + shapefileGeometryTableName + " USING GIST (" + ShapefileGeometry.Columns.Geometry + ");" +
-                    "CREATE INDEX ON " + shapefileGeometryTableName + " (" + ShapefileGeometry.Columns.Time + ");");
+                    "CREATE INDEX ON " + shapefile.GeometryTable + " USING GIST (" + ShapefileGeometry.Columns.Geometry + ");" +
+                    "CREATE INDEX ON " + shapefile.GeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
 
-                base.Initialize(shapefileGeometryTableName, ShapefileGeometry.Columns.Insert);
+                base.Initialize(shapefile.GeometryTable, ShapefileGeometry.Columns.Insert);
             }
 
             public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)
             {
                 base.GetUpdateRequests(updateRequest);
 
-                updateRequest("Area", _importArea, Area.GetForSRID(_importArea.SRID), XmlImporter.GetUpdateRequestId("area"));
+                updateRequest("Area", _importArea, Area.GetForSRID(_importArea.Shapefile.SRID), XmlImporter.GetUpdateRequestId("area"));
                 updateRequest("Source SRID", _sourceSRID, null, XmlImporter.GetUpdateRequestId("source_srid"));
             }
 
@@ -245,7 +254,11 @@ namespace PTL.ATT.Importers
 
                 string timeParamName = "time_" + _rowNum++;
                 List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter(timeParamName, NpgsqlDbType.Timestamp, time) });
-                return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.SRID, timeParamName), parameters);
+                return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.Shapefile.SRID, timeParamName), parameters);
+            }
+
+            internal override void Cleanup()
+            {
             }
         }
         #endregion
@@ -354,6 +367,7 @@ namespace PTL.ATT.Importers
 
                     Console.Out.WriteLine("Cleaning up database after import");
                     DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + InsertTable);
+                    _xmlRowInserter.Cleanup();
 
                     Console.Out.WriteLine("Import from \"" + Path + "\" was successful.  Imported " + totalImported + " rows of " + totalRows + " total in the file (" + skippedRows + " rows were skipped)");
                 }

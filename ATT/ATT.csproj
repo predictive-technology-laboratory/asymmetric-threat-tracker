@@ -89,7 +89,6 @@
   <ItemGroup>
     <Compile Include="Area.cs" />
     <Compile Include="AreaBoundingBoxes.cs" />
-    <Compile Include="AreaGeometry.cs" />
     <Compile Include="Classifiers\AdaBoost.cs" />
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\RandomForest.cs" />

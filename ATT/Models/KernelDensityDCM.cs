@@ -206,7 +206,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             double areaMaxY = predictionArea.BoundingBox.MaxY;
             for (double x = areaMinX + PointSpacing / 2d; x <= areaMaxX; x += PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + PointSpacing / 2d; y <= areaMaxY; y += PointSpacing)
-                    nullPoints.Add(new PostGIS.Point(x, y, predictionArea.SRID));
+                    nullPoints.Add(new PostGIS.Point(x, y, predictionArea.Shapefile.SRID));
 
             nullPoints = predictionArea.Contains(nullPoints).Select(i => nullPoints[i]).ToList();
 
@@ -216,8 +216,8 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             {
                 Console.Out.WriteLine("Running KDE for all incident types");
 
-                Point.CreateTable(prediction.Id, predictionArea.SRID);
-                List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction.Id, predictionArea, false, false);
+                Point.CreateTable(prediction, predictionArea.Shapefile.SRID);
+                List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false, false);
 
                 List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
                 List<float> density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, nullPoints, _normalize);
@@ -257,8 +257,8 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                         }
                     }
 
-                PointPrediction.CreateTable(prediction.Id);
-                PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction.Id, false);
+                PointPrediction.CreateTable(prediction);
+                PointPrediction.Insert(GetPointPredictionValues(pointIdOverallDensity, pointIdIncidentDensity), prediction, false);
 
                 Smooth(prediction);
             }

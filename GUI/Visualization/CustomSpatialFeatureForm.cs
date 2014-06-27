@@ -107,7 +107,7 @@ namespace PTL.ATT.GUI.Visualization
                         Shapefile shapefile = null;
                         try
                         {
-                            shapefile = new Shapefile(Shapefile.Create(name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.Feature));
+                            shapefile = Shapefile.Create(name, (elements.Items[0] as Geometry).SRID, Shapefile.ShapefileType.Feature);
                             ShapefileGeometry.Create(shapefile, elements.Items.Cast<Geometry>().Select(g => new Tuple<Geometry, DateTime>(g, DateTime.MinValue)).ToList());
                             MessageBox.Show("Shapefile \"" + name + "\" created.");
                             elements.Items.Clear();

@@ -119,7 +119,7 @@ write.table(prediction,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.nam
                 foreach (PointPrediction pointPrediction in pointPredictions)
                     pointPrediction.TotalThreat = pointPrediction.IncidentScore.Keys.Sum(incident => incident == PointPrediction.NullLabel ? 0 : pointPrediction.IncidentScore[incident]);
 
-                PointPrediction.UpdateThreatScores(pointPredictions, prediction.Id);
+                PointPrediction.UpdateThreatScores(pointPredictions, prediction);
 
                 prediction.SmoothingDetails = GetSmoothingDetails();
             }

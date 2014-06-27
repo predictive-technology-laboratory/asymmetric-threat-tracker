@@ -52,20 +52,20 @@ namespace PTL.ATT
 
         public const string NullLabel = "NULL";
 
-        internal static string GetTableName(int predictionId)
+        internal static string GetTableName(Prediction prediction)
         {
-            return "point_prediction_" + predictionId;
+            return "point_prediction_" + prediction.Id;
         }
 
-        internal static string CreateTable(int predictionId)
+        internal static string CreateTable(Prediction prediction)
         {
-            string table = GetTableName(predictionId);
+            string table = GetTableName(prediction);
 
             DB.Connection.ExecuteNonQuery(
                 "CREATE TABLE " + table + " (" +
                  Columns.Id + " SERIAL PRIMARY KEY," +
                  Columns.Labels + " VARCHAR []," +
-                 Columns.PointId + " INT REFERENCES " + Point.GetTableName(predictionId) + " ON DELETE CASCADE," +
+                 Columns.PointId + " INT REFERENCES " + Point.GetTableName(prediction) + " ON DELETE CASCADE," +
                  Columns.ThreatScores + " DOUBLE PRECISION []," +
                  Columns.Time + " TIMESTAMP," +
                  Columns.TotalThreat + " DOUBLE PRECISION);" +
@@ -77,14 +77,14 @@ namespace PTL.ATT
             return table;
         }
 
-        internal static void DeleteTable(int predictionId)
+        internal static void DeleteTable(Prediction prediction)
         {
-            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(predictionId) + " CASCADE");
+            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(prediction) + " CASCADE");
         }
 
-        public static void VacuumTable(int predictionId)
+        public static void VacuumTable(Prediction prediction)
         {
-            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
+            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(prediction));
         }
 
         public static string GetValue(int pointId, string timeParameterName, IEnumerable<KeyValuePair<string, double>> incidentScore, double totalThreat)
@@ -115,7 +115,7 @@ namespace PTL.ATT
             scores = scoresBuilder.ToString();
         }
 
-        internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, int predictionId, bool vacuum)
+        internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, Prediction prediction, bool vacuum)
         {
             Set<Thread> threads = new Set<Thread>();
             for (int start = 0; start < Configuration.ProcessorCount; ++start)
@@ -127,7 +127,7 @@ namespace PTL.ATT
                         int pointNum = 0;
                         int pointsPerBatch = 5000;
                         int skip = (int)o;
-                        string table = GetTableName(predictionId);
+                        string table = GetTableName(prediction);
                         foreach (Tuple<string, Parameter> valueParameter in valueParameters)
                             if (skip-- <= 0)
                             {
@@ -164,13 +164,13 @@ namespace PTL.ATT
                 t.Join();
 
             if (vacuum)
-                VacuumTable(predictionId);
+                VacuumTable(prediction);
         }
 
-        public static IEnumerable<PointPrediction> GetWithin(Polygon polygon, int predictionId)
+        public static IEnumerable<PointPrediction> GetWithin(Polygon polygon, Prediction prediction)
         {
-            string table = GetTableName(predictionId);
-            string pointTable = Point.GetTableName(predictionId);
+            string table = GetTableName(prediction);
+            string pointTable = Point.GetTableName(prediction);
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(table) + " " +
                                                          "FROM " + Columns.JoinPoint(table, pointTable) + " " +
                                                          "WHERE st_intersects(" + pointTable + "." + Point.Columns.Location + "," + polygon.StGeometryFromText + ")");
@@ -186,7 +186,7 @@ namespace PTL.ATT
             return predictions;
         }
 
-        internal static void UpdateThreatScores(IEnumerable<PointPrediction> pointPredictions, int predictionId)
+        internal static void UpdateThreatScores(IEnumerable<PointPrediction> pointPredictions, Prediction prediction)
         {
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
@@ -199,7 +199,7 @@ namespace PTL.ATT
                         int pointNum = 0;
                         NpgsqlCommand cmd = DB.Connection.NewCommand("");
                         StringBuilder cmdText = new StringBuilder();
-                        string table = GetTableName(predictionId);
+                        string table = GetTableName(prediction);
                         foreach (PointPrediction pointPrediction in pointPredictions)
                             if (skip-- <= 0)
                             {

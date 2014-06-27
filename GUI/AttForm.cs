@@ -428,7 +428,7 @@ namespace PTL.ATT.GUI
                            }
 
                            f.AddDropDown("Import into area:", areas, null, "area");
-                           f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                           f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
 
                            return f;
                        }),
@@ -539,7 +539,7 @@ namespace PTL.ATT.GUI
                            }
                            else if (extension == ".shp")
                            {
-                               int targetSRID = importArea.SRID;
+                               int targetSRID = importArea.Shapefile.SRID;
                                ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
                                return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, importArea, new IncidentShapefileImportInfoRetriever(), hourOffset);
                            }
@@ -1330,10 +1330,8 @@ namespace PTL.ATT.GUI
                             Thread areaT = new Thread(new ParameterizedThreadStart(delegate(object o)
                                 {
                                     Area area = o as Area;
-                                    Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                    constraints.Add(AreaGeometry.Columns.AreaId, area.Id.ToString());
                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, AreaGeometry.GetTableName(p.PredictionArea.SRID), AreaGeometry.Columns.Geometry, AreaGeometry.Columns.Id, constraints, pointDistanceThreshold), Color.Black, true, 0)); }
+                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
                                     DB.Connection.Return(connection);
                                 }));
 
@@ -1360,7 +1358,7 @@ namespace PTL.ATT.GUI
                                                 {
                                                     Shapefile shapefile = new Shapefile(int.Parse(feature.PredictionResourceId));
                                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                    List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
+                                                    List<List<PointF>> points = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
                                                     DB.Connection.Return(connection);
                                                     lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }
@@ -1380,7 +1378,8 @@ namespace PTL.ATT.GUI
 
                             threatMap.Display(p, overlays);
 
-                            Invoke(new Action(RefreshAssessmentPlots));
+                            if (threatMap.DisplayedPrediction != null)
+                                Invoke(new Action(RefreshAssessmentPlots));
                         }));
 
                     displayThread.Start();
@@ -1473,8 +1472,8 @@ namespace PTL.ATT.GUI
                                     try
                                     {
                                         Prediction copy = selectedPrediction.Copy("Copy " + copyNum + " of " + selectedPrediction.Name, predictionNum == 1 && copyNum == 1, false);
-                                        Point.VacuumTable(copy.Id);
-                                        PointPrediction.VacuumTable(copy.Id);
+                                        Point.VacuumTable(copy);
+                                        PointPrediction.VacuumTable(copy);
                                     }
                                     catch (Exception ex) { Console.Out.WriteLine("Error while copying prediction:  " + ex.Message); }
                                 }

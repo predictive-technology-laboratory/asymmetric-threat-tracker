@@ -38,12 +38,11 @@ namespace PTL.ATT.Importers
 
             Area.Create(ImportedShapefile, ImportedShapefile.Name, _areaContainmentBoxSize);
 
-            // add time column - this is an interim solution, since we might want to keep a shapefile's time column but we're not quite sure how to do that in a way that will work
-            string shapefileGeometryTable = ShapefileGeometry.GetTableName(ImportedShapefile);
-            DB.Connection.ExecuteNonQuery("ALTER TABLE " + shapefileGeometryTable + " DROP COLUMN IF EXISTS " + ShapefileGeometry.Columns.Time + ";" +
-                                          "ALTER TABLE " + shapefileGeometryTable + " ADD COLUMN " + ShapefileGeometry.Columns.Time + " TIMESTAMP;" +
-                                          "UPDATE " + shapefileGeometryTable + " SET " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp;" +
-                                          "CREATE INDEX ON " + shapefileGeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
+            // we don't currently have anything to put in the Time column for areas -- maybe in the future
+            DB.Connection.ExecuteNonQuery("ALTER TABLE " + ImportedShapefile.GeometryTable + " DROP COLUMN IF EXISTS " + ShapefileGeometry.Columns.Time + ";" +
+                                          "ALTER TABLE " + ImportedShapefile.GeometryTable + " ADD COLUMN " + ShapefileGeometry.Columns.Time + " TIMESTAMP;" +
+                                          "UPDATE " + ImportedShapefile.GeometryTable + " SET " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp;" +
+                                          "CREATE INDEX ON " + ImportedShapefile.GeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
 
             Console.Out.WriteLine("Area definition completed.");
         }

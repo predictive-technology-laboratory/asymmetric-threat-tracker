@@ -60,21 +60,21 @@ namespace PTL.ATT
 
         public static string GetTableName(Area area)
         {
-            return "incident_" + area.SRID;
+            return "incident_" + area.Shapefile.SRID;
         }
 
         public static string CreateTable(Area area)
         {
             string tableName = GetTableName(area);
-
+            string nativeIdSeqName = tableName + "_native_id_seq";
             if (!DB.Connection.TableExists(tableName))
                 DB.Connection.ExecuteNonQuery(
-                    "CREATE SEQUENCE native_id_seq;" + 
+                    "CREATE SEQUENCE " + nativeIdSeqName + ";" +
                     "CREATE TABLE " + tableName + " (" +
                     Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," +
                     Columns.Id + " SERIAL PRIMARY KEY," +
-                    Columns.Location + " GEOMETRY(POINT," + area.SRID + ")," +
-                    Columns.NativeId + " INT DEFAULT nextval('native_id_seq')," +
+                    Columns.Location + " GEOMETRY(POINT," + area.Shapefile.SRID + ")," +
+                    Columns.NativeId + " INT DEFAULT nextval('" + nativeIdSeqName + "')," +
                     Columns.Simulated + " BOOLEAN," +
                     Columns.Time + " TIMESTAMP," +
                     Columns.Type + " VARCHAR," +
@@ -96,7 +96,7 @@ namespace PTL.ATT
 
         public static string GetValue(Area area, int nativeId, PostGIS.Point location, bool simulated, string time, string type)
         {
-            return area.Id + "," + (location.SRID == area.SRID ? location.StGeometryFromText : "st_transform(" + location.StGeometryFromText + "," + area.SRID + ")") + "," + nativeId + "," + simulated + "," + time + ",'" + Util.Escape(type) + "'";
+            return area.Id + "," + (location.SRID == area.Shapefile.SRID ? location.StGeometryFromText : "st_transform(" + location.StGeometryFromText + "," + area.Shapefile.SRID + ")") + "," + nativeId + "," + simulated + "," + time + ",'" + Util.Escape(type) + "'";
         }
 
         public static void Clear(Area area)
@@ -139,7 +139,7 @@ namespace PTL.ATT
                 double x = minX + r.NextDouble() * xRange;
                 double y = minY + r.NextDouble() * yRange;
                 string type = incidentTypes[r.Next(incidentTypes.Length)];
-                PostGIS.Point location = new PostGIS.Point(x, y, area.SRID);
+                PostGIS.Point location = new PostGIS.Point(x, y, area.Shapefile.SRID);
 
                 cmdText.Append("INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES (" + GetValue(area, nativeId, location, true, "@date" + numInBatch, type) + ");");
                 param.Add(new Parameter("date" + numInBatch, NpgsqlDbType.Timestamp, date));

@@ -230,7 +230,7 @@ namespace PTL.ATT.GUI
             DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", MessageBoxButtons.OKCancel);
             foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
                 if (parameter == "Attribute column")
-                    f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(ShapefileGeometry.GetTableName(new Shapefile(int.Parse(feature.TrainingResourceId)))).ToArray(), feature.ParameterValue[parameter], parameter);
+                    f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(new Shapefile(int.Parse(feature.TrainingResourceId)).GeometryTable).ToArray(), feature.ParameterValue[parameter], parameter);
                 else if (parameter == "Attribute type")
                     f.AddDropDown(parameter + ":", new string[] { "Numeric", "Nominal" }, feature.ParameterValue[parameter], parameter);
                 else

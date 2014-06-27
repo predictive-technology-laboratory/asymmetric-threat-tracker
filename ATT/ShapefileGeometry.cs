@@ -39,25 +39,18 @@ namespace PTL.ATT
             public static string Insert { get { return Reflector.GetInsertColumns(typeof(Columns)); } }
         }
 
-        public static string GetTableName(Shapefile shapefile)
-        {
-            return "shapefile_geometry_" + shapefile.Id;
-        }
-
         public static void Create(Shapefile shapefile, List<Tuple<Geometry, DateTime>> geometryTimes)
         {
             if (geometryTimes.Count == 0)
                 return;
 
-            string tableName = GetTableName(shapefile);
-
             DB.Connection.ExecuteNonQuery(
-                "CREATE TABLE " + tableName + " (" +
+                "CREATE TABLE " + shapefile.GeometryTable + " (" +
                 Columns.Geometry + " GEOMETRY(GEOMETRY," + shapefile.SRID + ")," +
                 Columns.Id + " SERIAL PRIMARY KEY," +
                 Columns.Time + " TIMESTAMP);" +
-                "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Geometry + ");" +
-                "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");");
+                "CREATE INDEX ON " + shapefile.GeometryTable + " USING GIST (" + Columns.Geometry + ");" +
+                "CREATE INDEX ON " + shapefile.GeometryTable + " (" + Columns.Time + ");");
 
             int numPerBatch = 1000;
             int num = 0;
@@ -67,7 +60,7 @@ namespace PTL.ATT
             foreach (Tuple<Geometry, DateTime> geometryTime in geometryTimes)
             {
                 string timeParamName = "time_" + num;
-                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + GetValue(geometryTime.Item1, shapefile.SRID, timeParamName) + ")");
+                cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO " + shapefile.GeometryTable + " (" + Columns.Insert + ") VALUES " : ",") + "(" + GetValue(geometryTime.Item1, shapefile.SRID, timeParamName) + ")");
                 cmdParams.Add(new Parameter(timeParamName, NpgsqlTypes.NpgsqlDbType.Timestamp, geometryTime.Item2));
 
                 if (++num == numPerBatch)

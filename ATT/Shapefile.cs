@@ -67,10 +67,10 @@ namespace PTL.ATT
                    "CREATE INDEX ON " + Table + " (" + Columns.Type + ");");
         }
 
-        public static int Create(string name, int srid, ShapefileType type)
+        public static Shapefile Create(string name, int srid, ShapefileType type)
         {
-            return Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id));
-        }        
+            return new Shapefile(Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + srid + ",'" + type + "') RETURNING " + Columns.Id)));
+        }
 
         public static IEnumerable<Shapefile> GetAll()
         {
@@ -128,6 +128,12 @@ namespace PTL.ATT
         {
             get { return _type; }
         }
+
+        public string GeometryTable
+        {
+            get { return "shapefile_geometry_" + _id; }
+        }
+
         #endregion
 
         public Shapefile(int id)
@@ -173,8 +179,19 @@ namespace PTL.ATT
         {
             try
             {
-                DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id);
-                DB.Connection.ExecuteNonQuery("DROP TABLE " + ShapefileGeometry.GetTableName(this));
+                try
+                {
+                    if (_type == ShapefileType.Area)
+                        foreach (Area area in Area.GetForShapefile(this))
+                            area.Delete();
+                }
+                catch (Exception) { }
+
+                try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
+                catch (Exception) { }
+
+                try { DB.Connection.ExecuteNonQuery("DROP TABLE " + GeometryTable); }
+                catch (Exception) { }
             }
             catch (Exception ex) { Console.Out.WriteLine("Error deleting shapefile:  " + ex.Message); }
         }

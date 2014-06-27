@@ -131,23 +131,24 @@ namespace PTL.ATT.Models
             Dictionary<long, Dictionary<string, int>> sliceLocationTrueCount = SurveillancePlot.GetSliceLocationTrueCount(incidents, prediction);
             Dictionary<long, Dictionary<string, List<double>>> sliceLocationThreats = SurveillancePlot.GetSliceLocationThreats(prediction);
             foreach (long slice in sliceLocationTrueCount.Keys.OrderBy(slice => slice))
-            {
-                string slicePlotTitle = prediction.Name;
-                if (sliceTicks > 0)
+                if (sliceLocationThreats.ContainsKey(slice)) // no prediction points might have been generated in the case of a feature-based classifier with no features
                 {
-                    DateTime sliceStart = new DateTime(slice * sliceTicks);
-                    DateTime sliceEnd = sliceStart + new TimeSpan(sliceTicks - 1);
-                    slicePlotTitle += Environment.NewLine +
-                                      sliceStart.ToShortDateString() + " " + sliceStart.ToShortTimeString() + " - " +
-                                      Environment.NewLine +
-                                      sliceEnd.ToShortDateString() + " " + sliceEnd.ToShortTimeString();
-                }
+                    string slicePlotTitle = prediction.Name;
+                    if (sliceTicks > 0)
+                    {
+                        DateTime sliceStart = new DateTime(slice * sliceTicks);
+                        DateTime sliceEnd = sliceStart + new TimeSpan(sliceTicks - 1);
+                        slicePlotTitle += Environment.NewLine +
+                                          sliceStart.ToShortDateString() + " " + sliceStart.ToShortTimeString() + " - " +
+                                          Environment.NewLine +
+                                          sliceEnd.ToShortDateString() + " " + sliceEnd.ToShortTimeString();
+                    }
 
-                Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
-                seriesPoints.Add("Slice " + sliceNum++, SurveillancePlot.GetSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
-                seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
-                prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
-            }
+                    Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
+                    seriesPoints.Add("Slice " + sliceNum++, SurveillancePlot.GetSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
+                    seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
+                    prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
+                }
 
             if (sliceLocationTrueCount.Count > 1)
             {
