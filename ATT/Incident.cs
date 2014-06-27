@@ -60,12 +60,7 @@ namespace PTL.ATT
 
         public static string GetTableName(Area area)
         {
-            return "incident_" + area.Shapefile.SRID;
-        }
-
-        public static string CreateTable(Area area)
-        {
-            string tableName = GetTableName(area);
+            string tableName = "incident_" + area.Shapefile.SRID;
             string nativeIdSeqName = tableName + "_native_id_seq";
             if (!DB.Connection.TableExists(tableName))
                 DB.Connection.ExecuteNonQuery(
@@ -121,7 +116,7 @@ namespace PTL.ATT
 
             NpgsqlCommand cmd = DB.Connection.NewCommand(null);
 
-            string tableName = CreateTable(area);
+            string tableName = GetTableName(area);
 
             cmd.CommandText = "BEGIN";
             cmd.ExecuteNonQuery();

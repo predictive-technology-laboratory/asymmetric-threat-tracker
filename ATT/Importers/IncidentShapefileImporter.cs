@@ -44,7 +44,7 @@ namespace PTL.ATT.Importers
             Console.Out.WriteLine("Converting shapefile data to incident data.");
 
             Dictionary<string, string> incidentTableColumnShapefileTableColumn = _shapefileIncidentMappingRetriever.MapIncidentColumnsToShapefileColumns(ImportedShapefile.GeometryTable);
-            DB.Connection.ExecuteNonQuery("INSERT INTO " + Incident.CreateTable(_importArea) + " (" + Incident.Columns.Insert + ") " +
+            DB.Connection.ExecuteNonQuery("INSERT INTO " + Incident.GetTableName(_importArea) + " (" + Incident.Columns.Insert + ") " +
 
                                           "SELECT " + _importArea.Id + "," +
                                                       incidentTableColumnShapefileTableColumn[Incident.Columns.Location] + "," +

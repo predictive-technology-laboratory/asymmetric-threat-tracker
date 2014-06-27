@@ -112,7 +112,7 @@ namespace PTL.ATT.Importers
                 if (_importArea == null || !Area.GetAll().Any(a => a.Id == _importArea.Id))
                     throw new Exception("No import area is defined for these incidents. If you're running a stored importer, try editing the importer and selecting an import area.");
 
-                base.Initialize(Incident.CreateTable(_importArea), Incident.Columns.Insert);
+                base.Initialize(Incident.GetTableName(_importArea), Incident.Columns.Insert);
 
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
