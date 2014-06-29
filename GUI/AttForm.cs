@@ -131,7 +131,7 @@ namespace PTL.ATT.GUI
                     DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", MessageBoxButtons.OK);
                     string[] incidentColumns = new string[] { Incident.Columns.Location, Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type };
                     foreach (string incidentColumn in incidentColumns)
-                        f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn);
+                        f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn, true);
 
                     f.ShowDialog();
 
@@ -388,7 +388,7 @@ namespace PTL.ATT.GUI
                        {
                            f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Target SRID:", 0, 0, 0, decimal.MaxValue, 1, "target_srid");
-                           f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), Shapefile.ShapefileType.Area, "type", new Action<object, EventArgs>((o, args) =>
+                           f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), Shapefile.ShapefileType.Area, "type", true, new Action<object, EventArgs>((o, args) =>
                                {
                                    ComboBox cb = o as ComboBox;
                                    NumericUpDown boxSizeUpDown = f.GetControl<NumericUpDown>("containment_box_size");
@@ -437,7 +437,7 @@ namespace PTL.ATT.GUI
                                return null;
                            }
 
-                           f.AddDropDown("Import into area:", areas, null, "area");
+                           f.AddDropDown("Import into area:", areas, null, "area", true);
                            f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
 
                            return f;
@@ -469,7 +469,7 @@ namespace PTL.ATT.GUI
             else
             {
                 DynamicForm f = new DynamicForm("Select geographic data to delete...");
-                f.AddListBox("Geographic data:", shapefiles, null, SelectionMode.MultiExtended, "shapefiles");
+                f.AddListBox("Geographic data:", shapefiles, null, SelectionMode.MultiExtended, "shapefiles", true);
                 if (f.ShowDialog() == DialogResult.OK)
                 {
                     Shapefile[] selectedShapefiles = f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("shapefiles").Cast<Shapefile>().ToArray();
@@ -523,7 +523,7 @@ namespace PTL.ATT.GUI
                                return null;
                            }
 
-                           f.AddDropDown("Import into area:", areas, null, "area");
+                           f.AddDropDown("Import into area:", areas, null, "area", true);
                            f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
 
@@ -567,7 +567,7 @@ namespace PTL.ATT.GUI
         {
             DynamicForm f = new DynamicForm("Collapse incident types...", MessageBoxButtons.OKCancel);
 
-            f.AddDropDown("Area:", Area.GetAll().ToArray(), null, "area", new Action<object, EventArgs>((o, args) =>
+            f.AddDropDown("Area:", Area.GetAll().ToArray(), null, "area", true, new Action<object, EventArgs>((o, args) =>
                 {
                     ListBox typesList = f.GetControl<ListBox>("types");
                     if (typesList != null)
@@ -584,7 +584,7 @@ namespace PTL.ATT.GUI
             Area area = f.GetValue<Area>("area") as Area;
             if (area != null)
             {
-                f.AddListBox("Types:", Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).ToArray(), null, SelectionMode.MultiExtended, "types");
+                f.AddListBox("Types:", Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).ToArray(), null, SelectionMode.MultiExtended, "types", true);
                 f.AddTextBox("Collapsed type:", null, 50, "collapsed");
 
                 if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -663,7 +663,7 @@ namespace PTL.ATT.GUI
                         });
 
                     importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
-                    importerForm.AddDropDown("File type:", Enum.GetValues(typeof(ImportFileType)), ImportFileType.Plain, "file_type");
+                    importerForm.AddDropDown("File type:", Enum.GetValues(typeof(ImportFileType)), ImportFileType.Plain, "file_type", true);
                     importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
                     importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, false, "save_importer");
 
@@ -775,12 +775,12 @@ namespace PTL.ATT.GUI
         {
             DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
 
-            rowInserterForm.AddDropDown("Row inserter:", rowInserterTypes, null, "row_inserter");
+            rowInserterForm.AddDropDown("Row inserter:", rowInserterTypes, null, "row_inserter", true);
 
             string[] inputColumns = XmlImporter.GetColumnNames(path, "row", "row");
             Array.Sort(inputColumns);
             foreach (string databaseColumn in databaseColumns)
-                rowInserterForm.AddDropDown(databaseColumn + ":", inputColumns, null, databaseColumn);
+                rowInserterForm.AddDropDown(databaseColumn + ":", inputColumns, null, databaseColumn, true);
 
             XmlImporter importer = null;
             if (rowInserterForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -814,8 +814,8 @@ namespace PTL.ATT.GUI
                         }
 
                         DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
-                        f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
-                        f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action");
+                        f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers", true);
+                        f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action", false);
                         if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
                         {
                             ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
@@ -887,7 +887,7 @@ namespace PTL.ATT.GUI
                                                 itemName += ":";
 
                                                 if (possibleValues != null)
-                                                    updateForm.AddDropDown(itemName, possibleValues.ToArray(), currentValue, id);
+                                                    updateForm.AddDropDown(itemName, possibleValues.ToArray(), currentValue, id, false);
                                                 else if (currentValue is string)
                                                     updateForm.AddTextBox(itemName, currentValue as string, -1, id);
                                                 else if (currentValue is int)
@@ -964,7 +964,7 @@ namespace PTL.ATT.GUI
             else
             {
                 DynamicForm modelForm = new DynamicForm("Select model type...", MessageBoxButtons.OKCancel);
-                modelForm.AddDropDown("Model type:", modelTypes, null, "model_type");
+                modelForm.AddDropDown("Model type:", modelTypes, null, "model_type", false);
                 if (modelForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     Type modelType = modelForm.GetValue<Type>("model_type");
@@ -2097,7 +2097,7 @@ namespace PTL.ATT.GUI
             }
 
             DynamicForm f = new DynamicForm(prompt, MessageBoxButtons.OKCancel);
-            f.AddDropDown("Areas:", areas, null, "area");
+            f.AddDropDown("Areas:", areas, null, "area", true);
             Area importArea = null;
             if (f.ShowDialog() == DialogResult.OK)
                 importArea = f.GetValue<Area>("area");

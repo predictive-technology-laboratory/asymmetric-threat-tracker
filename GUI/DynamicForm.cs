@@ -203,7 +203,7 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
         }
 
-        public void AddDropDown(string label, Array values, object selected, string valueId, Action<object, EventArgs> selectedValueChanged = null)
+        public void AddDropDown(string label, Array values, object selected, string valueId, bool sorted, Action<object, EventArgs> selectedValueChanged = null)
         {
             Label l = new Label();
             l.Text = label;
@@ -213,7 +213,7 @@ namespace PTL.ATT.GUI
             ComboBox cb = new ComboBox();
             cb.Name = valueId;
             cb.DropDownStyle = ComboBoxStyle.DropDownList;
-            cb.Sorted = true;
+            cb.Sorted = sorted;
 
             if (values != null)
             {
@@ -242,7 +242,7 @@ namespace PTL.ATT.GUI
                 cb.SelectedIndex = 0;
         }
 
-        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId)
+        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId, bool sorted)
         {
             Label l = new Label();
             l.Text = label;
@@ -252,7 +252,7 @@ namespace PTL.ATT.GUI
             ListBox lb = new ListBox();
             lb.Name = valueId;
             lb.SelectionMode = selectionMode;
-            lb.Sorted = true;
+            lb.Sorted = sorted;
 
             if (values != null)
             {

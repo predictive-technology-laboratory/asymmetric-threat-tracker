@@ -171,7 +171,7 @@ namespace PTL.ATT.GUI
                 else
                 {
                     DynamicForm df = new DynamicForm("Remapping features...");
-                    df.AddDropDown("Prediction area:", predictionAreas, null, "prediction_area");
+                    df.AddDropDown("Prediction area:", predictionAreas, null, "prediction_area", true);
                     if (df.ShowDialog() == DialogResult.OK)
                     {
                         List<Feature> selectedFeatures = Features;
@@ -230,9 +230,9 @@ namespace PTL.ATT.GUI
             DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", MessageBoxButtons.OKCancel);
             foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
                 if (parameter == "Attribute column")
-                    f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(new Shapefile(int.Parse(feature.TrainingResourceId)).GeometryTable).ToArray(), feature.ParameterValue[parameter], parameter);
+                    f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(new Shapefile(int.Parse(feature.TrainingResourceId)).GeometryTable).ToArray(), feature.ParameterValue[parameter], parameter, true);
                 else if (parameter == "Attribute type")
-                    f.AddDropDown(parameter + ":", new string[] { "Numeric", "Nominal" }, feature.ParameterValue[parameter], parameter);
+                    f.AddDropDown(parameter + ":", new string[] { "Numeric", "Nominal" }, feature.ParameterValue[parameter], parameter, true);
                 else
                     f.AddTextBox(parameter + ":", feature.ParameterValue[parameter], 20, parameter);
 
