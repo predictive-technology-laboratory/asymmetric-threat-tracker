@@ -203,6 +203,13 @@ namespace PTL.ATT.GUI.Visualization
                 if (y > maxPointY) maxPointY = y;
             }
 
+            if(_sliceIncidentPointScores.Count == 0)
+            {
+                Console.Out.WriteLine("No prediction points were generated for this prediction. There is nothing to display or evaluate.");
+                Clear();
+                return;
+            }
+
             Invoke(new Action(delegate()
                 {
                     incidentTypeCheckBoxes.Controls.Clear();
@@ -430,8 +437,10 @@ namespace PTL.ATT.GUI.Visualization
             timeSlice.ValueChanged -= new EventHandler(timeSlice_ValueChanged);
             timeSlice.Minimum = (int)_sliceThreatSurface.Keys.Min();
             timeSlice.Maximum = (int)_sliceThreatSurface.Keys.Max();
+
             if (displayFirstSlice)
                 timeSlice.Value = timeSlice.Minimum;
+
             timeSlice.ValueChanged += new EventHandler(timeSlice_ValueChanged);
 
             _zoomedImageWidth = CurrentThreatSurface.Width;
@@ -889,7 +898,7 @@ namespace PTL.ATT.GUI.Visualization
                         {
                             cmd.CommandText = "CREATE TABLE temp (" +
                                               "id SERIAL PRIMARY KEY," +
-                                              "region GEOMETRY(POLYGON," + DisplayedPrediction.PredictionArea.SRID + ")," +
+                                              "region GEOMETRY(POLYGON," + DisplayedPrediction.PredictionArea.Shapefile.SRID + ")," +
                                               "level DOUBLE PRECISION," +
                                               "type VARCHAR)";
                             cmd.ExecuteNonQuery();
@@ -919,7 +928,7 @@ namespace PTL.ATT.GUI.Visualization
                                     GetPostGisPointFromDrawingPoint(new PointF(left, top)),
                                     GetPostGisPointFromDrawingPoint(new PointF(right, top)),
                                     GetPostGisPointFromDrawingPoint(new PointF(right, bottom)),
-                                    GetPostGisPointFromDrawingPoint(new PointF(left, bottom))}, DisplayedPrediction.PredictionArea.SRID);
+                                    GetPostGisPointFromDrawingPoint(new PointF(left, bottom))}, DisplayedPrediction.PredictionArea.Shapefile.SRID);
 
                                     cmdTxt.Append((cmdTxt.Length == 0 ? "INSERT INTO temp (region,level,type) VALUES " : ",") + "(" + polygon.StGeometryFromText + "," +
                                                                                                                                       squareThreatType.Item2 + "," +
@@ -1016,15 +1025,15 @@ namespace PTL.ATT.GUI.Visualization
                     float leftMeters = _regionBottomLeftInMeters.X + colAbsoluteThreatRectangle * widthMeters;
 
                     PostGIS.Polygon threatRectangle = new PostGIS.Polygon(new PostGIS.Point[]{
-                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID),
-                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.SRID)}, DisplayedPrediction.PredictionArea.SRID);
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.Shapefile.SRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.Shapefile.SRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters + widthMeters, DisplayedPrediction.PredictionArea.Shapefile.SRID),
+                                                                          new PostGIS.Point(leftMeters + widthMeters, bottomMeters, DisplayedPrediction.PredictionArea.Shapefile.SRID),
+                                                                          new PostGIS.Point(leftMeters, bottomMeters, DisplayedPrediction.PredictionArea.Shapefile.SRID)}, DisplayedPrediction.PredictionArea.Shapefile.SRID);
 
                     DiscreteChoiceModel model = DisplayedPrediction.Model;
 
-                    PointPrediction[] pointPredictions = PointPrediction.GetWithin(threatRectangle, DisplayedPrediction.Id).ToArray();
+                    PointPrediction[] pointPredictions = PointPrediction.GetWithin(threatRectangle, DisplayedPrediction).ToArray();
 
                     // only get point predictions in current slice if we've got a timeslice model
                     if (model is TimeSliceDCM)
@@ -1168,7 +1177,7 @@ namespace PTL.ATT.GUI.Visualization
             double xMeters = _regionBottomLeftInMeters.X + drawingPoint.X / pixelsPerMeter;
             double yMeters = _regionBottomLeftInMeters.Y + (_regionSizeInMeters.Height - drawingPoint.Y / pixelsPerMeter);
 
-            return new PostGIS.Point(xMeters, yMeters, DisplayedPrediction.PredictionArea.SRID);
+            return new PostGIS.Point(xMeters, yMeters, DisplayedPrediction.PredictionArea.Shapefile.SRID);
         }
     }
 }

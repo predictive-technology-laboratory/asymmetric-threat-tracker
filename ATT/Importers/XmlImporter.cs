@@ -73,6 +73,11 @@ namespace PTL.ATT.Importers
             /// <returns>Insertion value with parameters</returns>
             public abstract Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser xmlRowParser);
 
+            /// <summary>
+            /// Cleans up any unnecessary memory
+            /// </summary>
+            internal abstract void Cleanup();
+
             public virtual void GetUpdateRequests(UpdateRequestDelegate updateRequest)
             {
             }
@@ -92,7 +97,9 @@ namespace PTL.ATT.Importers
             private Area _importArea;
             private int _hourOffset;
             private int _sourceSRID;
-            private Set<int> _existingNativeIDs;
+
+            [NonSerialized]
+            private Set<string> _existingNativeIDs;
 
             public IncidentXmlRowInserter(Dictionary<string, string> dbColInputCol, Area importArea, int hourOffset, int sourceSRID)
             {
@@ -107,7 +114,7 @@ namespace PTL.ATT.Importers
                 if (_importArea == null || !Area.GetAll().Any(a => a.Id == _importArea.Id))
                     throw new Exception("No import area is defined for these incidents. If you're running a stored importer, try editing the importer and selecting an import area.");
 
-                base.Initialize(Incident.CreateTable(_importArea), Incident.Columns.Insert);
+                base.Initialize(Incident.GetTableName(_importArea, true), Incident.Columns.Insert);
 
                 _existingNativeIDs = Incident.GetNativeIds(_importArea);
                 _existingNativeIDs.ThrowExceptionOnDuplicateAdd = false;
@@ -133,7 +140,7 @@ namespace PTL.ATT.Importers
 
             public override Tuple<string, List<Parameter>> GetInsertValueAndParameters(XmlParser rowXmlParser)
             {
-                int nativeId = int.Parse(rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.NativeId])); rowXmlParser.Reset();
+                string nativeId = rowXmlParser.ElementText(_dbColInputCol[Incident.Columns.NativeId]).Trim(); rowXmlParser.Reset();
 
                 if (_existingNativeIDs.Add(nativeId))
                 {
@@ -161,6 +168,11 @@ namespace PTL.ATT.Importers
                 else
                     return null;
             }
+
+            internal override void Cleanup()
+            {
+                _existingNativeIDs = null;
+            }   
         }
 
         /// <summary>
@@ -195,18 +207,24 @@ namespace PTL.ATT.Importers
 
                 _rowNum = 0;
 
-                NpgsqlConnection connection = DB.Connection.OpenConnection;
-                Shapefile shapefile = new Shapefile(Shapefile.Create(connection, XmlImporter.Name, _importArea.SRID, Shapefile.ShapefileType.Feature));
-                DB.Connection.Return(connection);
+                Shapefile shapefile = Shapefile.Create(XmlImporter.Name, _importArea.Shapefile.SRID, Shapefile.ShapefileType.Feature);
 
-                base.Initialize(ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Insert);
+                DB.Connection.ExecuteNonQuery(
+                    "CREATE TABLE " + shapefile.GeometryTable + " (" +
+                    ShapefileGeometry.Columns.Geometry + " GEOMETRY(GEOMETRY," + shapefile.SRID + ")," +
+                    ShapefileGeometry.Columns.Id + " SERIAL PRIMARY KEY," +
+                    ShapefileGeometry.Columns.Time + " TIMESTAMP);" +
+                    "CREATE INDEX ON " + shapefile.GeometryTable + " USING GIST (" + ShapefileGeometry.Columns.Geometry + ");" +
+                    "CREATE INDEX ON " + shapefile.GeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
+
+                base.Initialize(shapefile.GeometryTable, ShapefileGeometry.Columns.Insert);
             }
 
             public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)
             {
                 base.GetUpdateRequests(updateRequest);
 
-                updateRequest("Area", _importArea, Area.GetForSRID(_importArea.SRID), XmlImporter.GetUpdateRequestId("area"));
+                updateRequest("Area", _importArea, Area.GetForSRID(_importArea.Shapefile.SRID), XmlImporter.GetUpdateRequestId("area"));
                 updateRequest("Source SRID", _sourceSRID, null, XmlImporter.GetUpdateRequestId("source_srid"));
             }
 
@@ -238,7 +256,11 @@ namespace PTL.ATT.Importers
 
                 string timeParamName = "time_" + _rowNum++;
                 List<Parameter> parameters = new List<Parameter>(new Parameter[] { new Parameter(timeParamName, NpgsqlDbType.Timestamp, time) });
-                return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.SRID, timeParamName), parameters);
+                return new Tuple<string, List<Parameter>>(ShapefileGeometry.GetValue(new PostGIS.Point(x, y, _sourceSRID), _importArea.Shapefile.SRID, timeParamName), parameters);
+            }
+
+            internal override void Cleanup()
+            {
             }
         }
         #endregion
@@ -347,6 +369,7 @@ namespace PTL.ATT.Importers
 
                     Console.Out.WriteLine("Cleaning up database after import");
                     DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + InsertTable);
+                    _xmlRowInserter.Cleanup();
 
                     Console.Out.WriteLine("Import from \"" + Path + "\" was successful.  Imported " + totalImported + " rows of " + totalRows + " total in the file (" + skippedRows + " rows were skipped)");
                 }

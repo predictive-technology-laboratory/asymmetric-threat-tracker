@@ -113,6 +113,37 @@ namespace PTL.ATT.GUI
             }
         }
 
+        [Serializable]
+        public class IncidentShapefileImportInfoRetriever : IIncidentTableShapefileTableMappingRetriever
+        {
+            private Dictionary<string, string> _incidentColumnShapefileColumn;
+
+            public Dictionary<string, string> MapIncidentColumnsToShapefileColumns(string shapefileGeometryTable, bool reusePrevious)
+            {
+                if (!reusePrevious)
+                    _incidentColumnShapefileColumn = null;
+
+                if (_incidentColumnShapefileColumn == null)
+                {
+                    _incidentColumnShapefileColumn = new Dictionary<string, string>();
+
+                    string[] shapefileColumns = DB.Connection.GetColumnNames(shapefileGeometryTable).ToArray();
+                    DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", MessageBoxButtons.OK);
+                    string[] incidentColumns = new string[] { Incident.Columns.Location, Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type };
+                    foreach (string incidentColumn in incidentColumns)
+                        f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn, true);
+
+                    f.ShowDialog();
+
+                    _incidentColumnShapefileColumn = new Dictionary<string, string>();
+                    foreach (string incidentTableColumn in incidentColumns)
+                        _incidentColumnShapefileColumn.Add(incidentTableColumn, f.GetValue<string>(incidentTableColumn));
+                }
+
+                return _incidentColumnShapefileColumn;
+            }
+        }
+
         /// <summary>
         /// Completes a dynamic importer creation form.
         /// </summary>
@@ -357,7 +388,7 @@ namespace PTL.ATT.GUI
                        {
                            f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Target SRID:", 0, 0, 0, decimal.MaxValue, 1, "target_srid");
-                           f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), Shapefile.ShapefileType.Area, "type", new Action<object, EventArgs>((o, args) =>
+                           f.AddDropDown("Shapefile type:", Enum.GetValues(typeof(Shapefile.ShapefileType)).Cast<Shapefile.ShapefileType>().ToArray(), Shapefile.ShapefileType.Area, "type", true, new Action<object, EventArgs>((o, args) =>
                                {
                                    ComboBox cb = o as ComboBox;
                                    NumericUpDown boxSizeUpDown = f.GetControl<NumericUpDown>("containment_box_size");
@@ -389,7 +420,7 @@ namespace PTL.ATT.GUI
                        }),
 
                    Configuration.PostGisShapefileDirectory,
-                   "Shapefiles (*.shp;*.zip)|*.shp;*.zip", "*.shp",
+                   "Shapefiles (*.shp;*.zip)|*.shp;*.zip", new string[] { "*.shp" },
                    new ImportCompletionDelegate(() => { RefreshPredictionAreas(); }));
         }
 
@@ -406,8 +437,8 @@ namespace PTL.ATT.GUI
                                return null;
                            }
 
-                           f.AddDropDown("Import into area:", areas, null, "area");
-                           f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                           f.AddDropDown("Import into area:", areas, null, "area", true);
+                           f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
 
                            return f;
                        }),
@@ -438,7 +469,7 @@ namespace PTL.ATT.GUI
             else
             {
                 DynamicForm f = new DynamicForm("Select geographic data to delete...");
-                f.AddListBox("Geographic data:", shapefiles, null, SelectionMode.MultiExtended, "shapefiles");
+                f.AddListBox("Geographic data:", shapefiles, null, SelectionMode.MultiExtended, "shapefiles", true);
                 if (f.ShowDialog() == DialogResult.OK)
                 {
                     Shapefile[] selectedShapefiles = f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("shapefiles").Cast<Shapefile>().ToArray();
@@ -492,8 +523,8 @@ namespace PTL.ATT.GUI
                                return null;
                            }
 
-                           f.AddDropDown("Import into area:", areas, null, "area");
-                           f.AddNumericUpdown("Source SRID:", 4326, 0, 0, decimal.MaxValue, 1, "source_srid");
+                           f.AddDropDown("Import into area:", areas, null, "area", true);
+                           f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
 
                            return f;
@@ -505,17 +536,77 @@ namespace PTL.ATT.GUI
                            int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                            int hourOffset = Convert.ToInt32(importerForm.GetValue<decimal>("offset"));
 
-                           Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
-                           string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
+                           string extension = Path.GetExtension(path).ToLower();
+                           if (extension == ".xml")
+                           {
+                               Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
+                               string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
 
-                           return CreateXmlImporter(name, path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
-                                                    {
-                                                        return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
-                                                    });
+                               return CreateXmlImporter(name, path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
+                                                        {
+                                                            return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
+                                                        });
+                           }
+                           else if (extension == ".shp")
+                           {
+                               int targetSRID = importArea.Shapefile.SRID;
+                               ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
+                               return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, importArea, new IncidentShapefileImportInfoRetriever(), hourOffset);
+                           }
+                           else
+                               throw new NotImplementedException("Unrecognized incident import file extension:  " + extension);
                        }),
 
                    Configuration.IncidentsImportDirectory,
-                   null, null, null);
+                   "Incident files (*.shp;*.xml;*.zip)|*.shp;*.xml;*.zip",
+                   new string[] { "*.xml", "*.shp" },
+                   null);
+        }
+
+        private void collapseIncidentTypesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DynamicForm f = new DynamicForm("Collapse incident types...", MessageBoxButtons.OKCancel);
+
+            f.AddDropDown("Area:", Area.GetAll().ToArray(), null, "area", true, new Action<object, EventArgs>((o, args) =>
+                {
+                    ListBox typesList = f.GetControl<ListBox>("types");
+                    if (typesList != null)
+                    {
+                        typesList.Items.Clear();
+
+                        Area selectedArea = (o as ComboBox).SelectedItem as Area;
+                        if (selectedArea != null)
+                            foreach (string type in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, selectedArea))
+                                typesList.Items.Add(type);
+                    }
+                }));
+
+            Area area = f.GetValue<Area>("area") as Area;
+            if (area != null)
+            {
+                f.AddListBox("Types:", Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).ToArray(), null, SelectionMode.MultiExtended, "types", true);
+                f.AddTextBox("Collapsed type:", null, 50, "collapsed");
+
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    area = f.GetValue<Area>("area");
+
+                    List<string> types = new List<string>();
+                    foreach (string type in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("types"))
+                        types.Add(type);
+
+                    string collapsedType = f.GetValue<string>("collapsed").Trim();
+
+                    if (area == null)
+                        MessageBox.Show("Must select an area.");
+                    else if (types.Count <= 1)
+                        MessageBox.Show("Must select two or more types to collapse.");
+                    else if (string.IsNullOrWhiteSpace(collapsedType))
+                        MessageBox.Show("Must enter a collapsed type name.");
+                    else if (MessageBox.Show("Are you sure you want to collapse these incident types?", "Collapse?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                        Incident.Collapse(area, types, collapsedType);
+                }
+            }
         }
 
         public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -547,7 +638,7 @@ namespace PTL.ATT.GUI
                             CreateImporterDelegate createImporter,
                             string initialBrowsingDirectory,
                             string fileBrowserFilter,
-                            string importFileSearchPattern,
+                            string[] importFileSearchPatterns,
                             ImportCompletionDelegate completionCallback)
         {
             Thread t = new Thread(new ThreadStart(delegate()
@@ -572,7 +663,7 @@ namespace PTL.ATT.GUI
                         });
 
                     importerForm.AddTextBox("Download XML URI:", null, 200, "uri");
-                    importerForm.AddDropDown("File type:", Enum.GetValues(typeof(ImportFileType)), ImportFileType.Plain, "file_type");
+                    importerForm.AddDropDown("File type:", Enum.GetValues(typeof(ImportFileType)), ImportFileType.Plain, "file_type", true);
                     importerForm.AddCheckBox("Delete imported file after import:", ContentAlignment.MiddleRight, false, "delete");
                     importerForm.AddCheckBox("Save importer(s):", ContentAlignment.MiddleRight, false, "save_importer");
 
@@ -637,7 +728,7 @@ namespace PTL.ATT.GUI
 
                         string[] paths = new string[] { p };
                         if (pathIsDirectory)
-                            paths = Directory.GetFiles(p, importFileSearchPattern == null ? "*" : importFileSearchPattern, SearchOption.AllDirectories);
+                            paths = importFileSearchPatterns == null ? Directory.GetFiles(p, "*", SearchOption.AllDirectories) : importFileSearchPatterns.SelectMany(pattern => Directory.GetFiles(p, pattern, SearchOption.AllDirectories)).ToArray();
 
                         foreach (string path in paths)
                             if (File.Exists(path))
@@ -684,12 +775,12 @@ namespace PTL.ATT.GUI
         {
             DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
 
-            rowInserterForm.AddDropDown("Row inserter:", rowInserterTypes, null, "row_inserter");
+            rowInserterForm.AddDropDown("Row inserter:", rowInserterTypes, null, "row_inserter", true);
 
             string[] inputColumns = XmlImporter.GetColumnNames(path, "row", "row");
             Array.Sort(inputColumns);
             foreach (string databaseColumn in databaseColumns)
-                rowInserterForm.AddDropDown(databaseColumn + ":", inputColumns, null, databaseColumn);
+                rowInserterForm.AddDropDown(databaseColumn + ":", inputColumns, null, databaseColumn, true);
 
             XmlImporter importer = null;
             if (rowInserterForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -723,8 +814,8 @@ namespace PTL.ATT.GUI
                         }
 
                         DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
-                        f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers");
-                        f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action");
+                        f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers", true);
+                        f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action", false);
                         if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
                         {
                             ManageImporterAction action = f.GetValue<ManageImporterAction>("action");
@@ -796,7 +887,7 @@ namespace PTL.ATT.GUI
                                                 itemName += ":";
 
                                                 if (possibleValues != null)
-                                                    updateForm.AddDropDown(itemName, possibleValues.ToArray(), currentValue, id);
+                                                    updateForm.AddDropDown(itemName, possibleValues.ToArray(), currentValue, id, false);
                                                 else if (currentValue is string)
                                                     updateForm.AddTextBox(itemName, currentValue as string, -1, id);
                                                 else if (currentValue is int)
@@ -873,7 +964,7 @@ namespace PTL.ATT.GUI
             else
             {
                 DynamicForm modelForm = new DynamicForm("Select model type...", MessageBoxButtons.OKCancel);
-                modelForm.AddDropDown("Model type:", modelTypes, null, "model_type");
+                modelForm.AddDropDown("Model type:", modelTypes, null, "model_type", false);
                 if (modelForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     Type modelType = modelForm.GetValue<Type>("model_type");
@@ -1297,10 +1388,8 @@ namespace PTL.ATT.GUI
                             Thread areaT = new Thread(new ParameterizedThreadStart(delegate(object o)
                                 {
                                     Area area = o as Area;
-                                    Dictionary<string, string> constraints = new Dictionary<string, string>();
-                                    constraints.Add(AreaGeometry.Columns.AreaId, area.Id.ToString());
                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, AreaGeometry.GetTableName(p.PredictionArea.SRID), AreaGeometry.Columns.Geometry, AreaGeometry.Columns.Id, constraints, pointDistanceThreshold), Color.Black, true, 0)); }
+                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
                                     DB.Connection.Return(connection);
                                 }));
 
@@ -1327,7 +1416,7 @@ namespace PTL.ATT.GUI
                                                 {
                                                     Shapefile shapefile = new Shapefile(int.Parse(feature.PredictionResourceId));
                                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                    List<List<PointF>> points = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
+                                                    List<List<PointF>> points = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
                                                     DB.Connection.Return(connection);
                                                     lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }
@@ -1347,7 +1436,8 @@ namespace PTL.ATT.GUI
 
                             threatMap.Display(p, overlays);
 
-                            Invoke(new Action(RefreshAssessmentPlots));
+                            if (threatMap.DisplayedPrediction != null)
+                                Invoke(new Action(RefreshAssessmentPlots));
                         }));
 
                     displayThread.Start();
@@ -1440,8 +1530,8 @@ namespace PTL.ATT.GUI
                                     try
                                     {
                                         Prediction copy = selectedPrediction.Copy("Copy " + copyNum + " of " + selectedPrediction.Name, predictionNum == 1 && copyNum == 1, false);
-                                        Point.VacuumTable(copy.Id);
-                                        PointPrediction.VacuumTable(copy.Id);
+                                        Point.VacuumTable(copy);
+                                        PointPrediction.VacuumTable(copy);
                                     }
                                     catch (Exception ex) { Console.Out.WriteLine("Error while copying prediction:  " + ex.Message); }
                                 }
@@ -2007,7 +2097,7 @@ namespace PTL.ATT.GUI
             }
 
             DynamicForm f = new DynamicForm(prompt, MessageBoxButtons.OKCancel);
-            f.AddDropDown("Areas:", areas, null, "area");
+            f.AddDropDown("Areas:", areas, null, "area", true);
             Area importArea = null;
             if (f.ShowDialog() == DialogResult.OK)
                 importArea = f.GetValue<Area>("area");

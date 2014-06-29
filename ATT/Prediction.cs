@@ -264,7 +264,7 @@ namespace PTL.ATT
                     if (_points == null)
                     {
                         _points = new List<Point>();
-                        string pointTable = Point.GetTableName(_id);
+                        string pointTable = Point.GetTableName(this);
                         NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Point.Columns.Select(pointTable) + " FROM " + pointTable);
                         NpgsqlDataReader reader = cmd.ExecuteReader();
                         while (reader.Read())
@@ -288,7 +288,7 @@ namespace PTL.ATT
                     if (_pointPredictions == null)
                     {
                         _pointPredictions = new List<PointPrediction>();
-                        string pointPredictionTable = PointPrediction.GetTableName(_id);
+                        string pointPredictionTable = PointPrediction.GetTableName(this);
                         NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + PointPrediction.Columns.Select(pointPredictionTable) + " FROM " + pointPredictionTable);
                         NpgsqlDataReader reader = cmd.ExecuteReader();
                         while (reader.Read())
@@ -345,10 +345,10 @@ namespace PTL.ATT
             try { DB.Connection.ExecuteNonQuery("DELETE FROM " + Table + " WHERE " + Columns.Id + "=" + _id); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete prediction from table:  " + ex.Message); }
 
-            try { Point.DeleteTable(_id); }
+            try { Point.DeleteTable(this); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete point table:  " + ex.Message); }
 
-            try { PointPrediction.DeleteTable(_id); }
+            try { PointPrediction.DeleteTable(this); }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete point prediction table:  " + ex.Message); }
 
             try { Model.Delete(); }
@@ -372,17 +372,17 @@ namespace PTL.ATT
             {
                 copiedPrediction = new Prediction(Model.Copy(), newRun, newName, _predictionArea, _predictionStartTime, _predictionEndTime, false);
 
-                string copiedPointTable = Point.CreateTable(copiedPrediction.Id, PredictionArea.SRID);
+                string copiedPointTable = Point.CreateTable(copiedPrediction, PredictionArea.Shapefile.SRID);
                 cmd.CommandText = "INSERT INTO " + copiedPointTable + " (" + Point.Columns.Insert + ") " +
                                   "SELECT " + Point.Columns.Insert + " " +
-                                  "FROM " + Point.GetTableName(_id) + " " +
+                                  "FROM " + Point.GetTableName(this) + " " +
                                   "ORDER BY " + Point.Columns.Id + " ASC";
                 cmd.ExecuteNonQuery();
 
-                string copiedPointPredictionTable = PointPrediction.CreateTable(copiedPrediction.Id);
+                string copiedPointPredictionTable = PointPrediction.CreateTable(copiedPrediction);
                 cmd.CommandText = "INSERT INTO " + copiedPointPredictionTable + " (" + PointPrediction.Columns.Insert + ") " +
                                   "SELECT " + PointPrediction.Columns.Insert + " " +
-                                  "FROM " + PointPrediction.GetTableName(_id) + " " +
+                                  "FROM " + PointPrediction.GetTableName(this) + " " +
                                   "ORDER BY " + PointPrediction.Columns.Id + " ASC";
                 cmd.ExecuteNonQuery();
 
@@ -410,9 +410,9 @@ namespace PTL.ATT
                 {
                     try { VacuumTable(); }
                     catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum prediction table:  " + ex.Message); }
-                    try { Point.VacuumTable(copiedPrediction.Id); }
+                    try { Point.VacuumTable(copiedPrediction); }
                     catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point table for prediction \"" + copiedPrediction.Id + "\":  " + ex.Message); }
-                    try { PointPrediction.VacuumTable(copiedPrediction.Id); }
+                    try { PointPrediction.VacuumTable(copiedPrediction); }
                     catch (Exception ex) { Console.Out.WriteLine("Failed to vacuum point prediction table for prediction \"" + copiedPrediction.Id + "\":  " + ex.Message); }
                 }
             }

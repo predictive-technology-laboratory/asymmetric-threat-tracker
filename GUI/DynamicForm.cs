@@ -203,7 +203,7 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
         }
 
-        public void AddDropDown(string label, Array values, object selected, string valueId, Action<object, EventArgs> selectedValueChanged = null)
+        public void AddDropDown(string label, Array values, object selected, string valueId, bool sorted, Action<object, EventArgs> selectedValueChanged = null)
         {
             Label l = new Label();
             l.Text = label;
@@ -213,11 +213,16 @@ namespace PTL.ATT.GUI
             ComboBox cb = new ComboBox();
             cb.Name = valueId;
             cb.DropDownStyle = ComboBoxStyle.DropDownList;
-            foreach (object o in values)
-                cb.Items.Add(o);
+            cb.Sorted = sorted;
 
-            if (values.Length > 0)
-                cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+            if (values != null)
+            {
+                foreach (object o in values)
+                    cb.Items.Add(o);
+
+                if (values.Length > 0)
+                    cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+            }
 
             if (selectedValueChanged != null)
                 cb.SelectedValueChanged += new EventHandler(selectedValueChanged);
@@ -237,7 +242,7 @@ namespace PTL.ATT.GUI
                 cb.SelectedIndex = 0;
         }
 
-        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId)
+        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId, bool sorted)
         {
             Label l = new Label();
             l.Text = label;
@@ -247,11 +252,16 @@ namespace PTL.ATT.GUI
             ListBox lb = new ListBox();
             lb.Name = valueId;
             lb.SelectionMode = selectionMode;
-            foreach (object o in values)
-                lb.Items.Add(o);
+            lb.Sorted = sorted;
 
-            if (values.Length > 0)
-                lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width + 30), lb.PreferredHeight);
+            if (values != null)
+            {
+                foreach (object o in values)
+                    lb.Items.Add(o);
+
+                if (values.Length > 0)
+                    lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width + 30), lb.PreferredHeight);
+            }
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;

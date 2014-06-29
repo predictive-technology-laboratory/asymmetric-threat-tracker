@@ -105,7 +105,7 @@ namespace PTL.ATT.Smoothers
                     pointPredictionScores.Item1.TotalThreat = pointPredictionScores.Item2.Values.Sum();
                 }
 
-                PointPrediction.UpdateThreatScores(pointPredictions, prediction.Id);
+                PointPrediction.UpdateThreatScores(pointPredictions, prediction);
 
                 prediction.SmoothingDetails = GetSmoothingDetails();
             }

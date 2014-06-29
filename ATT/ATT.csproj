@@ -89,14 +89,15 @@
   <ItemGroup>
     <Compile Include="Area.cs" />
     <Compile Include="AreaBoundingBoxes.cs" />
-    <Compile Include="AreaGeometry.cs" />
     <Compile Include="Classifiers\AdaBoost.cs" />
     <Compile Include="Classifiers\Classifier.cs" />
     <Compile Include="Classifiers\RandomForest.cs" />
     <Compile Include="Classifiers\SvmRank.cs" />
     <Compile Include="Importers\AreaShapefileImporter.cs" />
     <Compile Include="Importers\FeatureShapefileImporter.cs" />
+    <Compile Include="Importers\IIncidentTableShapefileTableMappingRetriever.cs" />
     <Compile Include="Importers\Importer.cs" />
+    <Compile Include="Importers\IncidentShapefileImporter.cs" />
     <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Importers\IShapefileInfoRetriever.cs" />

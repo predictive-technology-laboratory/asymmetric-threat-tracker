@@ -54,9 +54,6 @@ namespace PTL.ATT.Importers
 
             Console.Out.WriteLine("Importing shapefile from \"" + Path + "\"...");
 
-            NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-            int shapefileId = -1;
-            string tempTable = null;
             try
             {
                 Dictionary<string, string> importOptionValue = new Dictionary<string, string>();
@@ -72,7 +69,7 @@ namespace PTL.ATT.Importers
                     importOptionValue["reprojection"] = _sourceSRID + ":" + _targetSRID;
 
                 if (!string.IsNullOrWhiteSpace(Name))
-                    importOptionValue["name"] = Name;  
+                    importOptionValue["name"] = Name;
 
                 List<string> neededValues = new List<string>();
                 if (!importOptionValue.ContainsKey("reprojection") || string.IsNullOrWhiteSpace(importOptionValue["reprojection"])) neededValues.Add("reprojection");
@@ -108,19 +105,19 @@ namespace PTL.ATT.Importers
                     type = Shapefile.ShapefileType.Feature;
                 else if (this is AreaShapefileImporter)
                     type = Shapefile.ShapefileType.Area;
+                else if (this is IncidentShapefileImporter)
+                    type = Shapefile.ShapefileType.Incident;
                 else
                     throw new NotImplementedException("Unrecognized shapefile importer type:  " + GetType());
 
-                shapefileId = Shapefile.Create(cmd.Connection, name, toSRID, type);
-                tempTable = "shapefile_import_" + shapefileId;
-                const string tempTableGeometryColumn = "geom";
+                _importedShapefile = Shapefile.Create(name, toSRID, type);
 
                 string sql;
                 string error;
                 using (Process process = new Process())
                 {
                     process.StartInfo.FileName = Configuration.Shp2PgsqlPath;
-                    process.StartInfo.Arguments = "-I -g " + tempTableGeometryColumn + " -s " + reprojection + " \"" + Path + "\" " + tempTable;
+                    process.StartInfo.Arguments = "-I -g " + ShapefileGeometry.Columns.Geometry + " -s " + reprojection + " \"" + Path + "\" " + _importedShapefile.GeometryTable;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.RedirectStandardError = true;
@@ -137,37 +134,39 @@ namespace PTL.ATT.Importers
 
                 Console.Out.WriteLine(error);
 
-                cmd.CommandText = sql;
-                cmd.ExecuteNonQuery();
+                DB.Connection.ExecuteNonQuery(sql);
 
-                Console.Out.WriteLine("Importing shapefile into database");
-                _importedShapefile = new Shapefile(shapefileId);
-                ShapefileGeometry.Create(cmd.Connection, _importedShapefile, tempTable, tempTableGeometryColumn);
+                // if there's an id column already, rename it native_id
+                if (DB.Connection.GetColumnNames(_importedShapefile.GeometryTable).Select(c => c.ToLower()).Contains("id"))
+                {
+                    DB.Connection.ExecuteNonQuery("ALTER TABLE " + _importedShapefile.GeometryTable + " DROP COLUMN IF EXISTS native_id;" +
+                                                  "ALTER TABLE " + _importedShapefile.GeometryTable + " RENAME COLUMN id TO native_id");
+                }
+
+                // rename primary key column to ShapefileGeometry.Columns.Id
+                List<string> primaryKeyColumns = DB.Connection.GetPrimaryKeyColumns(_importedShapefile.GeometryTable).ToList();
+                if (primaryKeyColumns.Count == 1)
+                {
+                    if (primaryKeyColumns[0] != ShapefileGeometry.Columns.Id)
+                    {
+                        DB.Connection.ExecuteNonQuery("ALTER TABLE " + _importedShapefile.GeometryTable + " DROP COLUMN IF EXISTS " + ShapefileGeometry.Columns.Id + ";" +
+                                                      "ALTER TABLE " + _importedShapefile.GeometryTable + " RENAME COLUMN " + primaryKeyColumns[0] + " TO " + ShapefileGeometry.Columns.Id);
+                    }
+                }
+                else
+                    throw new Exception("Imported shapefile database does not contain a single primary key column.");
+
+                Console.Out.WriteLine("Shapefile import succeeded.");
             }
             catch (Exception ex)
             {
-                try
-                {
-                    cmd.CommandText = "DELETE FROM " + Shapefile.Table + " WHERE " + Shapefile.Columns.Id + "=" + shapefileId;
-                    cmd.ExecuteNonQuery();
-                }
+                try { _importedShapefile.Delete(); }
                 catch (Exception ex2) { Console.Out.WriteLine("Failed to delete shapefile:  " + ex2.Message); }
 
-                throw new Exception("Failed to import shape file(s):  " + ex.Message);
-            }
-            finally
-            {
-                try
-                {
-                    cmd.CommandText = "DROP TABLE " + tempTable + ";";
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex2) { Console.Out.WriteLine("Falied to drop table \"" + tempTable + "\":  " + ex2.Message); }
+                _importedShapefile = null;
 
-                DB.Connection.Return(cmd.Connection);
+                throw new Exception("Shapefile import failed:  " + ex.Message);
             }
-
-            Console.Out.WriteLine("Shapefile import completed.");
         }
     }
 }

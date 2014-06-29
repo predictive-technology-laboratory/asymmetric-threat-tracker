@@ -53,14 +53,14 @@ namespace PTL.ATT
             public static string Select(string table) { return Reflector.GetSelectColumns(table, new string[] { StX(table), StY(table), StSRID(table) }, typeof(Columns)); }
         }
 
-        public static string GetTableName(int predictionId)
+        public static string GetTableName(Prediction prediction)
         {
-            return "point_" + predictionId;
+            return "point_" + prediction.Id;
         }
 
-        internal static string CreateTable(int predictionId, int srid)
+        internal static string CreateTable(Prediction prediction, int srid)
         {
-            string table = GetTableName(predictionId);
+            string table = GetTableName(prediction);
 
             DB.Connection.ExecuteNonQuery(
                 "CREATE TABLE " + table + " (" +
@@ -76,19 +76,19 @@ namespace PTL.ATT
             return table;
         }
 
-        internal static void DeleteTable(int predictionId)
+        internal static void DeleteTable(Prediction prediction)
         {
-            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(predictionId) + " CASCADE");
+            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(prediction) + " CASCADE");
         }
 
-        public static void VacuumTable(int predictionId)
+        public static void VacuumTable(Prediction prediction)
         {
-            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(predictionId));
+            DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(prediction));
         }
 
         internal static List<int> Insert(NpgsqlConnection connection,
                                          IEnumerable<Tuple<PostGIS.Point, string, DateTime>> points,
-                                         int predictionId,
+                                         Prediction prediction,
                                          Area area,
                                          bool onlyInsertPointsInArea,
                                          bool vacuum)
@@ -96,7 +96,7 @@ namespace PTL.ATT
             NpgsqlCommand cmd = new NpgsqlCommand(null, connection);
             cmd.CommandTimeout = Configuration.PostgresCommandTimeout;
 
-            string insertIntoTable = GetTableName(predictionId);
+            string insertIntoTable = GetTableName(prediction);
 
             if (onlyInsertPointsInArea)
             {
@@ -117,8 +117,8 @@ namespace PTL.ATT
                 string incidentType = pointIncidentTime.Item2;
                 DateTime time = pointIncidentTime.Item3;
 
-                if (point.SRID != area.SRID)
-                    throw new Exception("Area SRID (" + area.SRID + ") does not match point SRID (" + point.SRID);
+                if (point.SRID != area.Shapefile.SRID)
+                    throw new Exception("Area SRID (" + area.Shapefile.SRID + ") does not match point SRID (" + point.SRID);
 
                 pointValues.Append((pointValues.Length > 0 ? "," : "") + "(" + (pointNum % Configuration.ProcessorCount) + ",DEFAULT,'" + incidentType + "',st_geometryfromtext('POINT(" + point.X + " " + point.Y + ")'," + point.SRID + "),@time_" + pointNum + ")");
                 ConnectionPool.AddParameters(cmd, new Parameter("time_" + pointNum, NpgsqlDbType.Timestamp, time));
@@ -163,31 +163,26 @@ namespace PTL.ATT
 
             if (onlyInsertPointsInArea)
             {
-                string areaGeometryTable = AreaGeometry.GetTableName(area.SRID);
-                string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(area.SRID);
+                string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(area);
 
                 cmd.CommandText = "CREATE INDEX ON temp USING GIST (" + Columns.Location + ")";
                 cmd.ExecuteNonQuery();
 
-                cmd.CommandText = "INSERT INTO " + GetTableName(predictionId) + " (" + Columns.Insert + ") " +
+                cmd.CommandText = "INSERT INTO " + GetTableName(prediction) + " (" + Columns.Insert + ") " +
                                   "SELECT * " +
                                   "FROM temp " +
                                   "WHERE EXISTS (SELECT 1 " +
-                                                "FROM " + areaGeometryTable + "," + areaBoundingBoxesTable + " " +
-                                                "WHERE " + areaGeometryTable + "." + AreaGeometry.Columns.AreaId + "=" + area.Id + " AND " +
-                                                           areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.AreaId + "=" + area.Id + " AND " +
-                                                           "(" +
-                                                             "(" +
-                                                                areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
-                                                                "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
-                                                             ") " +
-                                                             "OR " +
-                                                             "(" +
-                                                                areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
-                                                                "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
-                                                                "st_intersects(temp." + Columns.Location + "," + areaGeometryTable + "." + AreaGeometry.Columns.Geometry + ")" +
-                                                             ")" +
-                                                           ")" +
+                                                "FROM " + area.Shapefile.GeometryTable + "," + areaBoundingBoxesTable + " " +
+                                                "WHERE (" +
+                                                         areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
+                                                         "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
+                                                       ") " +
+                                                       "OR " +
+                                                       "(" +
+                                                         areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
+                                                         "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
+                                                         "st_intersects(temp." + Columns.Location + "," + area.Shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ")" +  // this is the slow operation, so we're hiding it behind simpler checks as much as possible
+                                                       ")" +
                                                 ") " +
                                   "RETURNING " + Columns.Id + ";" +
                                   "DROP TABLE temp;";
@@ -200,7 +195,7 @@ namespace PTL.ATT
             }
 
             if (vacuum)
-                VacuumTable(predictionId);
+                VacuumTable(prediction);
 
             return ids;
         }

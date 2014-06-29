@@ -117,7 +117,7 @@ namespace PTL.ATT.GUI
             this.parameterizeFeatureToolStripMenuItem.Name = "parameterizeFeatureToolStripMenuItem";
             this.parameterizeFeatureToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
             this.parameterizeFeatureToolStripMenuItem.Text = "Parameterize feature...";
-            this.parameterizeFeatureToolStripMenuItem.Click += new System.EventHandler(this.parameterizeFeaturesToolStripMenuItem_Click);
+            this.parameterizeFeatureToolStripMenuItem.Click += new System.EventHandler(this.parameterizeFeatureToolStripMenuItem_Click);
             // 
             // remapSelectedFeaturesDuringPredictionToolStripMenuItem
             // 

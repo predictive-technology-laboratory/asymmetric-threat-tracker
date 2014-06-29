@@ -2,6 +2,7 @@
 */bin
 */obj
 Data/**/*unzipped
+Data/Chicago RTM
 GUI/Config/att_config.xml
 GUI/Config/gui_config.xml
 Installer/Installer

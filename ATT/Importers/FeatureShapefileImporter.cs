@@ -28,5 +28,16 @@ namespace PTL.ATT.Importers
             : base(name, path, relativePath, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever)
         {
         }
+
+        public override void Import()
+        {
+            base.Import();
+
+            // we don't currently have anything to put in the Time column for feature shapefiles -- maybe in the future
+            DB.Connection.ExecuteNonQuery("ALTER TABLE " + ImportedShapefile.GeometryTable + " DROP COLUMN IF EXISTS " + ShapefileGeometry.Columns.Time + ";" +
+                                          "ALTER TABLE " + ImportedShapefile.GeometryTable + " ADD COLUMN " + ShapefileGeometry.Columns.Time + " TIMESTAMP;" +
+                                          "UPDATE " + ImportedShapefile.GeometryTable + " SET " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp;" +
+                                          "CREATE INDEX ON " + ImportedShapefile.GeometryTable + " (" + ShapefileGeometry.Columns.Time + ");");
+        }
     }
 }
