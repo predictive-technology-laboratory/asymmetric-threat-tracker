@@ -114,23 +114,33 @@ namespace PTL.ATT.GUI
         }
 
         [Serializable]
-        public class IncidentShapefileImportInfoRetriever : IShapefileIncidentMappingRetriever
+        public class IncidentShapefileImportInfoRetriever : IIncidentTableShapefileTableMappingRetriever
         {
-            public Dictionary<string, string> MapIncidentColumnsToShapefileColumns(string shapefileGeometryTable)
+            private Dictionary<string, string> _incidentColumnShapefileColumn;
+
+            public Dictionary<string, string> MapIncidentColumnsToShapefileColumns(string shapefileGeometryTable, bool reusePrevious)
             {
-                string[] shapefileColumns = DB.Connection.GetColumnNames(shapefileGeometryTable).ToArray();
-                DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", MessageBoxButtons.OK);
-                string[] incidentColumns = new string[] { Incident.Columns.Location, Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type };
-                foreach (string incidentColumn in incidentColumns)
-                    f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn);
+                if (!reusePrevious)
+                    _incidentColumnShapefileColumn = null;
 
-                f.ShowDialog();
+                if (_incidentColumnShapefileColumn == null)
+                {
+                    _incidentColumnShapefileColumn = new Dictionary<string, string>();
 
-                Dictionary<string, string> incidentColumnShapefileColumn = new Dictionary<string, string>();
-                foreach (string incidentTableColumn in incidentColumns)
-                    incidentColumnShapefileColumn.Add(incidentTableColumn, f.GetValue<string>(incidentTableColumn));
+                    string[] shapefileColumns = DB.Connection.GetColumnNames(shapefileGeometryTable).ToArray();
+                    DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", MessageBoxButtons.OK);
+                    string[] incidentColumns = new string[] { Incident.Columns.Location, Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type };
+                    foreach (string incidentColumn in incidentColumns)
+                        f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn);
 
-                return incidentColumnShapefileColumn;
+                    f.ShowDialog();
+
+                    _incidentColumnShapefileColumn = new Dictionary<string, string>();
+                    foreach (string incidentTableColumn in incidentColumns)
+                        _incidentColumnShapefileColumn.Add(incidentTableColumn, f.GetValue<string>(incidentTableColumn));
+                }
+
+                return _incidentColumnShapefileColumn;
             }
         }
 
@@ -551,6 +561,52 @@ namespace PTL.ATT.GUI
                    "Incident files (*.shp;*.xml;*.zip)|*.shp;*.xml;*.zip",
                    new string[] { "*.xml", "*.shp" },
                    null);
+        }
+
+        private void collapseIncidentTypesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DynamicForm f = new DynamicForm("Collapse incident types...", MessageBoxButtons.OKCancel);
+
+            f.AddDropDown("Area:", Area.GetAll().ToArray(), null, "area", new Action<object, EventArgs>((o, args) =>
+                {
+                    ListBox typesList = f.GetControl<ListBox>("types");
+                    if (typesList != null)
+                    {
+                        typesList.Items.Clear();
+
+                        Area selectedArea = (o as ComboBox).SelectedItem as Area;
+                        if (selectedArea != null)
+                            foreach (string type in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, selectedArea))
+                                typesList.Items.Add(type);
+                    }
+                }));
+
+            Area area = f.GetValue<Area>("area") as Area;
+            if (area != null)
+            {
+                f.AddListBox("Types:", Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).ToArray(), null, SelectionMode.MultiExtended, "types");
+                f.AddTextBox("Collapsed type:", null, 50, "collapsed");
+
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    area = f.GetValue<Area>("area");
+
+                    List<string> types = new List<string>();
+                    foreach (string type in f.GetValue<System.Windows.Forms.ListBox.SelectedObjectCollection>("types"))
+                        types.Add(type);
+
+                    string collapsedType = f.GetValue<string>("collapsed").Trim();
+
+                    if (area == null)
+                        MessageBox.Show("Must select an area.");
+                    else if (types.Count <= 1)
+                        MessageBox.Show("Must select two or more types to collapse.");
+                    else if (string.IsNullOrWhiteSpace(collapsedType))
+                        MessageBox.Show("Must enter a collapsed type name.");
+                    else if (MessageBox.Show("Are you sure you want to collapse these incident types?", "Collapse?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                        Incident.Collapse(area, types, collapsedType);
+                }
+            }
         }
 
         public void clearImportedIncidentsToolStripMenuItem_Click(object sender, EventArgs e)

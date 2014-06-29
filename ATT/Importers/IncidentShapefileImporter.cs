@@ -26,14 +26,14 @@ namespace PTL.ATT.Importers
     public class IncidentShapefileImporter : ShapefileImporter
     {
         private Area _importArea;
-        private IShapefileIncidentMappingRetriever _shapefileIncidentMappingRetriever;
+        private IIncidentTableShapefileTableMappingRetriever _incidentShapefileMappingRetriever;
         private int _hourOffset;
 
-        public IncidentShapefileImporter(string name, string path, string relativePath, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever, Area importArea, IShapefileIncidentMappingRetriever shapefileIncidentMappingRetriever, int hourOffset)
+        public IncidentShapefileImporter(string name, string path, string relativePath, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever, Area importArea, IIncidentTableShapefileTableMappingRetriever shapefileIncidentMappingRetriever, int hourOffset)
             : base(name, path, relativePath, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever)
         {
             _importArea = importArea;
-            _shapefileIncidentMappingRetriever = shapefileIncidentMappingRetriever;
+            _incidentShapefileMappingRetriever = shapefileIncidentMappingRetriever;
             _hourOffset = hourOffset;
         }
 
@@ -41,9 +41,9 @@ namespace PTL.ATT.Importers
         {
             base.Import();
 
-            Console.Out.WriteLine("Converting shapefile data to incident data.");
+            Console.Out.WriteLine("Extracting incident data from shapefile.");
 
-            Dictionary<string, string> incidentTableColumnShapefileTableColumn = _shapefileIncidentMappingRetriever.MapIncidentColumnsToShapefileColumns(ImportedShapefile.GeometryTable);
+            Dictionary<string, string> incidentTableColumnShapefileTableColumn = _incidentShapefileMappingRetriever.MapIncidentColumnsToShapefileColumns(ImportedShapefile.GeometryTable, true);
             DB.Connection.ExecuteNonQuery("INSERT INTO " + Incident.GetTableName(_importArea, true) + " (" + Incident.Columns.Insert + ") " +
 
                                           "SELECT " + _importArea.Id + "," +

@@ -185,7 +185,6 @@ namespace PTL.ATT
                                                          new Parameter("start", NpgsqlDbType.Timestamp, start),
                                                          new Parameter("end", NpgsqlDbType.Timestamp, end));
 
-
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
                 types.Add(Convert.ToString(reader[Columns.Type]));
@@ -194,6 +193,14 @@ namespace PTL.ATT
             DB.Connection.Return(cmd.Connection);
 
             return types;
+        }
+
+        public static void Collapse(Area area, List<string> types, string collapsedType)
+        {
+            foreach (string type in types)
+                DB.Connection.ExecuteNonQuery("UPDATE " + GetTableName(area, true) + " " +
+                                              "SET " + Columns.Type + "='" + Util.Escape(collapsedType) + "' " +
+                                              "WHERE " + Columns.Type + "='" + Util.Escape(type) + "'");
         }
 
         public static IEnumerable<Incident> Get(DateTime start, DateTime end, Area area, params string[] types)

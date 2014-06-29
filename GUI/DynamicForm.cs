@@ -213,11 +213,16 @@ namespace PTL.ATT.GUI
             ComboBox cb = new ComboBox();
             cb.Name = valueId;
             cb.DropDownStyle = ComboBoxStyle.DropDownList;
-            foreach (object o in values)
-                cb.Items.Add(o);
+            cb.Sorted = true;
 
-            if (values.Length > 0)
-                cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+            if (values != null)
+            {
+                foreach (object o in values)
+                    cb.Items.Add(o);
+
+                if (values.Length > 0)
+                    cb.Width = cb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), cb.Font).Width) + 50;
+            }
 
             if (selectedValueChanged != null)
                 cb.SelectedValueChanged += new EventHandler(selectedValueChanged);
@@ -247,11 +252,16 @@ namespace PTL.ATT.GUI
             ListBox lb = new ListBox();
             lb.Name = valueId;
             lb.SelectionMode = selectionMode;
-            foreach (object o in values)
-                lb.Items.Add(o);
+            lb.Sorted = true;
 
-            if (values.Length > 0)
-                lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width + 30), lb.PreferredHeight);
+            if (values != null)
+            {
+                foreach (object o in values)
+                    lb.Items.Add(o);
+
+                if (values.Length > 0)
+                    lb.Size = new System.Drawing.Size(lb.Items.Cast<object>().Max(o => TextRenderer.MeasureText(o.ToString(), lb.Font).Width + 30), lb.PreferredHeight);
+            }
 
             FlowLayoutPanel p = new FlowLayoutPanel();
             p.FlowDirection = FlowDirection.LeftToRight;

@@ -21,8 +21,8 @@ using System.Threading.Tasks;
 
 namespace PTL.ATT.Importers
 {
-    public interface IShapefileIncidentMappingRetriever
+    public interface IIncidentTableShapefileTableMappingRetriever
     {
-        Dictionary<string, string> MapIncidentColumnsToShapefileColumns(string shapefileGeometryTable);
+        Dictionary<string, string> MapIncidentColumnsToShapefileColumns(string shapefileGeometryTable, bool reusePrevious);
     }
 }
