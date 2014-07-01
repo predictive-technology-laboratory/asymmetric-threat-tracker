@@ -207,7 +207,7 @@ namespace PTL.ATT.Evaluation
         {
             _aucDigits = aucDigits;
 
-            Render(height, width, true, null, false, false);
+            Render(height, width, true, new Tuple<string, string>(null, null), false, false);
         }
 
         public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
@@ -235,6 +235,10 @@ namespace PTL.ATT.Evaluation
             List<string> tmpPaths = new List<string>();
 
             #region difference series
+            // make sure series have the same x coordinates across the entire series
+            if (plotSeriesDifference != null && !SeriesPoints.Keys.All(series => SeriesPoints[series].Count == SeriesPoints.Values.First().Count && SeriesPoints[series].Zip(SeriesPoints.Values.First(), (p1, p2) => new Tuple<PointF, PointF>(p1, p2)).All(t => t.Item1.X == t.Item2.X)))
+                plotSeriesDifference = null;
+
             string diffSeriesPath = null;
             PointF diffMax = PointF.Empty;
             PointF diffMin = PointF.Empty;
@@ -342,7 +346,7 @@ cat(as.character(auc),file=""" + aucOutputPath.Replace(@"\", @"\\") + @""",sep="
                 seriesOrder.Add(series);
             }
 
-            if (plotSeriesDifference != null)
+            if (plotSeriesDifference != null && diffMax.Y != 0)
             {
                 string plotCharacterVector = "c(" + plotCharacters.Last() + ",rep(NA_integer_," + (SeriesPoints.Values.First().Count / 10) + "))";  // show 10 plot characters for series
 

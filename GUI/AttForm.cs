@@ -967,6 +967,8 @@ namespace PTL.ATT.GUI
             Type[] modelTypes = Assembly.GetAssembly(typeof(DiscreteChoiceModel)).GetTypes().Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(DiscreteChoiceModel))).ToArray();
             if (modelTypes.Length == 0)
                 MessageBox.Show("No model type are available.");
+            else if (Area.GetAll().Count == 0)
+                MessageBox.Show("No areas available to model. Import one first.");
             else
             {
                 DynamicForm modelForm = new DynamicForm("Select model type...", MessageBoxButtons.OKCancel);
