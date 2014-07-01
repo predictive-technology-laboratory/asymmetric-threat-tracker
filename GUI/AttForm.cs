@@ -582,7 +582,9 @@ namespace PTL.ATT.GUI
                 }));
 
             Area area = f.GetValue<Area>("area") as Area;
-            if (area != null)
+            if (area == null)
+                MessageBox.Show("No areas available to collapse incidents for.");
+            else
             {
                 f.AddListBox("Types:", Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).ToArray(), null, SelectionMode.MultiExtended, "types", true);
                 f.AddTextBox("Collapsed type:", null, 50, "collapsed");
@@ -843,18 +845,22 @@ namespace PTL.ATT.GUI
                                                 {
                                                     Importer importer = bf.Deserialize(fs) as Importer;
 
+                                                    string absolutePath = importer.Path;
                                                     int relativizationIdEnd = importer.RelativePath.IndexOf('}');
                                                     string relativizationId = importer.RelativePath.Substring(0, relativizationIdEnd + 1).Trim('{', '}');
-                                                    PathRelativizationId pathRelativizationId = (PathRelativizationId)Enum.Parse(typeof(PathRelativizationId), relativizationId);
-                                                    string absolutePath = importer.RelativePath.Substring(relativizationIdEnd).Trim('}', Path.DirectorySeparatorChar);
-                                                    if (pathRelativizationId == PathRelativizationId.EventDirectory)
-                                                        absolutePath = Path.Combine(Configuration.EventsImportDirectory, absolutePath);
-                                                    else if (pathRelativizationId == PathRelativizationId.IncidentDirectory)
-                                                        absolutePath = Path.Combine(Configuration.IncidentsImportDirectory, absolutePath);
-                                                    else if (pathRelativizationId == PathRelativizationId.ShapefileDirectory)
-                                                        absolutePath = Path.Combine(Configuration.PostGisShapefileDirectory, absolutePath);
-                                                    else
-                                                        throw new NotImplementedException("Unrecognized path relativization id:  " + pathRelativizationId);
+                                                    if (!string.IsNullOrWhiteSpace(relativizationId))
+                                                    {
+                                                        PathRelativizationId pathRelativizationId = (PathRelativizationId)Enum.Parse(typeof(PathRelativizationId), relativizationId);
+                                                        string relativeTrailingPath = importer.RelativePath.Substring(relativizationIdEnd + 1).Trim(Path.DirectorySeparatorChar);
+                                                        if (pathRelativizationId == PathRelativizationId.EventDirectory)
+                                                            absolutePath = Path.Combine(Configuration.EventsImportDirectory, relativeTrailingPath);
+                                                        else if (pathRelativizationId == PathRelativizationId.IncidentDirectory)
+                                                            absolutePath = Path.Combine(Configuration.IncidentsImportDirectory, relativeTrailingPath);
+                                                        else if (pathRelativizationId == PathRelativizationId.ShapefileDirectory)
+                                                            absolutePath = Path.Combine(Configuration.PostGisShapefileDirectory, relativeTrailingPath);
+                                                        else
+                                                            throw new NotImplementedException("Unrecognized path relativization id:  " + pathRelativizationId);
+                                                    }
 
                                                     importer.Path = absolutePath;
                                                     importer.Save(false);
