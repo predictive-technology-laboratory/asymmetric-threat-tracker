@@ -273,6 +273,8 @@ namespace PTL.ATT.GUI.Visualization
             GetDrawingParameters(bitmapDimensions, out pixelsPerMeter, out threatRectanglePixelWidth);
 
             Dictionary<long, Bitmap> newSliceThreatSurface = new Dictionary<long, Bitmap>(_sliceIncidentPointScores.Count);
+
+            #region get incident probabilities for each cell
             Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>> sliceRowColIncidentScores = new Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>>();
             foreach (long slice in _sliceIncidentPointScores.Keys)
             {
@@ -301,7 +303,9 @@ namespace PTL.ATT.GUI.Visualization
                             sliceRowColIncidentScores[slice][row][col][incident].Add(pointScore.Item2);
                         }
             }
+            #endregion
 
+            #region get score/color pairs for each cell
             Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>> sliceRowColScoreColor = new Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>>();
             double minScore = double.MaxValue;
             double maxScore = double.MinValue;
@@ -333,7 +337,9 @@ namespace PTL.ATT.GUI.Visualization
 
                 sliceRowColScoreColor.Add(slice, rowColScoreIncident);
             }
+            #endregion
 
+            #region draw threat surface with colors shaded appropriately
             double scoreRange = maxScore - minScore;
             if (scoreRange == 0)
                 scoreRange = float.Epsilon;
@@ -343,6 +349,7 @@ namespace PTL.ATT.GUI.Visualization
                 Graphics g = Graphics.FromImage(newSliceThreatSurface[slice]);
                 g.Clear(BackColor);
 
+                #region threat
                 foreach (int row in sliceRowColScoreColor[slice].Keys)
                     foreach (int col in sliceRowColScoreColor[slice][row].Keys)
                     {
@@ -365,7 +372,9 @@ namespace PTL.ATT.GUI.Visualization
                             sliceSquareThreatType[slice].Add(new Tuple<RectangleF, double, string>(threatSquare, scoreIncident.Item1, scoreIncident.Item2));
                         }
                     }
+                #endregion
 
+                #region overlays
                 foreach (Overlay overlay in Overlays)
                     if (overlay.Displayed)
                     {
@@ -383,7 +392,9 @@ namespace PTL.ATT.GUI.Visualization
                                 for (int i = 1; i < points.Count; ++i)
                                     g.DrawLine(_pen, ConvertMetersPointToDrawingPoint(points[i - 1], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions), ConvertMetersPointToDrawingPoint(points[i], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions));
                     }
+                #endregion
 
+                #region true incidents
                 Set<string> selectedTrueIncidentOverlays = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState == CheckState.Checked).Select(c => c.Text).ToArray());
                 DateTime sliceStart = DisplayedPrediction.PredictionStartTime;
                 DateTime sliceEnd = DisplayedPrediction.PredictionEndTime;
@@ -409,7 +420,9 @@ namespace PTL.ATT.GUI.Visualization
                         g.DrawEllipse(_pen, circle);
                     }
                 }
+                #endregion
 
+                #region prediction points
                 if (_displayPredictionPoints)
                 {
                     _brush.Color = _predictionPointColor;
@@ -422,7 +435,9 @@ namespace PTL.ATT.GUI.Visualization
                         g.DrawEllipse(_pen, circle);
                     }
                 }
+                #endregion
             }
+            #endregion
 
             if (_sliceThreatSurface != null)
             {
