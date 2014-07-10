@@ -434,24 +434,23 @@ namespace PTL.ATT.Models
                 {
                     Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                         {
-                            int core = (int)o;
+                             int core = (int)o;
                             NpgsqlConnection connection = DB.Connection.OpenConnection;
-
                             for (int j = 0; j + core < spatialDensityFeatures.Count; j += Configuration.ProcessorCount)
                                 {
-                                    Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeatures[j + core].TrainingResourceId : spatialDensityFeatures[j + core].PredictionResourceId));
+                                    Feature spatialDensityFeature = spatialDensityFeatures[j + core];
+                                    Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                     Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
 
                                     string geometryRecordWhereClause = "WHERE " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR (" + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " + ShapefileGeometry.Columns.Time + "<=@geometry_end)";
-                                    TimeSpan spatialDensityFeatureLag = new TimeSpan(spatialDensityFeatures[j + core].GetIntegerParameterValue("Lag days"), 0, 0, 0);
+                                    TimeSpan spatialDensityFeatureLag = new TimeSpan(spatialDensityFeature.GetIntegerParameterValue("Lag days"), 0, 0, 0);
                                     Parameter geometryStart = new Parameter("geometry_start", NpgsqlDbType.Timestamp, start - spatialDensityFeatureLag);
                                     Parameter geometryEnd = new Parameter("geometry_end", NpgsqlDbType.Timestamp, start - new TimeSpan(1));
                                     List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, ShapefileGeometry.GetTableName(shapefile), ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, geometryRecordWhereClause, -1, geometryStart.NpgsqlParameter, geometryEnd.NpgsqlParameter).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.SRID)).ToList();
-                                    int sampleSize = spatialDensityFeatures[j + core].GetIntegerParameterValue("Sample size");
+                                    int sampleSize = spatialDensityFeature.GetIntegerParameterValue("Sample size");
                                     List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, true);
                                     if (densityEstimates.Count == densityEvalPoints.Count)
-                                        lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeatures[j + core].Id, densityEstimates); }
-                                    
+                                        lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
                                 }
                             DB.Connection.Return(connection);
                         }));
@@ -568,16 +567,17 @@ namespace PTL.ATT.Models
                              int core = (int)o;
                             for (int j = 0; j + core < kdeFeatures.Count; j += Configuration.ProcessorCount)
                                 {
-                                    string incident = training ? kdeFeatures[j + core].TrainingResourceId : kdeFeatures[j + core].PredictionResourceId;
+                                    Feature kdeFeature = kdeFeatures[j + core];
+                                    string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;
 
                                     Console.Out.WriteLine("Computing spatial density of \"" + incident + "\"");
 
-                                    TimeSpan kdeFeatureLag = new TimeSpan(kdeFeatures[j + core].GetIntegerParameterValue("Lag days"), 0, 0, 0);
+                                    TimeSpan kdeFeatureLag = new TimeSpan(kdeFeature.GetIntegerParameterValue("Lag days"), 0, 0, 0);
                                     IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(start - kdeFeatureLag, start - new TimeSpan(1), area, incident).Select(inc => inc.Location);
-                                    int sampleSize = kdeFeatures[j + core].GetIntegerParameterValue("Sample size");
+                                    int sampleSize = kdeFeature.GetIntegerParameterValue("Sample size");
                                     List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, true);
                                     if (densityEstimates.Count == densityEvalPoints.Count)
-                                        lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeatures[j + core].Id, densityEstimates); }
+                                        lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
 
                                 }
                         }));
