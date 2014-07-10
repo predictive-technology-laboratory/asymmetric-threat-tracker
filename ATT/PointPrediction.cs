@@ -117,6 +117,7 @@ namespace PTL.ATT
 
         internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, Prediction prediction, bool vacuum)
         {
+            List<Tuple<string, Parameter>> valueParametersList = valueParameters.ToList();
             Set<Thread> threads = new Set<Thread>();
             for (int start = 0; start < Configuration.ProcessorCount; ++start)
             {
@@ -127,11 +128,13 @@ namespace PTL.ATT
                         int pointNum = 0;
                         int pointsPerBatch = 5000;
                         int core = (int)o;
-                        string table = GetTableName(prediction);
-                          for (int j = 0; j + core < valueParameters.Count(); j += Configuration.ProcessorCount)
+                        string table = GetTableName(predictionId);
+                       
+                        for (int j = 0; j + core < valueParametersList.Count; j += Configuration.ProcessorCount)
                             {
-                                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameters.ElementAt(j + core).Item1);
-                                ConnectionPool.AddParameters(cmd, valueParameters.ElementAt(j + core).Item2);
+                                Tuple<string, Parameter> valueParameter = valueParametersList[j + core];
+                                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameter.Item1);
+                                ConnectionPool.AddParameters(cmd, valueParameter.Item2);
 
                                 if ((++pointNum % pointsPerBatch) == 0)
                                 {
@@ -140,6 +143,7 @@ namespace PTL.ATT
                                     cmdText.Clear();
                                     cmd.Parameters.Clear();
                                 }
+
                             }
 
                         if (cmdText.Length > 0)
@@ -185,6 +189,7 @@ namespace PTL.ATT
 
         internal static void UpdateThreatScores(IEnumerable<PointPrediction> pointPredictions, Prediction prediction)
         {
+            List<PointPrediction> pointPredictionsList = pointPredictions.ToList();
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
@@ -197,16 +202,17 @@ namespace PTL.ATT
                         NpgsqlCommand cmd = DB.Connection.NewCommand("");
                         StringBuilder cmdText = new StringBuilder();
                         string table = GetTableName(prediction);
-                        for (int j = 0; j + core < pointPredictions.Count(); j += Configuration.ProcessorCount)
+                        for (int j = 0; j + core < pointPredictionsList.Count; j += Configuration.ProcessorCount)
                             {
+                                PointPrediction pointPrediction = pointPredictionsList[j+core];
                                 string labels, scores;
-                                GetLabelsScoresSQL(pointPredictions.ElementAt(j + core).IncidentScore, out labels, out scores);
+                                GetLabelsScoresSQL(pointPrediction.IncidentScore, out labels, out scores);
                                 
                                 cmdText.Append("UPDATE " + table + " " +
                                                "SET " + Columns.Labels + "=" + labels + "," +
                                                         Columns.ThreatScores + "=" + scores + "," +
-                                                        Columns.TotalThreat + "=" + pointPredictions.ElementAt(j + core).IncidentScore.Values.Sum() + " " +
-                                               "WHERE " + Columns.Id + "=" + pointPredictions.ElementAt(j + core).Id + ";");
+                                                        Columns.TotalThreat + "=" + pointPrediction.IncidentScore.Values.Sum() + " " +
+                                               "WHERE " + Columns.Id + "=" + pointPrediction.Id + ";");
 
                                 if (++pointNum >= pointsPerBatch)
                                 {
@@ -215,8 +221,8 @@ namespace PTL.ATT
                                     pointNum = 0;
                                     cmdText.Clear();
                                 }
-                            }
 
+                            }
                         if (pointNum > 0)
                         {
                             cmd.CommandText = cmdText.ToString();
