@@ -126,13 +126,12 @@ namespace PTL.ATT
                         StringBuilder cmdText = new StringBuilder();
                         int pointNum = 0;
                         int pointsPerBatch = 5000;
-                        int skip = (int)o;
+                        int core = (int)o;
                         string table = GetTableName(prediction);
-                        foreach (Tuple<string, Parameter> valueParameter in valueParameters)
-                            if (skip-- <= 0)
+                          for (int j = 0; j + core < valueParameters.Count(); j += Configuration.ProcessorCount)
                             {
-                                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameter.Item1);
-                                ConnectionPool.AddParameters(cmd, valueParameter.Item2);
+                                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameters.ElementAt(j + core).Item1);
+                                ConnectionPool.AddParameters(cmd, valueParameters.ElementAt(j + core).Item2);
 
                                 if ((++pointNum % pointsPerBatch) == 0)
                                 {
@@ -141,8 +140,6 @@ namespace PTL.ATT
                                     cmdText.Clear();
                                     cmd.Parameters.Clear();
                                 }
-
-                                skip = Configuration.ProcessorCount - 1;
                             }
 
                         if (cmdText.Length > 0)
@@ -193,24 +190,23 @@ namespace PTL.ATT
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
-                        int skip = (int)o;
+                        int core = (int)o;
 
                         int pointsPerBatch = 1000;
                         int pointNum = 0;
                         NpgsqlCommand cmd = DB.Connection.NewCommand("");
                         StringBuilder cmdText = new StringBuilder();
                         string table = GetTableName(prediction);
-                        foreach (PointPrediction pointPrediction in pointPredictions)
-                            if (skip-- <= 0)
+                        for (int j = 0; j + core < pointPredictions.Count(); j += Configuration.ProcessorCount)
                             {
                                 string labels, scores;
-                                GetLabelsScoresSQL(pointPrediction.IncidentScore, out labels, out scores);
+                                GetLabelsScoresSQL(pointPredictions.ElementAt(j + core).IncidentScore, out labels, out scores);
                                 
                                 cmdText.Append("UPDATE " + table + " " +
                                                "SET " + Columns.Labels + "=" + labels + "," +
                                                         Columns.ThreatScores + "=" + scores + "," +
-                                                        Columns.TotalThreat + "=" + pointPrediction.IncidentScore.Values.Sum() + " " +
-                                               "WHERE " + Columns.Id + "=" + pointPrediction.Id + ";");
+                                                        Columns.TotalThreat + "=" + pointPredictions.ElementAt(j + core).IncidentScore.Values.Sum() + " " +
+                                               "WHERE " + Columns.Id + "=" + pointPredictions.ElementAt(j + core).Id + ";");
 
                                 if (++pointNum >= pointsPerBatch)
                                 {
@@ -219,8 +215,6 @@ namespace PTL.ATT
                                     pointNum = 0;
                                     cmdText.Clear();
                                 }
-
-                                skip = Configuration.ProcessorCount - 1;
                             }
 
                         if (pointNum > 0)
