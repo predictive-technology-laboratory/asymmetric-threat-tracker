@@ -1787,22 +1787,21 @@ namespace PTL.ATT.GUI
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
-                        int skip = (int)o;
-                        foreach (TreeNode node in TraversePredictionTree().Where(n => n.Checked))
-                            if (skip-- <= 0)
+                        int core = (int)o;
+                        IEnumerable<TreeNode> nodes=TraversePredictionTree().Where(n => n.Checked);
+                         for (int j = 0; j + core < nodes.Count(); j += Configuration.ProcessorCount)
                             {
-                                if (node.Tag is PredictionGroup)
+                                if (nodes.ElementAt(j+core).Tag is PredictionGroup)
                                 {
-                                    PredictionGroup group = node.Tag as PredictionGroup;
+                                    PredictionGroup group = nodes.ElementAt(j + core).Tag as PredictionGroup;
                                     if (group.AggregatePlot == null)
-                                        group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
+                                        group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(nodes.ElementAt(j + core).Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
                                 }
-                                else if (node.Tag is Prediction)
-                                    DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
+                                else if (nodes.ElementAt(j + core).Tag is Prediction)
+                                    DiscreteChoiceModel.Evaluate(nodes.ElementAt(j + core).Tag as Prediction, PlotHeight, PlotHeight);
                                 else
-                                    throw new Exception("Unexpected node tag:  " + node.Tag);
+                                    throw new Exception("Unexpected node tag:  " + nodes.ElementAt(j + core).Tag);
 
-                                skip = PTL.ATT.GUI.Configuration.ProcessorCount - 1;
                             }
                     }));
 
