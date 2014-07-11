@@ -63,33 +63,33 @@ namespace PTL.ATT.Smoothers
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
                     Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
-                    {
-                        int core = (int)o;
-                        List<Tuple<PointPrediction, Dictionary<string, double>>> threadPointPredictionIncidentScore = new List<Tuple<PointPrediction, Dictionary<string, double>>>((int)((pointPredictions.Count / (float)Configuration.ProcessorCount) + 1));
-                        for (int j = 0; j + core < pointPredictions.Count; j += Configuration.ProcessorCount)
                         {
-                            PointPrediction pointPrediction = pointPredictions[j + core];
-                            Dictionary<PointPrediction, double> neighborInvDist = new Dictionary<PointPrediction, double>();
-                            foreach (PointPrediction neighbor in pointPredictions)
+                            int core = (int)o;
+                            List<Tuple<PointPrediction, Dictionary<string, double>>> threadPointPredictionIncidentScore = new List<Tuple<PointPrediction, Dictionary<string, double>>>((int)((pointPredictions.Count / (float)Configuration.ProcessorCount) + 1));
+                            for (int j = 0; j + core < pointPredictions.Count; j += Configuration.ProcessorCount)
                             {
-                                double distance = idPoint[pointPrediction.PointId].Location.DistanceTo(idPoint[neighbor.PointId].Location);
-                                if (pointPrediction == neighbor || (distance >= _minimum && distance <= _maximum))
-                                    neighborInvDist.Add(neighbor, _maximum - distance);
+                                PointPrediction pointPrediction = pointPredictions[j + core];
+                                Dictionary<PointPrediction, double> neighborInvDist = new Dictionary<PointPrediction, double>();
+                                foreach (PointPrediction neighbor in pointPredictions)
+                                {
+                                    double distance = idPoint[pointPrediction.PointId].Location.DistanceTo(idPoint[neighbor.PointId].Location);
+                                    if (pointPrediction == neighbor || (distance >= _minimum && distance <= _maximum))
+                                        neighborInvDist.Add(neighbor, _maximum - distance);
+                                }
+
+                                double totalInvDistance = neighborInvDist.Values.Sum();
+
+                                Dictionary<string, double> incidentScore = new Dictionary<string, double>(pointPrediction.IncidentScore.Count);
+                                foreach (string incident in pointPrediction.IncidentScore.Keys)
+                                    incidentScore.Add(incident, neighborInvDist.Keys.Sum(neighbor => (neighborInvDist[neighbor] / totalInvDistance) * neighbor.IncidentScore[incident]));
+
+                                threadPointPredictionIncidentScore.Add(new Tuple<PointPrediction, Dictionary<string, double>>(pointPrediction, incidentScore));
+
                             }
 
-                            double totalInvDistance = neighborInvDist.Values.Sum();
+                            lock (pointPredictionIncidentScore) { pointPredictionIncidentScore.AddRange(threadPointPredictionIncidentScore); }
 
-                            Dictionary<string, double> incidentScore = new Dictionary<string, double>(pointPrediction.IncidentScore.Count);
-                            foreach (string incident in pointPrediction.IncidentScore.Keys)
-                                incidentScore.Add(incident, neighborInvDist.Keys.Sum(neighbor => (neighborInvDist[neighbor] / totalInvDistance) * neighbor.IncidentScore[incident]));
-
-                            threadPointPredictionIncidentScore.Add(new Tuple<PointPrediction, Dictionary<string, double>>(pointPrediction, incidentScore));
-
-                        }
-
-                        lock (pointPredictionIncidentScore) { pointPredictionIncidentScore.AddRange(threadPointPredictionIncidentScore); }
-
-                    }));
+                        }));
 
                     t.Start(i);
                     threads.Add(t);

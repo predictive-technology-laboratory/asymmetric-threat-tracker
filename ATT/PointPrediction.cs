@@ -123,20 +123,30 @@ namespace PTL.ATT
             for (int start = 0; start < Configuration.ProcessorCount; ++start)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
-                {
-                    NpgsqlCommand cmd = DB.Connection.NewCommand(null);
-                    StringBuilder cmdText = new StringBuilder();
-                    int pointNum = 0;
-                    int pointsPerBatch = 5000;
-                    int core = (int)o;
-                    string table = GetTableName(prediction);
-                    for (int j = 0; j + core < valueParametersList.Count; j += Configuration.ProcessorCount)
                     {
-                        Tuple<string, Parameter> valueParameter = valueParametersList[j + core];
-                        cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameter.Item1);
-                        ConnectionPool.AddParameters(cmd, valueParameter.Item2);
+                        NpgsqlCommand cmd = DB.Connection.NewCommand(null);
+                        StringBuilder cmdText = new StringBuilder();
+                        int pointNum = 0;
+                        int pointsPerBatch = 5000;
+                        int core = (int)o;
+                        string table = GetTableName(prediction);
+                        for (int j = 0; j + core < valueParametersList.Count; j += Configuration.ProcessorCount)
+                        {
+                            Tuple<string, Parameter> valueParameter = valueParametersList[j + core];
+                            cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameter.Item1);
+                            ConnectionPool.AddParameters(cmd, valueParameter.Item2);
 
-                        if ((++pointNum % pointsPerBatch) == 0)
+                            if ((++pointNum % pointsPerBatch) == 0)
+                            {
+                                cmd.CommandText = cmdText.ToString();
+                                cmd.ExecuteNonQuery();
+                                cmdText.Clear();
+                                cmd.Parameters.Clear();
+                            }
+
+                        }
+
+                        if (cmdText.Length > 0)
                         {
                             cmd.CommandText = cmdText.ToString();
                             cmd.ExecuteNonQuery();
@@ -144,18 +154,8 @@ namespace PTL.ATT
                             cmd.Parameters.Clear();
                         }
 
-                    }
-
-                    if (cmdText.Length > 0)
-                    {
-                        cmd.CommandText = cmdText.ToString();
-                        cmd.ExecuteNonQuery();
-                        cmdText.Clear();
-                        cmd.Parameters.Clear();
-                    }
-
-                    DB.Connection.Return(cmd.Connection);
-                }));
+                        DB.Connection.Return(cmd.Connection);
+                    }));
 
                 t.Start(start);
                 threads.Add(t);
@@ -192,44 +192,44 @@ namespace PTL.ATT
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
-                {
-                    int core = (int)o;
-
-                    int pointsPerBatch = 1000;
-                    int pointNum = 0;
-                    NpgsqlCommand cmd = DB.Connection.NewCommand("");
-                    StringBuilder cmdText = new StringBuilder();
-                    string table = GetTableName(prediction);
-                    for (int j = 0; j + core < pointPredictionsList.Count; j += Configuration.ProcessorCount)
                     {
-                        PointPrediction pointPrediction = pointPredictionsList[j + core];
-                        string labels, scores;
-                        GetLabelsScoresSQL(pointPrediction.IncidentScore, out labels, out scores);
+                        int core = (int)o;
 
-                        cmdText.Append("UPDATE " + table + " " +
-                                       "SET " + Columns.Labels + "=" + labels + "," +
-                                                Columns.ThreatScores + "=" + scores + "," +
-                                                Columns.TotalThreat + "=" + pointPrediction.IncidentScore.Values.Sum() + " " +
-                                       "WHERE " + Columns.Id + "=" + pointPrediction.Id + ";");
+                        int pointsPerBatch = 1000;
+                        int pointNum = 0;
+                        NpgsqlCommand cmd = DB.Connection.NewCommand("");
+                        StringBuilder cmdText = new StringBuilder();
+                        string table = GetTableName(prediction);
+                        for (int j = 0; j + core < pointPredictionsList.Count; j += Configuration.ProcessorCount)
+                        {
+                            PointPrediction pointPrediction = pointPredictionsList[j + core];
+                            string labels, scores;
+                            GetLabelsScoresSQL(pointPrediction.IncidentScore, out labels, out scores);
 
-                        if (++pointNum >= pointsPerBatch)
+                            cmdText.Append("UPDATE " + table + " " +
+                                           "SET " + Columns.Labels + "=" + labels + "," +
+                                                    Columns.ThreatScores + "=" + scores + "," +
+                                                    Columns.TotalThreat + "=" + pointPrediction.IncidentScore.Values.Sum() + " " +
+                                           "WHERE " + Columns.Id + "=" + pointPrediction.Id + ";");
+
+                            if (++pointNum >= pointsPerBatch)
+                            {
+                                cmd.CommandText = cmdText.ToString();
+                                cmd.ExecuteNonQuery();
+                                pointNum = 0;
+                                cmdText.Clear();
+                            }
+
+                        }
+
+                        if (pointNum > 0)
                         {
                             cmd.CommandText = cmdText.ToString();
                             cmd.ExecuteNonQuery();
-                            pointNum = 0;
-                            cmdText.Clear();
                         }
 
-                    }
-
-                    if (pointNum > 0)
-                    {
-                        cmd.CommandText = cmdText.ToString();
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    DB.Connection.Return(cmd.Connection);
-                }));
+                        DB.Connection.Return(cmd.Connection);
+                    }));
 
                 t.Start(i);
                 threads.Add(t);
