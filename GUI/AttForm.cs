@@ -1779,31 +1779,31 @@ namespace PTL.ATT.GUI
             foreach (TreeNode n in TraversePredictionTree())
                 n.Checked = true;
         }
-
         public void EvaluateSelectedPredictions()
         {
             Set<Thread> threads = new Set<Thread>(PTL.ATT.GUI.Configuration.ProcessorCount);
             for (int i = 0; i < PTL.ATT.GUI.Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                {
+                    int core = (int)o;
+                    List<TreeNode> NodesList = TraversePredictionTree().Where(n => n.Checked).ToList();
+                    for (int j = 0; j + core < NodesList.Count; j += Configuration.ProcessorCount)
                     {
-                      int core = (int)o;
-                        List<TreeNode> NodesList=TraversePredictionTree().Where(n => n.Checked).ToList();
-                        for (int j = 0; j + core < NodesList.Count; j += Configuration.ProcessorCount)
-                            {
-                                TreeNode node = NodesList[j + core];
-                                if (node.Tag is PredictionGroup)
-                                {
-                                    PredictionGroup group = node.Tag as PredictionGroup;
-                                    if (group.AggregatePlot == null)
-                                        group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
-                                }
-                                else if (node.Tag is Prediction)
-                                    DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
-                                else
-                                    throw new Exception("Unexpected node tag:  " + node.Tag);
-                            }
-                    }));
+                        TreeNode node = NodesList[j + core];
+                        if (node.Tag is PredictionGroup)
+                        {
+                            PredictionGroup group = node.Tag as PredictionGroup;
+                            if (group.AggregatePlot == null)
+                                group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
+                        }
+                        else if (node.Tag is Prediction)
+                            DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
+                        else
+                            throw new Exception("Unexpected node tag:  " + node.Tag);
+
+                    }
+                }));
 
                 t.Start(i);
                 threads.Add(t);
@@ -1812,6 +1812,7 @@ namespace PTL.ATT.GUI
             foreach (Thread t in threads)
                 t.Join();
         }
+    
         #endregion
 
         #region refreshing
