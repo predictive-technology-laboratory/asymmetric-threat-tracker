@@ -480,7 +480,7 @@ namespace PTL.ATT.GUI
                         {
                             List<Area> areasForShapefile = Area.GetForShapefile(shapefile);
                             List<DiscreteChoiceModel> modelsForShapefile = areasForShapefile.SelectMany(a => DiscreteChoiceModel.GetForArea(a, false)).Union(DiscreteChoiceModel.GetAll(false).Where(m => m is IFeatureBasedDCM && (m as IFeatureBasedDCM).Features.Any(feat => feat.TrainingResourceId == shapefile.Id.ToString() || feat.PredictionResourceId == shapefile.Id.ToString()))).ToList();
-                            List<Prediction> predictionsForShapefile = areasForShapefile.SelectMany(a => Prediction.GetForArea(a, false)).ToList();
+                            List<Prediction> predictionsForShapefile = modelsForShapefile.SelectMany(m => Prediction.GetForModel(m, true)).ToList();
                             if (modelsForShapefile.Count > 0 || predictionsForShapefile.Count > 0)
                                 if (MessageBox.Show("The shapefile \"" + shapefile + "\" is associated with " + modelsForShapefile.Count + " model(s) and " + predictionsForShapefile.Count + " prediction(s), which must be deleted before the shapefile can be deleted. Delete them now?", "Delete models and predictions?", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                                 {
@@ -1202,10 +1202,13 @@ namespace PTL.ATT.GUI
                         m.TrainingEnd = trainingEnd;
                         m.IncidentTypes = incidentTypes;
 
-                        RefreshPredictions(mostRecentPrediction);
+                        if (mostRecentPrediction != null)
+                        {
+                            RefreshPredictions(mostRecentPrediction);
 
-                        if (runFinishedCallback != null)
-                            Invoke(new Action(delegate() { runFinishedCallback(mostRecentPrediction.Id); }));
+                            if (runFinishedCallback != null)
+                                Invoke(new Action(delegate() { runFinishedCallback(mostRecentPrediction.Id); }));
+                        }
 
                         Notify("Done running predictions", "");
                     }));
