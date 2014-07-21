@@ -1230,9 +1230,7 @@ namespace PTL.ATT.GUI
             }
 
             Func<Prediction, string> grouper;
-            if (_groups[groupNum] == groupByModelToolStripMenuItem.Text)
-                grouper = p => "Model:  " + p.Model.Name + " " + p.Model.Id.ToString();
-            else if (_groups[groupNum] == groupByIncidentTypesToolStripMenuItem.Text)
+            if (_groups[groupNum] == groupByIncidentTypesToolStripMenuItem.Text)
                 grouper = p => "Incidents:  " + p.Model.IncidentTypes.OrderBy(i => i).Concatenate(", ");
             else if (_groups[groupNum] == groupByRunToolStripMenuItem.Text)
                 grouper = p => "Run:  " + p.RunId;
@@ -1281,19 +1279,6 @@ namespace PTL.ATT.GUI
                 foreach (TreeNode subNode in TraversePredictionTree(node.Nodes))
                     yield return subNode;
             }
-        }
-
-        private void groupByModelToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-        {
-            if (groupByModelToolStripMenuItem.Checked)
-            {
-                if (!_groups.Contains(groupByModelToolStripMenuItem.Text))
-                    _groups.Add(groupByModelToolStripMenuItem.Text);
-            }
-            else
-                _groups.Remove(groupByModelToolStripMenuItem.Text);
-
-            RefreshPredictions(SelectedPredictions.ToArray());
         }
 
         private void groupByIncidentTypesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
@@ -1785,28 +1770,27 @@ namespace PTL.ATT.GUI
 
         public void EvaluateSelectedPredictions()
         {
+            List<TreeNode> selectedNodes = TraversePredictionTree().Where(n => n.Checked).ToList();
             Set<Thread> threads = new Set<Thread>(PTL.ATT.GUI.Configuration.ProcessorCount);
             for (int i = 0; i < PTL.ATT.GUI.Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
-                        int skip = (int)o;
-                        foreach (TreeNode node in TraversePredictionTree().Where(n => n.Checked))
-                            if (skip-- <= 0)
+                        int core = (int)o;
+                        for (int j = 0; j + core < selectedNodes.Count; j += PTL.ATT.GUI.Configuration.ProcessorCount)
+                        {
+                            TreeNode node = selectedNodes[j + core];
+                            if (node.Tag is PredictionGroup)
                             {
-                                if (node.Tag is PredictionGroup)
-                                {
-                                    PredictionGroup group = node.Tag as PredictionGroup;
-                                    if (group.AggregatePlot == null)
-                                        group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
-                                }
-                                else if (node.Tag is Prediction)
-                                    DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
-                                else
-                                    throw new Exception("Unexpected node tag:  " + node.Tag);
-
-                                skip = PTL.ATT.GUI.Configuration.ProcessorCount - 1;
+                                PredictionGroup group = node.Tag as PredictionGroup;
+                                if (group.AggregatePlot == null)
+                                    group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
                             }
+                            else if (node.Tag is Prediction)
+                                DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
+                            else
+                                throw new Exception("Unexpected node tag:  " + node.Tag);
+                        }
                     }));
 
                 t.Start(i);

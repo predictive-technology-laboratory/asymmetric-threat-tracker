@@ -63,7 +63,7 @@ namespace PTL.ATT.Smoothers
 
         public override void Apply(Prediction prediction)
         {
-            List<PointPrediction> pointPredictions = prediction.PointPredictions.ToList();
+            List<PointPrediction> pointPredictions = prediction.PointPredictions;
 
             if (pointPredictions.Count > 0)
             {
