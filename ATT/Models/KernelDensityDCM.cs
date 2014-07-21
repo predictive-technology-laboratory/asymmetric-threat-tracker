@@ -221,6 +221,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
             try
             {
+                Console.Out.WriteLine("Inserting points into prediction");
                 Point.CreateTable(prediction, predictionArea.Shapefile.SRID);
                 List<int> predictionPointIds = Point.Insert(connection, predictionPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false, false);
 
