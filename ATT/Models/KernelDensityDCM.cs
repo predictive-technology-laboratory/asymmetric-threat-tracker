@@ -201,7 +201,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
         protected override void Run(Prediction prediction)
         {
-            List<PostGIS.Point> nullPoints = new List<PostGIS.Point>();
+            List<PostGIS.Point> predictionPoints = new List<PostGIS.Point>();
             Area predictionArea = prediction.PredictionArea;
             double areaMinX = predictionArea.BoundingBox.MinX;
             double areaMaxX = predictionArea.BoundingBox.MaxX;
@@ -209,28 +209,29 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             double areaMaxY = predictionArea.BoundingBox.MaxY;
             for (double x = areaMinX + PointSpacing / 2d; x <= areaMaxX; x += PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + PointSpacing / 2d; y <= areaMaxY; y += PointSpacing)
-                    nullPoints.Add(new PostGIS.Point(x, y, predictionArea.Shapefile.SRID));
+                    predictionPoints.Add(new PostGIS.Point(x, y, predictionArea.Shapefile.SRID));
 
-            nullPoints = predictionArea.Contains(nullPoints).Select(i => nullPoints[i]).ToList();
+            List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
+            predictionPoints.AddRange(incidentPoints);
+
+            Console.Out.WriteLine("Filtering prediction points to prediction area");
+            predictionPoints = predictionArea.Contains(predictionPoints).Select(i => predictionPoints[i]).ToList();
 
             NpgsqlConnection connection = DB.Connection.OpenConnection;
 
             try
             {
-                Console.Out.WriteLine("Running KDE for all incident types");
-
                 Point.CreateTable(prediction, predictionArea.Shapefile.SRID);
-                List<int> nullPointIds = Point.Insert(connection, nullPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false, false);
+                List<int> predictionPointIds = Point.Insert(connection, predictionPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false, false);
 
-                List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
-                List<float> density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, nullPoints, _normalize);
-                Dictionary<int, float> pointIdOverallDensity = new Dictionary<int, float>();
+                Console.Out.WriteLine("Running overall KDE for " + IncidentTypes.Count + " incident type(s)");
+                List<float> density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, predictionPoints, _normalize);
+                Dictionary<int, float> pointIdOverallDensity = new Dictionary<int, float>(predictionPointIds.Count);
                 int pointNum = 0;
-                foreach (int nullPointId in nullPointIds)
-                    pointIdOverallDensity.Add(nullPointId, density[pointNum++]);
+                foreach (int predictionPointId in predictionPointIds)
+                    pointIdOverallDensity.Add(predictionPointId, density[pointNum++]);
 
-                Dictionary<int, Dictionary<string, double>> pointIdIncidentDensity = new Dictionary<int,Dictionary<string,double>>();
-
+                Dictionary<int, Dictionary<string, double>> pointIdIncidentDensity = new Dictionary<int, Dictionary<string, double>>(pointIdOverallDensity.Count);
                 if (IncidentTypes.Count == 1)
                 {
                     string incident = IncidentTypes.First();
@@ -244,18 +245,16 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                 else
                     foreach (string incidentType in IncidentTypes)
                     {
-                        incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, incidentType).Select(i => i.Location));
-
                         Console.Out.WriteLine("Running KDE for incident \"" + incidentType + "\"");
-
-                        density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, nullPoints, _normalize);
+                        incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, incidentType).Select(i => i.Location));
+                        density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, predictionPoints, _normalize);
                         if (density.Count > 0)
                         {
                             pointNum = 0;
-                            foreach (int nullPointId in nullPointIds)
+                            foreach (int predictionPointId in predictionPointIds)
                             {
-                                pointIdIncidentDensity.EnsureContainsKey(nullPointId, typeof(Dictionary<string, double>));
-                                pointIdIncidentDensity[nullPointId].Add(incidentType, density[pointNum++]);
+                                pointIdIncidentDensity.EnsureContainsKey(predictionPointId, typeof(Dictionary<string, double>));
+                                pointIdIncidentDensity[predictionPointId].Add(incidentType, density[pointNum++]);
                             }
                         }
                     }
