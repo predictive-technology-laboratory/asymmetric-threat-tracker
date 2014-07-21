@@ -50,7 +50,7 @@ namespace PTL.ATT.Smoothers
 
         public override void Apply(Prediction prediction)
         {
-            List<PointPrediction> pointPredictions = prediction.PointPredictions.ToList();
+            List<PointPrediction> pointPredictions = prediction.PointPredictions;
 
             if (pointPredictions.Count > 0)
             {
@@ -84,7 +84,6 @@ namespace PTL.ATT.Smoothers
                                     incidentScore.Add(incident, neighborInvDist.Keys.Sum(neighbor => (neighborInvDist[neighbor] / totalInvDistance) * neighbor.IncidentScore[incident]));
 
                                 threadPointPredictionIncidentScore.Add(new Tuple<PointPrediction, Dictionary<string, double>>(pointPrediction, incidentScore));
-
                             }
 
                             lock (pointPredictionIncidentScore) { pointPredictionIncidentScore.AddRange(threadPointPredictionIncidentScore); }

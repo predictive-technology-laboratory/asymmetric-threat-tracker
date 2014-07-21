@@ -1227,9 +1227,7 @@ namespace PTL.ATT.GUI
             }
 
             Func<Prediction, string> grouper;
-            if (_groups[groupNum] == groupByModelToolStripMenuItem.Text)
-                grouper = p => "Model:  " + p.Model.Name + " " + p.Model.Id.ToString();
-            else if (_groups[groupNum] == groupByIncidentTypesToolStripMenuItem.Text)
+            if (_groups[groupNum] == groupByIncidentTypesToolStripMenuItem.Text)
                 grouper = p => "Incidents:  " + p.Model.IncidentTypes.OrderBy(i => i).Concatenate(", ");
             else if (_groups[groupNum] == groupByRunToolStripMenuItem.Text)
                 grouper = p => "Run:  " + p.RunId;
@@ -1278,19 +1276,6 @@ namespace PTL.ATT.GUI
                 foreach (TreeNode subNode in TraversePredictionTree(node.Nodes))
                     yield return subNode;
             }
-        }
-
-        private void groupByModelToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-        {
-            if (groupByModelToolStripMenuItem.Checked)
-            {
-                if (!_groups.Contains(groupByModelToolStripMenuItem.Text))
-                    _groups.Add(groupByModelToolStripMenuItem.Text);
-            }
-            else
-                _groups.Remove(groupByModelToolStripMenuItem.Text);
-
-            RefreshPredictions(SelectedPredictions.ToArray());
         }
 
         private void groupByIncidentTypesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
@@ -1782,16 +1767,16 @@ namespace PTL.ATT.GUI
 
         public void EvaluateSelectedPredictions()
         {
+            List<TreeNode> selectedNodes = TraversePredictionTree().Where(n => n.Checked).ToList();
             Set<Thread> threads = new Set<Thread>(PTL.ATT.GUI.Configuration.ProcessorCount);
             for (int i = 0; i < PTL.ATT.GUI.Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
                         int core = (int)o;
-                        List<TreeNode> NodesList = TraversePredictionTree().Where(n => n.Checked).ToList();
-                        for (int j = 0; j + core < NodesList.Count; j += Configuration.ProcessorCount)
+                        for (int j = 0; j + core < selectedNodes.Count; j += PTL.ATT.GUI.Configuration.ProcessorCount)
                         {
-                            TreeNode node = NodesList[j + core];
+                            TreeNode node = selectedNodes[j + core];
                             if (node.Tag is PredictionGroup)
                             {
                                 PredictionGroup group = node.Tag as PredictionGroup;
@@ -1802,7 +1787,6 @@ namespace PTL.ATT.GUI
                                 DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
                             else
                                 throw new Exception("Unexpected node tag:  " + node.Tag);
-
                         }
                     }));
 

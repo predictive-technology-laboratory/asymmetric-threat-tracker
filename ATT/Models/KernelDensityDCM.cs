@@ -145,13 +145,16 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             }
         }
 
-        private static IEnumerable<Tuple<string, Parameter>> GetPointPredictionValues(Dictionary<int, float> pointIdOverallDensity, Dictionary<int, Dictionary<string, double>> pointIdIncidentDensity)
+        private static List<Tuple<string, Parameter>> GetPointPredictionValues(Dictionary<int, float> pointIdOverallDensity, Dictionary<int, Dictionary<string, double>> pointIdIncidentDensity)
         {
+            List<Tuple<string, Parameter>> pointPredictionValues = new List<Tuple<string, Parameter>>(pointIdIncidentDensity.Count);
             foreach (int pointId in pointIdIncidentDensity.Keys)
             {
                 string timeParameterName = "@time_" + pointId;
-                yield return new Tuple<string, Parameter>(PointPrediction.GetValue(pointId, timeParameterName, pointIdIncidentDensity[pointId], pointIdOverallDensity[pointId]), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, DateTime.MinValue));
+                pointPredictionValues.Add(new Tuple<string, Parameter>(PointPrediction.GetValue(pointId, timeParameterName, pointIdIncidentDensity[pointId], pointIdOverallDensity[pointId]), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, DateTime.MinValue)));
             }
+
+            return pointPredictionValues;
         }
 
         private int _trainingSampleSize;

@@ -115,25 +115,26 @@ namespace PTL.ATT
             scores = scoresBuilder.ToString();
         }
 
-        internal static void Insert(IEnumerable<Tuple<string, Parameter>> valueParameters, Prediction prediction, bool vacuum)
+        internal static void Insert(List<Tuple<string, Parameter>> valueParameters, Prediction prediction, bool vacuum)
         {
-            List<Tuple<string, Parameter>> valueParametersList = valueParameters.ToList();
             Set<Thread> threads = new Set<Thread>();
-            for (int start = 0; start < Configuration.ProcessorCount; ++start)
+            for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
+                        int core = (int)o;
                         NpgsqlCommand cmd = DB.Connection.NewCommand(null);
                         StringBuilder cmdText = new StringBuilder();
                         int pointNum = 0;
                         int pointsPerBatch = 5000;
-                        int core = (int)o;
                         string table = GetTableName(prediction);
-                        for (int j = 0; j + core < valueParametersList.Count; j += Configuration.ProcessorCount)
+                        for (int j = 0; j + core < valueParameters.Count; j += Configuration.ProcessorCount)
                         {
-                            Tuple<string, Parameter> valueParameter = valueParametersList[j + core];
+                            Tuple<string, Parameter> valueParameter = valueParameters[j + core];
                             cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameter.Item1);
-                            ConnectionPool.AddParameters(cmd, valueParameter.Item2);
+
+                            if (valueParameter.Item2 != null)
+                                ConnectionPool.AddParameters(cmd, valueParameter.Item2);
 
                             if ((++pointNum % pointsPerBatch) == 0)
                             {
@@ -142,7 +143,6 @@ namespace PTL.ATT
                                 cmdText.Clear();
                                 cmd.Parameters.Clear();
                             }
-
                         }
 
                         if (cmdText.Length > 0)
@@ -156,7 +156,7 @@ namespace PTL.ATT
                         DB.Connection.Return(cmd.Connection);
                     }));
 
-                t.Start(start);
+                t.Start(i);
                 threads.Add(t);
             }
 
@@ -186,24 +186,22 @@ namespace PTL.ATT
             return predictions;
         }
 
-        internal static void UpdateThreatScores(IEnumerable<PointPrediction> pointPredictions, Prediction prediction)
+        internal static void UpdateThreatScores(List<PointPrediction> pointPredictions, Prediction prediction)
         {
-            List<PointPrediction> pointPredictionsList = pointPredictions.ToList();
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
                         int core = (int)o;
-
                         int pointsPerBatch = 1000;
                         int pointNum = 0;
                         NpgsqlCommand cmd = DB.Connection.NewCommand("");
                         StringBuilder cmdText = new StringBuilder();
                         string table = GetTableName(prediction);
-                        for (int j = 0; j + core < pointPredictionsList.Count; j += Configuration.ProcessorCount)
+                        for (int j = 0; j + core < pointPredictions.Count; j += Configuration.ProcessorCount)
                         {
-                            PointPrediction pointPrediction = pointPredictionsList[j + core];
+                            PointPrediction pointPrediction = pointPredictions[j + core];
                             string labels, scores;
                             GetLabelsScoresSQL(pointPrediction.IncidentScore, out labels, out scores);
 
@@ -220,7 +218,6 @@ namespace PTL.ATT
                                 pointNum = 0;
                                 cmdText.Clear();
                             }
-
                         }
 
                         if (pointNum > 0)

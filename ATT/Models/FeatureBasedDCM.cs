@@ -104,8 +104,9 @@ namespace PTL.ATT.Models
                     yield return f;
         }
 
-        internal static IEnumerable<Tuple<string, Parameter>> GetPointPredictionValues(FeatureVectorList featureVectors)
+        internal static List<Tuple<string, Parameter>> GetPointPredictionValues(FeatureVectorList featureVectors)
         {
+            List<Tuple<string, Parameter>> pointPredictionValues = new List<Tuple<string, Parameter>>(featureVectors.Count);
             int pointNum = 0; // must use this because point IDs get repeated for the timeslice model
             foreach (FeatureVector featureVector in featureVectors)
                 if (featureVector.Count > 0) // sometimes points might have no extracted feature (e.g., for geometry attributes that don't cover the entire area). such cases can have strange probabilities that are not comparable to probabilities of points with features, so exclude them. this means that the surveillance plots might not reach (1,1) since all the area won't be surveilled -- seems okay.
@@ -113,8 +114,10 @@ namespace PTL.ATT.Models
                     Point point = featureVector.DerivedFrom as Point;
                     string timeParameterName = "@time_" + pointNum++;
                     IEnumerable<KeyValuePair<string, double>> incidentScore = point.PredictionConfidenceScores.Where(kvp => kvp.Key != PointPrediction.NullLabel).Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value));
-                    yield return new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, incidentScore, incidentScore.Sum(kvp => kvp.Value)), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time));
+                    pointPredictionValues.Add(new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, incidentScore, incidentScore.Sum(kvp => kvp.Value)), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time)));
                 }
+
+            return pointPredictionValues;
         }
 
         public static FeatureExtractor InitializeExternalFeatureExtractor(IFeatureBasedDCM model, Type modelType)
@@ -451,7 +454,6 @@ namespace PTL.ATT.Models
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, true);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
-
                             }
 
                             DB.Connection.Return(connection);
@@ -580,7 +582,6 @@ namespace PTL.ATT.Models
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, true);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
-
                             }
                         }));
 

@@ -66,6 +66,7 @@ namespace PTL.ATT.GUI
             this.deleteGeographicDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.incidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.collapseIncidentTypesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearImportedIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.simulateIncidentsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -96,7 +97,6 @@ namespace PTL.ATT.GUI
             this.groupByToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.predictionGroups = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.groupByIncidentTypesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.groupByModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupByPredictionIntervalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupByRunToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -130,11 +130,10 @@ namespace PTL.ATT.GUI
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.verticalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.threatSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.log = new System.Windows.Forms.RichTextBox();
             this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
-            this.collapseIncidentTypesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.log = new System.Windows.Forms.RichTextBox();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -320,6 +319,13 @@ namespace PTL.ATT.GUI
             this.importIncidentsToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
             this.importIncidentsToolStripMenuItem.Text = "Import incidents...";
             this.importIncidentsToolStripMenuItem.Click += new System.EventHandler(this.importIncidentsToolStripMenuItem_Click);
+            // 
+            // collapseIncidentTypesToolStripMenuItem
+            // 
+            this.collapseIncidentTypesToolStripMenuItem.Name = "collapseIncidentTypesToolStripMenuItem";
+            this.collapseIncidentTypesToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
+            this.collapseIncidentTypesToolStripMenuItem.Text = "Collapse incident types...";
+            this.collapseIncidentTypesToolStripMenuItem.Click += new System.EventHandler(this.collapseIncidentTypesToolStripMenuItem_Click);
             // 
             // clearImportedIncidentsToolStripMenuItem
             // 
@@ -577,11 +583,9 @@ namespace PTL.ATT.GUI
             // 
             this.predictionGroups.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.groupByIncidentTypesToolStripMenuItem,
-            this.groupByModelToolStripMenuItem,
             this.groupByPredictionIntervalToolStripMenuItem,
             this.groupByRunToolStripMenuItem});
             this.predictionGroups.Name = "sorts";
-            this.predictionGroups.OwnerItem = this.groupByToolStripMenuItem;
             this.predictionGroups.Size = new System.Drawing.Size(198, 92);
             this.predictionGroups.Closing += new System.Windows.Forms.ToolStripDropDownClosingEventHandler(this.submenu_Closing);
             // 
@@ -592,14 +596,6 @@ namespace PTL.ATT.GUI
             this.groupByIncidentTypesToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.groupByIncidentTypesToolStripMenuItem.Text = "Incident types";
             this.groupByIncidentTypesToolStripMenuItem.CheckedChanged += new System.EventHandler(this.groupByIncidentTypesToolStripMenuItem_CheckedChanged);
-            // 
-            // groupByModelToolStripMenuItem
-            // 
-            this.groupByModelToolStripMenuItem.CheckOnClick = true;
-            this.groupByModelToolStripMenuItem.Name = "groupByModelToolStripMenuItem";
-            this.groupByModelToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
-            this.groupByModelToolStripMenuItem.Text = "Model";
-            this.groupByModelToolStripMenuItem.CheckedChanged += new System.EventHandler(this.groupByModelToolStripMenuItem_CheckedChanged);
             // 
             // groupByPredictionIntervalToolStripMenuItem
             // 
@@ -972,6 +968,24 @@ namespace PTL.ATT.GUI
             this.threatSplitContainer.SplitterDistance = 378;
             this.threatSplitContainer.TabIndex = 0;
             // 
+            // threatMap
+            // 
+            this.threatMap.BackColor = System.Drawing.Color.White;
+            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.threatMap.Location = new System.Drawing.Point(0, 0);
+            this.threatMap.Name = "threatMap";
+            this.threatMap.Size = new System.Drawing.Size(718, 374);
+            this.threatMap.TabIndex = 0;
+            // 
+            // assessments
+            // 
+            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.assessments.Location = new System.Drawing.Point(0, 0);
+            this.assessments.Name = "assessments";
+            this.assessments.Size = new System.Drawing.Size(718, 214);
+            this.assessments.TabIndex = 0;
+            // 
             // horizontalSplitContainer
             // 
             this.horizontalSplitContainer.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
@@ -1002,31 +1016,6 @@ namespace PTL.ATT.GUI
             this.log.Size = new System.Drawing.Size(1122, 181);
             this.log.TabIndex = 0;
             this.log.Text = "";
-            // 
-            // threatMap
-            // 
-            this.threatMap.BackColor = System.Drawing.Color.White;
-            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.threatMap.Location = new System.Drawing.Point(0, 0);
-            this.threatMap.Name = "threatMap";
-            this.threatMap.Size = new System.Drawing.Size(718, 374);
-            this.threatMap.TabIndex = 0;
-            // 
-            // assessments
-            // 
-            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.assessments.Location = new System.Drawing.Point(0, 0);
-            this.assessments.Name = "assessments";
-            this.assessments.Size = new System.Drawing.Size(718, 214);
-            this.assessments.TabIndex = 0;
-            // 
-            // collapseIncidentTypesToolStripMenuItem
-            // 
-            this.collapseIncidentTypesToolStripMenuItem.Name = "collapseIncidentTypesToolStripMenuItem";
-            this.collapseIncidentTypesToolStripMenuItem.Size = new System.Drawing.Size(216, 22);
-            this.collapseIncidentTypesToolStripMenuItem.Text = "Collapse incident types...";
-            this.collapseIncidentTypesToolStripMenuItem.Click += new System.EventHandler(this.collapseIncidentTypesToolStripMenuItem_Click);
             // 
             // AttForm
             // 
@@ -1105,7 +1094,6 @@ namespace PTL.ATT.GUI
         private Visualization.Assessments assessments;
         private System.Windows.Forms.ToolStripMenuItem selectAllToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pluginsToolStripMenuItem;
-        public System.Windows.Forms.ToolStripMenuItem groupByModelToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem groupByIncidentTypesToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem groupByRunToolStripMenuItem;
         public System.Windows.Forms.ComboBox models;
