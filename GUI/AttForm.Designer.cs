@@ -134,6 +134,7 @@ namespace PTL.ATT.GUI
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
+            this.copyModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -409,29 +410,30 @@ namespace PTL.ATT.GUI
             // 
             this.modelMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addModelToolStripMenuItem,
+            this.copyModelToolStripMenuItem,
             this.editModelToolStripMenuItem,
             this.deleteModelToolStripMenuItem});
             this.modelMenu.Name = "modelMenu";
-            this.modelMenu.Size = new System.Drawing.Size(108, 70);
+            this.modelMenu.Size = new System.Drawing.Size(153, 114);
             // 
             // addModelToolStripMenuItem
             // 
             this.addModelToolStripMenuItem.Name = "addModelToolStripMenuItem";
-            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.addModelToolStripMenuItem.Text = "Add";
             this.addModelToolStripMenuItem.Click += new System.EventHandler(this.addModelToolStripMenuItem_Click);
             // 
             // editModelToolStripMenuItem
             // 
             this.editModelToolStripMenuItem.Name = "editModelToolStripMenuItem";
-            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.editModelToolStripMenuItem.Text = "Edit";
             this.editModelToolStripMenuItem.Click += new System.EventHandler(this.editModelToolStripMenuItem_Click);
             // 
             // deleteModelToolStripMenuItem
             // 
             this.deleteModelToolStripMenuItem.Name = "deleteModelToolStripMenuItem";
-            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.deleteModelToolStripMenuItem.Text = "Delete";
             this.deleteModelToolStripMenuItem.Click += new System.EventHandler(this.deleteModelToolStripMenuItem_Click);
             // 
@@ -586,7 +588,8 @@ namespace PTL.ATT.GUI
             this.groupByPredictionIntervalToolStripMenuItem,
             this.groupByRunToolStripMenuItem});
             this.predictionGroups.Name = "sorts";
-            this.predictionGroups.Size = new System.Drawing.Size(198, 92);
+            this.predictionGroups.OwnerItem = this.groupByToolStripMenuItem;
+            this.predictionGroups.Size = new System.Drawing.Size(198, 70);
             this.predictionGroups.Closing += new System.Windows.Forms.ToolStripDropDownClosingEventHandler(this.submenu_Closing);
             // 
             // groupByIncidentTypesToolStripMenuItem
@@ -1017,6 +1020,13 @@ namespace PTL.ATT.GUI
             this.log.TabIndex = 0;
             this.log.Text = "";
             // 
+            // copyModelToolStripMenuItem
+            // 
+            this.copyModelToolStripMenuItem.Name = "copyModelToolStripMenuItem";
+            this.copyModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.copyModelToolStripMenuItem.Text = "Copy";
+            this.copyModelToolStripMenuItem.Click += new System.EventHandler(this.copyModelToolStripMenuItem_Click);
+            // 
             // AttForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1147,6 +1157,7 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
         private System.Windows.Forms.ToolStripMenuItem manageStoredImportersToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem collapseIncidentTypesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyModelToolStripMenuItem;
     }
 }
 
