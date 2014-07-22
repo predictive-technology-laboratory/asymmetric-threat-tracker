@@ -263,12 +263,14 @@ namespace PTL.ATT.Models
         {
             Area area = training ? prediction.Model.TrainingArea : prediction.Model.PredictionArea;
 
+            // get positive points
             List<Tuple<PostGIS.Point, string, DateTime>> incidentPointTuples = new List<Tuple<PostGIS.Point, string, DateTime>>();
             foreach (Incident i in Incident.Get(prediction.Model.TrainingStart, prediction.Model.TrainingEnd, area, prediction.Model.IncidentTypes.ToArray()))
                 incidentPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.Shapefile.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue)); // training points are labeled and have a time associated with them
 
             incidentPointTuples = area.Contains(incidentPointTuples.Select(t => t.Item1)).Select(i => incidentPointTuples[i]).ToList();
 
+            // get negative points
             List<Tuple<PostGIS.Point, string, DateTime>> nullPointTuples = new List<Tuple<PostGIS.Point, string, DateTime>>();
             double areaMinX = area.BoundingBox.MinX;
             double areaMaxX = area.BoundingBox.MaxX;
@@ -281,7 +283,7 @@ namespace PTL.ATT.Models
                     nullPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue)); // null points are never labeled and never have time
                 }
 
-            // filter points outside area or too close to positive points, the latter only when training since we need all null points during prediction for a continuous surface
+            // filter negative points outside area or too close to positive points, the latter only when training since we need all null points during prediction for a continuous surface
             nullPointTuples = area.Contains(nullPointTuples.Select(t => t.Item1)).Select(i => nullPointTuples[i]).ToList();
             if (training)
                 nullPointTuples = nullPointTuples.Where(nullPointTuple => !incidentPointTuples.Any(incidentPointTuple => incidentPointTuple.Item1.DistanceTo(nullPointTuple.Item1) < _negativePointStandoff)).ToList();
