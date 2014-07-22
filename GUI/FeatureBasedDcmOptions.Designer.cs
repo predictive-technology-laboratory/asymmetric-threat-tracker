@@ -50,6 +50,7 @@ namespace PTL.ATT.GUI
             this.featuresMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.selectAllFeaturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.parameterizeFeatureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.parameterizeSelectedFeaturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label4 = new System.Windows.Forms.Label();
             this.featureDistanceThreshold = new System.Windows.Forms.NumericUpDown();
@@ -62,18 +63,21 @@ namespace PTL.ATT.GUI
             this.predictionSampleSize = new System.Windows.Forms.NumericUpDown();
             this.label8 = new System.Windows.Forms.Label();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.label5 = new System.Windows.Forms.Label();
+            this.negativePointStandoff = new System.Windows.Forms.NumericUpDown();
+            this.label6 = new System.Windows.Forms.Label();
             this.classifiers = new PTL.ATT.GUI.ClassifierList();
-            this.parameterizeSelectedFeaturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.featuresMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.featureDistanceThreshold)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.negativePointStandoff)).BeginInit();
             this.SuspendLayout();
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(7, 234);
+            this.label2.Location = new System.Drawing.Point(10, 260);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(51, 13);
             this.label2.TabIndex = 42;
@@ -88,10 +92,10 @@ namespace PTL.ATT.GUI
             this.features.ContextMenuStrip = this.featuresMenu;
             this.features.FormattingEnabled = true;
             this.features.HorizontalScrollbar = true;
-            this.features.Location = new System.Drawing.Point(64, 234);
+            this.features.Location = new System.Drawing.Point(67, 260);
             this.features.Name = "features";
             this.features.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.features.Size = new System.Drawing.Size(228, 147);
+            this.features.Size = new System.Drawing.Size(232, 147);
             this.features.TabIndex = 3;
             this.features.MouseUp += new System.Windows.Forms.MouseEventHandler(this.features_MouseUp);
             // 
@@ -103,26 +107,33 @@ namespace PTL.ATT.GUI
             this.parameterizeSelectedFeaturesToolStripMenuItem,
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem});
             this.featuresMenu.Name = "featuresMenu";
-            this.featuresMenu.Size = new System.Drawing.Size(290, 114);
+            this.featuresMenu.Size = new System.Drawing.Size(307, 92);
             // 
             // selectAllFeaturesToolStripMenuItem
             // 
             this.selectAllFeaturesToolStripMenuItem.Name = "selectAllFeaturesToolStripMenuItem";
-            this.selectAllFeaturesToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.selectAllFeaturesToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
             this.selectAllFeaturesToolStripMenuItem.Text = "Select all";
             this.selectAllFeaturesToolStripMenuItem.Click += new System.EventHandler(this.selectAllFeaturesToolStripMenuItem_Click);
             // 
             // parameterizeFeatureToolStripMenuItem
             // 
             this.parameterizeFeatureToolStripMenuItem.Name = "parameterizeFeatureToolStripMenuItem";
-            this.parameterizeFeatureToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.parameterizeFeatureToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
             this.parameterizeFeatureToolStripMenuItem.Text = "Parameterize feature...";
             this.parameterizeFeatureToolStripMenuItem.Click += new System.EventHandler(this.parameterizeFeatureToolStripMenuItem_Click);
+            // 
+            // parameterizeSelectedFeaturesToolStripMenuItem
+            // 
+            this.parameterizeSelectedFeaturesToolStripMenuItem.Name = "parameterizeSelectedFeaturesToolStripMenuItem";
+            this.parameterizeSelectedFeaturesToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.parameterizeSelectedFeaturesToolStripMenuItem.Text = "Parameterize selected features....";
+            this.parameterizeSelectedFeaturesToolStripMenuItem.Click += new System.EventHandler(this.parameterizeSelectedFeaturesToolStripMenuItem_Click);
             // 
             // remapSelectedFeaturesDuringPredictionToolStripMenuItem
             // 
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Name = "remapSelectedFeaturesDuringPredictionToolStripMenuItem";
-            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
+            this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Text = "Remap selected features during prediction...";
             this.remapSelectedFeaturesDuringPredictionToolStripMenuItem.Click += new System.EventHandler(this.remapSelectedFeaturesDuringPredictionToolStripMenuItem_Click);
             // 
@@ -172,7 +183,7 @@ namespace PTL.ATT.GUI
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(7, 81);
+            this.label11.Location = new System.Drawing.Point(10, 107);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(51, 13);
             this.label11.TabIndex = 27;
@@ -263,28 +274,62 @@ namespace PTL.ATT.GUI
             this.label8.TabIndex = 51;
             this.label8.Text = "points";
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(264, 83);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(38, 13);
+            this.label5.TabIndex = 54;
+            this.label5.Text = "meters";
+            // 
+            // negativePointStandoff
+            // 
+            this.negativePointStandoff.Location = new System.Drawing.Point(181, 81);
+            this.negativePointStandoff.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.negativePointStandoff.Name = "negativePointStandoff";
+            this.negativePointStandoff.Size = new System.Drawing.Size(77, 20);
+            this.negativePointStandoff.TabIndex = 52;
+            this.negativePointStandoff.Value = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(55, 83);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(120, 13);
+            this.label6.TabIndex = 53;
+            this.label6.Text = "Negative point standoff:";
+            this.toolTip.SetToolTip(this.label6, "Distance to search for existence of spatial features. Higher values require longe" +
+        "r runtimes but have more spatial fidelity than lower values, which are quicker b" +
+        "ut have lower spatial fidelity.");
+            // 
             // classifiers
             // 
             this.classifiers.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.classifiers.FormattingEnabled = true;
-            this.classifiers.Location = new System.Drawing.Point(64, 81);
+            this.classifiers.Location = new System.Drawing.Point(67, 107);
             this.classifiers.Name = "classifiers";
-            this.classifiers.Size = new System.Drawing.Size(228, 147);
+            this.classifiers.Size = new System.Drawing.Size(232, 147);
             this.classifiers.Sorted = true;
             this.classifiers.TabIndex = 2;
-            // 
-            // parameterizeSelectedFeaturesToolStripMenuItem
-            // 
-            this.parameterizeSelectedFeaturesToolStripMenuItem.Name = "parameterizeSelectedFeaturesToolStripMenuItem";
-            this.parameterizeSelectedFeaturesToolStripMenuItem.Size = new System.Drawing.Size(289, 22);
-            this.parameterizeSelectedFeaturesToolStripMenuItem.Text = "Parameterize selected features....";
-            this.parameterizeSelectedFeaturesToolStripMenuItem.Click += new System.EventHandler(this.parameterizeSelectedFeaturesToolStripMenuItem_Click);
             // 
             // FeatureBasedDcmOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.negativePointStandoff);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.trainingSampleSize);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.label12);
@@ -299,11 +344,12 @@ namespace PTL.ATT.GUI
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label11);
             this.Name = "FeatureBasedDcmOptions";
-            this.Size = new System.Drawing.Size(302, 392);
+            this.Size = new System.Drawing.Size(306, 414);
             this.featuresMenu.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.featureDistanceThreshold)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.negativePointStandoff)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -330,5 +376,8 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.ToolStripMenuItem parameterizeFeatureToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem parameterizeSelectedFeaturesToolStripMenuItem;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.NumericUpDown negativePointStandoff;
+        private System.Windows.Forms.Label label6;
     }
 }

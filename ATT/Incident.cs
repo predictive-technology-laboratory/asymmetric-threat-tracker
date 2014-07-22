@@ -32,8 +32,6 @@ namespace PTL.ATT
         #region static members
         public class Columns
         {
-            [Reflector.Insert, Reflector.Select(true)]
-            public const string AreaId = "area_id";
             [Reflector.Select(true)]
             public const string Id = "id";
             [Reflector.Insert]
@@ -60,7 +58,7 @@ namespace PTL.ATT
 
         public static string GetTableName(Area area, bool createTableIfNeeded)
         {
-            string tableName = "incident_" + area.Shapefile.SRID;
+            string tableName = "incident_" + area.Id;
 
             if (createTableIfNeeded)
             {
@@ -69,15 +67,12 @@ namespace PTL.ATT
                     DB.Connection.ExecuteNonQuery(
                         "CREATE SEQUENCE " + nativeIdSeqName + ";" +
                         "CREATE TABLE " + tableName + " (" +
-                        Columns.AreaId + " INTEGER REFERENCES " + Area.Table + " ON DELETE CASCADE," +
                         Columns.Id + " SERIAL PRIMARY KEY," +
                         Columns.Location + " GEOMETRY(POINT," + area.Shapefile.SRID + ")," +
                         Columns.NativeId + " VARCHAR DEFAULT NEXTVAL('" + nativeIdSeqName + "')::VARCHAR," +
                         Columns.Simulated + " BOOLEAN," +
                         Columns.Time + " TIMESTAMP," +
                         Columns.Type + " VARCHAR);" +
-                        "CREATE UNIQUE INDEX ON " + tableName + " (" + Columns.AreaId + "," + Columns.NativeId + ");" +
-                        "CREATE INDEX ON " + tableName + " (" + Columns.AreaId + ");" +
                         "CREATE INDEX ON " + tableName + " USING GIST (" + Columns.Location + ");" +
                         "CREATE INDEX ON " + tableName + " (" + Columns.NativeId + ");" +
                         "CREATE INDEX ON " + tableName + " (" + Columns.Simulated + ");" +
@@ -95,12 +90,12 @@ namespace PTL.ATT
 
         public static string GetValue(Area area, string nativeId, PostGIS.Point location, bool simulated, string time, string type)
         {
-            return area.Id + "," + (location.SRID == area.Shapefile.SRID ? location.StGeometryFromText : "st_transform(" + location.StGeometryFromText + "," + area.Shapefile.SRID + ")") + "," + (string.IsNullOrWhiteSpace(nativeId) ? "DEFAULT" : "'" + Util.Escape(nativeId) + "'") + "," + simulated + "," + time + ",'" + Util.Escape(type) + "'";
+            return (location.SRID == area.Shapefile.SRID ? location.StGeometryFromText : "st_transform(" + location.StGeometryFromText + "," + area.Shapefile.SRID + ")") + "," + (string.IsNullOrWhiteSpace(nativeId) ? "DEFAULT" : "'" + Util.Escape(nativeId) + "'") + "," + simulated + "," + time + ",'" + Util.Escape(type) + "'";
         }
 
         public static void Clear(Area area)
         {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area, true) + " WHERE " + Columns.AreaId + "=" + area.Id);
+            DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area, true));
             VacuumTable(area);
         }
 
@@ -171,7 +166,7 @@ namespace PTL.ATT
 
         public static void ClearSimulated(Area area)
         {
-            DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area, true) + " WHERE " + Columns.AreaId + "=" + area.Id + " AND " + Columns.Simulated + "=" + true);
+            DB.Connection.ExecuteNonQuery("DELETE FROM " + GetTableName(area, true) + " WHERE " + Columns.Simulated + "=" + true);
             VacuumTable(area);
         }
 
@@ -181,7 +176,7 @@ namespace PTL.ATT
 
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT DISTINCT " + Columns.Type + " " +
                                                          "FROM " + GetTableName(area, true) + " " +
-                                                         "WHERE " + Columns.Time + " >= @start AND " + Columns.Time + " <= @end AND " + Columns.AreaId + "=" + area.Id,
+                                                         "WHERE " + Columns.Time + " >= @start AND " + Columns.Time + " <= @end",
                                                          new Parameter("start", NpgsqlDbType.Timestamp, start),
                                                          new Parameter("end", NpgsqlDbType.Timestamp, end));
 
@@ -219,7 +214,6 @@ namespace PTL.ATT
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.Select(area) + " " +
                                                          "FROM " + GetTableName(area, true) + " " +
                                                          "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
-                                                                    Columns.AreaId + "=" + area.Id + " AND " +
                                                                     Columns.Time + " >= @start AND " +
                                                                     Columns.Time + " <= @end", new Parameter("start", NpgsqlDbType.Timestamp, start), new Parameter("end", NpgsqlDbType.Timestamp, end));
 
@@ -247,7 +241,6 @@ namespace PTL.ATT
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT COUNT(*) " +
                                                          "FROM " + GetTableName(area, true) + " " +
                                                          "WHERE " + (typesCondition == null ? "" : typesCondition + " AND ") +
-                                                                    Columns.AreaId + "=" + area.Id + " AND " +
                                                                     Columns.Time + " >= @start AND " +
                                                                     Columns.Time + " <= @end", new Parameter("start", NpgsqlDbType.Timestamp, start), new Parameter("end", NpgsqlDbType.Timestamp, end));
             int count = Convert.ToInt32(cmd.ExecuteScalar());
@@ -290,7 +283,7 @@ namespace PTL.ATT
         public static Set<string> GetNativeIds(Area area)
         {
             Set<string> nativeIds = new Set<string>();
-            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.NativeId + " FROM " + GetTableName(area, true) + " WHERE " + Columns.AreaId + "=" + area.Id);
+            NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + Columns.NativeId + " FROM " + GetTableName(area, true));
             using (NpgsqlDataReader reader = cmd.ExecuteReader())
             {
                 while (reader.Read())
@@ -305,18 +298,12 @@ namespace PTL.ATT
         }
         #endregion
 
-        private int _areaId;
         private int _id;
         private PostGIS.Point _location;
         private bool _simulated;
         private DateTime _time;
         private string _type;
         private string _nativeId;
-
-        public int AreaId
-        {
-            get { return _areaId; }
-        }
 
         public int Id
         {
@@ -352,7 +339,6 @@ namespace PTL.ATT
         {
             string tableName = GetTableName(area, false);
 
-            _areaId = Convert.ToInt32(reader[tableName + "_" + Columns.AreaId]);
             _id = Convert.ToInt32(reader[tableName + "_" + Columns.Id]);
             _location = new PostGIS.Point(Convert.ToDouble(reader[Columns.X(area)]), Convert.ToDouble(reader[Columns.Y(area)]), Convert.ToInt32(reader[Columns.SRID(area)]));
             _simulated = Convert.ToBoolean(reader[tableName + "_" + Columns.Simulated]);
