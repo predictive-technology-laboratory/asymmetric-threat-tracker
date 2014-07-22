@@ -1003,6 +1003,18 @@ namespace PTL.ATT.GUI
             }
         }
 
+        private void copyModelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (SelectedModel == null)
+                MessageBox.Show("Select model to copy.");
+            else
+            {
+                DiscreteChoiceModel copy = SelectedModel.Copy();
+                copy.Name = "Copy of " + SelectedModel.Name;
+                RefreshModels(SelectedModel.Id);
+            }
+        }
+
         public void editModelToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (SelectedModel == null)
