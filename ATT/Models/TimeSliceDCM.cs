@@ -143,13 +143,14 @@ namespace PTL.ATT.Models
                             DateTime trainingEnd,
                             IEnumerable<Smoother> smoothers,
                             int featureDistanceThreshold,
+                            int negativePointStandoff,
                             int trainingSampleSize,
                             int predictionSampleSize,
                             PTL.ATT.Classifiers.Classifier classifier,
                             IEnumerable<Feature> features,
                             int timeSliceHours,
                             int periodTimeSlices)
-            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, featureDistanceThreshold, trainingSampleSize, predictionSampleSize, classifier, features)
+            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, featureDistanceThreshold, negativePointStandoff, trainingSampleSize, predictionSampleSize, classifier, features)
         {
             _timeSliceHours = timeSliceHours;
             _periodTimeSlices = periodTimeSlices;
@@ -286,7 +287,7 @@ namespace PTL.ATT.Models
 
         public override DiscreteChoiceModel Copy()
         {
-            return new TimeSliceDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, FeatureDistanceThreshold, TrainingSampleSize, PredictionSampleSize, Classifier, Features, _timeSliceHours, _periodTimeSlices);
+            return new TimeSliceDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, FeatureDistanceThreshold, NegativePointStandoff, TrainingSampleSize, PredictionSampleSize, Classifier, Features, _timeSliceHours, _periodTimeSlices);
         }
 
         public override string ToString()

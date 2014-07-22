@@ -131,6 +131,7 @@ namespace PTL.ATT.Models
 
         private PTL.ATT.Classifiers.Classifier _classifier;
         private int _featureDistanceThreshold;
+        private int _negativePointStandoff;
         private List<Feature> _features;
         private int _trainingSampleSize;
         private int _predictionSampleSize;
@@ -154,6 +155,16 @@ namespace PTL.ATT.Models
             set
             {
                 _featureDistanceThreshold = value;
+                Update();
+            }
+        }
+
+        public int NegativePointStandoff
+        {
+            get { return _negativePointStandoff; }
+            set
+            {
+                _negativePointStandoff = value;
                 Update();
             }
         }
@@ -221,6 +232,7 @@ namespace PTL.ATT.Models
                                DateTime trainingEnd,
                                IEnumerable<Smoother> smoothers,
                                int featureDistanceThreshold,
+                               int negativePointStandoff,
                                int trainingSampleSize,
                                int predictionSampleSize,
                                PTL.ATT.Classifiers.Classifier classifier,
@@ -228,6 +240,7 @@ namespace PTL.ATT.Models
             : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
             _featureDistanceThreshold = featureDistanceThreshold;
+            _negativePointStandoff = negativePointStandoff;
             _trainingSampleSize = trainingSampleSize;
             _predictionSampleSize = predictionSampleSize;
             _classifier = classifier;
@@ -250,18 +263,13 @@ namespace PTL.ATT.Models
         {
             Area area = training ? prediction.Model.TrainingArea : prediction.Model.PredictionArea;
 
-            List<Tuple<PostGIS.Point, string, DateTime>> incidentPoints = new List<Tuple<PostGIS.Point, string, DateTime>>();
-            Set<Tuple<double, double>> incidentLocations = new Set<Tuple<double, double>>(false);
+            List<Tuple<PostGIS.Point, string, DateTime>> incidentPointTuples = new List<Tuple<PostGIS.Point, string, DateTime>>();
             foreach (Incident i in Incident.Get(prediction.Model.TrainingStart, prediction.Model.TrainingEnd, area, prediction.Model.IncidentTypes.ToArray()))
-            {
-                incidentPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.Shapefile.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue)); // training points are labeled and have a time associated with them
-                incidentLocations.Add(new Tuple<double, double>(i.Location.X, i.Location.Y));
-            }
+                incidentPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.Shapefile.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue)); // training points are labeled and have a time associated with them
 
-            Set<int> incidentPointIndexesInArea = new Set<int>(area.Contains(incidentPoints.Select(p => p.Item1).ToList()).ToArray());
-            incidentPoints = incidentPoints.Where((p, i) => incidentPointIndexesInArea.Contains(i)).ToList();
+            incidentPointTuples = area.Contains(incidentPointTuples.Select(t => t.Item1)).Select(i => incidentPointTuples[i]).ToList();
 
-            List<Tuple<PostGIS.Point, string, DateTime>> nullPoints = new List<Tuple<PostGIS.Point, string, DateTime>>();
+            List<Tuple<PostGIS.Point, string, DateTime>> nullPointTuples = new List<Tuple<PostGIS.Point, string, DateTime>>();
             double areaMinX = area.BoundingBox.MinX;
             double areaMaxX = area.BoundingBox.MaxX;
             double areaMinY = area.BoundingBox.MinY;
@@ -269,35 +277,38 @@ namespace PTL.ATT.Models
             for (double x = areaMinX + prediction.Model.PointSpacing / 2d; x <= areaMaxX; x += prediction.Model.PointSpacing) // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
                 for (double y = areaMinY + prediction.Model.PointSpacing / 2d; y <= areaMaxY; y += prediction.Model.PointSpacing)
                 {
-                    Tuple<double, double> location = new Tuple<double, double>(x, y);
                     PostGIS.Point point = new PostGIS.Point(x, y, area.Shapefile.SRID);
-                    if (!incidentLocations.Contains(location))
-                        nullPoints.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue)); // null points are never labeled and never have times
+                    nullPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue)); // null points are never labeled and never have time
                 }
 
-            List<int> nullPointIds = Point.Insert(connection, nullPoints, prediction, area, true, vacuum);
+            // filter points outside area or too close to positive points, the latter only when training since we need all null points during prediction for a continuous surface
+            nullPointTuples = area.Contains(nullPointTuples.Select(t => t.Item1)).Select(i => nullPointTuples[i]).ToList();
+            if (training)
+                nullPointTuples = nullPointTuples.Where(nullPointTuple => !incidentPointTuples.Any(incidentPointTuple => incidentPointTuple.Item1.DistanceTo(nullPointTuple.Item1) < _negativePointStandoff)).ToList();
+
+            List<int> nullPointIds = Point.Insert(connection, nullPointTuples, prediction, area, false, vacuum);
 
             int maxSampleSize = training ? _trainingSampleSize : _predictionSampleSize;
-            int numIncidentsToRemove = (nullPointIds.Count + incidentPoints.Count) - maxSampleSize;
+            int numIncidentsToRemove = (nullPointIds.Count + incidentPointTuples.Count) - maxSampleSize;
             string sample = training ? "training" : "prediction";
             if (numIncidentsToRemove > 0)
-                if (incidentPoints.Count > 0)
+                if (incidentPointTuples.Count > 0)
                 {
-                    numIncidentsToRemove = Math.Min(incidentPoints.Count, numIncidentsToRemove);
+                    numIncidentsToRemove = Math.Min(incidentPointTuples.Count, numIncidentsToRemove);
                     if (numIncidentsToRemove > 0)
                     {
-                        Console.Out.WriteLine("WARNING:  the " + sample + " sample size is too large. We are forced to remove " + numIncidentsToRemove + " random incidents in order to meet the required sample size. In order to use all incidents, increase the sample size to " + (nullPointIds.Count + incidentPoints.Count));
-                        incidentPoints.Randomize(new Random(1240894));
-                        incidentPoints.RemoveRange(0, numIncidentsToRemove);
+                        Console.Out.WriteLine("WARNING:  the " + sample + " sample size is too large. We are forced to remove " + numIncidentsToRemove + " random incidents in order to meet the required sample size. In order to use all incidents, increase the sample size to " + (nullPointIds.Count + incidentPointTuples.Count));
+                        incidentPointTuples.Randomize(new Random(1240894));
+                        incidentPointTuples.RemoveRange(0, numIncidentsToRemove);
                     }
                 }
                 else
                     Console.Out.WriteLine("WARNING:  we are using " + nullPointIds.Count + " points, but the maximum " + sample + " sample size is " + maxSampleSize + ". Be aware that this could be going beyond the memory limits of your machine.");
 
-            if (training && incidentPoints.Count == 0)
+            if (training && incidentPointTuples.Count == 0)
                 Console.Out.WriteLine("WARNING:  Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
 
-            Point.Insert(connection, incidentPoints, prediction, area, false, vacuum);
+            Point.Insert(connection, incidentPointTuples, prediction, area, false, vacuum);
         }
 
         protected virtual int GetNumFeaturesExtractedFor(Prediction prediction)
@@ -864,7 +875,7 @@ namespace PTL.ATT.Models
 
         public override DiscreteChoiceModel Copy()
         {
-            return new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
+            return new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _negativePointStandoff, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
         }
 
         public override string ToString()
@@ -885,6 +896,7 @@ namespace PTL.ATT.Models
                    indent + "Features:  " + Features.Where((f, i) => i < featuresToDisplay).Select(f => f.ToString()).Concatenate(", ") + (Features.Count > featuresToDisplay ? " ... (" + (Features.Count - featuresToDisplay) + " not shown)" : "") + Environment.NewLine +
                    indent + "External feature extractor (" + typeof(FeatureBasedDCM) + "):  " + (externalFeatureExtractor == null ? "None" : externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
                    indent + "Feature distance threshold:  " + _featureDistanceThreshold + Environment.NewLine +
+                   indent + "Negative point standoff:  " + _negativePointStandoff + Environment.NewLine +
                    indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +
                    indent + "Prediction sample size:  " + _predictionSampleSize;
         }

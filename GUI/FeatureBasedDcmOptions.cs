@@ -51,6 +51,11 @@ namespace PTL.ATT.GUI
             get { return (int)featureDistanceThreshold.Value; }
         }
 
+        public int NegativePointStandoff
+        {
+            get { return (int)negativePointStandoff.Value; }
+        }
+
         public Classifier Classifier
         {
             get { return classifiers.SelectedItem as Classifier; }
@@ -116,6 +121,7 @@ namespace PTL.ATT.GUI
             trainingSampleSize.Value = 30000;
             predictionSampleSize.Value = 30000;
             featureDistanceThreshold.Value = 1000;
+            negativePointStandoff.Value = 200;
             classifiers.Populate(_featureBasedDCM);
 
             RefreshFeatures();
@@ -125,6 +131,7 @@ namespace PTL.ATT.GUI
                 trainingSampleSize.Value = _featureBasedDCM.TrainingSampleSize;
                 predictionSampleSize.Value = _featureBasedDCM.PredictionSampleSize;
                 featureDistanceThreshold.Value = _featureBasedDCM.FeatureDistanceThreshold;
+                negativePointStandoff.Value = _featureBasedDCM.NegativePointStandoff;
 
                 foreach (Feature feature in _featureBasedDCM.Features)
                 {
@@ -266,6 +273,7 @@ namespace PTL.ATT.GUI
             model.TrainingSampleSize = TrainingSampleSize;
             model.PredictionSampleSize = PredictionSampleSize;
             model.FeatureDistanceThreshold = FeatureDistanceThreshold;
+            model.NegativePointStandoff = NegativePointStandoff;
             model.Classifier = Classifier;
             model.Features = Features;
         }

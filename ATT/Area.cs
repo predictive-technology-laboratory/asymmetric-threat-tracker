@@ -61,7 +61,7 @@ namespace PTL.ATT
             try
             {
                 area = new Area(Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Area.Table + " (" + Columns.Insert + ") VALUES ('" + name + "'," + shapefile.Id + ") RETURNING " + Columns.Id)));
-                
+
                 AreaBoundingBoxes.Create(area, pointContainmentBoundingBoxSize);
 
                 return area;
@@ -264,7 +264,7 @@ namespace PTL.ATT
                               "FROM temp " +
                               "WHERE EXISTS (SELECT 1 " +
                                             "FROM " + _shapefile.GeometryTable + "," + areaBoundingBoxesTable + " " +
-                                            "WHERE (" + 
+                                            "WHERE (" +
                                                      areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
                                                      "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
                                                    ") " +
@@ -296,6 +296,9 @@ namespace PTL.ATT
 
             try { DB.Connection.ExecuteNonQuery("DROP TABLE " + AreaBoundingBoxes.GetTableName(this)); }
             catch (Exception ex) { Console.Out.WriteLine("Error deleting area bounding boxes:  " + ex.Message); }
+
+            try { DB.Connection.ExecuteNonQuery("DROP TABLE " + Incident.GetTableName(this, true)); }
+            catch (Exception ex) { Console.Out.WriteLine("Error deleting incident table:  " + ex.Message); }
         }
     }
 }
