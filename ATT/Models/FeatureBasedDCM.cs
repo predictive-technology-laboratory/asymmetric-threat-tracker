@@ -248,7 +248,8 @@ namespace PTL.ATT.Models
 
             Construct(); // initializes feature lookups
 
-            Features = new List<Feature>(features); // saves features and fills feature lookups
+            if (features != null)
+                Features = new List<Feature>(features); // saves features and fills feature lookups
 
             Update();
         }
