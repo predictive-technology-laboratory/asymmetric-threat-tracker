@@ -25,9 +25,9 @@ namespace PTL.ATT
 {
     public static class Reflection
     {
-        class ProxyDomain : MarshalByRefObject
+        private class ProxyDomain : MarshalByRefObject
         {
-            public Assembly LoadFrom(string assemblyPath)
+            public Assembly LoadAssemblyFrom(string assemblyPath)
             {
                 try { return Assembly.LoadFrom(assemblyPath); }
                 catch (Exception ex) { throw ex; }
@@ -60,7 +60,7 @@ namespace PTL.ATT
                 }
                 else if (typeParts.Length == 2)
                 {
-                    assembly = new ProxyDomain().LoadFrom(typeParts[1].Trim());
+                    assembly = new ProxyDomain().LoadAssemblyFrom(typeParts[1].Trim());
 
                     if (!_externalTypeAssembly.ContainsKey(typeParts[0]))
                         _externalTypeAssembly.Add(typeParts[0], assembly);

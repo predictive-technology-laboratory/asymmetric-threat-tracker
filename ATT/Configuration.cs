@@ -302,7 +302,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
                     Type modelType = Reflection.GetType(configOptions["model_type"]);
 
-                    // if the configuration is referencing a feature extractor in an external DLL file, copy the DLL into the executing directory so that it can be found when deserializing models of the given type
+                    // get external feature extractor type
                     string featureExtractorTypeStr = featureExtractorConfigP.ElementText("feature_extractor");
                     string[] parts = featureExtractorTypeStr.Split('@');
                     if (parts.Length > 1)

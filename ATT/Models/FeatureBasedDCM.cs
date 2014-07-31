@@ -98,7 +98,7 @@ namespace PTL.ATT.Models
             }
 
             // external features
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(null, typeof(FeatureBasedDCM));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             if (externalFeatureExtractor != null)
                 foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
                     yield return f;
@@ -120,11 +120,11 @@ namespace PTL.ATT.Models
             return pointPredictionValues;
         }
 
-        public static FeatureExtractor InitializeExternalFeatureExtractor(IFeatureBasedDCM model, Type modelType)
+        public static FeatureExtractor InitializeExternalFeatureExtractor(Type modelType)
         {
             FeatureExtractor externalFeatureExtractor;
             if (Configuration.TryGetFeatureExtractor(modelType, out externalFeatureExtractor))
-                externalFeatureExtractor.Initialize(model, modelType, Configuration.GetFeatureExtractorConfigOptions(modelType));
+                externalFeatureExtractor.Initialize(modelType, Configuration.GetFeatureExtractorConfigOptions(modelType));
 
             return externalFeatureExtractor;
         }
@@ -316,7 +316,7 @@ namespace PTL.ATT.Models
 
         protected virtual int GetNumFeaturesExtractedFor(Prediction prediction)
         {
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             return Features.Count(f => f.EnumType == typeof(FeatureType)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
         }
 
@@ -616,10 +616,10 @@ namespace PTL.ATT.Models
             }
             #endregion
 
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             if (externalFeatureExtractor != null)
             {
-                Console.Out.WriteLine("Running external feature extractor for " + typeof(FeatureBasedDCM));
+                Console.Out.WriteLine("Running external feature extractor for " + externalFeatureExtractor.ModelType);
                 foreach (FeatureVectorList externalFeatureVectors in externalFeatureExtractor.ExtractFeatures(prediction, featureVectors, training, start, end))
                     yield return externalFeatureVectors;
             }
@@ -868,7 +868,7 @@ namespace PTL.ATT.Models
 
         public override string GetDetails(Prediction prediction)
         {
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             string details = _classifier.GetDetails(prediction, externalFeatureExtractor == null ? null : externalFeatureExtractor.GetDetails(prediction));
 
             prediction.ModelDetails = details;
@@ -893,7 +893,7 @@ namespace PTL.ATT.Models
                 indent += "\t";
 
             int featuresToDisplay = 10; // can have hundreds of features, which makes the tooltip excrutiatingly slow
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(this, typeof(FeatureBasedDCM));
+            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             return base.GetDetails(indentLevel) + Environment.NewLine +
                    indent + "Classifier:  " + _classifier.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Features:  " + Features.Where((f, i) => i < featuresToDisplay).Select(f => f.ToString()).Concatenate(", ") + (Features.Count > featuresToDisplay ? " ... (" + (Features.Count - featuresToDisplay) + " not shown)" : "") + Environment.NewLine +

@@ -24,9 +24,11 @@ namespace PTL.ATT.Models
 {
     public abstract class FeatureExtractor
     {
+        public abstract Type ModelType { get; }
+
         public abstract IEnumerable<Feature> GetAvailableFeatures(Area area);
 
-        public abstract void Initialize(IFeatureBasedDCM model, Type modelType, Dictionary<string, string> configurationOptions);
+        public abstract void Initialize(Type modelType, Dictionary<string, string> configurationOptions);
 
         public abstract IEnumerable<FeatureVectorList> ExtractFeatures(Prediction prediction, FeatureVectorList vectors, bool training, DateTime start, DateTime end);
 
