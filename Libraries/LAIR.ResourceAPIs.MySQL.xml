@@ -4,20 +4,6 @@
         <name>LAIR.ResourceAPIs.MySQL</name>
     </assembly>
     <members>
-        <member name="T:LAIR.ResourceAPIs.MySQL.Query">
-            <summary>
-            Provides utility database functionality
-            </summary>
-        </member>
-        <member name="M:LAIR.ResourceAPIs.MySQL.Query.YieldFieldValues``1(System.String,System.String,LAIR.ResourceAPIs.MySQL.ConnectionPool)">
-            <summary>
-            Gets concept IDs for a query
-            </summary>
-            <param name="query"></param>
-            <param name="field"></param>
-            <param name="connectionPool"></param>
-            <returns></returns>
-        </member>
         <member name="T:LAIR.ResourceAPIs.MySQL.ConnectionPool">
             <summary>
             Represents a pool of connections to the MySQL server
@@ -83,6 +69,20 @@
             <summary>
             Gets tables
             </summary>
+            <param name="connectionPool"></param>
+            <returns></returns>
+        </member>
+        <member name="T:LAIR.ResourceAPIs.MySQL.Query">
+            <summary>
+            Provides utility database functionality
+            </summary>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.MySQL.Query.YieldFieldValues``1(System.String,System.String,LAIR.ResourceAPIs.MySQL.ConnectionPool)">
+            <summary>
+            Gets concept IDs for a query
+            </summary>
+            <param name="query"></param>
+            <param name="field"></param>
             <param name="connectionPool"></param>
             <returns></returns>
         </member>
