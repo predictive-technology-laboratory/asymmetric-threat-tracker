@@ -97,7 +97,7 @@ namespace PTL.ATT.Models
             foreach (TimeSliceFeature f in Enum.GetValues(typeof(TimeSliceFeature)))
                 yield return new Feature(typeof(TimeSliceFeature), f, null, null, f.ToString(), null);
 
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
             if (externalFeatureExtractor != null)
                 foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
                     yield return f;
@@ -161,7 +161,7 @@ namespace PTL.ATT.Models
 
         protected override int GetNumFeaturesExtractedFor(Prediction prediction)
         {
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
             return base.GetNumFeaturesExtractedFor(prediction) + Features.Where(f => f.EnumType == typeof(TimeSliceFeature)).Count() + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(TimeSliceDCM)));
         }
 
@@ -266,7 +266,7 @@ namespace PTL.ATT.Models
             FeatureVectorList timeSliceVectors = new FeatureVectorList(coreFeatureVectors.SelectMany(l => l), coreFeatureVectors.Sum(l => l.Count));
             coreFeatureVectors = null;
 
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
             if (externalFeatureExtractor != null)
             {
                 Console.Out.WriteLine("Running external feature extractor for " + externalFeatureExtractor.ModelType);
@@ -299,7 +299,7 @@ namespace PTL.ATT.Models
             for (int i = 0; i < indentLevel; ++i)
                 indent += "\t";
 
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
             return base.GetDetails(indentLevel) + Environment.NewLine +
                    indent + "Time slice hours:  " + _timeSliceHours + Environment.NewLine +
                    indent + "Time slices per period:  " + _periodTimeSlices + Environment.NewLine +

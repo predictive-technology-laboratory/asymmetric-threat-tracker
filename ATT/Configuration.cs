@@ -343,13 +343,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
             return Assembly.LoadFrom(assemblyPath);
         }
 
-        public static bool TryGetFeatureExtractor(Type modelType, out FeatureExtractor featureExtractor)
+        public static bool TryGetFeatureExtractor(Type modelType, out IFeatureExtractor featureExtractor)
         {
             featureExtractor = null;
 
             Type featureExtractorType;
             if (_modelTypeFeatureExtractorType.TryGetValue(modelType, out featureExtractorType))
-                featureExtractor = Activator.CreateInstance(featureExtractorType) as FeatureExtractor;
+                featureExtractor = Activator.CreateInstance(featureExtractorType) as IFeatureExtractor;
 
             return featureExtractor != null;
         }

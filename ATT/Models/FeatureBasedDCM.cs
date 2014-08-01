@@ -98,7 +98,7 @@ namespace PTL.ATT.Models
             }
 
             // external features
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             if (externalFeatureExtractor != null)
                 foreach (Feature f in externalFeatureExtractor.GetAvailableFeatures(area))
                     yield return f;
@@ -120,9 +120,9 @@ namespace PTL.ATT.Models
             return pointPredictionValues;
         }
 
-        public static FeatureExtractor InitializeExternalFeatureExtractor(Type modelType)
+        public static IFeatureExtractor InitializeExternalFeatureExtractor(Type modelType)
         {
-            FeatureExtractor externalFeatureExtractor;
+            IFeatureExtractor externalFeatureExtractor;
             if (Configuration.TryGetFeatureExtractor(modelType, out externalFeatureExtractor))
                 externalFeatureExtractor.Initialize(modelType, Configuration.GetFeatureExtractorConfigOptions(modelType));
 
@@ -316,7 +316,7 @@ namespace PTL.ATT.Models
 
         protected virtual int GetNumFeaturesExtractedFor(Prediction prediction)
         {
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             return Features.Count(f => f.EnumType == typeof(FeatureType)) + (externalFeatureExtractor == null ? 0 : externalFeatureExtractor.GetNumFeaturesExtractedFor(prediction, typeof(FeatureBasedDCM)));
         }
 
@@ -588,11 +588,12 @@ namespace PTL.ATT.Models
                                 Feature kdeFeature = kdeFeatures[j + core];
                                 string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;
 
-                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\"");
-
                                 TimeSpan kdeFeatureLag = new TimeSpan(kdeFeature.GetIntegerParameterValue("Lag days"), 0, 0, 0);
-                                IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(start - kdeFeatureLag, start - new TimeSpan(1), area, incident).Select(inc => inc.Location);
+                                DateTime incidentSampleStart = start - kdeFeatureLag;
+                                DateTime incidentSampleEnd = start - new TimeSpan(1);
+                                IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location);
                                 int sampleSize = kdeFeature.GetIntegerParameterValue("Sample size");
+                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" from " + incidentSampleStart + " to " + incidentSampleEnd);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, true);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
@@ -616,7 +617,7 @@ namespace PTL.ATT.Models
             }
             #endregion
 
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             if (externalFeatureExtractor != null)
             {
                 Console.Out.WriteLine("Running external feature extractor for " + externalFeatureExtractor.ModelType);
@@ -868,7 +869,7 @@ namespace PTL.ATT.Models
 
         public override string GetDetails(Prediction prediction)
         {
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             string details = _classifier.GetDetails(prediction, externalFeatureExtractor == null ? null : externalFeatureExtractor.GetDetails(prediction));
 
             prediction.ModelDetails = details;
@@ -893,7 +894,7 @@ namespace PTL.ATT.Models
                 indent += "\t";
 
             int featuresToDisplay = 10; // can have hundreds of features, which makes the tooltip excrutiatingly slow
-            FeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
+            IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             return base.GetDetails(indentLevel) + Environment.NewLine +
                    indent + "Classifier:  " + _classifier.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Features:  " + Features.Where((f, i) => i < featuresToDisplay).Select(f => f.ToString()).Concatenate(", ") + (Features.Count > featuresToDisplay ? " ... (" + (Features.Count - featuresToDisplay) + " not shown)" : "") + Environment.NewLine +

@@ -67,7 +67,7 @@ namespace PTL.ATT.Models
 
         public static IEnumerable<DiscreteChoiceModel> GetAll(bool excludeThoseCopiedForPredictions)
         {
-            FeatureExtractor fex;
+            IFeatureExtractor fex;
             Configuration.TryGetFeatureExtractor(typeof(FeatureBasedDCM),out fex);
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
             BinaryFormatter bf = new BinaryFormatter();

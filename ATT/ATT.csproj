@@ -101,7 +101,7 @@
     <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Importers\IShapefileInfoRetriever.cs" />
-    <Compile Include="Models\FeatureExtractor.cs" />
+    <Compile Include="Models\IFeatureExtractor.cs" />
     <Compile Include="Models\IDiscreteChoiceModel.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />
     <Compile Include="Models\KernelDensityDCM.cs" />

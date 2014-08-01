@@ -7,3 +7,4 @@ GUI/Config/att_config.xml
 GUI/Config/gui_config.xml
 Installer/Installer
 Models
+!ATT/Models
