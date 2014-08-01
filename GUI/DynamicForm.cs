@@ -27,26 +27,31 @@ namespace PTL.ATT.GUI
 {
     public partial class DynamicForm : Form
     {
+        public enum CloseButtons
+        {
+            OK,
+            OkCancel,
+            OkClose,
+            YesNo
+        }
+
         private FlowLayoutPanel _mainPanel;
         private Dictionary<string, Func<object>> _valueIdReturn;
-        private MessageBoxButtons _buttons;
+        private CloseButtons _buttons;
 
         public IEnumerable<string> ValueIds
         {
             get { return _valueIdReturn.Keys; }
         }
 
-        public DynamicForm(string title = "", MessageBoxButtons buttons = MessageBoxButtons.OKCancel)
+        public DynamicForm(string title, CloseButtons buttons)
         {
             InitializeComponent();
 
             Text = title;
+
             _buttons = buttons;
-            if (_buttons != MessageBoxButtons.OK && _buttons != MessageBoxButtons.OKCancel)
-                throw new NotImplementedException("Only OK and Cancel buttons are implemented");
-
             _valueIdReturn = new Dictionary<string, Func<object>>();
-
             _mainPanel = new FlowLayoutPanel();
             _mainPanel.FlowDirection = FlowDirection.TopDown;
 
@@ -59,34 +64,58 @@ namespace PTL.ATT.GUI
             FlowLayoutPanel buttonPanel = new FlowLayoutPanel();
             buttonPanel.FlowDirection = FlowDirection.LeftToRight;
 
-            if (_buttons == MessageBoxButtons.OK || _buttons == MessageBoxButtons.OKCancel)
+            Button firstButton = new Button();
+            DialogResult firstButtonResult = System.Windows.Forms.DialogResult.None;
+            if (_buttons == CloseButtons.OK || _buttons == CloseButtons.OkCancel || _buttons == CloseButtons.OkClose)
             {
-                Button okBtn = new Button();
-                okBtn.Text = "OK";
-                okBtn.Size = okBtn.PreferredSize;
-                okBtn.Click += new EventHandler((o, e) =>
-                    {
-                        DialogResult = System.Windows.Forms.DialogResult.OK;
-                        Close();
-                    });
-
-                buttonPanel.Controls.Add(okBtn);
+                firstButton.Text = "OK";
+                firstButtonResult = System.Windows.Forms.DialogResult.OK;
             }
-
-            if (_buttons == MessageBoxButtons.OKCancel)
+            else if (_buttons == CloseButtons.YesNo)
             {
-                Button cancelBtn = new Button();
-                cancelBtn.Text = "Cancel";
-                cancelBtn.Size = cancelBtn.PreferredSize;
-                cancelBtn.Click += new EventHandler((o, e) =>
-                    {
-                        DialogResult = System.Windows.Forms.DialogResult.Cancel;
-                        Close();
-                    });
-
-                buttonPanel.Controls.Add(cancelBtn);
+                firstButton.Text = "Yes";
+                firstButtonResult = System.Windows.Forms.DialogResult.Yes;
             }
+            else
+                throw new NotImplementedException("Dynamic form first button not defined:  " + _buttons);
 
+            firstButton.Size = firstButton.PreferredSize;
+            firstButton.Click += new EventHandler((o, e) =>
+                {
+                    DialogResult = firstButtonResult;
+                    Close();
+                });
+
+            buttonPanel.Controls.Add(firstButton);
+
+            Button secondButton = new Button();
+            DialogResult secondButtonResult = System.Windows.Forms.DialogResult.None;
+            if (_buttons == CloseButtons.OkCancel)
+            {
+                secondButton.Text = "Cancel";
+                secondButtonResult = System.Windows.Forms.DialogResult.Cancel;
+            }
+            else if (_buttons == CloseButtons.OkClose)
+            {
+                secondButton.Text = "Close";
+                secondButtonResult = System.Windows.Forms.DialogResult.None;
+            }
+            else if (_buttons == CloseButtons.YesNo)
+            {
+                secondButton.Text = "No";
+                secondButtonResult = System.Windows.Forms.DialogResult.No;
+            }
+            else
+                throw new NotImplementedException("Dynamic form second button not defined:  " + _buttons);
+
+            secondButton.Size = secondButton.PreferredSize;
+            secondButton.Click += new EventHandler((o, e) =>
+                {
+                    DialogResult = secondButtonResult;
+                    Close();
+                });
+
+            buttonPanel.Controls.Add(secondButton);
             buttonPanel.Size = buttonPanel.PreferredSize;
 
             _mainPanel.Controls.Add(buttonPanel);

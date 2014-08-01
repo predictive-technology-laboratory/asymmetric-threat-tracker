@@ -95,7 +95,7 @@ namespace PTL.ATT.GUI.Visualization
                 MessageBox.Show("Must create elements.");
             else
             {
-                DynamicForm f = new DynamicForm("Configure feature...");
+                DynamicForm f = new DynamicForm("Configure feature...", DynamicForm.CloseButtons.OkCancel);
                 f.AddTextBox("Feature name:", null, 50, "name");
                 if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {

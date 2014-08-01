@@ -177,7 +177,7 @@ namespace PTL.ATT.GUI
                     MessageBox.Show("No prediction areas available for remapping.");
                 else
                 {
-                    DynamicForm df = new DynamicForm("Remapping features...");
+                    DynamicForm df = new DynamicForm("Remapping features...", DynamicForm.CloseButtons.OkCancel);
                     df.AddDropDown("Prediction area:", predictionAreas, null, "prediction_area", true);
                     if (df.ShowDialog() == DialogResult.OK)
                     {
@@ -234,7 +234,7 @@ namespace PTL.ATT.GUI
         private void parameterizeFeatureToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Feature feature = parameterizeFeatureToolStripMenuItem.Tag as Feature;
-            DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", MessageBoxButtons.OKCancel);
+            DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", DynamicForm.CloseButtons.OkCancel);
             foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
                 if (parameter == "Attribute column")
                     f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(new Shapefile(int.Parse(feature.TrainingResourceId)).GeometryTable).ToArray(), feature.ParameterValue[parameter], parameter, true);
@@ -250,7 +250,7 @@ namespace PTL.ATT.GUI
 
         private void parameterizeSelectedFeaturesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DynamicForm f = new DynamicForm("Parameterize " + Features.Count + " features...", MessageBoxButtons.OKCancel);
+            DynamicForm f = new DynamicForm("Parameterize " + Features.Count + " features...", DynamicForm.CloseButtons.OkCancel);
             foreach (string parameter in Features.SelectMany(feature => feature.ParameterValue.Keys).Distinct().OrderBy(p => p))
             {
                 string currentValue = "";

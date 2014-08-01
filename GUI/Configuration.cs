@@ -284,7 +284,7 @@ namespace PTL.ATT.GUI
 
             while (true)
             {
-                DynamicForm f = new DynamicForm("Enter encryption passphrase");
+                DynamicForm f = new DynamicForm("Enter encryption passphrase", DynamicForm.CloseButtons.OkCancel);
                 f.AddTextBox("Passphrase:", null, 20, "passphrase", '*', true);
                 f.AddTextBox("Confirm passphrase:", null, 20, "confirmed", '*', true);
 

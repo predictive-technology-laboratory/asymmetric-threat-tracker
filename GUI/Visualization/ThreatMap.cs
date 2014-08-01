@@ -1170,7 +1170,7 @@ namespace PTL.ATT.GUI.Visualization
 
         private void setPointDrawingDiameterToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DynamicForm f = new DynamicForm("Set point drawing diameter...");
+            DynamicForm f = new DynamicForm("Set point drawing diameter...", DynamicForm.CloseButtons.OkCancel);
             f.AddNumericUpdown("Diameter (pixels):", _pointDrawingDiameter, 0, 1, decimal.MaxValue, 1, "d");
             if (f.ShowDialog() == DialogResult.OK)
             {

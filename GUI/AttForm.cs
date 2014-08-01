@@ -85,7 +85,7 @@ namespace PTL.ATT.GUI
 
             public void GetShapefileInfo(string shapefilePath, List<string> optionValuesToGet, Dictionary<string, string> optionValue)
             {
-                DynamicForm df = new DynamicForm("Supply shapefile import options...", MessageBoxButtons.OK);
+                DynamicForm df = new DynamicForm("Supply shapefile import options...", DynamicForm.CloseButtons.OK);
                 foreach (string optionValueToGet in optionValuesToGet)
                 {
                     string value = null;
@@ -128,7 +128,7 @@ namespace PTL.ATT.GUI
                     _incidentColumnShapefileColumn = new Dictionary<string, string>();
 
                     string[] shapefileColumns = DB.Connection.GetColumnNames(shapefileGeometryTable).ToArray();
-                    DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", MessageBoxButtons.OK);
+                    DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", DynamicForm.CloseButtons.OK);
                     string[] incidentColumns = new string[] { Incident.Columns.Location, Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type };
                     foreach (string incidentColumn in incidentColumns)
                         f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn, true);
@@ -468,7 +468,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No geographic data available for deletion.");
             else
             {
-                DynamicForm f = new DynamicForm("Select geographic data to delete...");
+                DynamicForm f = new DynamicForm("Select geographic data to delete...", DynamicForm.CloseButtons.OkCancel);
                 f.AddListBox("Geographic data:", shapefiles, null, SelectionMode.MultiExtended, "shapefiles", true);
                 if (f.ShowDialog() == DialogResult.OK)
                 {
@@ -565,7 +565,7 @@ namespace PTL.ATT.GUI
 
         private void collapseIncidentTypesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DynamicForm f = new DynamicForm("Collapse incident types...", MessageBoxButtons.OKCancel);
+            DynamicForm f = new DynamicForm("Collapse incident types...", DynamicForm.CloseButtons.OkCancel);
 
             f.AddDropDown("Area:", Area.GetAll().ToArray(), null, "area", true, new Action<object, EventArgs>((o, args) =>
                 {
@@ -647,7 +647,7 @@ namespace PTL.ATT.GUI
             {
                 try
                 {
-                    DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
+                    DynamicForm importerForm = new DynamicForm("Enter import information...", DynamicForm.CloseButtons.OkCancel);
 
                     importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
                     importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileBrowserFilter, textChanged: (o, e) =>
@@ -775,7 +775,7 @@ namespace PTL.ATT.GUI
 
         private XmlImporter CreateXmlImporter(string name, string path, string relativePathBase, PathRelativizationId relativizationId, string sourceURI, Type[] rowInserterTypes, string[] databaseColumns, CreateXmlRowInserterDelegate createXmlRowInserter)
         {
-            DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
+            DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", DynamicForm.CloseButtons.OkCancel);
 
             rowInserterForm.AddDropDown("Row inserter:", rowInserterTypes, null, "row_inserter", true);
 
@@ -815,7 +815,7 @@ namespace PTL.ATT.GUI
                             refreshStoredImporters = false;
                         }
 
-                        DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
+                        DynamicForm f = new DynamicForm("Stored importers...", DynamicForm.CloseButtons.OkClose);
                         f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers", true);
                         f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action", false);
                         if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
@@ -824,7 +824,7 @@ namespace PTL.ATT.GUI
 
                             if (action == ManageImporterAction.Load)
                             {
-                                DynamicForm df = new DynamicForm("Select importer source...");
+                                DynamicForm df = new DynamicForm("Select importer source...", DynamicForm.CloseButtons.OkCancel);
                                 df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
                                 if (df.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
@@ -887,7 +887,7 @@ namespace PTL.ATT.GUI
                                     else if (action == ManageImporterAction.Edit)
                                     {
                                         Dictionary<string, object> updateKeyValue = new Dictionary<string, object>();
-                                        DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...");
+                                        DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...", DynamicForm.CloseButtons.OkCancel);
                                         importer.GetUpdateRequests(new Importer.UpdateRequestDelegate((itemName, currentValue, possibleValues, id) =>
                                             {
                                                 itemName += ":";
@@ -971,7 +971,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No areas available to model. Import one first.");
             else
             {
-                DynamicForm modelForm = new DynamicForm("Select model type...", MessageBoxButtons.OKCancel);
+                DynamicForm modelForm = new DynamicForm("Select model type...", DynamicForm.CloseButtons.OkCancel);
                 modelForm.AddDropDown("Model type:", modelTypes, null, "model_type", false);
                 if (modelForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -1517,7 +1517,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Select one or more predictions to copy.");
             else if (selectedPredictions.Count == 1 || MessageBox.Show("Are you sure you want to copy " + selectedPredictions.Count + " prediction(s)?", "Confirm copy", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                DynamicForm f = new DynamicForm("Set copy parameters");
+                DynamicForm f = new DynamicForm("Set copy parameters", DynamicForm.CloseButtons.OkCancel);
                 f.AddNumericUpdown("Number of copies of each prediction:  ", 1, 0, 1, decimal.MaxValue, 1, "copies");
                 if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -2016,7 +2016,7 @@ namespace PTL.ATT.GUI
 
             while (true)
             {
-                DynamicForm f = new DynamicForm("Encrypt text...", MessageBoxButtons.OKCancel);
+                DynamicForm f = new DynamicForm("Encrypt text...", DynamicForm.CloseButtons.OkCancel);
                 f.AddTextBox("Text:", null, 20, "text", '*', true);
                 f.AddTextBox("Confirm text:", null, 20, "confirmed", '*', true);
 
@@ -2037,7 +2037,7 @@ namespace PTL.ATT.GUI
 
             try
             {
-                DynamicForm showEncrypted = new DynamicForm("Encrypted text", MessageBoxButtons.OK);
+                DynamicForm showEncrypted = new DynamicForm("Encrypted text", DynamicForm.CloseButtons.OK);
                 showEncrypted.AddTextBox("Result:", textToEncrypt.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), -1, "encrypted");
                 showEncrypted.ShowDialog();
             }
@@ -2103,7 +2103,7 @@ namespace PTL.ATT.GUI
                 return null;
             }
 
-            DynamicForm f = new DynamicForm(prompt, MessageBoxButtons.OKCancel);
+            DynamicForm f = new DynamicForm(prompt, DynamicForm.CloseButtons.OkCancel);
             f.AddDropDown("Areas:", areas, null, "area", true);
             Area importArea = null;
             if (f.ShowDialog() == DialogResult.OK)
