@@ -86,7 +86,7 @@ namespace PTL.ATT.Classifiers
                         throw new NullReferenceException("Expected Point object in DerivedFrom");
 
                     PostGIS.Point vectorLocation = point.Location;
-                    int count = idPoint.Values.Count(p => p.Location.DistanceTo(vectorLocation) <= Model.PointSpacing / 2d && p.IncidentType != PointPrediction.NullLabel);
+                    int count = idPoint.Values.Count(p => p.Location.DistanceTo(vectorLocation) <= Model.TrainingPointSpacing / 2d && p.IncidentType != PointPrediction.NullLabel);
                     vector.DerivedFrom.TrueClass = count + " qid:1";
                 }
 

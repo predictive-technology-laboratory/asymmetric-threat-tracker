@@ -198,12 +198,15 @@ namespace PTL.ATT.GUI
         {
             get
             {
-                return new DateTime(predictionStartDate.Value.Year,
-                                    predictionStartDate.Value.Month,
-                                    predictionStartDate.Value.Day,
-                                    predictionStartTime.Value.Hour,
-                                    predictionStartTime.Value.Minute,
-                                    predictionStartTime.Value.Second);
+                if (InvokeRequired)
+                    return (DateTime)Invoke(new Func<DateTime>(() => PredictionStartDateTime));
+                else
+                    return new DateTime(predictionStartDate.Value.Year,
+                                        predictionStartDate.Value.Month,
+                                        predictionStartDate.Value.Day,
+                                        predictionStartTime.Value.Hour,
+                                        predictionStartTime.Value.Minute,
+                                        predictionStartTime.Value.Second);
             }
             set
             {
@@ -216,12 +219,15 @@ namespace PTL.ATT.GUI
         {
             get
             {
-                return new DateTime(predictionEndDate.Value.Year,
-                                    predictionEndDate.Value.Month,
-                                    predictionEndDate.Value.Day,
-                                    predictionEndTime.Value.Hour,
-                                    predictionEndTime.Value.Minute,
-                                    predictionEndTime.Value.Second);
+                if (InvokeRequired)
+                    return (DateTime)Invoke(new Func<DateTime>(() => PredictionEndDateTime));
+                else
+                    return new DateTime(predictionEndDate.Value.Year,
+                                        predictionEndDate.Value.Month,
+                                        predictionEndDate.Value.Day,
+                                        predictionEndTime.Value.Hour,
+                                        predictionEndTime.Value.Minute,
+                                        predictionEndTime.Value.Second);
             }
             set
             {
@@ -232,27 +238,55 @@ namespace PTL.ATT.GUI
 
         public DiscreteChoiceModel SelectedModel
         {
-            get { return models.SelectedItem as DiscreteChoiceModel; }
+            get
+            {
+                if (InvokeRequired)
+                    return Invoke(new Func<DiscreteChoiceModel>(() => SelectedModel)) as DiscreteChoiceModel;
+                else
+                    return models.SelectedItem as DiscreteChoiceModel;
+            }
         }
 
         public Area SelectedPredictionArea
         {
-            get { return predictionAreas.SelectedItem as Area; }
+            get
+            {
+                if (InvokeRequired)
+                    return Invoke(new Func<Area>(() => SelectedPredictionArea)) as Area;
+                else
+                    return predictionAreas.SelectedItem as Area;
+            }
+        }
+
+        public int PredictionPointSpacing
+        {
+            get
+            {
+                if (InvokeRequired)
+                    return (int)Invoke(new Func<int>(() => PredictionPointSpacing));
+                else
+                    return (int)predictionPointSpacing.Value;
+            }
         }
 
         public List<Prediction> SelectedPredictions
         {
             get
             {
-                Set<Prediction> selectedPredictions = new Set<Prediction>(false);
-                foreach (TreeNode node in TraversePredictionTree())
-                    if (node.Checked)
-                        if (node.Tag is PredictionGroup)
-                            selectedPredictions.AddRange(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction));
-                        else
-                            selectedPredictions.Add(node.Tag as Prediction);
+                if (InvokeRequired)
+                    return Invoke(new Func<List<Prediction>>(() => SelectedPredictions)) as List<Prediction>;
+                else
+                {
+                    Set<Prediction> selectedPredictions = new Set<Prediction>(false);
+                    foreach (TreeNode node in TraversePredictionTree())
+                        if (node.Checked)
+                            if (node.Tag is PredictionGroup)
+                                selectedPredictions.AddRange(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction));
+                            else
+                                selectedPredictions.Add(node.Tag as Prediction);
 
-                return selectedPredictions.ToList();
+                    return selectedPredictions.ToList();
+                }
             }
         }
 
@@ -260,11 +294,16 @@ namespace PTL.ATT.GUI
         {
             get
             {
-                List<Prediction> selectedPredictions = SelectedPredictions;
-                if (selectedPredictions.Count == 1)
-                    return selectedPredictions[0];
+                if (InvokeRequired)
+                    return Invoke(new Func<Prediction>(() => SelectedPrediction)) as Prediction;
                 else
-                    throw new Exception("Other than 1 prediction is selected");
+                {
+                    List<Prediction> selectedPredictions = SelectedPredictions;
+                    if (selectedPredictions.Count == 1)
+                        return selectedPredictions[0];
+                    else
+                        throw new Exception("Other than 1 prediction is selected");
+                }
             }
         }
         #endregion
@@ -1140,11 +1179,9 @@ namespace PTL.ATT.GUI
 
         public void Run(bool newRun, string predictionName, Action<int> runFinishedCallback)
         {
-            DiscreteChoiceModel m = SelectedModel;
-
             predictionName = predictionName.Trim();
 
-            if (m == null)
+            if (SelectedModel == null)
                 MessageBox.Show("Select a model to run.");
             else if (SelectedPredictionArea == null)
                 MessageBox.Show("Select a prediction area.");
@@ -1152,32 +1189,30 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Provide a non-empty prediction name.");
             else
             {
-                Area predictionArea = SelectedPredictionArea;
-                Set<string> incidentTypes = m.IncidentTypes;
-
                 Thread t = new Thread(new ThreadStart(delegate()
                     {
-                        DateTime trainingStart = m.TrainingStart;
-                        DateTime trainingEnd = m.TrainingEnd;
                         Prediction mostRecentPrediction = null;
-                        for (int i = (int)startPrediction.Value - 1; i < numPredictions.Value; ++i)
-                        {
-                            Console.Out.WriteLine("Running prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
 
-                            TimeSpan offset = new TimeSpan(0, i * (int)predictionSpacingHours.Value, 0, 0);
+                        for (int predictionNum = (int)startPrediction.Value; predictionNum <= numPredictions.Value; ++predictionNum)
+                        {
+                            Console.Out.WriteLine("Running prediction \"" + predictionName + "\" (" + predictionNum + " of " + numPredictions.Value + ")");
+
+                            TimeSpan timeOffset = new TimeSpan(0, (predictionNum - 1) * (int)predictionSpacingHours.Value, 0, 0);
 
                             if (perIncident.Checked)
                             {
-                                foreach (string incidentType in incidentTypes)
+                                foreach (string incidentType in SelectedModel.IncidentTypes)
                                 {
                                     Console.Out.WriteLine("Running per-incident prediction \"" + incidentType + "\"");
 
+                                    DiscreteChoiceModel modelToRun = null;
                                     try
                                     {
-                                        m.TrainingStart = trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L));
-                                        m.TrainingEnd = trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L));
-                                        m.IncidentTypes = new Set<string>(new string[] { incidentType });
-                                        mostRecentPrediction = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                        modelToRun = SelectedModel.Copy();
+                                        modelToRun.TrainingStart = SelectedModel.TrainingStart + (slideTrainingStart.Checked ? timeOffset : new TimeSpan(0L));
+                                        modelToRun.TrainingEnd = SelectedModel.TrainingEnd + (slideTrainingEnd.Checked ? timeOffset : new TimeSpan(0L));
+                                        modelToRun.IncidentTypes = new Set<string>(new string[] { incidentType });
+                                        mostRecentPrediction = modelToRun.Run(SelectedPredictionArea, PredictionPointSpacing, PredictionStartDateTime + timeOffset, PredictionEndDateTime + timeOffset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + predictionNum : ""), newRun);
                                         newRun = false;
                                     }
                                     catch (Exception ex)
@@ -1186,16 +1221,21 @@ namespace PTL.ATT.GUI
                                                       ex.StackTrace;
                                         Console.Out.WriteLine(msg);
                                         Notify("Error", msg);
+
+                                        try { modelToRun.Delete(); }
+                                        catch (Exception) { Console.Out.WriteLine("Failed to delete model:  " + ex.Message); }
                                     }
                                 }
                             }
                             else
                             {
+                                DiscreteChoiceModel modelToRun = null;
                                 try
                                 {
-                                    m.TrainingStart = trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L));
-                                    m.TrainingEnd = trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L));
-                                    mostRecentPrediction = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                    modelToRun = SelectedModel.Copy();
+                                    modelToRun.TrainingStart = SelectedModel.TrainingStart + (slideTrainingStart.Checked ? timeOffset : new TimeSpan(0L));
+                                    modelToRun.TrainingEnd = SelectedModel.TrainingEnd + (slideTrainingEnd.Checked ? timeOffset : new TimeSpan(0L));
+                                    mostRecentPrediction = modelToRun.Run(SelectedPredictionArea, PredictionPointSpacing, PredictionStartDateTime + timeOffset, PredictionEndDateTime + timeOffset, predictionName + (numPredictions.Value > 1 ? " " + predictionNum : ""), newRun);
                                     newRun = false;
                                 }
                                 catch (Exception ex)
@@ -1204,15 +1244,14 @@ namespace PTL.ATT.GUI
                                                   ex.StackTrace;
                                     Console.Out.WriteLine(msg);
                                     Notify("Error", msg);
+
+                                    try { modelToRun.Delete(); }
+                                    catch (Exception) { Console.Out.WriteLine("Failed to delete model:  " + ex.Message); }
                                 }
                             }
 
-                            Console.Out.WriteLine("Completed prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
+                            Console.Out.WriteLine("Completed prediction \"" + predictionName + "\" (" + predictionNum + " of " + numPredictions.Value + ")");
                         }
-
-                        m.TrainingStart = trainingStart;
-                        m.TrainingEnd = trainingEnd;
-                        m.IncidentTypes = incidentTypes;
 
                         if (mostRecentPrediction != null)
                         {
@@ -1426,7 +1465,7 @@ namespace PTL.ATT.GUI
                                                     NpgsqlConnection connection = DB.Connection.OpenConnection;
                                                     List<List<PointF>> points = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
                                                     DB.Connection.Return(connection);
-                                                    lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
+                                                    lock (overlays) { overlays.Add(new Overlay(shapefile.Name, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }
                                             }));
 

@@ -80,6 +80,7 @@ namespace PTL.ATT.GUI
             this.models = new System.Windows.Forms.ComboBox();
             this.modelMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label9 = new System.Windows.Forms.Label();
@@ -134,7 +135,9 @@ namespace PTL.ATT.GUI
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
-            this.copyModelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label7 = new System.Windows.Forms.Label();
+            this.predictionPointSpacing = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -154,6 +157,7 @@ namespace PTL.ATT.GUI
             this.horizontalSplitContainer.Panel1.SuspendLayout();
             this.horizontalSplitContainer.Panel2.SuspendLayout();
             this.horizontalSplitContainer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.predictionPointSpacing)).BeginInit();
             this.SuspendLayout();
             // 
             // mainMenu
@@ -414,26 +418,33 @@ namespace PTL.ATT.GUI
             this.editModelToolStripMenuItem,
             this.deleteModelToolStripMenuItem});
             this.modelMenu.Name = "modelMenu";
-            this.modelMenu.Size = new System.Drawing.Size(153, 114);
+            this.modelMenu.Size = new System.Drawing.Size(108, 92);
             // 
             // addModelToolStripMenuItem
             // 
             this.addModelToolStripMenuItem.Name = "addModelToolStripMenuItem";
-            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.addModelToolStripMenuItem.Text = "Add";
             this.addModelToolStripMenuItem.Click += new System.EventHandler(this.addModelToolStripMenuItem_Click);
+            // 
+            // copyModelToolStripMenuItem
+            // 
+            this.copyModelToolStripMenuItem.Name = "copyModelToolStripMenuItem";
+            this.copyModelToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.copyModelToolStripMenuItem.Text = "Copy";
+            this.copyModelToolStripMenuItem.Click += new System.EventHandler(this.copyModelToolStripMenuItem_Click);
             // 
             // editModelToolStripMenuItem
             // 
             this.editModelToolStripMenuItem.Name = "editModelToolStripMenuItem";
-            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.editModelToolStripMenuItem.Text = "Edit";
             this.editModelToolStripMenuItem.Click += new System.EventHandler(this.editModelToolStripMenuItem_Click);
             // 
             // deleteModelToolStripMenuItem
             // 
             this.deleteModelToolStripMenuItem.Name = "deleteModelToolStripMenuItem";
-            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.deleteModelToolStripMenuItem.Text = "Delete";
             this.deleteModelToolStripMenuItem.Click += new System.EventHandler(this.deleteModelToolStripMenuItem_Click);
             // 
@@ -449,7 +460,7 @@ namespace PTL.ATT.GUI
             // 
             // run
             // 
-            this.run.Location = new System.Drawing.Point(319, 176);
+            this.run.Location = new System.Drawing.Point(319, 202);
             this.run.Name = "run";
             this.run.Size = new System.Drawing.Size(36, 23);
             this.run.TabIndex = 17;
@@ -482,7 +493,7 @@ namespace PTL.ATT.GUI
             // predictionEndDate
             // 
             this.predictionEndDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            this.predictionEndDate.Location = new System.Drawing.Point(139, 102);
+            this.predictionEndDate.Location = new System.Drawing.Point(139, 128);
             this.predictionEndDate.Name = "predictionEndDate";
             this.predictionEndDate.Size = new System.Drawing.Size(107, 20);
             this.predictionEndDate.TabIndex = 9;
@@ -492,7 +503,7 @@ namespace PTL.ATT.GUI
             // predictionStartDate
             // 
             this.predictionStartDate.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            this.predictionStartDate.Location = new System.Drawing.Point(139, 76);
+            this.predictionStartDate.Location = new System.Drawing.Point(139, 102);
             this.predictionStartDate.Name = "predictionStartDate";
             this.predictionStartDate.Size = new System.Drawing.Size(107, 20);
             this.predictionStartDate.TabIndex = 7;
@@ -502,7 +513,7 @@ namespace PTL.ATT.GUI
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(53, 80);
+            this.label3.Location = new System.Drawing.Point(53, 106);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(80, 13);
             this.label3.TabIndex = 98;
@@ -515,7 +526,7 @@ namespace PTL.ATT.GUI
             this.slideTrainingEnd.Checked = true;
             this.slideTrainingEnd.CheckState = System.Windows.Forms.CheckState.Checked;
             this.slideTrainingEnd.Enabled = false;
-            this.slideTrainingEnd.Location = new System.Drawing.Point(232, 180);
+            this.slideTrainingEnd.Location = new System.Drawing.Point(232, 206);
             this.slideTrainingEnd.Name = "slideTrainingEnd";
             this.slideTrainingEnd.Size = new System.Drawing.Size(85, 17);
             this.slideTrainingEnd.TabIndex = 16;
@@ -527,7 +538,7 @@ namespace PTL.ATT.GUI
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(100, 181);
+            this.label15.Location = new System.Drawing.Point(100, 207);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(33, 13);
             this.label15.TabIndex = 129;
@@ -539,7 +550,7 @@ namespace PTL.ATT.GUI
             this.predictions.CheckBoxes = true;
             this.predictions.ContextMenuStrip = this.predictionsMenu;
             this.predictions.HideSelection = false;
-            this.predictions.Location = new System.Drawing.Point(140, 205);
+            this.predictions.Location = new System.Drawing.Point(140, 231);
             this.predictions.Margin = new System.Windows.Forms.Padding(0);
             this.predictions.Name = "predictions";
             this.predictions.Size = new System.Drawing.Size(226, 216);
@@ -723,7 +734,7 @@ namespace PTL.ATT.GUI
             this.slideTrainingStart.Checked = true;
             this.slideTrainingStart.CheckState = System.Windows.Forms.CheckState.Checked;
             this.slideTrainingStart.Enabled = false;
-            this.slideTrainingStart.Location = new System.Drawing.Point(139, 180);
+            this.slideTrainingStart.Location = new System.Drawing.Point(139, 206);
             this.slideTrainingStart.Name = "slideTrainingStart";
             this.slideTrainingStart.Size = new System.Drawing.Size(87, 17);
             this.slideTrainingStart.TabIndex = 15;
@@ -735,7 +746,7 @@ namespace PTL.ATT.GUI
             // startPrediction
             // 
             this.startPrediction.Enabled = false;
-            this.startPrediction.Location = new System.Drawing.Point(139, 154);
+            this.startPrediction.Location = new System.Drawing.Point(139, 180);
             this.startPrediction.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -758,7 +769,7 @@ namespace PTL.ATT.GUI
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(103, 132);
+            this.label14.Location = new System.Drawing.Point(103, 158);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(30, 13);
             this.label14.TabIndex = 127;
@@ -769,7 +780,7 @@ namespace PTL.ATT.GUI
             // 
             this.perIncident.AutoSize = true;
             this.perIncident.Enabled = false;
-            this.perIncident.Location = new System.Drawing.Point(258, 155);
+            this.perIncident.Location = new System.Drawing.Point(258, 181);
             this.perIncident.Name = "perIncident";
             this.perIncident.Size = new System.Drawing.Size(82, 17);
             this.perIncident.TabIndex = 14;
@@ -782,7 +793,7 @@ namespace PTL.ATT.GUI
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(55, 106);
+            this.label8.Location = new System.Drawing.Point(55, 132);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(78, 13);
             this.label8.TabIndex = 126;
@@ -792,7 +803,7 @@ namespace PTL.ATT.GUI
             // predictionEndTime
             // 
             this.predictionEndTime.Format = System.Windows.Forms.DateTimePickerFormat.Time;
-            this.predictionEndTime.Location = new System.Drawing.Point(258, 102);
+            this.predictionEndTime.Location = new System.Drawing.Point(258, 128);
             this.predictionEndTime.Name = "predictionEndTime";
             this.predictionEndTime.ShowUpDown = true;
             this.predictionEndTime.Size = new System.Drawing.Size(92, 20);
@@ -804,7 +815,7 @@ namespace PTL.ATT.GUI
             // predictionStartTime
             // 
             this.predictionStartTime.Format = System.Windows.Forms.DateTimePickerFormat.Time;
-            this.predictionStartTime.Location = new System.Drawing.Point(258, 76);
+            this.predictionStartTime.Location = new System.Drawing.Point(258, 102);
             this.predictionStartTime.Name = "predictionStartTime";
             this.predictionStartTime.ShowUpDown = true;
             this.predictionStartTime.Size = new System.Drawing.Size(92, 20);
@@ -816,7 +827,7 @@ namespace PTL.ATT.GUI
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(188, 132);
+            this.label13.Location = new System.Drawing.Point(188, 158);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(64, 13);
             this.label13.TabIndex = 122;
@@ -824,7 +835,7 @@ namespace PTL.ATT.GUI
             // 
             // numPredictions
             // 
-            this.numPredictions.Location = new System.Drawing.Point(139, 128);
+            this.numPredictions.Location = new System.Drawing.Point(139, 154);
             this.numPredictions.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -848,7 +859,7 @@ namespace PTL.ATT.GUI
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(310, 132);
+            this.label12.Location = new System.Drawing.Point(310, 158);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(57, 13);
             this.label12.TabIndex = 118;
@@ -858,7 +869,7 @@ namespace PTL.ATT.GUI
             // predictionSpacingHours
             // 
             this.predictionSpacingHours.Enabled = false;
-            this.predictionSpacingHours.Location = new System.Drawing.Point(258, 128);
+            this.predictionSpacingHours.Location = new System.Drawing.Point(258, 154);
             this.predictionSpacingHours.Maximum = new decimal(new int[] {
             9999999,
             0,
@@ -881,7 +892,7 @@ namespace PTL.ATT.GUI
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(71, 205);
+            this.label6.Location = new System.Drawing.Point(71, 231);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(62, 13);
             this.label6.TabIndex = 106;
@@ -891,7 +902,7 @@ namespace PTL.ATT.GUI
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(16, 156);
+            this.label10.Location = new System.Drawing.Point(16, 182);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(117, 13);
             this.label10.TabIndex = 127;
@@ -916,6 +927,9 @@ namespace PTL.ATT.GUI
             // verticalSplitContainer.Panel1
             // 
             this.verticalSplitContainer.Panel1.AutoScroll = true;
+            this.verticalSplitContainer.Panel1.Controls.Add(this.label7);
+            this.verticalSplitContainer.Panel1.Controls.Add(this.predictionPointSpacing);
+            this.verticalSplitContainer.Panel1.Controls.Add(this.label2);
             this.verticalSplitContainer.Panel1.Controls.Add(this.run);
             this.verticalSplitContainer.Panel1.Controls.Add(this.label12);
             this.verticalSplitContainer.Panel1.Controls.Add(this.label9);
@@ -1020,12 +1034,46 @@ namespace PTL.ATT.GUI
             this.log.TabIndex = 0;
             this.log.Text = "";
             // 
-            // copyModelToolStripMenuItem
+            // label7
             // 
-            this.copyModelToolStripMenuItem.Name = "copyModelToolStripMenuItem";
-            this.copyModelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.copyModelToolStripMenuItem.Text = "Copy";
-            this.copyModelToolStripMenuItem.Click += new System.EventHandler(this.copyModelToolStripMenuItem_Click);
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(222, 78);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(38, 13);
+            this.label7.TabIndex = 132;
+            this.label7.Text = "meters";
+            // 
+            // predictionPointSpacing
+            // 
+            this.predictionPointSpacing.Location = new System.Drawing.Point(139, 76);
+            this.predictionPointSpacing.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.predictionPointSpacing.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.predictionPointSpacing.Name = "predictionPointSpacing";
+            this.predictionPointSpacing.Size = new System.Drawing.Size(77, 20);
+            this.predictionPointSpacing.TabIndex = 130;
+            this.predictionPointSpacing.Value = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(10, 78);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(123, 13);
+            this.label2.TabIndex = 131;
+            this.label2.Text = "Prediction point spacing:";
+            this.toolTip.SetToolTip(this.label2, "How far apart prediction points should be spaced");
             // 
             // AttForm
             // 
@@ -1063,6 +1111,7 @@ namespace PTL.ATT.GUI
             this.horizontalSplitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.horizontalSplitContainer)).EndInit();
             this.horizontalSplitContainer.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.predictionPointSpacing)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1158,6 +1207,9 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ToolStripMenuItem manageStoredImportersToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem collapseIncidentTypesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyModelToolStripMenuItem;
+        private System.Windows.Forms.Label label7;
+        public System.Windows.Forms.NumericUpDown predictionPointSpacing;
+        private System.Windows.Forms.Label label2;
     }
 }
 

@@ -69,6 +69,15 @@
             <param name="parameters"></param>
             <returns></returns>
         </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.NewCommand(System.String,System.Collections.Generic.IEnumerable{LAIR.ResourceAPIs.PostgreSQL.Parameter},Npgsql.NpgsqlConnection)">
+            <summary>
+            Creates a new command
+            </summary>
+            <param name="commandText"></param>
+            <param name="parameters"></param>
+            <param name="connection"></param>
+            <returns></returns>
+        </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.ExecuteNonQuery(System.String,LAIR.ResourceAPIs.PostgreSQL.Parameter[])">
             <summary>
             Executes a non-query command

@@ -55,8 +55,8 @@ namespace PTL.ATT.Evaluation
                 if (sliceTicks > 0)
                     slice = incident.Time.Ticks / sliceTicks;
 
-                int row = (int)((incident.Location.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.Model.PointSpacing);
-                int col = (int)((incident.Location.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.Model.PointSpacing);
+                int row = (int)((incident.Location.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.PredictionPointSpacing);
+                int col = (int)((incident.Location.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.PredictionPointSpacing);
                 string location = row + "-" + col;
 
                 sliceLocationTrueCount.EnsureContainsKey(slice, typeof(Dictionary<string, int>));
@@ -98,8 +98,8 @@ namespace PTL.ATT.Evaluation
                     slice = pointPrediction.Time.Ticks / sliceTicks;
 
                 PostGIS.Point point = idPoint[pointPrediction.PointId].Location;
-                int row = (int)((point.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.Model.PointSpacing);
-                int col = (int)((point.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.Model.PointSpacing);
+                int row = (int)((point.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.PredictionPointSpacing);
+                int col = (int)((point.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.PredictionPointSpacing);
                 string location = row + "-" + col;
 
                 sliceLocationThreats.EnsureContainsKey(slice, typeof(Dictionary<string, List<double>>));

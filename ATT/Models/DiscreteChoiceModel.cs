@@ -193,7 +193,6 @@ namespace PTL.ATT.Models
 
         private int _id;
         private string _name;
-        private int _pointSpacing;
         private Set<string> _incidentTypes;
         private Area _trainingArea;
         private DateTime _trainingStart;
@@ -214,16 +213,6 @@ namespace PTL.ATT.Models
             set
             {
                 _name = value;
-                Update();
-            }
-        }
-
-        public int PointSpacing
-        {
-            get { return _pointSpacing; }
-            set
-            {
-                _pointSpacing = value;
                 Update();
             }
         }
@@ -324,7 +313,6 @@ namespace PTL.ATT.Models
         }
 
         protected DiscreteChoiceModel(string name,
-                                      int pointSpacing,
                                       IEnumerable<string> incidentTypes,
                                       Area trainingArea,
                                       DateTime trainingStart,
@@ -333,7 +321,6 @@ namespace PTL.ATT.Models
             : this()
         {
             _name = name;
-            _pointSpacing = pointSpacing;
             _incidentTypes = new Set<string>(incidentTypes.ToArray());
             _trainingArea = trainingArea;
             _trainingStart = trainingStart;
@@ -343,16 +330,14 @@ namespace PTL.ATT.Models
             Update();
         }
 
-        public Prediction Run(Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
+        public Prediction Run(Area predictionArea, int predictionPointSpacing, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
         {
-            DiscreteChoiceModel modelCopy = null;
             Prediction prediction = null;
             try
             {
-                modelCopy = Copy();
-                modelCopy.PredictionArea = predictionArea;
-                prediction = new Prediction(modelCopy, newRun, predictionName, predictionArea, startTime, endTime, true);
-                modelCopy.Run(prediction);
+                PredictionArea = predictionArea;
+                prediction = new Prediction(this, newRun, predictionName, predictionArea, predictionPointSpacing, startTime, endTime, true);
+                Run(prediction);
                 prediction.Done = true;
 
                 return prediction;
@@ -364,9 +349,6 @@ namespace PTL.ATT.Models
 
                 try { prediction.Delete(); }
                 catch (Exception ex2) { Console.Out.WriteLine("Failed to delete prediction:  " + ex2.Message); }
-
-                try { modelCopy.Delete(); }
-                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete model:  " + ex2.Message); }
 
                 throw ex;
             }
@@ -404,7 +386,6 @@ namespace PTL.ATT.Models
             return (indentLevel > 0 ? Environment.NewLine : "") + indent + "Type:  " + GetType() + Environment.NewLine +
                    indent + "ID:  " + _id + Environment.NewLine +
                    indent + "Name:  " + _name + Environment.NewLine +
-                   indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
                    indent + "Incident types:  " + _incidentTypes.Concatenate(",") + Environment.NewLine +
                    indent + "Training area:  " + TrainingArea.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Training start:  " + _trainingStart.ToShortDateString() + " " + _trainingStart.ToShortTimeString() + Environment.NewLine +

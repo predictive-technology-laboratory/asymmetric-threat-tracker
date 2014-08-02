@@ -136,21 +136,19 @@ namespace PTL.ATT.Models
         public TimeSliceDCM() : base() { }
 
         public TimeSliceDCM(string name,
-                            int pointSpacing,
                             IEnumerable<string> incidentTypes,
                             Area trainingArea,
                             DateTime trainingStart,
                             DateTime trainingEnd,
                             IEnumerable<Smoother> smoothers,
+                            int trainingPointSpacing,
                             int featureDistanceThreshold,
                             int negativePointStandoff,
-                            int trainingSampleSize,
-                            int predictionSampleSize,
                             PTL.ATT.Classifiers.Classifier classifier,
                             IEnumerable<Feature> features,
                             int timeSliceHours,
                             int periodTimeSlices)
-            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, featureDistanceThreshold, negativePointStandoff, trainingSampleSize, predictionSampleSize, classifier, features)
+            : base(name, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, trainingPointSpacing, featureDistanceThreshold, negativePointStandoff, classifier, features)
         {
             _timeSliceHours = timeSliceHours;
             _periodTimeSlices = periodTimeSlices;
@@ -285,7 +283,7 @@ namespace PTL.ATT.Models
 
         public override DiscreteChoiceModel Copy()
         {
-            return new TimeSliceDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, FeatureDistanceThreshold, NegativePointStandoff, TrainingSampleSize, PredictionSampleSize, Classifier, Features, _timeSliceHours, _periodTimeSlices);
+            return new TimeSliceDCM(Name, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, TrainingPointSpacing, FeatureDistanceThreshold, NegativePointStandoff, Classifier, Features, _timeSliceHours, _periodTimeSlices);
         }
 
         public override string ToString()

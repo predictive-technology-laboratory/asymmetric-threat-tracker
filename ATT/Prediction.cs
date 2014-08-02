@@ -120,6 +120,7 @@ namespace PTL.ATT
         private int _runId;
         private string _name;
         private Area _predictionArea;
+        private int _predictionPointSpacing;
         private DateTime _predictionStartTime;
         private DateTime _predictionEndTime;
         private List<Plot> _assessmentPlots;
@@ -210,6 +211,11 @@ namespace PTL.ATT
         public Area PredictionArea
         {
             get { return _predictionArea; }
+        }
+
+        public int PredictionPointSpacing
+        {
+            get { return _predictionPointSpacing; }
         }
 
         public DateTime PredictionStartTime
@@ -303,12 +309,13 @@ namespace PTL.ATT
             }
         }
 
-        internal Prediction(DiscreteChoiceModel model, bool newRun, string name, Area predictionArea, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
+        internal Prediction(DiscreteChoiceModel model, bool newRun, string name, Area predictionArea, int predictionPointSpacing, DateTime predictionStartTime, DateTime predictionEndTime, bool vacuum)
         {
             _model = model;
             _runId = MaxRunId + (newRun ? 1 : 0);
             _name = name;
             _predictionArea = predictionArea;
+            _predictionPointSpacing = predictionPointSpacing;
             _predictionStartTime = predictionStartTime;
             _predictionEndTime = predictionEndTime;
             _assessmentPlots = new List<Plot>();
@@ -370,7 +377,7 @@ namespace PTL.ATT
 
             try
             {
-                copiedPrediction = new Prediction(Model.Copy(), newRun, newName, _predictionArea, _predictionStartTime, _predictionEndTime, false);
+                copiedPrediction = new Prediction(Model.Copy(), newRun, newName, _predictionArea, _predictionPointSpacing, _predictionStartTime, _predictionEndTime, false);
 
                 string copiedPointTable = Point.CreateTable(copiedPrediction, PredictionArea.Shapefile.SRID);
                 cmd.CommandText = "INSERT INTO " + copiedPointTable + " (" + Point.Columns.Insert + ") " +
@@ -431,6 +438,7 @@ namespace PTL.ATT
                    indent + "Run:  " + _runId + Environment.NewLine +
                    indent + "Model:  " + Model.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Prediction area:  " + _predictionArea.GetDetails(indentLevel + 1) + Environment.NewLine + 
+                   indent + "Prediction point spacing:  " + _predictionPointSpacing + Environment.NewLine + 
                    indent + "Prediction start:  " + _predictionStartTime.ToShortDateString() + " " + _predictionStartTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Prediction end:  " + _predictionEndTime.ToShortDateString() + " " + _predictionEndTime.ToShortTimeString() + Environment.NewLine +
                    indent + "Smoothing:  " + _smoothingDetails + Environment.NewLine +

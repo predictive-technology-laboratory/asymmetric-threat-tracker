@@ -36,14 +36,9 @@ namespace PTL.ATT.GUI
         private Area _trainingArea;
         private Func<Area, List<Feature>> _getFeatures;
 
-        public int TrainingSampleSize
+        public int TrainingPointSpacing
         {
-            get { return (int)trainingSampleSize.Value; }
-        }
-
-        public int PredictionSampleSize
-        {
-            get { return (int)predictionSampleSize.Value; }
+            get { return (int)trainingPointSpacing.Value; }
         }
 
         public int FeatureDistanceThreshold
@@ -118,8 +113,7 @@ namespace PTL.ATT.GUI
             if (_initializing)
                 return;
 
-            trainingSampleSize.Value = 30000;
-            predictionSampleSize.Value = 30000;
+            trainingPointSpacing.Value = 200;
             featureDistanceThreshold.Value = 1000;
             negativePointStandoff.Value = 200;
             classifiers.Populate(_featureBasedDCM);
@@ -128,8 +122,7 @@ namespace PTL.ATT.GUI
 
             if (_featureBasedDCM != null)
             {
-                trainingSampleSize.Value = _featureBasedDCM.TrainingSampleSize;
-                predictionSampleSize.Value = _featureBasedDCM.PredictionSampleSize;
+                trainingPointSpacing.Value = _featureBasedDCM.TrainingPointSpacing;
                 featureDistanceThreshold.Value = _featureBasedDCM.FeatureDistanceThreshold;
                 negativePointStandoff.Value = _featureBasedDCM.NegativePointStandoff;
 
@@ -270,8 +263,7 @@ namespace PTL.ATT.GUI
 
         internal void CommitValues(FeatureBasedDCM model)
         {
-            model.TrainingSampleSize = TrainingSampleSize;
-            model.PredictionSampleSize = PredictionSampleSize;
+            model.TrainingPointSpacing = TrainingPointSpacing;
             model.FeatureDistanceThreshold = FeatureDistanceThreshold;
             model.NegativePointStandoff = NegativePointStandoff;
             model.Classifier = Classifier;

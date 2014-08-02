@@ -93,8 +93,7 @@ namespace PTL.ATT
                                          bool onlyInsertPointsInArea,
                                          bool vacuum)
         {
-            NpgsqlCommand cmd = new NpgsqlCommand(null, connection);
-            cmd.CommandTimeout = Configuration.PostgresCommandTimeout;
+            NpgsqlCommand cmd = DB.Connection.NewCommand(null, null, connection);
 
             string insertIntoTable = GetTableName(prediction);
 

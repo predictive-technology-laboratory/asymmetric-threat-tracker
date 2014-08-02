@@ -203,7 +203,7 @@ namespace PTL.ATT.GUI.Visualization
                 if (y > maxPointY) maxPointY = y;
             }
 
-            if(_sliceIncidentPointScores.Count == 0)
+            if (_sliceIncidentPointScores.Count == 0)
             {
                 Console.Out.WriteLine("No prediction points were generated for this prediction. There is nothing to display or evaluate.");
                 Clear();
@@ -252,9 +252,9 @@ namespace PTL.ATT.GUI.Visualization
                     _regionBottomLeftInMeters = new PointF(minPointX, minPointY);
                     _regionSizeInMeters = new SizeF(maxPointX - minPointX, maxPointY - minPointY);
 
-                    bool newThreatSurface = threatResolution.Value != prediction.Model.PointSpacing;
-                    threatResolution.Value = threatResolution.Minimum = prediction.Model.PointSpacing;
-                    if (!newThreatSurface)
+                    bool generateThreatSurfaces = threatResolution.Value != prediction.PredictionPointSpacing; // changing the threat resolution will generate new threat surfaces, so only do it here if we won't be changing the current resolution value
+                    threatResolution.Value = threatResolution.Minimum = prediction.PredictionPointSpacing;
+                    if (!generateThreatSurfaces)
                         GetThreatSurfaces(ClientRectangle, true);
 
                     GetSliceTimeText();

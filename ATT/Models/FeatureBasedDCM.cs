@@ -130,11 +130,10 @@ namespace PTL.ATT.Models
         }
 
         private PTL.ATT.Classifiers.Classifier _classifier;
+        private int _trainingPointSpacing;
         private int _featureDistanceThreshold;
         private int _negativePointStandoff;
         private List<Feature> _features;
-        private int _trainingSampleSize;
-        private int _predictionSampleSize;
         private Dictionary<string, NumericFeature> _idNumericFeature;
         private Dictionary<string, NominalFeature> _idNominalFeature;
 
@@ -145,6 +144,16 @@ namespace PTL.ATT.Models
             {
                 _classifier = value;
                 _classifier.Model = this;
+                Update();
+            }
+        }
+
+        public int TrainingPointSpacing
+        {
+            get { return _trainingPointSpacing; }
+            set
+            {
+                _trainingPointSpacing = value;
                 Update();
             }
         }
@@ -188,26 +197,6 @@ namespace PTL.ATT.Models
             }
         }
 
-        public int TrainingSampleSize
-        {
-            get { return _trainingSampleSize; }
-            set
-            {
-                _trainingSampleSize = value;
-                Update();
-            }
-        }
-
-        public int PredictionSampleSize
-        {
-            get { return _predictionSampleSize; }
-            set
-            {
-                _predictionSampleSize = value;
-                Update();
-            }
-        }
-
         protected Dictionary<string, NumericFeature> IdNumericFeature
         {
             get { return _idNumericFeature; }
@@ -225,24 +214,21 @@ namespace PTL.ATT.Models
         }
 
         public FeatureBasedDCM(string name,
-                               int pointSpacing,
                                IEnumerable<string> incidentTypes,
                                Area trainingArea,
                                DateTime trainingStart,
                                DateTime trainingEnd,
                                IEnumerable<Smoother> smoothers,
+                               int trainingPointSpacing,
                                int featureDistanceThreshold,
                                int negativePointStandoff,
-                               int trainingSampleSize,
-                               int predictionSampleSize,
                                PTL.ATT.Classifiers.Classifier classifier,
                                IEnumerable<Feature> features)
-            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
+            : base(name, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
+            _trainingPointSpacing = trainingPointSpacing;
             _featureDistanceThreshold = featureDistanceThreshold;
             _negativePointStandoff = negativePointStandoff;
-            _trainingSampleSize = trainingSampleSize;
-            _predictionSampleSize = predictionSampleSize;
             _classifier = classifier;
             _classifier.Model = this;
 
@@ -264,21 +250,26 @@ namespace PTL.ATT.Models
         {
             Area area = training ? prediction.Model.TrainingArea : prediction.Model.PredictionArea;
 
-            // get positive points
+            // insert positive points
             List<Tuple<PostGIS.Point, string, DateTime>> incidentPointTuples = new List<Tuple<PostGIS.Point, string, DateTime>>();
             foreach (Incident i in Incident.Get(prediction.Model.TrainingStart, prediction.Model.TrainingEnd, area, prediction.Model.IncidentTypes.ToArray()))
                 incidentPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.Shapefile.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue)); // training points are labeled and have a time associated with them
 
             incidentPointTuples = area.Contains(incidentPointTuples.Select(t => t.Item1)).Select(i => incidentPointTuples[i]).ToList();
+            if (training && incidentPointTuples.Count == 0)
+                Console.Out.WriteLine("WARNING:  Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
 
-            // get negative points
+            Point.Insert(connection, incidentPointTuples, prediction, area, false, vacuum);
+
+            // insert negative points
+            int negativePointSpacing = training ? _trainingPointSpacing : prediction.PredictionPointSpacing;
             List<Tuple<PostGIS.Point, string, DateTime>> nullPointTuples = new List<Tuple<PostGIS.Point, string, DateTime>>();
             double areaMinX = area.BoundingBox.MinX;
             double areaMaxX = area.BoundingBox.MaxX;
             double areaMinY = area.BoundingBox.MinY;
             double areaMaxY = area.BoundingBox.MaxY;
-            for (double x = areaMinX + prediction.Model.PointSpacing / 2d; x <= areaMaxX; x += prediction.Model.PointSpacing) // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
-                for (double y = areaMinY + prediction.Model.PointSpacing / 2d; y <= areaMaxY; y += prediction.Model.PointSpacing)
+            for (double x = areaMinX + negativePointSpacing / 2d; x <= areaMaxX; x += negativePointSpacing) // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
+                for (double y = areaMinY + negativePointSpacing / 2d; y <= areaMaxY; y += negativePointSpacing)
                 {
                     PostGIS.Point point = new PostGIS.Point(x, y, area.Shapefile.SRID);
                     nullPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue)); // null points are never labeled and never have time
@@ -289,29 +280,7 @@ namespace PTL.ATT.Models
             if (training)
                 nullPointTuples = nullPointTuples.Where(nullPointTuple => !incidentPointTuples.Any(incidentPointTuple => incidentPointTuple.Item1.DistanceTo(nullPointTuple.Item1) < _negativePointStandoff)).ToList();
 
-            List<int> nullPointIds = Point.Insert(connection, nullPointTuples, prediction, area, false, vacuum);
-
-            int maxSampleSize = training ? _trainingSampleSize : _predictionSampleSize;
-            int numIncidentsToRemove = (nullPointIds.Count + incidentPointTuples.Count) - maxSampleSize;
-            string sample = training ? "training" : "prediction";
-            if (numIncidentsToRemove > 0)
-                if (incidentPointTuples.Count > 0)
-                {
-                    numIncidentsToRemove = Math.Min(incidentPointTuples.Count, numIncidentsToRemove);
-                    if (numIncidentsToRemove > 0)
-                    {
-                        Console.Out.WriteLine("WARNING:  the " + sample + " sample size is too large. We are forced to remove " + numIncidentsToRemove + " random incidents in order to meet the required sample size. In order to use all incidents, increase the sample size to " + (nullPointIds.Count + incidentPointTuples.Count));
-                        incidentPointTuples.Randomize(new Random(1240894));
-                        incidentPointTuples.RemoveRange(0, numIncidentsToRemove);
-                    }
-                }
-                else
-                    Console.Out.WriteLine("WARNING:  we are using " + nullPointIds.Count + " points, but the maximum " + sample + " sample size is " + maxSampleSize + ". Be aware that this could be going beyond the memory limits of your machine.");
-
-            if (training && incidentPointTuples.Count == 0)
-                Console.Out.WriteLine("WARNING:  Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
-
-            Point.Insert(connection, incidentPointTuples, prediction, area, false, vacuum);
+            Point.Insert(connection, nullPointTuples, prediction, area, false, vacuum);
         }
 
         protected virtual int GetNumFeaturesExtractedFor(Prediction prediction)
@@ -371,35 +340,35 @@ namespace PTL.ATT.Models
                             {
                                 Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDistanceFeature.TrainingResourceId : spatialDistanceFeature.PredictionResourceId));
 
-                                NpgsqlCommand cmd = new NpgsqlCommand("SELECT points." + Point.Columns.Id + " as points_" + Point.Columns.Id + "," +
+                                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT points." + Point.Columns.Id + " as points_" + Point.Columns.Id + "," +
                                                                              "CASE WHEN COUNT(" + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ")=0 THEN " + distanceWhenBeyondThreshold + " " +
                                                                              "ELSE min(st_distance(st_closestpoint(" + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ",points." + Point.Columns.Location + "),points." + Point.Columns.Location + ")) " +
                                                                              "END as feature_value " +
 
-                                                                      "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " +
-                                                                            "FROM " + pointTableName + " " +
-                                                                            "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
+                                                                             "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " +
+                                                                                   "FROM " + pointTableName + " " +
+                                                                                   "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
                                                                                        "(" +
-                                                                                          pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
-                                                                                            "(" +
-                                                                                                pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
-                                                                                                pointTableName + "." + Point.Columns.Time + "<=@point_end" +
-                                                                                            ")" +
+                                                                                           pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                           "(" +
+                                                                                               pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
+                                                                                               pointTableName + "." + Point.Columns.Time + "<=@point_end" +
+                                                                                           ")" +
                                                                                        ")" +
-                                                                            ") points " +
+                                                                                   ") points " +
 
-                                                                            "LEFT JOIN " + shapefile.GeometryTable + " " +
+                                                                             "LEFT JOIN " + shapefile.GeometryTable + " " +
 
-                                                                            "ON points.bounding_box && " + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + " AND " +
-                                                                                "(" +
+                                                                             "ON points.bounding_box && " + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + " AND " +
+                                                                                 "(" +
                                                                                     shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR " +
                                                                                     "(" +
                                                                                         shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " +
                                                                                         shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Time + "<=@geometry_end" +
                                                                                     ")" +
-                                                                                ")" +
+                                                                                 ")" +
 
-                                                                      "GROUP BY points." + Point.Columns.Id, threadConnection);
+                                                                             "GROUP BY points." + Point.Columns.Id, null, threadConnection);
 
                                 TimeSpan spatialDistanceFeatureLag = new TimeSpan(spatialDistanceFeature.GetIntegerParameterValue("Lag days"), 0, 0, 0);
                                 ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
@@ -507,19 +476,19 @@ namespace PTL.ATT.Models
                             {
                                 Shapefile shapefile = new Shapefile(int.Parse(training ? geometryAttributeFeature.TrainingResourceId : geometryAttributeFeature.PredictionResourceId));
                                 string attributeColumn = geometryAttributeFeature.ParameterValue["Attribute column"];
-                                NpgsqlCommand cmd = new NpgsqlCommand("SELECT " + pointTableName + "." + Point.Columns.Id + " as point_id," + shapefile.GeometryTable + "." + attributeColumn + " as geometry_attribute " +
-                                                                      "FROM " + pointTableName + " " +
-                                                                      "JOIN " + shapefile.GeometryTable + " " +
-                                                                      "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") AND " +
-                                                                          pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
-                                                                          "(" +
-                                                                              pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
-                                                                              "(" +
-                                                                                  pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
-                                                                                  pointTableName + "." + Point.Columns.Time + "<=@point_end" +
-                                                                              ")" +
-                                                                          ") " +
-                                                                      "ORDER BY " + pointTableName + "." + Point.Columns.Id, threadConnection);
+                                NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + pointTableName + "." + Point.Columns.Id + " as point_id," + shapefile.GeometryTable + "." + attributeColumn + " as geometry_attribute " +
+                                                                             "FROM " + pointTableName + " " +
+                                                                             "JOIN " + shapefile.GeometryTable + " " +
+                                                                             "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") AND " +
+                                                                                 pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
+                                                                                 "(" +
+                                                                                     pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                     "(" +
+                                                                                         pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
+                                                                                         pointTableName + "." + Point.Columns.Time + "<=@point_end" +
+                                                                                     ")" +
+                                                                                 ") " +
+                                                                             "ORDER BY " + pointTableName + "." + Point.Columns.Id, null, threadConnection);
 
                                 ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
                                                                   new Parameter("point_end", NpgsqlDbType.Timestamp, end));
@@ -879,7 +848,7 @@ namespace PTL.ATT.Models
 
         public override DiscreteChoiceModel Copy()
         {
-            return new FeatureBasedDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _featureDistanceThreshold, _negativePointStandoff, _trainingSampleSize, _predictionSampleSize, _classifier.Copy(), _features);
+            return new FeatureBasedDCM(Name, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _trainingPointSpacing, _featureDistanceThreshold, _negativePointStandoff, _classifier.Copy(), _features);
         }
 
         public override string ToString()
@@ -899,10 +868,9 @@ namespace PTL.ATT.Models
                    indent + "Classifier:  " + _classifier.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Features:  " + Features.Where((f, i) => i < featuresToDisplay).Select(f => f.ToString()).Concatenate(", ") + (Features.Count > featuresToDisplay ? " ... (" + (Features.Count - featuresToDisplay) + " not shown)" : "") + Environment.NewLine +
                    indent + "External feature extractor (" + typeof(FeatureBasedDCM) + "):  " + (externalFeatureExtractor == null ? "None" : externalFeatureExtractor.GetDetails(indentLevel + 1)) + Environment.NewLine +
+                   indent + "Training point spacing:  " + _trainingPointSpacing + Environment.NewLine +
                    indent + "Feature distance threshold:  " + _featureDistanceThreshold + Environment.NewLine +
-                   indent + "Negative point standoff:  " + _negativePointStandoff + Environment.NewLine +
-                   indent + "Training sample size:  " + _trainingSampleSize + Environment.NewLine +
-                   indent + "Prediction sample size:  " + _predictionSampleSize;
+                   indent + "Negative point standoff:  " + _negativePointStandoff;
         }
     }
 }
