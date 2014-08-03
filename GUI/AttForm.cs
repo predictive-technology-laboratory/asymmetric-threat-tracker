@@ -114,7 +114,7 @@ namespace PTL.ATT.GUI
         }
 
         [Serializable]
-        public class IncidentShapefileImportInfoRetriever : IIncidentTableShapefileTableMappingRetriever
+        public class IncidentTableShapefileTableMappingRetriever : IIncidentTableShapefileTableMappingRetriever
         {
             private Dictionary<string, string> _incidentColumnShapefileColumn;
 
@@ -563,7 +563,6 @@ namespace PTL.ATT.GUI
                            }
 
                            f.AddDropDown("Import into area:", areas, null, "area", true);
-                           f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
 
                            return f;
@@ -572,12 +571,16 @@ namespace PTL.ATT.GUI
                    new CreateImporterDelegate((name, path, sourceURI, importerForm) =>
                        {
                            Area importArea = importerForm.GetValue<Area>("area");
-                           int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                            int hourOffset = Convert.ToInt32(importerForm.GetValue<decimal>("offset"));
 
                            string extension = Path.GetExtension(path).ToLower();
                            if (extension == ".xml")
                            {
+                               DynamicForm f = new DynamicForm("Location SRID", DynamicForm.CloseButtons.OK);
+                               f.AddNumericUpdown("Location SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
+                               f.ShowDialog();
+                               int sourceSRID = Convert.ToInt32(f.GetValue<decimal>("source_srid"));
+
                                Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
                                string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
 
@@ -589,8 +592,8 @@ namespace PTL.ATT.GUI
                            else if (extension == ".shp")
                            {
                                int targetSRID = importArea.Shapefile.SRID;
-                               ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
-                               return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, importArea, new IncidentShapefileImportInfoRetriever(), hourOffset);
+                               ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, 0, targetSRID);
+                               return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, 0, targetSRID, shapefileInfoRetriever, importArea, new IncidentTableShapefileTableMappingRetriever(), hourOffset);
                            }
                            else
                                throw new NotImplementedException("Unrecognized incident import file extension:  " + extension);
@@ -864,7 +867,7 @@ namespace PTL.ATT.GUI
                             if (action == ManageImporterAction.Load)
                             {
                                 DynamicForm df = new DynamicForm("Select importer source...", DynamicForm.CloseButtons.OkCancel);
-                                df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                                df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: GUI.Configuration.ImportersImportDirectory);
                                 if (df.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
                                     string path = df.GetValue<string>("path");
@@ -956,7 +959,7 @@ namespace PTL.ATT.GUI
                                     else if (action == ManageImporterAction.Store)
                                     {
                                         if (exportDirectory == null)
-                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", GUI.Configuration.ImportersImportDirectory);
 
                                         if (Directory.Exists(exportDirectory))
                                         {

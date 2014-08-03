@@ -26,16 +26,25 @@ namespace PTL.ATT.Importers
     public class IncidentShapefileImporter : ShapefileImporter
     {
         private Area _importArea;
+        Dictionary<string, string> _incidentColumnShapefileColumn;
         private IIncidentTableShapefileTableMappingRetriever _incidentShapefileMappingRetriever;
         private int _hourOffset;
 
-        public IncidentShapefileImporter(string name, string path, string relativePath, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever, Area importArea, IIncidentTableShapefileTableMappingRetriever shapefileIncidentMappingRetriever, int hourOffset)
+        public IncidentShapefileImporter(string name, string path, string relativePath, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever, Area importArea, IIncidentTableShapefileTableMappingRetriever incidentShapefileMappingRetriever, int hourOffset)
             : base(name, path, relativePath, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever)
         {
             _importArea = importArea;
-            _incidentShapefileMappingRetriever = shapefileIncidentMappingRetriever;
+            _incidentShapefileMappingRetriever = incidentShapefileMappingRetriever;
             _hourOffset = hourOffset;
         }
+
+        public IncidentShapefileImporter(string name, string path, string relativePath, string sourceURI, int sourceSRID, int targetSRID, IShapefileInfoRetriever shapefileInfoRetriever, Area importArea, Dictionary<string, string> incidentColumnShapefileColumn, int hourOffset)
+            : base(name, path, relativePath, sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever)
+        {
+            _importArea = importArea;
+            _incidentColumnShapefileColumn = incidentColumnShapefileColumn;
+            _hourOffset = hourOffset;
+        }            
 
         public override void Import()
         {
@@ -43,15 +52,16 @@ namespace PTL.ATT.Importers
 
             Console.Out.WriteLine("Extracting incident data from shapefile.");
 
-            Dictionary<string, string> incidentTableColumnShapefileTableColumn = _incidentShapefileMappingRetriever.MapIncidentColumnsToShapefileColumns(ImportedShapefile.GeometryTable, true);
+            if (_incidentColumnShapefileColumn == null)
+                _incidentColumnShapefileColumn = _incidentShapefileMappingRetriever.MapIncidentColumnsToShapefileColumns(ImportedShapefile.GeometryTable, true);
+
             DB.Connection.ExecuteNonQuery("INSERT INTO " + Incident.GetTableName(_importArea, true) + " (" + Incident.Columns.Insert + ") " +
 
-                                          "SELECT " + _importArea.Id + "," +
-                                                      incidentTableColumnShapefileTableColumn[Incident.Columns.Location] + "," +
-                                                      (incidentTableColumnShapefileTableColumn.ContainsKey(Incident.Columns.NativeId) ? incidentTableColumnShapefileTableColumn[Incident.Columns.NativeId] + "::VARCHAR" : "DEFAULT") + "," +
+                                          "SELECT " + _incidentColumnShapefileColumn[Incident.Columns.Location] + "," +
+                                                      (_incidentColumnShapefileColumn.ContainsKey(Incident.Columns.NativeId) ? _incidentColumnShapefileColumn[Incident.Columns.NativeId] + "::VARCHAR" : "DEFAULT") + "," +
                                                       "false," +
-                                                      incidentTableColumnShapefileTableColumn[Incident.Columns.Time] + "::TIMESTAMP + INTERVAL '" + _hourOffset + " HOUR'," +
-                                                      "TRIM(BOTH FROM " + incidentTableColumnShapefileTableColumn[Incident.Columns.Type] + "::VARCHAR) " +
+                                                      _incidentColumnShapefileColumn[Incident.Columns.Time] + "::TIMESTAMP + INTERVAL '" + _hourOffset + " HOUR'," +
+                                                      "TRIM(BOTH FROM " + _incidentColumnShapefileColumn[Incident.Columns.Type] + "::VARCHAR) " +
 
                                           "FROM " + ImportedShapefile.GeometryTable + ";" +
                                           "DROP TABLE " + ImportedShapefile.GeometryTable + ";");

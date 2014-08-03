@@ -20,7 +20,11 @@
 
   <events>
     <import_directory></import_directory> <!-- The default directory that should be opened when browsing for events to import (e.g., C:\ATT\Data\Events). -->
-  </events>  
+  </events>
+
+  <importers>
+    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
+  </importers>  
 
   <plugins>
     <!-- Each element within <plugins> should have the form <plugin>typename</plugin>, where typename is the type of the plugin.  -->

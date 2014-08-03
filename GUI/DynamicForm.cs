@@ -106,16 +106,20 @@ namespace PTL.ATT.GUI
                 secondButtonResult = System.Windows.Forms.DialogResult.No;
             }
             else
-                throw new NotImplementedException("Dynamic form second button not defined:  " + _buttons);
+                secondButton = null;
 
-            secondButton.Size = secondButton.PreferredSize;
-            secondButton.Click += new EventHandler((o, e) =>
-                {
-                    DialogResult = secondButtonResult;
-                    Close();
-                });
+            if (secondButton != null)
+            {
+                secondButton.Size = secondButton.PreferredSize;
+                secondButton.Click += new EventHandler((o, e) =>
+                    {
+                        DialogResult = secondButtonResult;
+                        Close();
+                    });
 
-            buttonPanel.Controls.Add(secondButton);
+                buttonPanel.Controls.Add(secondButton);
+            }
+
             buttonPanel.Size = buttonPanel.PreferredSize;
 
             _mainPanel.Controls.Add(buttonPanel);
