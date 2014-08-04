@@ -71,7 +71,7 @@ namespace PTL.ATT.GUI
             this.label13.Size = new System.Drawing.Size(60, 13);
             this.label13.TabIndex = 46;
             this.label13.Text = "Smoothers:";
-            this.toolTip.SetToolTip(this.label13, "Smoothers to apply after the prediction is made.");
+            this.toolTip.SetToolTip(this.label13, "Smoothers to apply after predictions from this model are run.");
             // 
             // modelName
             // 
@@ -90,7 +90,7 @@ namespace PTL.ATT.GUI
             this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 39;
             this.label2.Text = "Name:";
-            this.toolTip.SetToolTip(this.label2, "A descriptive name for this model");
+            this.toolTip.SetToolTip(this.label2, "A descriptive name for this model.");
             // 
             // label3
             // 
@@ -100,7 +100,7 @@ namespace PTL.ATT.GUI
             this.label3.Size = new System.Drawing.Size(72, 13);
             this.label3.TabIndex = 119;
             this.label3.Text = "Training area:";
-            this.toolTip.SetToolTip(this.label3, "Area upon which this model is trained");
+            this.toolTip.SetToolTip(this.label3, "Area upon which this model is trained.");
             // 
             // label7
             // 
@@ -143,7 +143,7 @@ namespace PTL.ATT.GUI
             this.label4.Size = new System.Drawing.Size(76, 13);
             this.label4.TabIndex = 121;
             this.label4.Text = "Incident types:";
-            this.toolTip.SetToolTip(this.label4, "Incident types to model");
+            this.toolTip.SetToolTip(this.label4, "Incident types to model (right-click for options).");
             // 
             // trainingEnd
             // 
@@ -193,7 +193,7 @@ namespace PTL.ATT.GUI
             this.label6.Size = new System.Drawing.Size(118, 13);
             this.label6.TabIndex = 120;
             this.label6.Text = "Training start/end date:";
-            this.toolTip.SetToolTip(this.label6, "Date range upon which the model should be trained");
+            this.toolTip.SetToolTip(this.label6, "Date range upon which this model should be trained.");
             // 
             // toolTip
             // 

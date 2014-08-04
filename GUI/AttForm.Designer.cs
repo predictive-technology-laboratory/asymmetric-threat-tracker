@@ -129,15 +129,15 @@ namespace PTL.ATT.GUI
             this.label6 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.label2 = new System.Windows.Forms.Label();
             this.verticalSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.label7 = new System.Windows.Forms.Label();
+            this.predictionPointSpacing = new System.Windows.Forms.NumericUpDown();
             this.threatSplitContainer = new System.Windows.Forms.SplitContainer();
             this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.predictionPointSpacing = new System.Windows.Forms.NumericUpDown();
-            this.label2 = new System.Windows.Forms.Label();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -149,6 +149,7 @@ namespace PTL.ATT.GUI
             this.verticalSplitContainer.Panel1.SuspendLayout();
             this.verticalSplitContainer.Panel2.SuspendLayout();
             this.verticalSplitContainer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.predictionPointSpacing)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.threatSplitContainer)).BeginInit();
             this.threatSplitContainer.Panel1.SuspendLayout();
             this.threatSplitContainer.Panel2.SuspendLayout();
@@ -157,7 +158,6 @@ namespace PTL.ATT.GUI
             this.horizontalSplitContainer.Panel1.SuspendLayout();
             this.horizontalSplitContainer.Panel2.SuspendLayout();
             this.horizontalSplitContainer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.predictionPointSpacing)).BeginInit();
             this.SuspendLayout();
             // 
             // mainMenu
@@ -456,7 +456,7 @@ namespace PTL.ATT.GUI
             this.label9.Size = new System.Drawing.Size(39, 13);
             this.label9.TabIndex = 72;
             this.label9.Text = "Model:";
-            this.toolTip.SetToolTip(this.label9, "Model to use for making predictions");
+            this.toolTip.SetToolTip(this.label9, "Model to use for making predictions (right-click for options).");
             // 
             // run
             // 
@@ -488,7 +488,7 @@ namespace PTL.ATT.GUI
             this.label1.Size = new System.Drawing.Size(81, 13);
             this.label1.TabIndex = 95;
             this.label1.Text = "Prediction area:";
-            this.toolTip.SetToolTip(this.label1, "Area for which to predict selected model\'s incidents");
+            this.toolTip.SetToolTip(this.label1, "Area to run selected model on (right-click for options).");
             // 
             // predictionEndDate
             // 
@@ -518,7 +518,7 @@ namespace PTL.ATT.GUI
             this.label3.Size = new System.Drawing.Size(80, 13);
             this.label3.TabIndex = 98;
             this.label3.Text = "Prediction start:";
-            this.toolTip.SetToolTip(this.label3, "Temporal start of prediction");
+            this.toolTip.SetToolTip(this.label3, "Temporal start of prediction.");
             // 
             // slideTrainingEnd
             // 
@@ -531,7 +531,7 @@ namespace PTL.ATT.GUI
             this.slideTrainingEnd.Size = new System.Drawing.Size(85, 17);
             this.slideTrainingEnd.TabIndex = 16;
             this.slideTrainingEnd.Text = "Training end";
-            this.toolTip.SetToolTip(this.slideTrainingEnd, "Whether or not to slide the training window\'s end position");
+            this.toolTip.SetToolTip(this.slideTrainingEnd, "Whether or not to slide the training window\'s end position.");
             this.slideTrainingEnd.UseVisualStyleBackColor = true;
             this.slideTrainingEnd.CheckedChanged += new System.EventHandler(this.slideTrainingEnd_CheckedChanged);
             // 
@@ -543,7 +543,7 @@ namespace PTL.ATT.GUI
             this.label15.Size = new System.Drawing.Size(33, 13);
             this.label15.TabIndex = 129;
             this.label15.Text = "Slide:";
-            this.toolTip.SetToolTip(this.label15, "For batched predictions, how to slide the training window");
+            this.toolTip.SetToolTip(this.label15, "For batched predictions, how to slide the training window.");
             // 
             // predictions
             // 
@@ -739,7 +739,7 @@ namespace PTL.ATT.GUI
             this.slideTrainingStart.Size = new System.Drawing.Size(87, 17);
             this.slideTrainingStart.TabIndex = 15;
             this.slideTrainingStart.Text = "Training start";
-            this.toolTip.SetToolTip(this.slideTrainingStart, "Whether or not to slide the training window\'s start position");
+            this.toolTip.SetToolTip(this.slideTrainingStart, "Whether or not to slide the training window\'s start position.");
             this.slideTrainingStart.UseVisualStyleBackColor = true;
             this.slideTrainingStart.CheckedChanged += new System.EventHandler(this.slideTrainingStart_CheckedChanged);
             // 
@@ -774,7 +774,7 @@ namespace PTL.ATT.GUI
             this.label14.Size = new System.Drawing.Size(30, 13);
             this.label14.TabIndex = 127;
             this.label14.Text = "Run:";
-            this.toolTip.SetToolTip(this.label14, "Number of predictions to run in batch mode");
+            this.toolTip.SetToolTip(this.label14, "Number of predictions to run in batch mode.");
             // 
             // perIncident
             // 
@@ -798,7 +798,7 @@ namespace PTL.ATT.GUI
             this.label8.Size = new System.Drawing.Size(78, 13);
             this.label8.TabIndex = 126;
             this.label8.Text = "Prediction end:";
-            this.toolTip.SetToolTip(this.label8, "Temporal end of prediction");
+            this.toolTip.SetToolTip(this.label8, "Temporal end of prediction.");
             // 
             // predictionEndTime
             // 
@@ -864,7 +864,7 @@ namespace PTL.ATT.GUI
             this.label12.Size = new System.Drawing.Size(57, 13);
             this.label12.TabIndex = 118;
             this.label12.Text = "hr(s). apart";
-            this.toolTip.SetToolTip(this.label12, "Temporal spacing of batched predictions");
+            this.toolTip.SetToolTip(this.label12, "Temporal spacing of batched predictions.");
             // 
             // predictionSpacingHours
             // 
@@ -897,7 +897,7 @@ namespace PTL.ATT.GUI
             this.label6.Size = new System.Drawing.Size(62, 13);
             this.label6.TabIndex = 106;
             this.label6.Text = "Predictions:";
-            this.toolTip.SetToolTip(this.label6, "Previous predictions");
+            this.toolTip.SetToolTip(this.label6, "Previously run predictions (right-click for options).");
             // 
             // label10
             // 
@@ -907,7 +907,7 @@ namespace PTL.ATT.GUI
             this.label10.Size = new System.Drawing.Size(117, 13);
             this.label10.TabIndex = 127;
             this.label10.Text = "Starting with prediction:";
-            this.toolTip.SetToolTip(this.label10, "Position in batch sequence at which to start");
+            this.toolTip.SetToolTip(this.label10, "Position in batch sequence at which to start.");
             // 
             // toolTip
             // 
@@ -916,6 +916,16 @@ namespace PTL.ATT.GUI
             this.toolTip.InitialDelay = 2000;
             this.toolTip.ReshowDelay = 100;
             this.toolTip.ShowAlways = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(10, 78);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(123, 13);
+            this.label2.TabIndex = 131;
+            this.label2.Text = "Prediction point spacing:";
+            this.toolTip.SetToolTip(this.label2, "How far apart prediction points should be spaced.");
             // 
             // verticalSplitContainer
             // 
@@ -963,6 +973,37 @@ namespace PTL.ATT.GUI
             this.verticalSplitContainer.Size = new System.Drawing.Size(1126, 600);
             this.verticalSplitContainer.SplitterDistance = 400;
             this.verticalSplitContainer.TabIndex = 7;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(222, 78);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(38, 13);
+            this.label7.TabIndex = 132;
+            this.label7.Text = "meters";
+            // 
+            // predictionPointSpacing
+            // 
+            this.predictionPointSpacing.Location = new System.Drawing.Point(139, 76);
+            this.predictionPointSpacing.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.predictionPointSpacing.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.predictionPointSpacing.Name = "predictionPointSpacing";
+            this.predictionPointSpacing.Size = new System.Drawing.Size(77, 20);
+            this.predictionPointSpacing.TabIndex = 130;
+            this.predictionPointSpacing.Value = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
             // 
             // threatSplitContainer
             // 
@@ -1034,47 +1075,6 @@ namespace PTL.ATT.GUI
             this.log.TabIndex = 0;
             this.log.Text = "";
             // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(222, 78);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(38, 13);
-            this.label7.TabIndex = 132;
-            this.label7.Text = "meters";
-            // 
-            // predictionPointSpacing
-            // 
-            this.predictionPointSpacing.Location = new System.Drawing.Point(139, 76);
-            this.predictionPointSpacing.Maximum = new decimal(new int[] {
-            99999,
-            0,
-            0,
-            0});
-            this.predictionPointSpacing.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.predictionPointSpacing.Name = "predictionPointSpacing";
-            this.predictionPointSpacing.Size = new System.Drawing.Size(77, 20);
-            this.predictionPointSpacing.TabIndex = 130;
-            this.predictionPointSpacing.Value = new decimal(new int[] {
-            200,
-            0,
-            0,
-            0});
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(10, 78);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(123, 13);
-            this.label2.TabIndex = 131;
-            this.label2.Text = "Prediction point spacing:";
-            this.toolTip.SetToolTip(this.label2, "How far apart prediction points should be spaced");
-            // 
             // AttForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1103,6 +1103,7 @@ namespace PTL.ATT.GUI
             this.verticalSplitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.verticalSplitContainer)).EndInit();
             this.verticalSplitContainer.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.predictionPointSpacing)).EndInit();
             this.threatSplitContainer.Panel1.ResumeLayout(false);
             this.threatSplitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.threatSplitContainer)).EndInit();
@@ -1111,7 +1112,6 @@ namespace PTL.ATT.GUI
             this.horizontalSplitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.horizontalSplitContainer)).EndInit();
             this.horizontalSplitContainer.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.predictionPointSpacing)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

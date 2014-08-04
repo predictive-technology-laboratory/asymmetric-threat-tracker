@@ -85,7 +85,7 @@ namespace PTL.ATT.GUI
             this.label9.Size = new System.Drawing.Size(112, 13);
             this.label9.TabIndex = 23;
             this.label9.Text = "Time slices per period:";
-            this.toolTip.SetToolTip(this.label9, "Number of time slices (of above duration) that compose a single period");
+            this.toolTip.SetToolTip(this.label9, "Number of time slices (of above duration) that compose a single period.");
             // 
             // label7
             // 
@@ -126,7 +126,7 @@ namespace PTL.ATT.GUI
             this.label1.Size = new System.Drawing.Size(57, 13);
             this.label1.TabIndex = 19;
             this.label1.Text = "Time slice:";
-            this.toolTip.SetToolTip(this.label1, "Duration of a single time slice");
+            this.toolTip.SetToolTip(this.label1, "Duration of a single time slice.");
             // 
             // TimeSliceDcmOptions
             // 
