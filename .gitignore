@@ -8,3 +8,6 @@ GUI/Config/gui_config.xml
 Installer/Installer
 Models
 !ATT/Models
+.nuget
+packages
+Test/packages.config
