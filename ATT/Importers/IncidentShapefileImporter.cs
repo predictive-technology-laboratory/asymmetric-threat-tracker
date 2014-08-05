@@ -63,8 +63,9 @@ namespace PTL.ATT.Importers
                                                       _incidentColumnShapefileColumn[Incident.Columns.Time] + "::TIMESTAMP + INTERVAL '" + _hourOffset + " HOUR'," +
                                                       "TRIM(BOTH FROM " + _incidentColumnShapefileColumn[Incident.Columns.Type] + "::VARCHAR) " +
 
-                                          "FROM " + ImportedShapefile.GeometryTable + ";" +
-                                          "DROP TABLE " + ImportedShapefile.GeometryTable + ";");
+                                          "FROM " + ImportedShapefile.GeometryTable + ";");
+
+            ImportedShapefile.Delete();
 
             Console.Out.WriteLine("Incident import from shapefile finished.");
         }

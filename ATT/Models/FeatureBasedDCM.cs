@@ -72,13 +72,13 @@ namespace PTL.ATT.Models
                 {
                     // spatial distance
                     Dictionary<string, string> parameterValue = new Dictionary<string, string>();
-                    parameterValue.Add("Lag days", "30");
+                    parameterValue.Add("Lag days", "31");
                     yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameterValue);
 
                     // spatial density
                     parameterValue = new Dictionary<string, string>();
                     parameterValue.Add("Sample size", "500");
-                    parameterValue.Add("Lag days", "30");
+                    parameterValue.Add("Lag days", "31");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameterValue);
 
                     // geometry attribute
@@ -493,11 +493,19 @@ namespace PTL.ATT.Models
                                 ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
                                                                   new Parameter("point_end", NpgsqlDbType.Timestamp, end));
 
+                                LAIR.MachineLearning.Feature attributeFeature;
+                                string attributeType = geometryAttributeFeature.ParameterValue["Attribute type"];
+                                if (attributeType == "Numeric")
+                                    attributeFeature = _idNumericFeature[geometryAttributeFeature.Id] as LAIR.MachineLearning.Feature;
+                                else if (attributeType == "Nominal")
+                                    attributeFeature = _idNominalFeature[geometryAttributeFeature.Id] as LAIR.MachineLearning.Feature;
+                                else
+                                    throw new NotImplementedException("Unrecognized geometry attribute feature type:  " + attributeType);
+
                                 List<object> values = new List<object>();
                                 int currPointId = -1;
                                 int pointId = -1;
-                                string attributeType = geometryAttributeFeature.ParameterValue["Attribute type"];
-                                LAIR.MachineLearning.Feature attributeFeature = attributeType == "Numeric" ? _idNumericFeature[geometryAttributeFeature.Id] as LAIR.MachineLearning.Feature : _idNominalFeature[geometryAttributeFeature.Id] as LAIR.MachineLearning.Feature;
+
                                 Action addFeatureToVector = new Action(() =>
                                     {
                                         if (values.Count > 0)
