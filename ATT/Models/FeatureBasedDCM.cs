@@ -93,7 +93,7 @@ namespace PTL.ATT.Models
             {
                 Dictionary<string, string> parameterValue = new Dictionary<string, string>();
                 parameterValue.Add("Sample size", "500");
-                parameterValue.Add("Lag days", "30");
+                parameterValue.Add("Lag days", "31");
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValue);
             }
 
