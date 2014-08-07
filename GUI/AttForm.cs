@@ -1760,10 +1760,15 @@ namespace PTL.ATT.GUI
                 if (TraversePredictionTree().Count(n => n.Checked) == 1)
                     title = TraversePredictionTree().Where(n => n.Checked).First().Text;
 
-                try { images.Add(new TitledImage(DiscreteChoiceModel.GetAggregateSurveillancePlot(SelectedPredictions, 500, 500, title, title).Image, title)); }
+                try
+                {
+                    Tuple<SurveillancePlot, float> surveillancePlotAndCorrelation = DiscreteChoiceModel.GetAggregateSurveillancePlotAndCorrelation(SelectedPredictions, 500, 500, title, title);
+                    images.Add(new TitledImage(surveillancePlotAndCorrelation.Item1.Image, title));
+                    ImageViewer viewer = new ImageViewer(images, 0);
+                    viewer.Text = "Correlation between threat and crime count:  " + surveillancePlotAndCorrelation.Item2;
+                    viewer.Show();
+                }
                 catch (Exception ex) { MessageBox.Show("Error rendering aggregate plot:  " + ex.Message); }
-
-                new ImageViewer(images, 0).ShowDialog();
             }
         }
 
@@ -1994,7 +1999,7 @@ namespace PTL.ATT.GUI
                     correlation = threatMap.DisplayedPrediction.SliceThreatCorrelation[plot.Slice];
 
                 if (!float.IsNaN(correlation))
-                    toolTip.SetToolTip(plotBox, "Correlation between threat and crime counts:  " + correlation);
+                    toolTip.SetToolTip(plotBox, "Correlation between threat and crime count:  " + correlation);
             }
         }
 

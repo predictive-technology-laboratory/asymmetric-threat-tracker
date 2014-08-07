@@ -150,10 +150,7 @@ namespace PTL.ATT.Models
                     seriesPoints.Add("Slice " + sliceNum++, SurveillancePlot.GetSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
                     seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
                     prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, slice, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
-                    
-                    List<string> sortedLocations = sliceLocationThreats[slice].Keys.OrderBy(k => k).ToList();
-                    prediction.SliceThreatCorrelation.Add(slice, LAIR.Math.GetCorrelation(sortedLocations.Select(location => (float)sliceLocationThreats[slice][location].Average()).ToList(),
-                                                                                          sortedLocations.Select(location => sliceLocationTrueCount[slice].ContainsKey(location) ? (float)sliceLocationTrueCount[slice][location] : 0).ToList()));
+                    prediction.SliceThreatCorrelation.Add(slice, GetThreatCorrelation(sliceLocationThreats[slice], sliceLocationTrueCount[slice]));
                 }
 
             if (sliceLocationTrueCount.Count > 1)
@@ -166,8 +163,7 @@ namespace PTL.ATT.Models
                 prediction.AssessmentPlots.Add(new SurveillancePlot(prediction.Name, -1, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
 
                 List<string> sortedLocations = overallLocationThreats.Keys.OrderBy(k => k).ToList();
-                prediction.OverallCrimeThreatCorrelation = LAIR.Math.GetCorrelation(sortedLocations.Select(location => (float)overallLocationThreats[location].Average()).ToList(),
-                                                                                    sortedLocations.Select(location => overallLocationTrueCount.ContainsKey(location) ? (float)overallLocationTrueCount[location] : 0).ToList());
+                prediction.OverallCrimeThreatCorrelation = GetThreatCorrelation(overallLocationThreats, overallLocationTrueCount);
             }
 
             prediction.MostRecentlyEvaluatedIncidentTime = incidents.Max(i => i.Time);
@@ -175,6 +171,11 @@ namespace PTL.ATT.Models
         }
 
         public static SurveillancePlot GetAggregateSurveillancePlot(IEnumerable<Prediction> predictions, int plotWidth, int plotHeight, string seriesName, string plotTitle)
+        {
+            return GetAggregateSurveillancePlotAndCorrelation(predictions, plotWidth, plotHeight, seriesName, plotTitle).Item1;
+        }
+
+        public static Tuple<SurveillancePlot, float> GetAggregateSurveillancePlotAndCorrelation(IEnumerable<Prediction> predictions, int plotWidth, int plotHeight, string seriesName, string plotTitle)
         {
             Dictionary<string, int> aggregateLocationTrueCount = new Dictionary<string, int>();
             Dictionary<string, List<double>> aggregateLocationThreats = new Dictionary<string, List<double>>();
@@ -196,7 +197,14 @@ namespace PTL.ATT.Models
             seriesPoints.Add(seriesName, SurveillancePlot.GetSurveillancePlotPoints(aggregateLocationTrueCount, aggregateLocationThreats, true, true));
             seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(aggregateLocationTrueCount, aggregateLocationThreats, true, true));
 
-            return new SurveillancePlot(plotTitle, -1, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2);
+            return new Tuple<SurveillancePlot, float>(new SurveillancePlot(plotTitle, -1, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2), GetThreatCorrelation(aggregateLocationThreats, aggregateLocationTrueCount));
+        }
+
+        private static float GetThreatCorrelation(Dictionary<string, List<double>> locationThreats, Dictionary<string, int> locationTrueCount)
+        {
+            List<string> sortedLocations = locationThreats.Keys.OrderBy(k => k).ToList();
+            return LAIR.Math.GetCorrelation(sortedLocations.Select(location => (float)locationThreats[location].Average()).ToList(),
+                                            sortedLocations.Select(location => locationTrueCount.ContainsKey(location) ? (float)locationTrueCount[location] : 0).ToList());
         }
         #endregion
         #endregion
