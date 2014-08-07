@@ -4,6 +4,214 @@
         <name>LAIR.Extensions</name>
     </assembly>
     <members>
+        <member name="T:LAIR.Extensions.DictionaryExtensions">
+            <summary>
+            Provides extension methods for the .NET Dictionary class
+            </summary>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.SortKeysByValues``2(System.Collections.Generic.Dictionary{``0,``1})">
+            <summary>
+            Sorts dictionary keys by their corresponding values
+            </summary>
+            <typeparam name="KeyType">Type of key objects</typeparam>
+            <typeparam name="ValueType">Type of value objects</typeparam>
+            <param name="dictionary">Dictionary to sort</param>
+            <returns>Sorted list of keys</returns>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.SortKeysByValues``2(System.Collections.Generic.Dictionary{``0,``1},System.Boolean)">
+            <summary>
+            Sorts dictionary keys by their corresponding values
+            </summary>
+            <typeparam name="KeyType">Type of key objects</typeparam>
+            <typeparam name="ValueType">Type of value objects</typeparam>
+            <param name="dictionary">Dictionary to sort</param>
+            <param name="reverse">Whether or not to reverse the sorted key list</param>
+            <returns>Sorted list of keys</returns>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.SortValuesByKeys``2(System.Collections.Generic.Dictionary{``0,``1})">
+            <summary>
+            Sorts dictionary values by their corresponding keys
+            </summary>
+            <typeparam name="KeyType">Type of key objects</typeparam>
+            <typeparam name="ValueType">Type of value objects</typeparam>
+            <param name="dictionary">Dictionary to sort</param>
+            <returns>Sorted list of values</returns>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.SortValuesByKeys``2(System.Collections.Generic.Dictionary{``0,``1},System.Boolean)">
+            <summary>
+            Sorts dictionary values by their corresponding keys
+            </summary>
+            <typeparam name="KeyType">Type of key objects</typeparam>
+            <typeparam name="ValueType">Type of value objects</typeparam>
+            <param name="dictionary">Dictionary to sort</param>
+            <param name="reverse">Whether or not to reverse the sorted value list</param>
+            <returns>Sorted list of values</returns>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.Add``2(System.Collections.Generic.Dictionary{``0,``1},System.Collections.Generic.Dictionary{``0,``1},LAIR.Extensions.DictionaryExtensions.ValueCombinationDelegate{``1})">
+            <summary>
+            Adds a dictionary to the current one, merging values with key conflicts
+            </summary>
+            <typeparam name="KeyType">Type of keys</typeparam>
+            <typeparam name="ValueType">Type of values</typeparam>
+            <param name="dictionary">Dictionary to add to</param>
+            <param name="toAdd">Dictionary to add</param>
+            <param name="combine">Combination delegate</param>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.Save``2(System.Collections.Generic.Dictionary{``0,``1},System.String,System.Func{``0,System.String},System.Func{``1,System.String},LAIR.Extensions.DictionaryExtensions.Sort,System.Boolean,System.Boolean,System.String,System.String,System.Boolean)">
+            <summary>
+            Saves this dictionary to file
+            </summary>
+            <typeparam name="KeyType">Key type</typeparam>
+            <typeparam name="ValueType">Value type</typeparam>
+            <param name="dictionary">Dictionary to save</param>
+            <param name="path">Path to save to</param>
+            <param name="keyConversion">Conversion from keys to strings</param>
+            <param name="valueConversion">Conversion from values to strings</param>
+            <param name="sort">How to sort keys before printing lines</param>
+            <param name="reverse">Whether or not to reverse the sorted key collection</param>
+            <param name="writeCount">Whether or not to write the dictionary's count to file</param>
+            <param name="linePrefix">Key-value line prefix</param>
+            <param name="keyValSeparator">Key-value sparator</param>
+            <param name="throwExceptionOnContainsSeparator">Whether or not to throw an exception if the key or value string 
+            contains the separator sequence</param>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.Save``2(System.Collections.Generic.Dictionary{``0,``1},System.IO.StreamWriter,System.Func{``0,System.String},System.Func{``1,System.String},LAIR.Extensions.DictionaryExtensions.Sort,System.Boolean,System.Boolean,System.String,System.String,System.Boolean)">
+            <summary>
+            Saves this dictionary to file
+            </summary>
+            <typeparam name="KeyType">Key type</typeparam>
+            <typeparam name="ValueType">Value type</typeparam>
+            <param name="dictionary">Dictionary to save</param>
+            <param name="file">File to save to</param>
+            <param name="keyConversion">Conversion from keys to strings</param>
+            <param name="valueConversion">Conversion from values to strings</param>
+            <param name="sort">How to sort keys before printing lines</param>
+            <param name="reverse">Whether or not to reverse the sorted key collection</param>
+            <param name="writeCount">Whether or not to write the dictionary's count to file</param>
+            <param name="linePrefix">Key-value line prefix</param>
+            <param name="keyValSeparator">Key-value sparator</param>
+            <param name="throwExceptionOnContainsSeparator">Whether or not to throw an exception if the key or value string 
+            contains the separator sequence</param>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.EnsureContainsKey``2(System.Collections.Generic.Dictionary{``0,``1},``0,System.Type)">
+            <summary>
+            Ensures that the current dictionary contains a given key. If it does not, a new key-value pair is added
+            using the given key and the value resulting from calling the default constructor for the valueType type.
+            </summary>
+            <typeparam name="KeyType">Key type</typeparam>
+            <typeparam name="ValueType">Value type</typeparam>
+            <param name="dictionary">Dictionary</param>
+            <param name="key">Key to ensure the existence of</param>
+            <param name="valueType">Type of value</param>
+        </member>
+        <member name="M:LAIR.Extensions.DictionaryExtensions.EnsureContainsKey``2(System.Collections.Generic.Dictionary{``0,``1},``0,System.Type,System.Object[])">
+            <summary>
+            Ensures that the current dictionary contains a given key. If it does not, a new key-value pair is added
+            using the given key and the value resulting from calling the default constructor for the valueType type.
+            </summary>
+            <typeparam name="KeyType">Key type</typeparam>
+            <typeparam name="ValueType">Value type</typeparam>
+            <param name="dictionary">Dictionary</param>
+            <param name="key">Key to ensure the existence of</param>
+            <param name="valueType">Type of value</param>
+            <param name="constructorParameters">Parameters to pass to the value constructor if the key needs to be added</param>
+        </member>
+        <member name="T:LAIR.Extensions.DictionaryExtensions.Sort">
+            <summary>
+            Different types of sort
+            </summary>
+        </member>
+        <member name="F:LAIR.Extensions.DictionaryExtensions.Sort.None">
+            <summary>
+            Don't sort
+            </summary>
+        </member>
+        <member name="F:LAIR.Extensions.DictionaryExtensions.Sort.Keys">
+            <summary>
+            Sort keys directly
+            </summary>
+        </member>
+        <member name="F:LAIR.Extensions.DictionaryExtensions.Sort.KeysByValues">
+            <summary>
+            Sort keys by values
+            </summary>
+        </member>
+        <member name="T:LAIR.Extensions.DictionaryExtensions.ValueCombinationDelegate`1">
+            <summary>
+            Combines to values
+            </summary>
+            <typeparam name="ValueType">Type of values to combine</typeparam>
+            <param name="value1">First value to combine</param>
+            <param name="value2">Second value to combine</param>
+            <returns>Combined value</returns>
+        </member>
+        <member name="T:LAIR.Extensions.IListExtensions">
+            <summary>
+            Extensions for IList objects
+            </summary>
+        </member>
+        <member name="M:LAIR.Extensions.IListExtensions.Randomize``1(System.Collections.Generic.IList{``0})">
+            <summary>
+            Randomizes the list
+            </summary>
+            <typeparam name="T">Type of list to randomize</typeparam>
+            <param name="list">List to randomize</param>
+        </member>
+        <member name="M:LAIR.Extensions.IListExtensions.Randomize``1(System.Collections.Generic.IList{``0},System.Random)">
+            <summary>
+            Randomizes the list
+            </summary>
+            <typeparam name="T">Type of list to randomize</typeparam>
+            <param name="list">List to randomize</param>
+            <param name="r">Random number generator to use</param>
+        </member>
+        <member name="M:LAIR.Extensions.IListExtensions.Randomize``1(System.Collections.Generic.IList{``0},System.Int32,System.Int32,System.Random)">
+            <summary>
+            Randomizes the list
+            </summary>
+            <typeparam name="T">Type of list to randomize</typeparam>
+            <param name="list">List to randomize</param>
+            <param name="start">Start of list to randomize</param>
+            <param name="end">End of range to randomize</param>
+            <param name="r">Random number generator to use</param>
+        </member>
+        <member name="M:LAIR.Extensions.IListExtensions.RemoveAtMultiple``1(System.Collections.Generic.IList{``0},System.Boolean[])">
+            <summary>
+            Removes elements in a list based on an indicator list
+            </summary>
+            <typeparam name="T">Type of list</typeparam>
+            <param name="list">List</param>
+            <param name="remove">Array of boolean values indicating which elements to remove</param>
+        </member>
+        <member name="T:LAIR.Extensions.StreamReaderExtensions">
+            <summary>
+            Extensions for the StreamReader class
+            </summary>
+        </member>
+        <member name="M:LAIR.Extensions.StreamReaderExtensions.ReadLine(System.IO.StreamReader,System.UInt32@)">
+            <summary>
+            Reads a line from a reader, tracking the stream position.
+            </summary>
+            <param name="reader">Reader to read from</param>
+            <param name="position">Position of next read operation, passed in as the current reader position.</param>
+            <returns>Line</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StreamReaderExtensions.TryReadLine(System.IO.StreamReader,System.String@)">
+            <summary>
+            Tries to read a line from a reader. After the last line is read, this function will close the given reader. This is 
+            handy because it lets you write while loops such as while(file.ReadLine(out line)){}.
+            </summary>
+            <param name="reader">Reader to read from</param>
+            <param name="line">Line that was read, or null if no line was read.</param>
+            <returns>True if line was read, false otherwise</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StreamReaderExtensions.SetPosition(System.IO.StreamReader,System.Int64)">
+            <summary>
+            Sets a StreamReader to a given position and discards any buffered data
+            </summary>
+            <param name="reader">StreamReader to reset</param>
+            <param name="position">Position to reset to</param>
+        </member>
         <member name="T:LAIR.Extensions.StringExtensions">
             <summary>
             Provides extension methods for strings
@@ -352,214 +560,6 @@
             </summary>
             <param name="c">TreeBank syntactic category to get WordNet POS for</param>
             <returns>WordNet POS</returns>
-        </member>
-        <member name="T:LAIR.Extensions.DictionaryExtensions">
-            <summary>
-            Provides extension methods for the .NET Dictionary class
-            </summary>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.SortKeysByValues``2(System.Collections.Generic.Dictionary{``0,``1})">
-            <summary>
-            Sorts dictionary keys by their corresponding values
-            </summary>
-            <typeparam name="KeyType">Type of key objects</typeparam>
-            <typeparam name="ValueType">Type of value objects</typeparam>
-            <param name="dictionary">Dictionary to sort</param>
-            <returns>Sorted list of keys</returns>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.SortKeysByValues``2(System.Collections.Generic.Dictionary{``0,``1},System.Boolean)">
-            <summary>
-            Sorts dictionary keys by their corresponding values
-            </summary>
-            <typeparam name="KeyType">Type of key objects</typeparam>
-            <typeparam name="ValueType">Type of value objects</typeparam>
-            <param name="dictionary">Dictionary to sort</param>
-            <param name="reverse">Whether or not to reverse the sorted key list</param>
-            <returns>Sorted list of keys</returns>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.SortValuesByKeys``2(System.Collections.Generic.Dictionary{``0,``1})">
-            <summary>
-            Sorts dictionary values by their corresponding keys
-            </summary>
-            <typeparam name="KeyType">Type of key objects</typeparam>
-            <typeparam name="ValueType">Type of value objects</typeparam>
-            <param name="dictionary">Dictionary to sort</param>
-            <returns>Sorted list of values</returns>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.SortValuesByKeys``2(System.Collections.Generic.Dictionary{``0,``1},System.Boolean)">
-            <summary>
-            Sorts dictionary values by their corresponding keys
-            </summary>
-            <typeparam name="KeyType">Type of key objects</typeparam>
-            <typeparam name="ValueType">Type of value objects</typeparam>
-            <param name="dictionary">Dictionary to sort</param>
-            <param name="reverse">Whether or not to reverse the sorted value list</param>
-            <returns>Sorted list of values</returns>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.Add``2(System.Collections.Generic.Dictionary{``0,``1},System.Collections.Generic.Dictionary{``0,``1},LAIR.Extensions.DictionaryExtensions.ValueCombinationDelegate{``1})">
-            <summary>
-            Adds a dictionary to the current one, merging values with key conflicts
-            </summary>
-            <typeparam name="KeyType">Type of keys</typeparam>
-            <typeparam name="ValueType">Type of values</typeparam>
-            <param name="dictionary">Dictionary to add to</param>
-            <param name="toAdd">Dictionary to add</param>
-            <param name="combine">Combination delegate</param>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.Save``2(System.Collections.Generic.Dictionary{``0,``1},System.String,System.Func{``0,System.String},System.Func{``1,System.String},LAIR.Extensions.DictionaryExtensions.Sort,System.Boolean,System.Boolean,System.String,System.String,System.Boolean)">
-            <summary>
-            Saves this dictionary to file
-            </summary>
-            <typeparam name="KeyType">Key type</typeparam>
-            <typeparam name="ValueType">Value type</typeparam>
-            <param name="dictionary">Dictionary to save</param>
-            <param name="path">Path to save to</param>
-            <param name="keyConversion">Conversion from keys to strings</param>
-            <param name="valueConversion">Conversion from values to strings</param>
-            <param name="sort">How to sort keys before printing lines</param>
-            <param name="reverse">Whether or not to reverse the sorted key collection</param>
-            <param name="writeCount">Whether or not to write the dictionary's count to file</param>
-            <param name="linePrefix">Key-value line prefix</param>
-            <param name="keyValSeparator">Key-value sparator</param>
-            <param name="throwExceptionOnContainsSeparator">Whether or not to throw an exception if the key or value string 
-            contains the separator sequence</param>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.Save``2(System.Collections.Generic.Dictionary{``0,``1},System.IO.StreamWriter,System.Func{``0,System.String},System.Func{``1,System.String},LAIR.Extensions.DictionaryExtensions.Sort,System.Boolean,System.Boolean,System.String,System.String,System.Boolean)">
-            <summary>
-            Saves this dictionary to file
-            </summary>
-            <typeparam name="KeyType">Key type</typeparam>
-            <typeparam name="ValueType">Value type</typeparam>
-            <param name="dictionary">Dictionary to save</param>
-            <param name="file">File to save to</param>
-            <param name="keyConversion">Conversion from keys to strings</param>
-            <param name="valueConversion">Conversion from values to strings</param>
-            <param name="sort">How to sort keys before printing lines</param>
-            <param name="reverse">Whether or not to reverse the sorted key collection</param>
-            <param name="writeCount">Whether or not to write the dictionary's count to file</param>
-            <param name="linePrefix">Key-value line prefix</param>
-            <param name="keyValSeparator">Key-value sparator</param>
-            <param name="throwExceptionOnContainsSeparator">Whether or not to throw an exception if the key or value string 
-            contains the separator sequence</param>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.EnsureContainsKey``2(System.Collections.Generic.Dictionary{``0,``1},``0,System.Type)">
-            <summary>
-            Ensures that the current dictionary contains a given key. If it does not, a new key-value pair is added
-            using the given key and the value resulting from calling the default constructor for the valueType type.
-            </summary>
-            <typeparam name="KeyType">Key type</typeparam>
-            <typeparam name="ValueType">Value type</typeparam>
-            <param name="dictionary">Dictionary</param>
-            <param name="key">Key to ensure the existence of</param>
-            <param name="valueType">Type of value</param>
-        </member>
-        <member name="M:LAIR.Extensions.DictionaryExtensions.EnsureContainsKey``2(System.Collections.Generic.Dictionary{``0,``1},``0,System.Type,System.Object[])">
-            <summary>
-            Ensures that the current dictionary contains a given key. If it does not, a new key-value pair is added
-            using the given key and the value resulting from calling the default constructor for the valueType type.
-            </summary>
-            <typeparam name="KeyType">Key type</typeparam>
-            <typeparam name="ValueType">Value type</typeparam>
-            <param name="dictionary">Dictionary</param>
-            <param name="key">Key to ensure the existence of</param>
-            <param name="valueType">Type of value</param>
-            <param name="constructorParameters">Parameters to pass to the value constructor if the key needs to be added</param>
-        </member>
-        <member name="T:LAIR.Extensions.DictionaryExtensions.Sort">
-            <summary>
-            Different types of sort
-            </summary>
-        </member>
-        <member name="F:LAIR.Extensions.DictionaryExtensions.Sort.None">
-            <summary>
-            Don't sort
-            </summary>
-        </member>
-        <member name="F:LAIR.Extensions.DictionaryExtensions.Sort.Keys">
-            <summary>
-            Sort keys directly
-            </summary>
-        </member>
-        <member name="F:LAIR.Extensions.DictionaryExtensions.Sort.KeysByValues">
-            <summary>
-            Sort keys by values
-            </summary>
-        </member>
-        <member name="T:LAIR.Extensions.DictionaryExtensions.ValueCombinationDelegate`1">
-            <summary>
-            Combines to values
-            </summary>
-            <typeparam name="ValueType">Type of values to combine</typeparam>
-            <param name="value1">First value to combine</param>
-            <param name="value2">Second value to combine</param>
-            <returns>Combined value</returns>
-        </member>
-        <member name="T:LAIR.Extensions.IListExtensions">
-            <summary>
-            Extensions for IList objects
-            </summary>
-        </member>
-        <member name="M:LAIR.Extensions.IListExtensions.Randomize``1(System.Collections.Generic.IList{``0})">
-            <summary>
-            Randomizes the list
-            </summary>
-            <typeparam name="T">Type of list to randomize</typeparam>
-            <param name="list">List to randomize</param>
-        </member>
-        <member name="M:LAIR.Extensions.IListExtensions.Randomize``1(System.Collections.Generic.IList{``0},System.Random)">
-            <summary>
-            Randomizes the list
-            </summary>
-            <typeparam name="T">Type of list to randomize</typeparam>
-            <param name="list">List to randomize</param>
-            <param name="r">Random number generator to use</param>
-        </member>
-        <member name="M:LAIR.Extensions.IListExtensions.Randomize``1(System.Collections.Generic.IList{``0},System.Int32,System.Int32,System.Random)">
-            <summary>
-            Randomizes the list
-            </summary>
-            <typeparam name="T">Type of list to randomize</typeparam>
-            <param name="list">List to randomize</param>
-            <param name="start">Start of list to randomize</param>
-            <param name="end">End of range to randomize</param>
-            <param name="r">Random number generator to use</param>
-        </member>
-        <member name="M:LAIR.Extensions.IListExtensions.RemoveAtMultiple``1(System.Collections.Generic.IList{``0},System.Boolean[])">
-            <summary>
-            Removes elements in a list based on an indicator list
-            </summary>
-            <typeparam name="T">Type of list</typeparam>
-            <param name="list">List</param>
-            <param name="remove">Array of boolean values indicating which elements to remove</param>
-        </member>
-        <member name="T:LAIR.Extensions.StreamReaderExtensions">
-            <summary>
-            Extensions for the StreamReader class
-            </summary>
-        </member>
-        <member name="M:LAIR.Extensions.StreamReaderExtensions.ReadLine(System.IO.StreamReader,System.UInt32@)">
-            <summary>
-            Reads a line from a reader, tracking the stream position.
-            </summary>
-            <param name="reader">Reader to read from</param>
-            <param name="position">Position of next read operation, passed in as the current reader position.</param>
-            <returns>Line</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StreamReaderExtensions.TryReadLine(System.IO.StreamReader,System.String@)">
-            <summary>
-            Tries to read a line from a reader. After the last line is read, this function will close the given reader. This is 
-            handy because it lets you write while loops such as while(file.ReadLine(out line)){}.
-            </summary>
-            <param name="reader">Reader to read from</param>
-            <param name="line">Line that was read, or null if no line was read.</param>
-            <returns>True if line was read, false otherwise</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StreamReaderExtensions.SetPosition(System.IO.StreamReader,System.Int64)">
-            <summary>
-            Sets a StreamReader to a given position and discards any buffered data
-            </summary>
-            <param name="reader">StreamReader to reset</param>
-            <param name="position">Position to reset to</param>
         </member>
     </members>
 </doc>

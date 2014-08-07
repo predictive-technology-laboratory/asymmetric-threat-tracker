@@ -1487,7 +1487,7 @@ namespace PTL.ATT.GUI
                             threatMap.Display(p, overlays);
 
                             if (threatMap.DisplayedPrediction != null)
-                                Invoke(new Action(RefreshAssessmentPlots));
+                                Invoke(new Action(RefreshAssessments));
                         }));
 
                     displayThread.Start();
@@ -1526,7 +1526,7 @@ namespace PTL.ATT.GUI
                     List<Plot> newPlots = selectedPredictions.Where(p => p.Id == threatMap.DisplayedPrediction.Id).First().AssessmentPlots.ToList();
                     threatMap.DisplayedPrediction.AssessmentPlots.Clear();
                     threatMap.DisplayedPrediction.AssessmentPlots.AddRange(newPlots);
-                    RefreshAssessmentPlots();
+                    RefreshAssessments();
                 }
 
                 RefreshPredictions(selectedPredictions.ToArray());
@@ -1716,7 +1716,7 @@ namespace PTL.ATT.GUI
                             }
                     }
 
-                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), seriesPoints, 500, 500, Plot.Format.JPEG, 2);
+                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), -1, seriesPoints, 500, 500, Plot.Format.JPEG, 2);
                     List<TitledImage> comparisonPlotImages = new List<TitledImage>(new TitledImage[] { new TitledImage(comparisonPlot.Image, null) });
                     new ImageViewer(comparisonPlotImages, 0).ShowDialog();
                 }
@@ -1760,7 +1760,7 @@ namespace PTL.ATT.GUI
                 if (TraversePredictionTree().Count(n => n.Checked) == 1)
                     title = TraversePredictionTree().Where(n => n.Checked).First().Text;
 
-                try { images.Add(new TitledImage(DiscreteChoiceModel.EvaluateAggregate(SelectedPredictions, 500, 500, title, title).Image, title)); }
+                try { images.Add(new TitledImage(DiscreteChoiceModel.GetAggregateSurveillancePlot(SelectedPredictions, 500, 500, title, title).Image, title)); }
                 catch (Exception ex) { MessageBox.Show("Error rendering aggregate plot:  " + ex.Message); }
 
                 new ImageViewer(images, 0).ShowDialog();
@@ -1838,7 +1838,7 @@ namespace PTL.ATT.GUI
                             {
                                 PredictionGroup group = node.Tag as PredictionGroup;
                                 if (group.AggregatePlot == null)
-                                    group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
+                                    group.AggregatePlot = DiscreteChoiceModel.GetAggregateSurveillancePlot(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
                             }
                             else if (node.Tag is Prediction)
                                 DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
@@ -1970,11 +1970,11 @@ namespace PTL.ATT.GUI
             Focus();
         }
 
-        public void RefreshAssessmentPlots()
+        public void RefreshAssessments()
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(RefreshAssessmentPlots));
+                Invoke(new Action(RefreshAssessments));
                 return;
             }
 
@@ -1986,6 +1986,15 @@ namespace PTL.ATT.GUI
                 plotBox.Image = plot.Image;
                 plotBox.MouseDoubleClick += new MouseEventHandler(plot_MouseDoubleClick);
                 assessments.AddPlot(plotBox);
+
+                float correlation = float.NaN;
+                if (plot.Slice == -1)
+                    correlation = threatMap.DisplayedPrediction.OverallCrimeThreatCorrelation;
+                else if (plot.Slice >= 0)
+                    correlation = threatMap.DisplayedPrediction.SliceThreatCorrelation[plot.Slice];
+
+                if (!float.IsNaN(correlation))
+                    toolTip.SetToolTip(plotBox, "Correlation between threat and crime counts:  " + correlation);
             }
         }
 

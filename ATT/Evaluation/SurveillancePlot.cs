@@ -202,16 +202,16 @@ namespace PTL.ATT.Evaluation
             get { return _seriesAUC; }
         }
 
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format, int aucDigits)
-            : base(title, seriesPoints, height, width, format)
+        public SurveillancePlot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format, int aucDigits)
+            : base(title, slice, seriesPoints, height, width, format)
         {
             _aucDigits = aucDigits;
 
             Render(height, width, true, new Tuple<string, string>(null, null), false, false);
         }
 
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
-            : base(title, seriesPoints, image, format)
+        public SurveillancePlot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
+            : base(title, slice, seriesPoints, image, format)
         {
             _aucDigits = aucDigits;
         }
