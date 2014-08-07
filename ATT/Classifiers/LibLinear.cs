@@ -261,7 +261,14 @@ namespace PTL.ATT.Classifiers
 
             Dictionary<int, string> liblinearFeatureNumberAttFeatureId = new Dictionary<int, string>();
             foreach (string attFeatureId in featureNameTransform)
-                liblinearFeatureNumberAttFeatureId.Add(featureNameTransform.GetFeatureNumber(attFeatureId), attFeatureId);
+            {
+                // nominal features in the ATT have IDs in the transform that include the nominal feature value - trim this off to recover the original ID
+                int dashIndex = attFeatureId.IndexOf('-');
+                if (dashIndex >= 0)
+                    liblinearFeatureNumberAttFeatureId.Add(featureNameTransform.GetFeatureNumber(attFeatureId), attFeatureId.Substring(0, dashIndex));
+                else
+                    liblinearFeatureNumberAttFeatureId.Add(featureNameTransform.GetFeatureNumber(attFeatureId), attFeatureId);
+            }
 
             Dictionary<string, string> attFeatureIdDesc = new Dictionary<string, string>();
             foreach (PTL.ATT.Models.Feature f in Model.Features)
