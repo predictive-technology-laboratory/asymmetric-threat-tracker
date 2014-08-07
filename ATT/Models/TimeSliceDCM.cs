@@ -190,7 +190,7 @@ namespace PTL.ATT.Models
                         FeatureVectorList featureVectors = new FeatureVectorList(slicesPerCore * prediction.Points.Count);
                         for (long slice = startSliceEndSlice.Item1; slice <= startSliceEndSlice.Item2; ++slice)
                         {
-                            Console.Out.WriteLine("Processing slice " + (slice - startSliceEndSlice.Item1 + 1) + " of " + (startSliceEndSlice.Item2 - startSliceEndSlice.Item1 + 1));
+                            Console.Out.WriteLine("Processing slice " + (slice - firstSlice + 1) + " of " + numSlices);
 
                             DateTime sliceStart = new DateTime(slice * _timeSliceTicks);
                             DateTime sliceEnd = sliceStart.Add(new TimeSpan(_timeSliceTicks - 1));
