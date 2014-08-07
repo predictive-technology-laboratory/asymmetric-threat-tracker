@@ -181,7 +181,9 @@ namespace PTL.ATT.Models
 
             List<FeatureVectorList> coreFeatureVectors = new List<FeatureVectorList>(Configuration.ProcessorCount);
             Set<Thread> threads = new Set<Thread>();
-            for (int core = 0; core < Configuration.ProcessorCount; ++core)
+            int processorCount = Configuration.ProcessorCount;
+            Configuration.ProcessorCount = 1; // all sub-threads (e.g., those in FeatureBasedDCM) will use 1 core
+            for (int core = 0; core < processorCount; ++core)
             {
                 Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
@@ -232,16 +234,14 @@ namespace PTL.ATT.Models
                                     foreach (LAIR.MachineLearning.Feature feature in intervalFeatures)
                                         vector.Add(feature, true);
 
-                                    foreach (TimeSliceFeature feature in featureId.Keys)
-                                    {
-                                        double percentThroughPeriod = (slice % _periodTimeSlices) / (double)(_periodTimeSlices - 1);
-                                        double radians = 2 * Math.PI * percentThroughPeriod;
+                                    double percentThroughPeriod = (slice % _periodTimeSlices) / (double)(_periodTimeSlices - 1);
+                                    double radians = 2 * Math.PI * percentThroughPeriod;
 
+                                    foreach (TimeSliceFeature feature in featureId.Keys)
                                         if (feature == TimeSliceFeature.CosinePeriodPosition)
                                             vector.Add(IdNumericFeature[featureId[feature]], Math.Cos(radians));
                                         else if (feature == TimeSliceFeature.SinePeriodPosition)
                                             vector.Add(IdNumericFeature[featureId[feature]], Math.Sin(radians));
-                                    }
 
                                     featureVectors.Add(vector);
                                 }
@@ -260,6 +260,8 @@ namespace PTL.ATT.Models
 
             foreach (Thread t in threads)
                 t.Join();
+
+            Configuration.ProcessorCount = processorCount;  // reset system-wide processor count
 
             FeatureVectorList timeSliceVectors = new FeatureVectorList(coreFeatureVectors.SelectMany(l => l), coreFeatureVectors.Sum(l => l.Count));
             coreFeatureVectors = null;
