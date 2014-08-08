@@ -31,8 +31,6 @@ namespace PTL.ATT
     {
         public class Columns
         {
-            [Reflector.Insert]
-            public const string Core = "core";
             [Reflector.Insert, Reflector.Select(true)]
             public const string Id = "id";
             [Reflector.Insert, Reflector.Select(true)]
@@ -64,12 +62,10 @@ namespace PTL.ATT
 
             DB.Connection.ExecuteNonQuery(
                 "CREATE TABLE " + table + " (" +
-                Columns.Core + " INTEGER," +
                 Columns.Id + " SERIAL PRIMARY KEY," +
                 Columns.IncidentType + " VARCHAR," +
                 Columns.Location + " GEOMETRY(GEOMETRY," + srid + ")," +
                 Columns.Time + " TIMESTAMP);" +
-                "CREATE INDEX ON " + table + " (" + Columns.Core + ");" +
                 "CREATE INDEX ON " + table + " (" + Columns.IncidentType + ");" +
                 "CREATE INDEX ON " + table + " USING GIST (" + Columns.Location + ");");
 
@@ -119,7 +115,7 @@ namespace PTL.ATT
                 if (point.SRID != area.Shapefile.SRID)
                     throw new Exception("Area SRID (" + area.Shapefile.SRID + ") does not match point SRID (" + point.SRID);
 
-                pointValues.Append((pointValues.Length > 0 ? "," : "") + "(" + (pointNum % Configuration.ProcessorCount) + ",DEFAULT,'" + incidentType + "',st_geometryfromtext('POINT(" + point.X + " " + point.Y + ")'," + point.SRID + "),@time_" + pointNum + ")");
+                pointValues.Append((pointValues.Length > 0 ? "," : "") + "(DEFAULT,'" + incidentType + "',st_geometryfromtext('POINT(" + point.X + " " + point.Y + ")'," + point.SRID + "),@time_" + pointNum + ")");
                 ConnectionPool.AddParameters(cmd, new Parameter("time_" + pointNum, NpgsqlDbType.Timestamp, time));
 
                 if ((++pointNum % pointsPerBatch) == 0)

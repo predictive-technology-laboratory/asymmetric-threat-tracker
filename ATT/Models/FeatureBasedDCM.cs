@@ -347,14 +347,14 @@ namespace PTL.ATT.Models
 
                                                                              "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " +
                                                                                    "FROM " + pointTableName + " " +
-                                                                                   "WHERE " + pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
-                                                                                       "(" +
-                                                                                           pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
-                                                                                           "(" +
-                                                                                               pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
-                                                                                               pointTableName + "." + Point.Columns.Time + "<=@point_end" +
-                                                                                           ")" +
-                                                                                       ")" +
+                                                                                   "WHERE " + pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " + 
+                                                                                              "(" +
+                                                                                                  pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                                  "(" +
+                                                                                                      pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
+                                                                                                      pointTableName + "." + Point.Columns.Time + "<=@point_end" +
+                                                                                                  ")" +
+                                                                                              ")" +
                                                                                    ") points " +
 
                                                                              "LEFT JOIN " + shapefile.GeometryTable + " " +
@@ -434,7 +434,7 @@ namespace PTL.ATT.Models
                                 Parameter geometryEnd = new Parameter("geometry_end", NpgsqlDbType.Timestamp, start - new TimeSpan(1));
                                 List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, geometryRecordWhereClause, -1, geometryStart.NpgsqlParameter, geometryEnd.NpgsqlParameter).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.Shapefile.SRID)).ToList();
                                 int sampleSize = spatialDensityFeature.GetIntegerParameterValue("Sample size");
-                                List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, true);
+                                List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, false);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
                             }
@@ -480,7 +480,7 @@ namespace PTL.ATT.Models
                                                                              "FROM " + pointTableName + " " +
                                                                              "JOIN " + shapefile.GeometryTable + " " +
                                                                              "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") AND " +
-                                                                                 pointTableName + "." + Point.Columns.Core + "=" + core + " AND " +
+                                                                                 pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " +
                                                                                  "(" +
                                                                                      pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
                                                                                      "(" +
@@ -571,7 +571,7 @@ namespace PTL.ATT.Models
                                 IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location);
                                 int sampleSize = kdeFeature.GetIntegerParameterValue("Sample size");
                                 Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" from " + incidentSampleStart + " to " + incidentSampleEnd);
-                                List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, true);
+                                List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, false);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
                             }
@@ -595,14 +595,11 @@ namespace PTL.ATT.Models
             #endregion
 
             IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
-            if (externalFeatureExtractor != null)
-            {
-                Console.Out.WriteLine("Running external feature extractor for " + externalFeatureExtractor.ModelType);
-                foreach (FeatureVectorList externalFeatureVectors in externalFeatureExtractor.ExtractFeatures(prediction, featureVectors, training, start, end))
-                    yield return externalFeatureVectors;
-            }
-            else
+            if (externalFeatureExtractor == null)
                 yield return featureVectors;
+            else
+                foreach (FeatureVectorList externalFeatureVectors in externalFeatureExtractor.ExtractFeatures(prediction, featureVectors, training, start, end, true))
+                    yield return externalFeatureVectors;
         }
 
         public void SelectFeatures(Prediction prediction, bool runPredictionAfterSelect)
@@ -713,7 +710,7 @@ namespace PTL.ATT.Models
                                 pointPredictionLog.Write(GetPointIdForLog(p.Id, p.Time) + " <p><ls>");
                                 foreach (string label in vector.DerivedFrom.PredictionConfidenceScores.SortKeysByValues(true))
                                     if (label == PointPrediction.NullLabel || prediction.Model.IncidentTypes.Contains(label))
-                                        pointPredictionLog.Write("<l c=\"" + Math.Round(vector.DerivedFrom.PredictionConfidenceScores[label], 3) + "\"><![CDATA[" + label + "]]></l>");
+                                        pointPredictionLog.Write("<l c=\"" + vector.DerivedFrom.PredictionConfidenceScores[label] + "\"><![CDATA[" + label + "]]></l>");
                                     else
                                         throw new Exception("Invalid prediction label on point:  " + label);
 
@@ -722,7 +719,7 @@ namespace PTL.ATT.Models
                                 {
                                     object value;
                                     if (feature is NumericFeature)
-                                        value = Math.Round(Convert.ToSingle(vector[feature]), 3);
+                                        value = Convert.ToSingle(vector[feature]);
                                     else
                                         value = vector[feature].ToString();
 
@@ -733,12 +730,13 @@ namespace PTL.ATT.Models
                             }
                             #endregion
 
-                            PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction, true);
+                            PointPrediction.Insert(GetPointPredictionValues(featureVectors), prediction, false);
                         }
 
                         pointPredictionLog.Close();
                     }
 
+                    PointPrediction.VacuumTable(prediction);
                     Smooth(prediction);
                 }
                 #endregion
@@ -758,14 +756,14 @@ namespace PTL.ATT.Models
 
         /// <summary>
         /// Reads the point log for this prediction. The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.
+        /// list contains the labels and their confidence scores and the second list contains the feature IDs and their values.
         /// </summary>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
         /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
         /// <returns></returns>
-        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null)
+        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null)
         {
-            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> log = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>();
+            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> log = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>>();
 
             using (FileStream pointPredictionLogFile = new FileStream(pointPredictionLogPath, FileMode.Open, FileAccess.Read))
             using (GZipStream pointPredictionLogGzip = new GZipStream(pointPredictionLogFile, CompressionMode.Decompress))
@@ -791,16 +789,16 @@ namespace PTL.ATT.Models
                             labelConfidences.Add(new Tuple<string, double>(label, confidence));
                         }
 
-                        List<Tuple<string, double>> featureValues = new List<Tuple<string, double>>();
+                        List<Tuple<string, string>> featureValues = new List<Tuple<string, string>>();
                         XmlParser featureValuesP = new XmlParser(pointP.OuterXML("fvs"));
                         string featureValueXML;
                         while ((featureValueXML = featureValuesP.OuterXML("fv")) != null)
                         {
                             XmlParser featureValueP = new XmlParser(featureValueXML);
-                            featureValues.Add(new Tuple<string, double>(featureValueP.AttributeValue("fv", "id"), double.Parse(featureValueP.ElementText("fv"))));
+                            featureValues.Add(new Tuple<string, string>(featureValueP.AttributeValue("fv", "id"), featureValueP.ElementText("fv")));
                         }
 
-                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(labelConfidences, featureValues));
+                        log.Add(pointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>(labelConfidences, featureValues));
 
                         if (pointIds != null)
                         {
@@ -821,9 +819,9 @@ namespace PTL.ATT.Models
         /// Writes the point log for this prediction.
         /// </summary>
         /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.</param>
+        /// list contains the labels and their confidence scores and the second list contains the feature IDs and their values.</param>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
-        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
+        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
         {
             using (StreamWriter pointPredictionLog = new StreamWriter(new GZipStream(new FileStream(pointPredictionLogPath, FileMode.Create, FileAccess.Write), CompressionMode.Compress)))
             {
@@ -834,7 +832,7 @@ namespace PTL.ATT.Models
                         pointPredictionLog.Write("<l c=\"" + labelConfidence.Item2 + "\"><![CDATA[" + labelConfidence.Item1 + "]]></l>");
 
                     pointPredictionLog.Write("</ls><fvs>");
-                    foreach (Tuple<string, double> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
+                    foreach (Tuple<string, string> featureIdValue in pointIdLabelsFeatureValues[pointId].Item2)
                         pointPredictionLog.Write("<fv id=\"" + featureIdValue.Item1 + "\">" + featureIdValue.Item2 + "</fv>");
 
                     pointPredictionLog.WriteLine("</fvs></p>");

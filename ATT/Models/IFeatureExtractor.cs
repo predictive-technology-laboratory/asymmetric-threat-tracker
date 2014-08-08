@@ -30,7 +30,7 @@ namespace PTL.ATT.Models
 
         void Initialize(Type modelType, Dictionary<string, string> configurationOptions);
 
-        IEnumerable<FeatureVectorList> ExtractFeatures(Prediction prediction, FeatureVectorList vectors, bool training, DateTime start, DateTime end);
+        IEnumerable<FeatureVectorList> ExtractFeatures(Prediction prediction, FeatureVectorList vectors, bool training, DateTime start, DateTime end, bool lastChance);
 
         string GetDetails(int indentLevel);
 

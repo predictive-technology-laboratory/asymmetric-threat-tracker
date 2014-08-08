@@ -378,20 +378,20 @@ namespace PTL.ATT.Models
 
         /// <summary>
         /// Reads the point log for this prediction. The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.
+        /// list contains the labels and their confidence scores and the second list contains the feature IDs and their values.
         /// </summary>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
         /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
         /// <returns></returns>
-        public abstract Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null);
+        public abstract Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null);
 
         /// <summary>
         /// Writes the point log for this prediction.
         /// </summary>
         /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.</param>
+        /// list contains the labels and their confidence scores and the second list contains the feature IDs and their values.</param>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
-        public abstract void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath);
+        public abstract void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath);
 
         public abstract string GetDetails(Prediction prediction);
 

@@ -1633,16 +1633,16 @@ namespace PTL.ATT.GUI
                                     if (File.Exists(selectedPrediction.PointPredictionLogPath))
                                     {
                                         DiscreteChoiceModel model = selectedPrediction.Model;
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>();
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>>();
                                         foreach (PointPrediction pointPrediction in selectedPrediction.PointPredictions)
                                         {
                                             List<Tuple<string, double>> smoothedIncidentScore = new List<Tuple<string, double>>();
                                             foreach (string incident in pointPrediction.IncidentScore.Keys)
-                                                smoothedIncidentScore.Add(new Tuple<string, double>(incident, Math.Round(pointPrediction.IncidentScore[incident], 3)));
+                                                smoothedIncidentScore.Add(new Tuple<string, double>(incident, pointPrediction.IncidentScore[incident]));
 
                                             string logPointId = model.GetPointIdForLog(pointPrediction.PointId, pointPrediction.Time);
-                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
+                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
                                         }
 
                                         model.WritePointPredictionLog(newLog, selectedPrediction.PointPredictionLogPath);
