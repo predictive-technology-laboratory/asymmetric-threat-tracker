@@ -42,7 +42,7 @@ namespace PTL.ATT.Models
         private string _description;
         private string _trainingResourceId;
         private string _predictionResourceId;
-        private Dictionary<Enum, Tuple<string, string>> _parameterValueTip;
+        private FeatureParameterCollection _parameters;
 
         public string Id
         {
@@ -75,10 +75,10 @@ namespace PTL.ATT.Models
             set { _predictionResourceId = value; }
         }
 
-        public Dictionary<Enum, Tuple<string, string>> ParameterValueTip
+        public FeatureParameterCollection Parameters
         {
-            get { return _parameterValueTip; }
-            set { _parameterValueTip = value; }
+            get { return _parameters; }
+            set { _parameters = value; }
         }
 
         public string RemapKey
@@ -86,7 +86,7 @@ namespace PTL.ATT.Models
             get { return _enumType + "-" + _enumValue + "-" + _trainingResourceId; }
         }
 
-        public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, Dictionary<Enum, Tuple<string, string>> parameterValueTip)
+        public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, FeatureParameterCollection parameters)
         {
             _id = _featureNumber++.ToString();
             _enumType = enumType;
@@ -94,25 +94,10 @@ namespace PTL.ATT.Models
             _description = description;
             _trainingResourceId = trainingResourceId == null ? "" : trainingResourceId;
             _predictionResourceId = predictionResourceId == null ? "" : predictionResourceId;
-            _parameterValueTip = parameterValueTip;
+            _parameters = parameters;
 
-            if (_parameterValueTip == null)
-                _parameterValueTip = new Dictionary<Enum, Tuple<string, string>>();
-        }
-
-        public int GetIntegerParameterValue(Enum parameter)
-        {
-            return int.Parse(_parameterValueTip[parameter].Item1);
-        }
-
-        public TimeSpan GetTimeSpanParameterValue(Enum parameter)
-        {
-            return TimeSpan.Parse(_parameterValueTip[parameter].Item1);
-        }
-
-        public string GetStringParameterValue(Enum parameter)
-        {
-            return _parameterValueTip[parameter].Item1;
+            if (_parameters == null)
+                _parameters = new FeatureParameterCollection();
         }
 
         public override string ToString()

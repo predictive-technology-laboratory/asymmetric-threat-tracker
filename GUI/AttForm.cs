@@ -867,7 +867,7 @@ namespace PTL.ATT.GUI
                             if (action == ManageImporterAction.Load)
                             {
                                 DynamicForm df = new DynamicForm("Select importer source...", DynamicForm.CloseButtons.OkCancel);
-                                df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: GUI.Configuration.ImportersImportDirectory);
+                                df.AddTextBox("Path:", GUI.Configuration.ImportersLoadDirectory, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: GUI.Configuration.ImportersLoadDirectory);
                                 if (df.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
                                     string path = df.GetValue<string>("path");
@@ -959,7 +959,7 @@ namespace PTL.ATT.GUI
                                     else if (action == ManageImporterAction.Store)
                                     {
                                         if (exportDirectory == null)
-                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", GUI.Configuration.ImportersImportDirectory);
+                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", GUI.Configuration.ImportersLoadDirectory);
 
                                         if (Directory.Exists(exportDirectory))
                                         {

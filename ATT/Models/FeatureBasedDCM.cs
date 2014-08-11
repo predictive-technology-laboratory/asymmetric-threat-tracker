@@ -66,13 +66,15 @@ namespace PTL.ATT.Models
 
         public enum SpatialDistanceParameter
         {
-            LagOffset
+            LagOffset,
+            LagDuration
         }
 
         public enum SpatialDensityParameter
         {
-            SampleSize,
-            LagOffset
+            LagOffset,
+            LagDuration,
+            SampleSize
         }
 
         public enum GeometryAttributeParameter
@@ -83,43 +85,47 @@ namespace PTL.ATT.Models
 
         public enum IncidentDensityParameter
         {
-            SampleSize,
             LagOffset,
-            LagDuration
+            LagDuration,
+            SampleSize
         }
 
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
         {
+            FeatureParameterCollection parameters;
+
             // shapefile-based features
             foreach (Shapefile shapefile in Shapefile.GetForSRID(area.Shapefile.SRID).OrderBy(s => s.Name))
                 if (shapefile.Type == Shapefile.ShapefileType.Feature)
                 {
                     // spatial distance
-                    Dictionary<Enum, Tuple<string, string>> parameterValueTip = new Dictionary<Enum, Tuple<string, string>>();
-                    parameterValueTip.Add(SpatialDistanceParameter.LagOffset, new Tuple<string, string>("31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS"));
-                    yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameterValueTip);
+                    parameters = new FeatureParameterCollection();
+                    parameters.Add(SpatialDistanceParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                    parameters.Add(SpatialDistanceParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                    yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameters);
 
                     // spatial density
-                    parameterValueTip = new Dictionary<Enum, Tuple<string, string>>();
-                    parameterValueTip.Add(SpatialDensityParameter.LagOffset, new Tuple<string, string>("31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS"));
-                    parameterValueTip.Add(SpatialDensityParameter.SampleSize, new Tuple<string, string>("500", "Sample size for spatial density estimate."));
-                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameterValueTip);
+                    parameters = new FeatureParameterCollection();
+                    parameters.Add(SpatialDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                    parameters.Add(SpatialDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                    parameters.Add(SpatialDensityParameter.SampleSize, "500", "Sample size for spatial density estimate.");
+                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameters);
 
                     // geometry attribute
-                    parameterValueTip = new Dictionary<Enum, Tuple<string, string>>();
-                    parameterValueTip.Add(GeometryAttributeParameter.AttributeColumn, new Tuple<string, string>("", "Name of column within geometry from which to draw value."));
-                    parameterValueTip.Add(GeometryAttributeParameter.AttributeType, new Tuple<string, string>("", "Type of attribute:  Nominal or Numeric"));
-                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttribute, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameterValueTip);
+                    parameters = new FeatureParameterCollection();
+                    parameters.Add(GeometryAttributeParameter.AttributeColumn, "", "Name of column within geometry from which to draw value.");
+                    parameters.Add(GeometryAttributeParameter.AttributeType, "", "Type of attribute:  Nominal or Numeric");
+                    yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttribute, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameters);
                 }
 
             // incident density features
             foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
             {
-                Dictionary<Enum, Tuple<string, string>> parameterValueTip = new Dictionary<Enum, Tuple<string, string>>();
-                parameterValueTip.Add(IncidentDensityParameter.LagDuration, new Tuple<string, string>("31.00:00:00", "Duration of lag window. Format:  DAYS.HH:MM:SS"));
-                parameterValueTip.Add(IncidentDensityParameter.LagOffset, new Tuple<string, string>("31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS"));
-                parameterValueTip.Add(IncidentDensityParameter.SampleSize, new Tuple<string, string>("500", "Sample size for incident density estimate."));
-                yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameterValueTip);
+                parameters = new FeatureParameterCollection();
+                parameters.Add(IncidentDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                parameters.Add(IncidentDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                parameters.Add(IncidentDensityParameter.SampleSize, "500", "Sample size for incident density estimate.");
+                yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameters);
             }
 
             // external features
@@ -372,7 +378,7 @@ namespace PTL.ATT.Models
 
                                                                              "FROM (SELECT *,st_expand(" + pointTableName + "." + Point.Columns.Location + "," + FeatureDistanceThreshold + ") as bounding_box " +
                                                                                    "FROM " + pointTableName + " " +
-                                                                                   "WHERE " + pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " + 
+                                                                                   "WHERE " + pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " +
                                                                                               "(" +
                                                                                                   pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
                                                                                                   "(" +
@@ -395,11 +401,19 @@ namespace PTL.ATT.Models
 
                                                                              "GROUP BY points." + Point.Columns.Id, null, threadConnection);
 
-                                TimeSpan spatialDistanceFeatureLag = spatialDistanceFeature.GetTimeSpanParameterValue(SpatialDistanceParameter.LagOffset);
+                                DateTime spatialDistanceFeatureStart = start - spatialDistanceFeature.Parameters.GetTimeSpanValue(SpatialDistanceParameter.LagOffset);
+                                DateTime spatialDistanceFeatureEnd = spatialDistanceFeatureStart + spatialDistanceFeature.Parameters.GetTimeSpanValue(SpatialDistanceParameter.LagDuration);
+
+                                if (spatialDistanceFeatureEnd >= start)
+                                    Console.Out.WriteLine("WARNING:  Spatial distance sample overlaps extraction period. This is probably incorrect.");
+
+                                if (spatialDistanceFeatureEnd < spatialDistanceFeatureStart)
+                                    Console.Out.WriteLine("WARNING:  Spatial distance sample end precedes sample start. This is probably incorrect.");
+
                                 ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
                                                                   new Parameter("point_end", NpgsqlDbType.Timestamp, end),
-                                                                  new Parameter("geometry_start", NpgsqlDbType.Timestamp, start - spatialDistanceFeatureLag),
-                                                                  new Parameter("geometry_end", NpgsqlDbType.Timestamp, start - new TimeSpan(1)));
+                                                                  new Parameter("geometry_start", NpgsqlDbType.Timestamp, spatialDistanceFeatureStart),
+                                                                  new Parameter("geometry_end", NpgsqlDbType.Timestamp, spatialDistanceFeatureEnd));
 
                                 NpgsqlDataReader reader = cmd.ExecuteReader();
                                 NumericFeature distanceFeature = _idNumericFeature[spatialDistanceFeature.Id];
@@ -450,15 +464,24 @@ namespace PTL.ATT.Models
                             for (int j = 0; j + core < spatialDensityFeatures.Count; j += Configuration.ProcessorCount)
                             {
                                 Feature spatialDensityFeature = spatialDensityFeatures[j + core];
-                                Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
-                                Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
 
+                                DateTime spatialDensityFeatureStart = start - spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagOffset);
+                                DateTime spatialDensityFeatureEnd = spatialDensityFeatureStart + spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagDuration);
+
+                                if (spatialDensityFeatureEnd >= start)
+                                    Console.Out.WriteLine("WARNING:  Spatial density sample overlaps extraction period. This is probably incorrect.");
+
+                                if (spatialDensityFeatureEnd < spatialDensityFeatureStart)
+                                    Console.Out.WriteLine("WARNING:  Spatial density sample end precedes sample start. This is probably incorrect.");
+
+                                Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                 string geometryRecordWhereClause = "WHERE " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR (" + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " + ShapefileGeometry.Columns.Time + "<=@geometry_end)";
-                                TimeSpan spatialDensityFeatureLag = spatialDensityFeature.GetTimeSpanParameterValue(SpatialDensityParameter.LagOffset);
-                                Parameter geometryStart = new Parameter("geometry_start", NpgsqlDbType.Timestamp, start - spatialDensityFeatureLag);
-                                Parameter geometryEnd = new Parameter("geometry_end", NpgsqlDbType.Timestamp, start - new TimeSpan(1));
+                                Parameter geometryStart = new Parameter("geometry_start", NpgsqlDbType.Timestamp, spatialDensityFeatureStart);
+                                Parameter geometryEnd = new Parameter("geometry_end", NpgsqlDbType.Timestamp, spatialDensityFeatureEnd);
                                 List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, geometryRecordWhereClause, -1, geometryStart.NpgsqlParameter, geometryEnd.NpgsqlParameter).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.Shapefile.SRID)).ToList();
-                                int sampleSize = spatialDensityFeature.GetIntegerParameterValue(SpatialDensityParameter.SampleSize);
+
+                                Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
+                                int sampleSize = spatialDensityFeature.Parameters.GetIntegerValue(SpatialDensityParameter.SampleSize);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, false);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
@@ -500,7 +523,7 @@ namespace PTL.ATT.Models
                             foreach (Feature geometryAttributeFeature in geometryAttributeFeatures)
                             {
                                 Shapefile shapefile = new Shapefile(int.Parse(training ? geometryAttributeFeature.TrainingResourceId : geometryAttributeFeature.PredictionResourceId));
-                                string attributeColumn = geometryAttributeFeature.GetStringParameterValue(GeometryAttributeParameter.AttributeColumn);
+                                string attributeColumn = geometryAttributeFeature.Parameters.GetStringValue(GeometryAttributeParameter.AttributeColumn);
                                 NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + pointTableName + "." + Point.Columns.Id + " as point_id," + shapefile.GeometryTable + "." + attributeColumn + " as geometry_attribute " +
                                                                              "FROM " + pointTableName + " " +
                                                                              "JOIN " + shapefile.GeometryTable + " " +
@@ -519,7 +542,7 @@ namespace PTL.ATT.Models
                                                                   new Parameter("point_end", NpgsqlDbType.Timestamp, end));
 
                                 LAIR.MachineLearning.Feature attributeFeature;
-                                string attributeType = geometryAttributeFeature.GetStringParameterValue(GeometryAttributeParameter.AttributeType);
+                                string attributeType = geometryAttributeFeature.Parameters.GetStringValue(GeometryAttributeParameter.AttributeType);
                                 if (attributeType == "Numeric")
                                     attributeFeature = _idNumericFeature[geometryAttributeFeature.Id] as LAIR.MachineLearning.Feature;
                                 else if (attributeType == "Nominal")
@@ -588,13 +611,19 @@ namespace PTL.ATT.Models
                             for (int j = 0; j + core < kdeFeatures.Count; j += Configuration.ProcessorCount)
                             {
                                 Feature kdeFeature = kdeFeatures[j + core];
-                                string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;
 
-                                TimeSpan kdeFeatureLag = kdeFeature.GetTimeSpanParameterValue(IncidentDensityParameter.LagOffset);
-                                DateTime incidentSampleStart = start - kdeFeatureLag;
-                                DateTime incidentSampleEnd = start - new TimeSpan(1);
+                                DateTime incidentSampleStart = start - kdeFeature.Parameters.GetTimeSpanValue(IncidentDensityParameter.LagOffset);
+                                DateTime incidentSampleEnd = incidentSampleStart + kdeFeature.Parameters.GetTimeSpanValue(IncidentDensityParameter.LagDuration);
+
+                                if (incidentSampleEnd >= start)
+                                    Console.Out.WriteLine("WARNING:  Incident density sample overlaps extraction period. This is probably incorrect.");
+
+                                if (incidentSampleEnd < incidentSampleStart)
+                                    Console.Out.WriteLine("WARNING:  Incident density sample end precedes sample start. This is probably incorrect.");
+
+                                string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;
                                 IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location);
-                                int sampleSize = kdeFeature.GetIntegerParameterValue(IncidentDensityParameter.SampleSize);
+                                int sampleSize = kdeFeature.Parameters.GetIntegerValue(IncidentDensityParameter.SampleSize);
                                 Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" from " + incidentSampleStart + " to " + incidentSampleEnd);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, false);
                                 if (densityEstimates.Count == densityEvalPoints.Count)

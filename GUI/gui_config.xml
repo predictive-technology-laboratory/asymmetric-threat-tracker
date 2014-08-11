@@ -23,7 +23,7 @@
   </events>
 
   <importers>
-    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
+    <load_directory></load_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
   </importers>  
 
   <plugins>
