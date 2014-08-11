@@ -170,7 +170,7 @@ namespace PTL.ATT
             VacuumTable(area);
         }
 
-        public static IEnumerable<string> GetUniqueTypes(DateTime start, DateTime end, Area area)
+        public static List<string> GetUniqueTypes(DateTime start, DateTime end, Area area)
         {
             List<string> types = new List<string>();
 
@@ -198,7 +198,7 @@ namespace PTL.ATT
                                               "WHERE " + Columns.Type + "='" + Util.Escape(type) + "'");
         }
 
-        public static IEnumerable<Incident> Get(DateTime start, DateTime end, Area area, params string[] types)
+        public static List<Incident> Get(DateTime start, DateTime end, Area area, params string[] types)
         {
             List<Incident> incidents = new List<Incident>();
 
