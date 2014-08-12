@@ -407,10 +407,10 @@ namespace PTL.ATT.Models
                                 DateTime spatialDistanceFeatureEnd = spatialDistanceFeatureStart + spatialDistanceFeature.Parameters.GetTimeSpanValue(SpatialDistanceParameter.LagDuration);
 
                                 if (spatialDistanceFeatureEnd >= start)
-                                    Console.Out.WriteLine("WARNING:  Spatial distance sample overlaps extraction period. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial distance sample overlaps extraction period.");
 
                                 if (spatialDistanceFeatureEnd < spatialDistanceFeatureStart)
-                                    Console.Out.WriteLine("WARNING:  Spatial distance sample end precedes sample start. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial distance sample end precedes sample start.");
 
                                 ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
                                                                   new Parameter("point_end", NpgsqlDbType.Timestamp, end),
@@ -466,10 +466,10 @@ namespace PTL.ATT.Models
                                 DateTime spatialDensityFeatureEnd = spatialDensityFeatureStart + spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagDuration);
 
                                 if (spatialDensityFeatureEnd >= start)
-                                    Console.Out.WriteLine("WARNING:  Spatial density sample overlaps extraction period. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial density sample overlaps extraction period.");
 
                                 if (spatialDensityFeatureEnd < spatialDensityFeatureStart)
-                                    Console.Out.WriteLine("WARNING:  Spatial density sample end precedes sample start. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial density sample end precedes sample start.");
 
                                 Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                 string geometryRecordWhereClause = "WHERE " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR (" + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " + ShapefileGeometry.Columns.Time + "<=@geometry_end)";
@@ -620,10 +620,10 @@ namespace PTL.ATT.Models
                                     DateTime incidentSampleEnd = incidentSampleStart + lagDuration;
 
                                     if (incidentSampleEnd >= start)
-                                        Console.Out.WriteLine("WARNING:  Incident density sample overlaps extraction period. This is probably incorrect.");
+                                        Console.Out.WriteLine("WARNING:  Incident density sample overlaps extraction period.");
 
                                     if (incidentSampleEnd < incidentSampleStart)
-                                        Console.Out.WriteLine("WARNING:  Incident density sample end precedes sample start. This is probably incorrect.");
+                                        Console.Out.WriteLine("WARNING:  Incident density sample end precedes sample start.");
 
                                     kdeInputPoints.AddRange(Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location));
                                 }
