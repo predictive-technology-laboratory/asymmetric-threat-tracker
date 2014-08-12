@@ -86,22 +86,11 @@ namespace PTL.ATT
                                          IEnumerable<Tuple<PostGIS.Point, string, DateTime>> points,
                                          Prediction prediction,
                                          Area area,
-                                         bool onlyInsertPointsInArea,
                                          bool vacuum)
         {
             NpgsqlCommand cmd = DB.Connection.NewCommand(null, null, connection);
 
-            string insertIntoTable = GetTableName(prediction);
-
-            if (onlyInsertPointsInArea)
-            {
-                cmd.CommandText = "CREATE TABLE temp AS SELECT * FROM " + insertIntoTable + " WHERE FALSE;" +
-                                  "ALTER TABLE temp ALTER COLUMN " + Columns.Id + " SET DEFAULT nextval('" + insertIntoTable + "_" + Columns.Id + "_seq');";
-                cmd.ExecuteNonQuery();
-
-                insertIntoTable = "temp";
-            }
-
+            string pointTable = GetTableName(prediction);
             List<int> ids = new List<int>();
             StringBuilder pointValues = new StringBuilder();
             int pointNum = 0;
@@ -120,19 +109,13 @@ namespace PTL.ATT
 
                 if ((++pointNum % pointsPerBatch) == 0)
                 {
-                    cmd.CommandText = "INSERT INTO " + insertIntoTable + " (" + Columns.Insert + ") VALUES " + pointValues + " RETURNING " + Columns.Id;
+                    cmd.CommandText = "INSERT INTO " + pointTable + " (" + Columns.Insert + ") VALUES " + pointValues + " RETURNING " + Columns.Id;
 
-                    if (onlyInsertPointsInArea)
-                        cmd.ExecuteNonQuery();
-                    else
-                    {
-                        NpgsqlDataReader reader = cmd.ExecuteReader();
-                        while (reader.Read())
-                            ids.Add(Convert.ToInt32(reader[0]));
+                    NpgsqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                        ids.Add(Convert.ToInt32(reader[0]));
 
-                        reader.Close();
-                    }
-
+                    reader.Close();
                     pointValues.Clear();
                     cmd.Parameters.Clear();
                 }
@@ -140,53 +123,15 @@ namespace PTL.ATT
 
             if (pointValues.Length > 0)
             {
-                cmd.CommandText = "INSERT INTO " + insertIntoTable + " (" + Columns.Insert + ") VALUES " + pointValues + " RETURNING " + Columns.Id;
-
-                if (onlyInsertPointsInArea)
-                    cmd.ExecuteNonQuery();
-                else
-                {
-                    NpgsqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                        ids.Add(Convert.ToInt32(reader[0]));
-
-                    reader.Close();
-                }
-
-                cmd.Parameters.Clear();
-            }
-
-            if (onlyInsertPointsInArea)
-            {
-                string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(area);
-
-                cmd.CommandText = "CREATE INDEX ON temp USING GIST (" + Columns.Location + ")";
-                cmd.ExecuteNonQuery();
-
-                cmd.CommandText = "INSERT INTO " + GetTableName(prediction) + " (" + Columns.Insert + ") " +
-                                  "SELECT * " +
-                                  "FROM temp " +
-                                  "WHERE EXISTS (SELECT 1 " +
-                                                "FROM " + area.Shapefile.GeometryTable + "," + areaBoundingBoxesTable + " " +
-                                                "WHERE (" +
-                                                         areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
-                                                         "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
-                                                       ") " +
-                                                       "OR " +
-                                                       "(" +
-                                                         areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
-                                                         "st_intersects(temp." + Columns.Location + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
-                                                         "st_intersects(temp." + Columns.Location + "," + area.Shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ")" +  // this is the slow operation, so we're hiding it behind simpler checks as much as possible
-                                                       ")" +
-                                                ") " +
-                                  "RETURNING " + Columns.Id + ";" +
-                                  "DROP TABLE temp;";
+                cmd.CommandText = "INSERT INTO " + pointTable + " (" + Columns.Insert + ") VALUES " + pointValues + " RETURNING " + Columns.Id;
 
                 NpgsqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                     ids.Add(Convert.ToInt32(reader[0]));
 
                 reader.Close();
+                pointValues.Clear();
+                cmd.Parameters.Clear();
             }
 
             if (vacuum)

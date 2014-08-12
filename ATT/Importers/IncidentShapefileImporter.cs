@@ -56,14 +56,13 @@ namespace PTL.ATT.Importers
                 _incidentColumnShapefileColumn = _incidentShapefileMappingRetriever.MapIncidentColumnsToShapefileColumns(ImportedShapefile.GeometryTable, true);
 
             DB.Connection.ExecuteNonQuery("INSERT INTO " + Incident.GetTableName(_importArea, true) + " (" + Incident.Columns.Insert + ") " +
-
                                           "SELECT " + _incidentColumnShapefileColumn[Incident.Columns.Location] + "," +
                                                       (_incidentColumnShapefileColumn.ContainsKey(Incident.Columns.NativeId) ? _incidentColumnShapefileColumn[Incident.Columns.NativeId] + "::VARCHAR" : "DEFAULT") + "," +
                                                       "false," +
                                                       _incidentColumnShapefileColumn[Incident.Columns.Time] + "::TIMESTAMP + INTERVAL '" + _hourOffset + " HOUR'," +
                                                       "TRIM(BOTH FROM " + _incidentColumnShapefileColumn[Incident.Columns.Type] + "::VARCHAR) " +
-
-                                          "FROM " + ImportedShapefile.GeometryTable + ";");
+                                          "FROM " + ImportedShapefile.GeometryTable + " " +
+                                          "WHERE " + _importArea.GetIntersectsCondition(_incidentColumnShapefileColumn[Incident.Columns.Location]));
 
             ImportedShapefile.Delete();
 

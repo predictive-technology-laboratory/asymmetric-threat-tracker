@@ -288,11 +288,10 @@ namespace PTL.ATT.Models
             foreach (Incident i in Incident.Get(prediction.Model.TrainingStart, prediction.Model.TrainingEnd, area, prediction.Model.IncidentTypes.ToArray()))
                 incidentPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(new PostGIS.Point(i.Location.X, i.Location.Y, area.Shapefile.SRID), training ? i.Type : PointPrediction.NullLabel, training ? i.Time : DateTime.MinValue)); // training points are labeled and have a time associated with them
 
-            incidentPointTuples = area.Contains(incidentPointTuples.Select(t => t.Item1)).Select(i => incidentPointTuples[i]).ToList();
             if (training && incidentPointTuples.Count == 0)
                 Console.Out.WriteLine("WARNING:  Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
 
-            Point.Insert(connection, incidentPointTuples, prediction, area, false, vacuum);
+            Point.Insert(connection, incidentPointTuples, prediction, area, vacuum);  // all incidents are constrained to be in the area upon import
 
             // insert negative points
             int negativePointSpacing = training ? _trainingPointSpacing : prediction.PredictionPointSpacing;
@@ -308,12 +307,14 @@ namespace PTL.ATT.Models
                     nullPointTuples.Add(new Tuple<PostGIS.Point, string, DateTime>(point, PointPrediction.NullLabel, DateTime.MinValue)); // null points are never labeled and never have time
                 }
 
-            // filter negative points outside area or too close to positive points, the latter only when training since we need all null points during prediction for a continuous surface
-            nullPointTuples = area.Contains(nullPointTuples.Select(t => t.Item1)).Select(i => nullPointTuples[i]).ToList();
+            // filter out any negative point whose bounding box does not intersect the area
+            nullPointTuples = area.Intersects(nullPointTuples.Select(t => t.Item1), negativePointSpacing / 2f).Select(i => nullPointTuples[i]).ToList();
+
+            // filter out any negative point that is too close to a positive point -- only when training since we need all null points during prediction for a continuous surface
             if (training)
                 nullPointTuples = nullPointTuples.Where(nullPointTuple => !incidentPointTuples.Any(incidentPointTuple => incidentPointTuple.Item1.DistanceTo(nullPointTuple.Item1) < _negativePointStandoff)).ToList();
 
-            Point.Insert(connection, nullPointTuples, prediction, area, false, vacuum);
+            Point.Insert(connection, nullPointTuples, prediction, area, vacuum);
         }
 
         protected virtual int GetNumFeaturesExtractedFor(Prediction prediction)
@@ -457,7 +458,7 @@ namespace PTL.ATT.Models
                     Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                         {
                             int core = (int)o;
-                            NpgsqlConnection connection = DB.Connection.OpenConnection;
+                            NpgsqlCommand command = DB.Connection.NewCommand(null);
                             for (int j = 0; j + core < spatialDensityFeatures.Count; j += Configuration.ProcessorCount)
                             {
                                 Feature spatialDensityFeature = spatialDensityFeatures[j + core];
@@ -475,7 +476,7 @@ namespace PTL.ATT.Models
                                 string geometryRecordWhereClause = "WHERE " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR (" + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " + ShapefileGeometry.Columns.Time + "<=@geometry_end)";
                                 Parameter geometryStart = new Parameter("geometry_start", NpgsqlDbType.Timestamp, spatialDensityFeatureStart);
                                 Parameter geometryEnd = new Parameter("geometry_end", NpgsqlDbType.Timestamp, spatialDensityFeatureEnd);
-                                List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, geometryRecordWhereClause, -1, geometryStart.NpgsqlParameter, geometryEnd.NpgsqlParameter).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.Shapefile.SRID)).ToList();
+                                List<PostGIS.Point> kdeInputPoints = Geometry.GetPoints(command, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, geometryRecordWhereClause, -1, geometryStart.NpgsqlParameter, geometryEnd.NpgsqlParameter).SelectMany(pointList => pointList).Select(p => new PostGIS.Point(p.X, p.Y, area.Shapefile.SRID)).ToList();
 
                                 Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
                                 int sampleSize = spatialDensityFeature.Parameters.GetIntegerValue(SpatialDensityParameter.SampleSize);
@@ -484,7 +485,7 @@ namespace PTL.ATT.Models
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
                             }
 
-                            DB.Connection.Return(connection);
+                            DB.Connection.Return(command.Connection);
                         }));
 
                     t.Start(i);
@@ -628,7 +629,7 @@ namespace PTL.ATT.Models
                                     kdeInputPoints.AddRange(Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location));
                                 }
 
-                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" with " + lagCount + " lags at offset " + lagOffset + ", each with duration " + lagDuration);
+                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" with " + lagCount + " lag(s) at offset " + lagOffset + ", each with duration " + lagDuration);
                                 int sampleSize = kdeFeature.Parameters.GetIntegerValue(IncidentDensityParameter.SampleSize);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, false);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
@@ -924,7 +925,7 @@ namespace PTL.ATT.Models
 
         public override string ToString()
         {
-            return "Distance DCM:  " + Name;
+            return "Feature DCM:  " + Name;
         }
 
         public override string GetDetails(int indentLevel)

@@ -214,7 +214,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             predictionPoints.AddRange(incidentPoints);
 
             Console.Out.WriteLine("Filtering prediction points to prediction area");
-            predictionPoints = predictionArea.Contains(predictionPoints).Select(i => predictionPoints[i]).ToList();
+            predictionPoints = predictionArea.Intersects(predictionPoints, prediction.PredictionPointSpacing / 2f).Select(i => predictionPoints[i]).ToList();
 
             NpgsqlConnection connection = DB.Connection.OpenConnection;
 
@@ -222,7 +222,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             {
                 Console.Out.WriteLine("Inserting points into prediction");
                 Point.CreateTable(prediction, predictionArea.Shapefile.SRID);
-                List<int> predictionPointIds = Point.Insert(connection, predictionPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false, false);
+                List<int> predictionPointIds = Point.Insert(connection, predictionPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false);
 
                 Console.Out.WriteLine("Running overall KDE for " + IncidentTypes.Count + " incident type(s)");
                 List<float> density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, predictionPoints, _normalize);

@@ -1438,9 +1438,9 @@ namespace PTL.ATT.GUI
                             Thread areaT = new Thread(new ParameterizedThreadStart(delegate(object o)
                                 {
                                     Area area = o as Area;
-                                    NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
-                                    DB.Connection.Return(connection);
+                                    NpgsqlCommand command = DB.Connection.NewCommand(null);
+                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(command, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
+                                    DB.Connection.Return(command.Connection);
                                 }));
 
                             areaT.Start(p.PredictionArea);
@@ -1465,9 +1465,9 @@ namespace PTL.ATT.GUI
                                                                                                                 feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryDensity)))
                                                 {
                                                     Shapefile shapefile = new Shapefile(int.Parse(feature.PredictionResourceId));
-                                                    NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                    List<List<PointF>> points = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
-                                                    DB.Connection.Return(connection);
+                                                    NpgsqlCommand command = DB.Connection.NewCommand(null);
+                                                    List<List<PointF>> points = Geometry.GetPoints(command, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
+                                                    DB.Connection.Return(command.Connection);
                                                     lock (overlays) { overlays.Add(new Overlay(shapefile.Name, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }
                                             }));
