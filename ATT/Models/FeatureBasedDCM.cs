@@ -87,6 +87,7 @@ namespace PTL.ATT.Models
         {
             LagOffset,
             LagDuration,
+            LagCount,
             SampleSize
         }
 
@@ -124,6 +125,7 @@ namespace PTL.ATT.Models
                 parameters = new FeatureParameterCollection();
                 parameters.Add(IncidentDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
                 parameters.Add(IncidentDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                parameters.Add(IncidentDensityParameter.LagCount, "1", "Number of lags of the given offset and duration to use, with offsets being additive.");
                 parameters.Add(IncidentDensityParameter.SampleSize, "500", "Sample size for incident density estimate.");
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameters);
             }
@@ -330,7 +332,7 @@ namespace PTL.ATT.Models
         /// <returns></returns>
         protected virtual IEnumerable<FeatureVectorList> ExtractFeatureVectors(Prediction prediction, bool training, DateTime start, DateTime end)
         {
-            // this can be called concurrently, so lock on prediction to get the point objects and their vectors
+            // this can be called concurrently (e.g., via the time slice model with one thread per slice), so lock on prediction to get the point objects and their vectors
             FeatureVectorList featureVectors;
             Dictionary<int, FeatureVector> pointIdFeatureVector;
             int numFeatures;
@@ -405,10 +407,10 @@ namespace PTL.ATT.Models
                                 DateTime spatialDistanceFeatureEnd = spatialDistanceFeatureStart + spatialDistanceFeature.Parameters.GetTimeSpanValue(SpatialDistanceParameter.LagDuration);
 
                                 if (spatialDistanceFeatureEnd >= start)
-                                    Console.Out.WriteLine("WARNING:  Spatial distance sample overlaps extraction period. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial distance sample overlaps extraction period.");
 
                                 if (spatialDistanceFeatureEnd < spatialDistanceFeatureStart)
-                                    Console.Out.WriteLine("WARNING:  Spatial distance sample end precedes sample start. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial distance sample end precedes sample start.");
 
                                 ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
                                                                   new Parameter("point_end", NpgsqlDbType.Timestamp, end),
@@ -426,7 +428,7 @@ namespace PTL.ATT.Models
                                     if (value > distanceWhenBeyondThreshold)
                                         value = distanceWhenBeyondThreshold;
 
-                                    vector.Add(distanceFeature, value, false); // don't update range here because the features are being accessed concurrently
+                                    vector.Add(distanceFeature, value, false); // don't update range due to concurrent access to the feature
                                 }
                                 reader.Close();
                             }
@@ -440,11 +442,6 @@ namespace PTL.ATT.Models
 
                 foreach (Thread t in threads)
                     t.Join();
-
-                // update feature ranges since they weren't updated above due to concurrent access
-                foreach (FeatureVector vector in featureVectors)
-                    foreach (LAIR.MachineLearning.Feature f in vector)
-                        f.UpdateRange(vector[f]);
             }
             #endregion
 
@@ -469,10 +466,10 @@ namespace PTL.ATT.Models
                                 DateTime spatialDensityFeatureEnd = spatialDensityFeatureStart + spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagDuration);
 
                                 if (spatialDensityFeatureEnd >= start)
-                                    Console.Out.WriteLine("WARNING:  Spatial density sample overlaps extraction period. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial density sample overlaps extraction period.");
 
                                 if (spatialDensityFeatureEnd < spatialDensityFeatureStart)
-                                    Console.Out.WriteLine("WARNING:  Spatial density sample end precedes sample start. This is probably incorrect.");
+                                    Console.Out.WriteLine("WARNING:  Spatial density sample end precedes sample start.");
 
                                 Shapefile shapefile = new Shapefile(int.Parse(training ? spatialDensityFeature.TrainingResourceId : spatialDensityFeature.PredictionResourceId));
                                 string geometryRecordWhereClause = "WHERE " + ShapefileGeometry.Columns.Time + "='-infinity'::timestamp OR (" + ShapefileGeometry.Columns.Time + ">=@geometry_start AND " + ShapefileGeometry.Columns.Time + "<=@geometry_end)";
@@ -502,7 +499,7 @@ namespace PTL.ATT.Models
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     NumericFeature densityFeature = _idNumericFeature[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(densityFeature, densityEstimates[i]);
+                        featureVectors[i].Add(densityFeature, densityEstimates[i], false);  // don't update range due to concurrent access to the feature
                 }
             }
             #endregion
@@ -560,9 +557,9 @@ namespace PTL.ATT.Models
                                         {
                                             FeatureVector vector = pointIdFeatureVector[currPointId];
                                             if (attributeFeature is NumericFeature)
-                                                vector.Add(attributeFeature, values.Select(v => Convert.ToSingle(v)).Average());
+                                                vector.Add(attributeFeature, values.Select(v => Convert.ToSingle(v)).Average(), false);  // don't update range due to concurrent access to the feature
                                             else if (values.Count == 1)
-                                                vector.Add(attributeFeature, Convert.ToString(values[0]));
+                                                vector.Add(attributeFeature, Convert.ToString(values[0]), false);  // don't update range due to concurrent access to the feature
                                             else
                                                 throw new Exception("Nominal geometry attribute \"" + attributeColumn + "\" of shapefile \"" + shapefile.GeometryTable + "\" has multiple values at point \"" + (vector.DerivedFrom as Point).Location + "\".");
                                         }
@@ -612,19 +609,27 @@ namespace PTL.ATT.Models
                             {
                                 Feature kdeFeature = kdeFeatures[j + core];
 
-                                DateTime incidentSampleStart = start - kdeFeature.Parameters.GetTimeSpanValue(IncidentDensityParameter.LagOffset);
-                                DateTime incidentSampleEnd = incidentSampleStart + kdeFeature.Parameters.GetTimeSpanValue(IncidentDensityParameter.LagDuration);
-
-                                if (incidentSampleEnd >= start)
-                                    Console.Out.WriteLine("WARNING:  Incident density sample overlaps extraction period. This is probably incorrect.");
-
-                                if (incidentSampleEnd < incidentSampleStart)
-                                    Console.Out.WriteLine("WARNING:  Incident density sample end precedes sample start. This is probably incorrect.");
-
+                                List<PostGIS.Point> kdeInputPoints = new List<PostGIS.Point>();
                                 string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;
-                                IEnumerable<PostGIS.Point> kdeInputPoints = Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location);
+                                int lagCount = kdeFeature.Parameters.GetIntegerValue(IncidentDensityParameter.LagCount);
+                                TimeSpan lagOffset = kdeFeature.Parameters.GetTimeSpanValue(IncidentDensityParameter.LagOffset);
+                                TimeSpan lagDuration = kdeFeature.Parameters.GetTimeSpanValue(IncidentDensityParameter.LagDuration);
+                                for (int k = 1; k <= lagCount; ++k)
+                                {
+                                    DateTime incidentSampleStart = start - new TimeSpan(k * lagOffset.Ticks);
+                                    DateTime incidentSampleEnd = incidentSampleStart + lagDuration;
+
+                                    if (incidentSampleEnd >= start)
+                                        Console.Out.WriteLine("WARNING:  Incident density sample overlaps extraction period.");
+
+                                    if (incidentSampleEnd < incidentSampleStart)
+                                        Console.Out.WriteLine("WARNING:  Incident density sample end precedes sample start.");
+
+                                    kdeInputPoints.AddRange(Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location));
+                                }
+
+                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" with " + lagCount + " lags at offset " + lagOffset + ", each with duration " + lagDuration);
                                 int sampleSize = kdeFeature.Parameters.GetIntegerValue(IncidentDensityParameter.SampleSize);
-                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" from " + incidentSampleStart + " to " + incidentSampleEnd);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, false);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
                                     lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
@@ -643,10 +648,16 @@ namespace PTL.ATT.Models
                     List<float> densityEstimates = featureIdDensityEstimates[featureId];
                     NumericFeature densityFeature = _idNumericFeature[featureId];
                     for (int i = 0; i < densityEstimates.Count; ++i)
-                        featureVectors[i].Add(densityFeature, densityEstimates[i]);
+                        featureVectors[i].Add(densityFeature, densityEstimates[i], false);  // don't update range due to concurrent access to the feature (e.g., via time slice model calling into this method)
                 }
             }
             #endregion
+
+            // update all feature ranges. this wasn't done above due to potential concurrent access, either within this method or from calls into this method. each feature needs to be locked here due to potential concurrent calls into this method (e.g., time slice model)
+            foreach (FeatureVector vector in featureVectors)
+                foreach (LAIR.MachineLearning.Feature f in vector)
+                    lock (f)
+                        f.UpdateRange(vector[f]);
 
             IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(FeatureBasedDCM));
             if (externalFeatureExtractor == null)
