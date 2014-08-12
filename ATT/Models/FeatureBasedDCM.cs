@@ -628,7 +628,7 @@ namespace PTL.ATT.Models
                                     kdeInputPoints.AddRange(Incident.Get(incidentSampleStart, incidentSampleEnd, area, incident).Select(inc => inc.Location));
                                 }
 
-                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" from " + lagCount + " lags at offset " + lagOffset + ", each with duration " + lagDuration);
+                                Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" with " + lagCount + " lags at offset " + lagOffset + ", each with duration " + lagDuration);
                                 int sampleSize = kdeFeature.Parameters.GetIntegerValue(IncidentDensityParameter.SampleSize);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, false);
                                 if (densityEstimates.Count == densityEvalPoints.Count)
