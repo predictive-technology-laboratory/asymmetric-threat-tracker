@@ -40,4 +40,4 @@ before_script:
 
 script:
  - ./nunit.sh AttTest/bin/Release/AttTest.dll
- - ./nunit.sh GuiTest/bin/Release/GuiTest.dll
+ #- ./nunit.sh GuiTest/bin/Release/GuiTest.dll
