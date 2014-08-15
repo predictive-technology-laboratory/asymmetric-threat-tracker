@@ -9,6 +9,7 @@ runTest(){
 }
 
 runTest AttTest/bin/Release/AttTest.dll
+echo "Running GuiTest.dll"
 runTest GuiTest/bin/Release/GuiTest.dll
 
 exit $?
