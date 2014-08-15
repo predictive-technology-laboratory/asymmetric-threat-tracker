@@ -20,6 +20,8 @@ before_install:
  # install the nunit runners
  - mozroots --import --sync
  - mono --runtime=v4.0 .nuget/NuGet.exe install NUnit.Runners -Version 2.6.1 -o packages
+ - sed '/v2.0.50727/d' packages/NUnit.Runners.2.6.1/tools/nunit-console.exe.config
+ - cat packages/NUnit.Runners.2.6.1/tools/nunit-console.exe.config
 
  # install r
  - sudo apt-get install r-base
