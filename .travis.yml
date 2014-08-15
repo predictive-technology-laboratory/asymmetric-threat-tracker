@@ -8,7 +8,7 @@ addons:
  postgresql: "9.3"
 
 before_install:
- - wget http://download.opensuse.org/repositories/home:/tpokorra:/mono/xUbuntu_12.04/amd64/mono-opt_3.6.0_amd64.deb
+ - wget http://ptl.sys.virginia.edu/msg8u/mono-opt_3.6.0_amd64.deb
  - sudo dpkg -i mono-opt_3.6.0_amd64.deb
  - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
  - unzip liblinear-1.94.zip
@@ -20,5 +20,6 @@ before_script:
 
 script:
  - export PATH=/opt/mono/bin:$PATH
+ - xbuild
  - chmod +x .nunit.sh
  - ./.nunit.sh AttTest/bin/Release/AttTest.dll
