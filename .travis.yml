@@ -19,7 +19,7 @@ before_install:
  - mozroots --import --sync
 
  # install r
- sudo apt-get install r-base
+ - sudo apt-get install r-base
 
  # install liblinear
  - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
