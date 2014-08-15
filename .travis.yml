@@ -20,6 +20,7 @@ before_script:
 
 script:
  - export PATH=/opt/mono/bin:$PATH
+ - mozroots --import --sync
  - xbuild
  - chmod +x .nunit.sh
  - ./.nunit.sh AttTest/bin/Release/AttTest.dll
