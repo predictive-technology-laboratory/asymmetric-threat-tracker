@@ -42,4 +42,4 @@ before_script:
  - psql -U postgres -c "CREATE DATABASE test"
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
 
-script:  mono --runtime=v4.0 packages/NUnit.Runners.2.6.1/tools/nunit-console.exe AttTest/bin/Release/AttTest.dll GuiTest/bin/Release/GuiTest.dll -noxml -labels -stoponerror 
+script:  mono --runtime=v4.0 packages/NUnit.Runners.2.6.1/tools/nunit-console.exe AttTest/bin/Release/AttTest.dll GuiTest/bin/Release/GuiTest.dll -noxml -labels -stoponerror -trace=Verbose
