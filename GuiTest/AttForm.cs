@@ -14,6 +14,7 @@
 // limitations under the License.
 #endregion
 using NUnit.Framework;
+using PTL.ATT;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,12 +26,22 @@ namespace GuiTest
     [TestFixture]
     public class AttForm
     {
+        [TestFixtureSetUp]
+        public void SetUp()
+        {
+            PTL.ATT.Configuration.Initialize("Config/att_config.xml", true);
+            PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
+        }
+
         [Test]
         public void Test()
         {
-            //PTL.ATT.Configuration.Initialize("Config/att_config.xml", true);
-            //PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
-            Console.Out.WriteLine("GUI test passed.");
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            DB.Connection.Dispose();
         }
     }
 }

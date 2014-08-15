@@ -11,11 +11,15 @@ namespace AttTest.Models
     [TestFixture]
     public class FeatureBasedDcmTest
     {
+        [TestFixtureSetUp]
+        public void SetUp()
+        {
+            Configuration.Initialize("att_config.xml", true);
+        }
+
         [Test]
         public void Test()
         {
-            Configuration.Initialize("att_config.xml", true);
-            Console.Out.WriteLine("ATT test passed.");
         }
 
         [TestFixtureTearDown]
