@@ -13,18 +13,20 @@ before_install:
  - export LD_LIBRARY_PATH=/opt/mono/lib
  - export PATH=/opt/mono/bin:$PATH
  - sudo apt-get install libgdiplus
- - sudo ln -s /usr/local/lib/libgdiplus.so /opt/mono/lib/libgdiplus.so
+ - sudo ln -s /usr/lib/libgdiplus.so /opt/mono/lib/libgdiplus.so
  - mozroots --import --sync
  - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
  - unzip liblinear-1.94.zip
  - cd liblinear-1.94 && make && cd ..
 
+install:
+ - cp AttTest/Config/* GUI/Config/
+ - xbuild /p:Configuration=Release
+
 before_script:
  - psql -U postgres -c "CREATE DATABASE test"
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
+ - chmod +x .nunit.sh
 
 script:
- - cp AttTest/Config/* GUI/Config/
- - xbuild /p:Configuration=Release
- - chmod +x .nunit.sh
  - ./.nunit.sh AttTest/bin/Release/AttTest.dll
