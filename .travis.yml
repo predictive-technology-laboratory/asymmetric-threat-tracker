@@ -19,6 +19,6 @@ before_script:
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
 
 script:
- - /opt/mono/bin/xbuild 
+ - export PATH=/opt/mono/bin:$PATH
  - chmod +x .nunit.sh
- - .nunit.sh AttTest/bin/Release/AttTest.dll
+ - ./.nunit.sh AttTest/bin/Release/AttTest.dll
