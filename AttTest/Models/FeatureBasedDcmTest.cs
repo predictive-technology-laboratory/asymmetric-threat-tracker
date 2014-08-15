@@ -14,8 +14,14 @@ namespace AttTest.Models
         [Test]
         public void Test()
         {
-            Configuration.Initialize("att_config.xml", false);
+            Configuration.Initialize("att_config.xml", true);
             Console.Out.WriteLine("ATT test passed.");
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+            DB.Connection.Dispose();
         }
     }
 }
