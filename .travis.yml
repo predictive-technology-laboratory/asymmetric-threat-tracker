@@ -12,13 +12,13 @@ before_install:
  - sudo dpkg -i mono-opt_3.6.0_amd64.deb
  - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
  - unzip liblinear-1.94.zip
- - cd liblinear-1.94 && make
+ - cd liblinear-1.94 && make && cd
 
 before_script:
  - psql -U postgres -c "CREATE DATABASE test"
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
 
 script:
- - /opt/bin/xbuild 
+ - /opt/mono/bin/xbuild 
  - chmod +x .nunit.sh
  - .nunit.sh AttTest/bin/Release/AttTest.dll
