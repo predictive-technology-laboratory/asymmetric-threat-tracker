@@ -30,7 +30,8 @@ before_install:
  - cd liblinear-1.94 && make && cd ..
 
 install:
- - cp AttTest/Config/* GUI/Config/
+ - cp AttTest/att_config.xml GUI/Config/
+ - cp GuiText/gui_config.xml GUI/Config/
  - xbuild /p:Configuration=Release
 
 before_script:
@@ -38,6 +39,4 @@ before_script:
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
  - chmod +x nunit.sh
 
-script:
- - ./nunit.sh AttTest/bin/Release/AttTest.dll
- - ./nunit.sh GuiTest/bin/Release/GuiTest.dll
+script:  ./nunit.sh
