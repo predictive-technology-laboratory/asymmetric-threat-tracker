@@ -30,8 +30,13 @@ before_install:
  - cd liblinear-1.94 && make && cd ..
 
 install:
- - cp AttTest/att_config.xml GUI/Config/
- - cp GuiTest/gui_config.xml GUI/Config/
+
+ # copy travis-ci configurations into their project locations
+ - cp AttTest/att_config_travis_ci.xml AttTest/att_config.xml
+ - cp AttTest/att_config_travis_ci.xml GUI/Config/att_config.xml
+ - cp GuiTest/gui_config_travis_ci.xml GUI/Config/gui_config.xml
+
+ # build the release
  - xbuild /p:Configuration=Release
 
 before_script:
