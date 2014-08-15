@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using PTL.ATT;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace AttTest.Models
         [Test]
         public void Test()
         {
+            Configuration.Initialize("Config/att_config.xml", true);
             Console.Out.WriteLine("Test passed.");
         }
     }

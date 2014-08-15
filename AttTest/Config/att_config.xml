@@ -12,11 +12,11 @@
     <!-- Port on host running the PostgreSQL server. -->
     <ssl>True</ssl>
     <!-- Whether or not SSL should be enabled on the connection. -->
-    <database>att</database>
+    <database>test</database>
     <!-- Name of the database to use. Database must already be created and it must have the PostGIS extension installed (see below). -->
-    <user>att</user>
+    <user>postgres</user>
     <!-- This user must have full privileges on the database indicated above. -->
-    <password>att</password>
+    <password></password>
     <!-- Password for database user. -->
     <connection_timeout>10</connection_timeout>
     <!-- Timeout (in seconds) when opening a connection to the database. -->
@@ -30,17 +30,17 @@
 
   <postgis>
     <!-- Requires PostGIS 2.0 or higher. Install using the PostgreSQL Application Stack Builder. -->
-    <shp2pgsql>C:\Program Files\PostgreSQL\9.3\bin\shp2pgsql.exe</shp2pgsql>
+    <shp2pgsql>/usr/bin/shp2pgsql</shp2pgsql>
     <!-- Path to shp2pgsql executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
-    <pgsql2shp>C:\Program Files\PostgreSQL\9.3\bin\pgsql2shp.exe</pgsql2shp>
+    <pgsql2shp>/usr/bin/pgsql2shp</pgsql2shp>
     <!-- Path to pgsql2shp executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
   </postgis>
 
   <r>
     <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). The following packages are required:  "ada", "randomForest", "zoo", "ks", "earth". If the following options are configured correctly (and if you have an Internet connection), any missing packages will be installed automatically. -->
-    <exe_path>C:\Program Files\R\R-3.0.2\bin\R.exe</exe_path>
+    <exe_path>/usr/bin/R</exe_path>
     <!-- Path to R executable. The R_EXE environment variable will be used if this path does not exist. -->
-    <package_install_directory>C:\Users\matt\RPackages</package_install_directory>
+    <package_install_directory></package_install_directory>
     <!-- Writable directory into which R packages are to be installed. If left blank, the default directory will be used, which could be read-only depending on your user's permissions. -->
     <cran_mirror>http://cran.us.r-project.org</cran_mirror>
     <!-- CRAN mirror to use for package installation. -->
@@ -48,7 +48,7 @@
 
   <java>
     <!-- Requires Java 1.6 or higher. -->
-    <exe_path>C:\Program Files (x86)\Java\jre7\bin\java.exe</exe_path>
+    <exe_path>/usr/bin/java</exe_path>
     <!-- Path java.exe executable. The JAVA_EXE environment variable will be used if this path does not exist. -->
   </java>
 
@@ -56,48 +56,19 @@
     <!-- Options passed to classifiers. You may remove any of these if you do not wish to use them. -->
     <classifier type="PTL.ATT.Classifiers.LibLinear">
       <!-- Use the most current version of LibLinear:  http://www.csie.ntu.edu.tw/~cjlin/liblinear/ -->
-      <train>C:\NLP\Source\ThirdParty\LibLinear\windows\bin\train.exe</train>
+      <train>/Users/travis/liblinear-1.94/train</train>
       <!-- Path to train.exe executable for LibLinear. -->
-      <predict>C:\NLP\Source\ThirdParty\LibLinear\windows\bin\predict.exe</predict>
+      <predict>/Users/travis/liblinear-1.94/predict</predict>
       <!-- Path to predict.exe executable for LibLinear. -->
       <solver>0</solver>
       <!-- Model type to use (0 = logistic regression). See LibLinear documentation for other model types (solvers other than 0 have not been tested and are unlikely to work properly). -->
     </classifier>
-    <classifier type="PTL.ATT.Classifiers.SvmRank">
-      <!-- Use the most current version of SvmRank:  http://www.cs.cornell.edu/people/tj/svm_light/svm_rank.html -->
-      <learn>C:\NLP\Source\ThirdParty\SvmRank\windows_binaries\svm_rank_learn.exe</learn>
-      <!-- Path to svm_rank_learn.exe executable for SvmRank. -->
-      <classify>C:\NLP\Source\ThirdParty\SvmRank\windows_binaries\svm_rank_classify.exe</classify>
-      <!-- Path to svm_rank_classify.exe executable for SvmRank. -->
-    </classifier>
   </classifiers>
 
   <modeling>
-    <model_directory>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Models</model_directory>
+    <model_directory>/Users/travis/MatthewGerber/asymmetric-threat-tracker/Models</model_directory>
     <!-- Path to directory in which to store data related to the models that are built when running predictions. This can be any empty or non-existent directory. If left blank, the default local application data directory will be used. -->
     <feature_extractors>
-      <!-- Externally defined feature extractors. Each element within feature_extractors should have the following form, where the model_type attribute indicates the type of the model the feature extractor is used with, and feature_extractor_type is the type name of the feature extractor to load. The "option=value" pairs are passed to the feature extractor's Initialize method. -->
-      <!--
-      <feature_extractor model_type="PTL.ATT.Models.FeatureBasedDCM" [option="value" ... ]>feature_extractor_type</feature_extractor>
-      -->
-      <feature_extractor postgres_host="localhost"
-                         postgres_port="5432"
-                         postgres_ssl="true"
-                         postgres_user="att"
-                         postgres_password="att"
-                         postgres_database="att"
-                         postgres_connection_timeout="10"
-                         postgres_connection_retry_limit="5"
-                         postgres_command_timeout="4096"
-                         postgres_max_pool_size="5"                         
-                         twitter_srid="4326"
-                         model_type="PTL.ATT.Models.FeatureBasedDCM"
-                         tweets_to_incidents_hour_offset="-1"
-                         ark_path="C:\NLP\Source\ThirdParty\ark-tweet-nlp-0.3.2\ark-tweet-nlp-0.3.2.jar"
-                         lda_num_topics="500"
-                         mallet_dist_path="C:\NLP\Source\ThirdParty\mallet\dist"
-                         mallet_cache_directory="C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Models\mallet_cache"
-                         mallet_heap_size="1024">PTL.TwitterProcessor.TwitterFeatureExtractor@C:\NLP\Source\PTL\TwitterProcessor\TwitterProcessor\bin\Release\TwitterProcessor.exe</feature_extractor>
     </feature_extractors>
   </modeling>
 

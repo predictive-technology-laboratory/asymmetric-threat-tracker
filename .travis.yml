@@ -1,15 +1,23 @@
-language: objective-c
+language: java
 
 env:
  global:
   - EnableNuGetPackageRestore=true 
- matrix:
-  - MONO_VERSION="3.2.5"
+
+addons:
+ postgresql: "9.3"
 
 before_install:
- - wget "http://download.xamarin.com/MonoFrameworkMDK/Macx86/MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg"
- - sudo installer -pkg "MonoFramework-MDK-${MONO_VERSION}.macos10.xamarin.x86.pkg" -target /
+ - wget http://download.opensuse.org/repositories/home:/tpokorra:/mono/xUbuntu_12.04/amd64/mono-opt_3.6.0_amd64.deb
+ - sudo dpkg -i mono-opt_3.6.0_amd64.deb
+ - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
+ - unzip liblinear-1.94.zip
+ - cd liblinear-1.94 && make
+
+before_script:
+ - psql -U postgres -c "CREATE DATABASE test"
+ - psql -U postgres -d test -c "CREATE EXTENSION postgis"
 
 script:
  - xbuild 
- - .ci/nunit.sh AttTest/bin/Release/AttTest.dll
+ - .nunit.sh AttTest/bin/Release/AttTest.dll

@@ -35,6 +35,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuiTest", "GuiTest\GuiTest.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AttTest", "AttTest\AttTest.csproj", "{1FA0A682-AB00-4194-931B-6B88E4F7EFE3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TravisCI", "TravisCI", "{4B43F8A7-96ED-4E74-9850-800B21D0E4C5}"
+	ProjectSection(SolutionItems) = preProject
+		.nunit.sh = .nunit.sh
+		.travis.yml = .travis.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CD_ROM|Any CPU = CD_ROM|Any CPU
