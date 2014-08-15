@@ -16,7 +16,10 @@ before_install:
  - export PATH=/opt/mono/bin:$PATH
  - sudo apt-get install libgdiplus
  - sudo ln -s /usr/lib/libgdiplus.so /opt/mono/lib/libgdiplus.so
+ 
+ # install the nunit runners
  - mozroots --import --sync
+ - mono --runtime=v4.0 .nuget/NuGet.exe install NUnit.Runners -Version 2.6.1 -o packages
 
  # install r
  - sudo apt-get install r-base
@@ -33,7 +36,8 @@ install:
 before_script:
  - psql -U postgres -c "CREATE DATABASE test"
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
- - chmod +x .nunit.sh
+ - chmod +x nunit.sh
 
 script:
- - ./.nunit.sh AttTest/bin/Release/AttTest.dll
+ - ./nunit.sh AttTest/bin/Release/AttTest.dll
+ - ./nunit.sh GuiTest/bin/Release/GuiTest.dll

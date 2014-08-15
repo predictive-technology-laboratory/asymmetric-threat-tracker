@@ -7,23 +7,23 @@
   <application_data_directory></application_data_directory> <!-- Path to application data directory (for logs, etc.). If left blank, the default local application data directory will be used (sometimes this isn't writable, hence the option). -->
   
   <postgis>
-    <shapefile_directory>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles</shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., ATT/Data/Shapefiles). -->
+    <shapefile_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Shapefiles</shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., ATT/Data/Shapefiles). -->
   </postgis>
 
   <logging>
-    <editor>notepad.exe</editor> <!-- Path to editor executable for viewing the log file. -->
+    <editor></editor> <!-- Path to editor executable for viewing the log file. -->
   </logging>
 
   <incidents>
-    <import_directory>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes</import_directory> <!-- The default directory that should be opened when browsing for incidents to import (e.g., ATT/Data/Crimes). -->
+    <import_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Crimes</import_directory> <!-- The default directory that should be opened when browsing for incidents to import (e.g., ATT/Data/Crimes). -->
   </incidents>
 
   <events>
-    <import_directory>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Events</import_directory> <!-- The default directory that should be opened when browsing for events to import (e.g., ATT/Data/Events). -->
+    <import_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Events</import_directory> <!-- The default directory that should be opened when browsing for events to import (e.g., ATT/Data/Events). -->
   </events>  
 
   <importers>
-    <load_directory>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers</load_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
+    <load_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Importers</load_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
   </importers>    
 
   <plugins>

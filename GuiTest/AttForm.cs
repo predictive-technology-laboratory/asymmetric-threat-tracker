@@ -28,7 +28,8 @@ namespace GuiTest
         [Test]
         public void Test()
         {
-            Console.Out.WriteLine("Test passed.");
+            PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
+            Console.Out.WriteLine("GUI test passed.");
         }
     }
 }
