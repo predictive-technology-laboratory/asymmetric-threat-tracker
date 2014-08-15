@@ -14,7 +14,7 @@ namespace AttTest.Models
         [Test]
         public void Test()
         {
-            Configuration.Initialize("att_config.xml", true);
+            //Configuration.Initialize("att_config.xml", true);
             Console.Out.WriteLine("ATT test passed.");
         }
     }

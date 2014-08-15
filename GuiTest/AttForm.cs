@@ -28,8 +28,8 @@ namespace GuiTest
         [Test]
         public void Test()
         {
-            PTL.ATT.Configuration.Initialize("Config/att_config.xml", true);
-            PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
+            //PTL.ATT.Configuration.Initialize("Config/att_config.xml", true);
+            //PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
             Console.Out.WriteLine("GUI test passed.");
         }
     }
