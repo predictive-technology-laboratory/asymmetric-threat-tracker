@@ -31,7 +31,7 @@ before_install:
 
 install:
  - cp AttTest/att_config.xml GUI/Config/
- - cp GuiText/gui_config.xml GUI/Config/
+ - cp GuiTest/gui_config.xml GUI/Config/
  - xbuild /p:Configuration=Release
 
 before_script:
