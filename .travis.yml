@@ -10,6 +10,7 @@ addons:
 before_install:
  - wget http://download.opensuse.org/repositories/home:/tpokorra:/mono/xUbuntu_12.04/amd64/mono-opt_3.6.0_amd64.deb
  - sudo dpkg -i mono-opt_3.6.0_amd64.deb
+ - sudo mozroots --import --sync
  - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
  - unzip liblinear-1.94.zip
  - cd liblinear-1.94 && make && cd ..
