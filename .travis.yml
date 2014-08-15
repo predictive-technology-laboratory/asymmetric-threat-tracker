@@ -10,6 +10,11 @@ addons:
 before_install:
  - wget http://ptl.sys.virginia.edu/msg8u/mono-opt_3.6.0_amd64.deb
  - sudo dpkg -i mono-opt_3.6.0_amd64.deb
+ - export LD_LIBRARY_PATH=/opt/mono/lib
+ - export PATH=/opt/mono/bin:$PATH
+ - sudo apt-get install libgdiplus
+ - sudo ln -s /usr/local/lib/libgdiplus.so /opt/mono/lib/libgdiplus.so
+ - mozroots --import --sync
  - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
  - unzip liblinear-1.94.zip
  - cd liblinear-1.94 && make && cd ..
@@ -19,9 +24,6 @@ before_script:
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
 
 script:
- - export PATH=/opt/mono/bin:$PATH
- - export LD_LIBRARY_PATH=/opt/mono/lib
- - mozroots --import --sync
  - cp AttTest/Config/* GUI/Config/
  - xbuild /p:Configuration=Release
  - chmod +x .nunit.sh
