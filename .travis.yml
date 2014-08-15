@@ -19,5 +19,6 @@ before_script:
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
 
 script:
- - xbuild 
+ - /opt/bin/xbuild 
+ - chmod +x .nunit.sh
  - .nunit.sh AttTest/bin/Release/AttTest.dll
