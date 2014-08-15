@@ -127,6 +127,11 @@
             <param name="element">Element to get attributes for</param>
             <returns>Attributes</returns>
         </member>
+        <member name="M:LAIR.XML.XmlParser.Dispose">
+            <summary>
+            Closes parser and releases all resources
+            </summary>
+        </member>
         <member name="E:LAIR.XML.XmlParser.OnStartElement">
             <summary>
             Fired when an element is encountered
