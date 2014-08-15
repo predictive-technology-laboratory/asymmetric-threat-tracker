@@ -9,6 +9,4 @@ Installer/Installer
 Models
 !ATT/Models
 !AttTest/Models
-AttTest/att_config.xml
-GuiTest/gui_config.xml
 packages

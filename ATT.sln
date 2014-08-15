@@ -38,7 +38,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TravisCI", "TravisCI", "{4B43F8A7-96ED-4E74-9850-800B21D0E4C5}"
 	ProjectSection(SolutionItems) = preProject
 		.travis.yml = .travis.yml
-		nunit.sh = nunit.sh
 	EndProjectSection
 EndProject
 Global

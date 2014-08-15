@@ -54,13 +54,12 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="att_config_travis_ci.xml">
-      <SubType>Designer</SubType>
+    <Content Include="..\GUI\Config\att_config.xml">
+      <Link>att_config.xml</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="att_config.xml">
+    <Content Include="att_config_travis_ci.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
