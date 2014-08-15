@@ -20,6 +20,7 @@ before_script:
 
 script:
  - export PATH=/opt/mono/bin:$PATH
+ - export LD_LIBRARY_PATH=/opt/mono/lib
  - mozroots --import --sync
  - cp AttTest/Config/* GUI/Config/
  - xbuild /p:Configuration=Release
