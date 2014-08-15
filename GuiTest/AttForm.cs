@@ -20,7 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Test
+namespace GuiTest
 {
     [TestFixture]
     public class AttForm
@@ -28,7 +28,7 @@ namespace Test
         [Test]
         public void Test()
         {
-
+            Console.Out.WriteLine("Test passed.");
         }
     }
 }
