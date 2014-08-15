@@ -20,7 +20,7 @@ before_install:
  # install the nunit runners
  - mozroots --import --sync
  - mono --runtime=v4.0 .nuget/NuGet.exe install NUnit.Runners -Version 2.6.1 -o packages
- - sed -i 's/useLegacyV2RuntimeActivationPolicy="true"/useLegacyV2RuntimeActivationPolicy="true"/g' packages/NUnit.Runners.2.6.1/tools/nunit-console.exe.config
+ - sed -i 's/useLegacyV2RuntimeActivationPolicy="true"/useLegacyV2RuntimeActivationPolicy="false"/g' packages/NUnit.Runners.2.6.1/tools/nunit-console.exe.config
  - sed -i '/v2.0.50727/d' packages/NUnit.Runners.2.6.1/tools/nunit-console.exe.config # this line causes the console to not quit after running tests, hanging the build.
  - cat packages/NUnit.Runners.2.6.1/tools/nunit-console.exe.config
 
