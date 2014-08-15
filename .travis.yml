@@ -22,7 +22,7 @@ before_install:
  - sudo apt-get install r-base
 
  # install liblinear
- - wget http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/liblinear.cgi?+http://www.csie.ntu.edu.tw/~cjlin/liblinear+zip -O liblinear-1.94.zip
+ - wget http://ptl.sys.virginia.edu/msg8u/liblinear-1.94.zip
  - unzip liblinear-1.94.zip
  - cd liblinear-1.94 && make && cd ..
 

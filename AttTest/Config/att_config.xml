@@ -40,7 +40,7 @@
     <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). The following packages are required:  "ada", "randomForest", "zoo", "ks", "earth". If the following options are configured correctly (and if you have an Internet connection), any missing packages will be installed automatically. -->
     <exe_path>/usr/bin/R</exe_path>
     <!-- Path to R executable. The R_EXE environment variable will be used if this path does not exist. -->
-    <package_install_directory></package_install_directory>
+    <package_install_directory>/home/travis/RPackages</package_install_directory>
     <!-- Writable directory into which R packages are to be installed. If left blank, the default directory will be used, which could be read-only depending on your user's permissions. -->
     <cran_mirror>http://cran.us.r-project.org</cran_mirror>
     <!-- CRAN mirror to use for package installation. -->
@@ -56,9 +56,9 @@
     <!-- Options passed to classifiers. You may remove any of these if you do not wish to use them. -->
     <classifier type="PTL.ATT.Classifiers.LibLinear">
       <!-- Use the most current version of LibLinear:  http://www.csie.ntu.edu.tw/~cjlin/liblinear/ -->
-      <train>/Users/travis/liblinear-1.94/train</train>
+      <train>/home/travis/MatthewGerber/asymmetric-threat-tracker/liblinear-1.94/train</train>
       <!-- Path to train.exe executable for LibLinear. -->
-      <predict>/Users/travis/liblinear-1.94/predict</predict>
+      <predict>/home/travis/MatthewGerber/asymmetric-threat-tracker/liblinear-1.94/predict</predict>
       <!-- Path to predict.exe executable for LibLinear. -->
       <solver>0</solver>
       <!-- Model type to use (0 = logistic regression). See LibLinear documentation for other model types (solvers other than 0 have not been tested and are unlikely to work properly). -->
@@ -66,7 +66,7 @@
   </classifiers>
 
   <modeling>
-    <model_directory>/Users/travis/MatthewGerber/asymmetric-threat-tracker/Models</model_directory>
+    <model_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Models</model_directory>
     <!-- Path to directory in which to store data related to the models that are built when running predictions. This can be any empty or non-existent directory. If left blank, the default local application data directory will be used. -->
     <feature_extractors>
     </feature_extractors>
