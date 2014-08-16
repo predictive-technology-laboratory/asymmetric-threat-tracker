@@ -29,7 +29,7 @@ namespace GuiTest
         [TestFixtureSetUp]
         public void SetUp()
         {
-            //PTL.ATT.Configuration.Initialize("Config/att_config.xml", true);
+            PTL.ATT.Configuration.Initialize("Config/att_config.xml", true);
             //PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
         }
 
@@ -41,7 +41,7 @@ namespace GuiTest
         [TestFixtureTearDown]
         public void TearDown()
         {
-            //DB.Connection.Dispose();
+            DB.Connection.Dispose();
         }
     }
 }
