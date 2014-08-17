@@ -23,13 +23,6 @@
             <param name="command"></param>
             <param name="parameters"></param>
         </member>
-        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Test(Npgsql.NpgsqlConnection)">
-            <summary>
-            Tests a connection by executing a simple command
-            </summary>
-            <param name="connection"></param>
-            <returns></returns>
-        </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.#ctor(Npgsql.NpgsqlConnection,System.Int32,System.Int32)">
             <summary>
             Constructor
@@ -114,6 +107,13 @@
             </summary>
             <param name="c"></param>
         </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Test(Npgsql.NpgsqlConnection)">
+            <summary>
+            Tests a connection by executing a simple command
+            </summary>
+            <param name="connection"></param>
+            <returns></returns>
+        </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.GetSchemas">
             <summary>
             Gets all schemas
@@ -194,7 +194,7 @@
         </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Dispose">
             <summary>
-            Closes all open connections
+            Closes all open connections and releases held resoures
             </summary>
         </member>
         <member name="P:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.RetryLimit">

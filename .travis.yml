@@ -1,0 +1,45 @@
+language: java
+
+env:
+ global:
+  - EnableNuGetPackageRestore=true 
+
+addons:
+ postgresql: "9.3"
+
+before_install:
+
+ # install mono
+ - wget http://ptl.sys.virginia.edu/msg8u/mono-opt_3.6.0_amd64.deb
+ - sudo dpkg -i mono-opt_3.6.0_amd64.deb
+ - export LD_LIBRARY_PATH=/opt/mono/lib
+ - export PATH=/opt/mono/bin:$PATH
+ - sudo apt-get install libgdiplus
+ - sudo ln -s /usr/lib/libgdiplus.so /opt/mono/lib/libgdiplus.so
+ 
+ # install the nunit runners
+ - mozroots --import --sync
+ - mono --runtime=v4.0 .nuget/NuGet.exe install NUnit.Runners -Version 2.6.3 -o packages
+
+ # install r
+ - sudo apt-get install r-base
+
+ # install liblinear
+ - wget http://ptl.sys.virginia.edu/msg8u/liblinear-1.94.zip
+ - unzip liblinear-1.94.zip
+ - cd liblinear-1.94 && make && cd ..
+
+install:
+
+ # copy travis-ci configurations into the GUI project -- AttTest/att_config.xml file is linked to this location
+ - cp AttTest/att_config_travis_ci.xml GUI/Config/att_config.xml
+ - cp GuiTest/gui_config_travis_ci.xml GUI/Config/gui_config.xml
+
+ # build the release
+ - xbuild /p:Configuration=Release
+
+before_script:
+ - psql -U postgres -c "CREATE DATABASE test"
+ - psql -U postgres -d test -c "CREATE EXTENSION postgis"
+
+script:  mono --runtime=v4.0 packages/NUnit.Runners.2.6.3/tools/nunit-console.exe AttTest/bin/Release/AttTest.dll GuiTest/bin/Release/GuiTest.dll -noxml -labels -stoponerror

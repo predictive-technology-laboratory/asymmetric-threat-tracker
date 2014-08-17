@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <postgres>
+    <host>localhost</host>
+    <port>5432</port>
+    <ssl>True</ssl>
+    <database>test</database>
+    <user>postgres</user>
+    <password></password>
+    <connection_timeout>10</connection_timeout>
+    <connection_retry_limit>5</connection_retry_limit>
+    <command_timeout>4096</command_timeout>
+    <max_pool_size>50</max_pool_size>
+  </postgres>
+
+  <postgis>
+    <shp2pgsql>/usr/bin/shp2pgsql</shp2pgsql>
+    <pgsql2shp>/usr/bin/pgsql2shp</pgsql2shp>
+  </postgis>
+
+  <r>
+    <exe_path>/usr/bin/R</exe_path>
+    <package_install_directory>/home/travis/RPackages</package_install_directory>
+    <cran_mirror>http://cran.us.r-project.org</cran_mirror>
+  </r>
+
+  <java>
+    <exe_path>/usr/bin/java</exe_path>
+  </java>
+
+  <classifiers>
+    <classifier type="PTL.ATT.Classifiers.LibLinear">
+      <train>/home/travis/MatthewGerber/asymmetric-threat-tracker/liblinear-1.94/train</train>
+      <predict>/home/travis/MatthewGerber/asymmetric-threat-tracker/liblinear-1.94/predict</predict>
+      <solver>0</solver>
+    </classifier>
+  </classifiers>
+
+  <modeling>
+    <model_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Models</model_directory>
+    <feature_extractors>
+    </feature_extractors>
+  </modeling>
+
+  <system>
+    <processor_count>-1</processor_count>
+  </system>
+
+</configuration>

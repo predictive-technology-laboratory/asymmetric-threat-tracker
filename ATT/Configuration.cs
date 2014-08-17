@@ -192,6 +192,8 @@ namespace PTL.ATT
         }
         #endregion
 
+        private static bool _initialized = false;
+
         public static string LicenseText
         {
             get
@@ -210,6 +212,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
         public static void Initialize(string path, bool initializeDB)
         {
+            if(_initialized)
+            {
+                Console.Out.WriteLine("ATT configuration is already initialized");
+                return;
+            }
+
             XmlParser p = new XmlParser(File.ReadAllText(path));
 
             XmlParser postgresP = new XmlParser(p.OuterXML("postgres"));
@@ -328,6 +336,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
             if (initializeDB)
                 DB.Initialize();
+
+            _initialized = true;
         }
 
         private static Assembly LoadExternalFeatureExtractorAssembly(object sender, ResolveEventArgs args)
