@@ -8,6 +8,10 @@ GUI/Config/gui_config.xml
 Installer/Installer
 Models
 !ATT/Models
+<<<<<<< HEAD
 !AttTest/Models
 packages
 TestResults
+=======
+packages
+>>>>>>> develop

@@ -42,7 +42,7 @@ namespace PTL.ATT.Models
         private string _description;
         private string _trainingResourceId;
         private string _predictionResourceId;
-        private Dictionary<string, string> _parameterValue;
+        private FeatureParameterCollection _parameters;
 
         public string Id
         {
@@ -75,10 +75,10 @@ namespace PTL.ATT.Models
             set { _predictionResourceId = value; }
         }
 
-        public Dictionary<string, string> ParameterValue
+        public FeatureParameterCollection Parameters
         {
-            get { return _parameterValue; }
-            set { _parameterValue = value; }
+            get { return _parameters; }
+            set { _parameters = value; }
         }
 
         public string RemapKey
@@ -86,7 +86,7 @@ namespace PTL.ATT.Models
             get { return _enumType + "-" + _enumValue + "-" + _trainingResourceId; }
         }
 
-        public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, Dictionary<string, string> parameterValue)
+        public Feature(Type enumType, Enum enumValue, string trainingResourceId, string predictionResourceId, string description, FeatureParameterCollection parameters)
         {
             _id = _featureNumber++.ToString();
             _enumType = enumType;
@@ -94,15 +94,10 @@ namespace PTL.ATT.Models
             _description = description;
             _trainingResourceId = trainingResourceId == null ? "" : trainingResourceId;
             _predictionResourceId = predictionResourceId == null ? "" : predictionResourceId;
-            _parameterValue = parameterValue;
+            _parameters = parameters;
 
-            if (_parameterValue == null)
-                _parameterValue = new Dictionary<string, string>();
-        }
-
-        public int GetIntegerParameterValue(string parameterName)
-        {
-            return int.Parse(_parameterValue[parameterName]);
+            if (_parameters == null)
+                _parameters = new FeatureParameterCollection();
         }
 
         public override string ToString()

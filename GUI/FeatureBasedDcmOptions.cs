@@ -131,7 +131,7 @@ namespace PTL.ATT.GUI
                     int index = features.Items.IndexOf(feature);
                     Feature featureInList = features.Items[index] as Feature;
                     features.SetSelected(index, true);
-                    featureInList.ParameterValue = feature.ParameterValue;
+                    featureInList.Parameters = feature.Parameters;
                 }
             }
         }
@@ -215,7 +215,7 @@ namespace PTL.ATT.GUI
                 {
                     Feature feature = features.Items[index] as Feature;
                     parameterizeFeatureToolStripMenuItem.Text = "Parameterize \"" + feature.Description + "\"...";
-                    parameterizeFeatureToolStripMenuItem.Visible = feature.ParameterValue.Count > 0;
+                    parameterizeFeatureToolStripMenuItem.Visible = feature.Parameters.Count > 0;
                     parameterizeFeatureToolStripMenuItem.Tag = feature;
                 }
 
@@ -228,37 +228,45 @@ namespace PTL.ATT.GUI
         {
             Feature feature = parameterizeFeatureToolStripMenuItem.Tag as Feature;
             DynamicForm f = new DynamicForm("Parameterize \"" + feature.Description + "\"...", DynamicForm.CloseButtons.OkCancel);
-            foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
-                if (parameter == "Attribute column")
-                    f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(new Shapefile(int.Parse(feature.TrainingResourceId)).GeometryTable).ToArray(), feature.ParameterValue[parameter], parameter, true);
-                else if (parameter == "Attribute type")
-                    f.AddDropDown(parameter + ":", new string[] { "Numeric", "Nominal" }, feature.ParameterValue[parameter], parameter, true);
+            foreach (Enum parameter in feature.Parameters.OrderBy(p => p))
+                if (parameter.Equals(FeatureBasedDCM.GeometryAttributeParameter.AttributeColumn))
+                    f.AddDropDown(parameter + ":", DB.Connection.GetColumnNames(new Shapefile(int.Parse(feature.TrainingResourceId)).GeometryTable).ToArray(), feature.Parameters.GetStringValue(parameter), parameter.ToString(), true, toolTipText: feature.Parameters.GetTip(parameter));
+                else if (parameter.Equals(FeatureBasedDCM.GeometryAttributeParameter.AttributeType))
+                    f.AddDropDown(parameter + ":", new string[] { "Numeric", "Nominal" }, feature.Parameters.GetStringValue(parameter), parameter.ToString(), true, toolTipText: feature.Parameters.GetTip(parameter));
                 else
-                    f.AddTextBox(parameter + ":", feature.ParameterValue[parameter], 20, parameter);
+                    f.AddTextBox(parameter + ":", feature.Parameters.GetStringValue(parameter), 20, parameter.ToString(), toolTipText: feature.Parameters.GetTip(parameter));
 
             if (f.ShowDialog() == DialogResult.OK)
-                foreach (string parameter in feature.ParameterValue.Keys.OrderBy(k => k))
-                    feature.ParameterValue[parameter] = f.GetValue<string>(parameter);
+                foreach (Enum parameter in feature.Parameters.OrderBy(p => p))
+                    feature.Parameters.SetValue(parameter, f.GetValue<string>(parameter.ToString()));
         }
 
         private void parameterizeSelectedFeaturesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DynamicForm f = new DynamicForm("Parameterize " + Features.Count + " features...", DynamicForm.CloseButtons.OkCancel);
-            foreach (string parameter in Features.SelectMany(feature => feature.ParameterValue.Keys).Distinct().OrderBy(p => p))
+            foreach (Enum parameter in Features.SelectMany(feature => feature.Parameters).Distinct().OrderBy(p => p.GetType().FullName + "." + p))
             {
                 string currentValue = "";
-                List<string> distinctValues = Features.Select(feature => feature.ParameterValue.ContainsKey(parameter) ? feature.ParameterValue[parameter] : null).Where(s => s != null).Distinct().ToList();
+                List<string> distinctValues = Features.Where(feature => feature.Parameters.Contains(parameter)).Select(feature => feature.Parameters.GetStringValue(parameter)).Distinct().ToList();
                 if (distinctValues.Count == 1)
                     currentValue = distinctValues[0];
 
-                f.AddTextBox(parameter + ":", currentValue, 20, parameter);
+                string parameterId = parameter.GetType().FullName;
+                parameterId = parameterId.Substring(parameterId.IndexOf('+') + 1) + "." + parameter;
+                f.AddTextBox(parameterId + ":", currentValue, 20, parameterId, toolTipText: Features.Where(feature => feature.Parameters.Contains(parameter)).First().Parameters.GetTip(parameter));
             }
 
             if (f.ShowDialog() == DialogResult.OK)
-                foreach (Feature feature in Features)
-                    foreach (string parameter in f.ValueIds)
-                        if (feature.ParameterValue.ContainsKey(parameter))
-                            feature.ParameterValue[parameter] = f.GetValue<string>(parameter);
+                foreach (string parameterId in f.ValueIds)
+                {
+                    string[] enumTypeEnumValue = parameterId.Split('.');
+                    string enumType = enumTypeEnumValue[0];
+                    string enumValue = enumTypeEnumValue[1];
+                    foreach (Feature feature in Features)
+                        foreach (Enum parameter in feature.Parameters.ToArray())
+                            if (parameter.GetType().FullName.EndsWith("+" + enumType) && parameter.ToString() == enumValue)
+                                feature.Parameters.SetValue(parameter, f.GetValue<string>(parameterId));
+                }
         }
 
         internal void CommitValues(FeatureBasedDCM model)

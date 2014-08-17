@@ -23,14 +23,14 @@
   </events>
 
   <importers>
-    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
+    <load_directory></load_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
   </importers>  
 
   <plugins>
-    <!-- Each element within <plugins> should have the form <plugin>typename</plugin>, where typename is the type of the plugin.  -->
+    <!-- Each element within <plugins> should have the form <plugin>typename</plugin>, where typename is the type of the plugin. Leave blank of no plugins are to be used.  -->
   </plugins>
 
-  <notifications>                              <!-- Setup for email notification of prediction completion / errors. Requires an SMTP account on a server. -->
+  <notifications>                              <!-- Setup for email notification of prediction completion / errors. Requires an SMTP account on a server. Leave blank if notifications are not needed. -->
     <setup>
       <host></host>                            <!-- Host name for SMTP server. -->
       <port>587</port>                         <!-- Host port for SMTP server. -->

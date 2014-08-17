@@ -83,12 +83,12 @@ namespace PTL.ATT.GUI
         #endregion
 
         #region importers
-        private static string _importersImportDirectory;
+        private static string _importersLoadDirectory;
 
-        public static string ImportersImportDirectory
+        public static string ImportersLoadDirectory
         {
-            get { return Configuration._importersImportDirectory; }
-            set { Configuration._importersImportDirectory = value; }
+            get { return Configuration._importersLoadDirectory; }
+            set { Configuration._importersLoadDirectory = value; }
         }
         #endregion
 
@@ -237,7 +237,7 @@ namespace PTL.ATT.GUI
             _eventsImportDirectory = eventsP.ElementText("import_directory");
 
             XmlParser importersP = new XmlParser(p.OuterXML("importers"));
-            _importersImportDirectory = importersP.ElementText("import_directory");
+            _importersLoadDirectory = importersP.ElementText("load_directory");
 
             _pluginTypes = new Set<Plugin>();
             XmlParser pluginsP = new XmlParser(p.OuterXML("plugins"));

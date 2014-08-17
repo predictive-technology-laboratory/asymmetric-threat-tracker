@@ -223,15 +223,22 @@ namespace PTL.ATT
                    indent + "Shapefile:  " + _shapefile;
         }
 
-        public IEnumerable<int> Contains(IEnumerable<PostGIS.Point> points)
+        public IEnumerable<int> Intersects(IEnumerable<PostGIS.Point> points)
+        {
+            return Intersects(points, -1);
+        }
+
+        public IEnumerable<int> Intersects(IEnumerable<PostGIS.Point> points, float pointBoundingBoxSize)
         {
             if (points.Count() == 0)
                 return new int[0];
 
+            string entityType = pointBoundingBoxSize > 0 ? "POLYGON" : "POINT";
+
             NpgsqlCommand cmd = DB.Connection.NewCommand("CREATE TABLE temp (" +
-                                                         "point GEOMETRY(POINT," + _shapefile.SRID + ")," +
+                                                         "entity GEOMETRY(" + entityType + "," + _shapefile.SRID + ")," +
                                                          "num INT);" +
-                                                         "CREATE INDEX ON temp USING GIST(point);");
+                                                         "CREATE INDEX ON temp USING GIST(entity);");
             cmd.ExecuteNonQuery();
 
             int pointNum = 0;
@@ -242,7 +249,9 @@ namespace PTL.ATT
                 if (point.SRID != _shapefile.SRID)
                     throw new Exception("Area SRID (" + _shapefile.SRID + ") does not match point SRID (" + point.SRID);
 
-                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO temp VALUES" : ",") + " (" + point.StGeometryFromText + "," + pointNum++ + ")");
+                string entity = pointBoundingBoxSize > 0 ? "st_expand(" + point.StGeometryFromText + "," + pointBoundingBoxSize + ")" : point.StGeometryFromText;
+
+                cmdText.Append((cmdText.Length == 0 ? "INSERT INTO temp VALUES" : ",") + " (" + entity + "," + pointNum++ + ")");
                 if ((pointNum % pointsPerBatch) == 0)
                 {
                     cmd.CommandText = cmdText.ToString();
@@ -258,35 +267,21 @@ namespace PTL.ATT
                 cmdText.Clear();
             }
 
-            string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(this);
-
             cmd.CommandText = "SELECT num " +
                               "FROM temp " +
-                              "WHERE EXISTS (SELECT 1 " +
-                                            "FROM " + _shapefile.GeometryTable + "," + areaBoundingBoxesTable + " " +
-                                            "WHERE (" +
-                                                     areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Within + "' AND " +
-                                                     "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ")" +
-                                                   ") " +
-                                                   "OR " +
-                                                   "(" +
-                                                     areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
-                                                     "st_intersects(temp.point," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
-                                                     "st_intersects(temp.point," + _shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ")" + // this is the slow operation, so we're hiding it behind simpler checks as much as possible
-                                                    ")" +
-                                            ")";
+                              "WHERE " + GetIntersectsCondition("temp.entity");
 
-            List<int> containedPointIndices = new List<int>(pointNum);
+            List<int> intersectedPointIndices = new List<int>(pointNum);
             NpgsqlDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
-                containedPointIndices.Add(Convert.ToInt32(reader["num"]));
+                intersectedPointIndices.Add(Convert.ToInt32(reader["num"]));
             reader.Close();
 
             cmd.CommandText = "DROP TABLE temp";
             cmd.ExecuteNonQuery();
             DB.Connection.Return(cmd.Connection);
 
-            return containedPointIndices;
+            return intersectedPointIndices;
         }
 
         internal void Delete()
@@ -299,6 +294,24 @@ namespace PTL.ATT
 
             try { DB.Connection.ExecuteNonQuery("DROP TABLE " + Incident.GetTableName(this, true)); }
             catch (Exception ex) { Console.Out.WriteLine("Error deleting incident table:  " + ex.Message); }
+        }
+
+        internal string GetIntersectsCondition(string entityColumn)
+        {
+            string areaBoundingBoxesTable = AreaBoundingBoxes.GetTableName(this);
+            string areaBoundingBoxesRelationshipColumn = areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.Relationship;
+
+            return "EXISTS (SELECT 1 " +
+                           "FROM " + areaBoundingBoxesTable + "," + _shapefile.GeometryTable + " " +
+                           "WHERE st_intersects(" + entityColumn + "," + areaBoundingBoxesTable + "." + AreaBoundingBoxes.Columns.BoundingBox + ") AND " +
+                                  "(" +
+                                    areaBoundingBoxesRelationshipColumn + "='" + AreaBoundingBoxes.Relationship.Within + "' OR " +
+                                    "(" +
+                                      areaBoundingBoxesRelationshipColumn + "='" + AreaBoundingBoxes.Relationship.Overlaps + "' AND " +
+                                      "st_intersects(" + entityColumn + "," + _shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ")" + // this is the slow operation, so we're hiding it behind simpler checks as much as possible
+                                    ")" +
+                                  ")" +
+                           ")";
         }
     }
 }

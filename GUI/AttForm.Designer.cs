@@ -134,10 +134,10 @@ namespace PTL.ATT.GUI
             this.label7 = new System.Windows.Forms.Label();
             this.predictionPointSpacing = new System.Windows.Forms.NumericUpDown();
             this.threatSplitContainer = new System.Windows.Forms.SplitContainer();
-            this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
-            this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
+            this.threatMap = new PTL.ATT.GUI.Visualization.ThreatMap();
+            this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -465,7 +465,7 @@ namespace PTL.ATT.GUI
             this.run.Size = new System.Drawing.Size(36, 23);
             this.run.TabIndex = 17;
             this.run.Text = "Run";
-            this.toolTip.SetToolTip(this.run, "Run the prediction as configured");
+            this.toolTip.SetToolTip(this.run, "Run the prediction.");
             this.run.UseVisualStyleBackColor = true;
             this.run.Click += new System.EventHandler(this.run_Click);
             // 
@@ -1026,24 +1026,6 @@ namespace PTL.ATT.GUI
             this.threatSplitContainer.SplitterDistance = 378;
             this.threatSplitContainer.TabIndex = 0;
             // 
-            // threatMap
-            // 
-            this.threatMap.BackColor = System.Drawing.Color.White;
-            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.threatMap.Location = new System.Drawing.Point(0, 0);
-            this.threatMap.Name = "threatMap";
-            this.threatMap.Size = new System.Drawing.Size(718, 374);
-            this.threatMap.TabIndex = 0;
-            // 
-            // assessments
-            // 
-            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.assessments.Location = new System.Drawing.Point(0, 0);
-            this.assessments.Name = "assessments";
-            this.assessments.Size = new System.Drawing.Size(718, 214);
-            this.assessments.TabIndex = 0;
-            // 
             // horizontalSplitContainer
             // 
             this.horizontalSplitContainer.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
@@ -1074,6 +1056,24 @@ namespace PTL.ATT.GUI
             this.log.Size = new System.Drawing.Size(1122, 181);
             this.log.TabIndex = 0;
             this.log.Text = "";
+            // 
+            // threatMap
+            // 
+            this.threatMap.BackColor = System.Drawing.Color.White;
+            this.threatMap.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.threatMap.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.threatMap.Location = new System.Drawing.Point(0, 0);
+            this.threatMap.Name = "threatMap";
+            this.threatMap.Size = new System.Drawing.Size(718, 374);
+            this.threatMap.TabIndex = 0;
+            // 
+            // assessments
+            // 
+            this.assessments.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.assessments.Location = new System.Drawing.Point(0, 0);
+            this.assessments.Name = "assessments";
+            this.assessments.Size = new System.Drawing.Size(718, 214);
+            this.assessments.TabIndex = 0;
             // 
             // AttForm
             // 

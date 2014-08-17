@@ -867,7 +867,7 @@ namespace PTL.ATT.GUI
                             if (action == ManageImporterAction.Load)
                             {
                                 DynamicForm df = new DynamicForm("Select importer source...", DynamicForm.CloseButtons.OkCancel);
-                                df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: GUI.Configuration.ImportersImportDirectory);
+                                df.AddTextBox("Path:", GUI.Configuration.ImportersLoadDirectory, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: GUI.Configuration.ImportersLoadDirectory);
                                 if (df.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
                                     string path = df.GetValue<string>("path");
@@ -959,7 +959,7 @@ namespace PTL.ATT.GUI
                                     else if (action == ManageImporterAction.Store)
                                     {
                                         if (exportDirectory == null)
-                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", GUI.Configuration.ImportersImportDirectory);
+                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", GUI.Configuration.ImportersLoadDirectory);
 
                                         if (Directory.Exists(exportDirectory))
                                         {
@@ -1438,9 +1438,9 @@ namespace PTL.ATT.GUI
                             Thread areaT = new Thread(new ParameterizedThreadStart(delegate(object o)
                                 {
                                     Area area = o as Area;
-                                    NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
-                                    DB.Connection.Return(connection);
+                                    NpgsqlCommand command = DB.Connection.NewCommand(null);
+                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(command, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
+                                    DB.Connection.Return(command.Connection);
                                 }));
 
                             areaT.Start(p.PredictionArea);
@@ -1465,9 +1465,9 @@ namespace PTL.ATT.GUI
                                                                                                                 feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryDensity)))
                                                 {
                                                     Shapefile shapefile = new Shapefile(int.Parse(feature.PredictionResourceId));
-                                                    NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                    List<List<PointF>> points = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
-                                                    DB.Connection.Return(connection);
+                                                    NpgsqlCommand command = DB.Connection.NewCommand(null);
+                                                    List<List<PointF>> points = Geometry.GetPoints(command, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
+                                                    DB.Connection.Return(command.Connection);
                                                     lock (overlays) { overlays.Add(new Overlay(shapefile.Name, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }
                                             }));
@@ -1487,7 +1487,7 @@ namespace PTL.ATT.GUI
                             threatMap.Display(p, overlays);
 
                             if (threatMap.DisplayedPrediction != null)
-                                Invoke(new Action(RefreshAssessmentPlots));
+                                Invoke(new Action(RefreshAssessments));
                         }));
 
                     displayThread.Start();
@@ -1526,7 +1526,7 @@ namespace PTL.ATT.GUI
                     List<Plot> newPlots = selectedPredictions.Where(p => p.Id == threatMap.DisplayedPrediction.Id).First().AssessmentPlots.ToList();
                     threatMap.DisplayedPrediction.AssessmentPlots.Clear();
                     threatMap.DisplayedPrediction.AssessmentPlots.AddRange(newPlots);
-                    RefreshAssessmentPlots();
+                    RefreshAssessments();
                 }
 
                 RefreshPredictions(selectedPredictions.ToArray());
@@ -1633,16 +1633,16 @@ namespace PTL.ATT.GUI
                                     if (File.Exists(selectedPrediction.PointPredictionLogPath))
                                     {
                                         DiscreteChoiceModel model = selectedPrediction.Model;
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>();
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>>();
                                         foreach (PointPrediction pointPrediction in selectedPrediction.PointPredictions)
                                         {
                                             List<Tuple<string, double>> smoothedIncidentScore = new List<Tuple<string, double>>();
                                             foreach (string incident in pointPrediction.IncidentScore.Keys)
-                                                smoothedIncidentScore.Add(new Tuple<string, double>(incident, Math.Round(pointPrediction.IncidentScore[incident], 3)));
+                                                smoothedIncidentScore.Add(new Tuple<string, double>(incident, pointPrediction.IncidentScore[incident]));
 
                                             string logPointId = model.GetPointIdForLog(pointPrediction.PointId, pointPrediction.Time);
-                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
+                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
                                         }
 
                                         model.WritePointPredictionLog(newLog, selectedPrediction.PointPredictionLogPath);
@@ -1716,7 +1716,7 @@ namespace PTL.ATT.GUI
                             }
                     }
 
-                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), seriesPoints, 500, 500, Plot.Format.JPEG, 2);
+                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), -1, seriesPoints, 500, 500, Plot.Format.JPEG, 2);
                     List<TitledImage> comparisonPlotImages = new List<TitledImage>(new TitledImage[] { new TitledImage(comparisonPlot.Image, null) });
                     new ImageViewer(comparisonPlotImages, 0).ShowDialog();
                 }
@@ -1760,10 +1760,15 @@ namespace PTL.ATT.GUI
                 if (TraversePredictionTree().Count(n => n.Checked) == 1)
                     title = TraversePredictionTree().Where(n => n.Checked).First().Text;
 
-                try { images.Add(new TitledImage(DiscreteChoiceModel.EvaluateAggregate(SelectedPredictions, 500, 500, title, title).Image, title)); }
+                try
+                {
+                    Tuple<SurveillancePlot, float> surveillancePlotAndCorrelation = DiscreteChoiceModel.GetAggregateSurveillancePlotAndCorrelation(SelectedPredictions, 500, 500, title, title);
+                    images.Add(new TitledImage(surveillancePlotAndCorrelation.Item1.Image, title));
+                    ImageViewer viewer = new ImageViewer(images, 0);
+                    viewer.Text = "Correlation between threat and crime count:  " + surveillancePlotAndCorrelation.Item2;
+                    viewer.Show();
+                }
                 catch (Exception ex) { MessageBox.Show("Error rendering aggregate plot:  " + ex.Message); }
-
-                new ImageViewer(images, 0).ShowDialog();
             }
         }
 
@@ -1838,7 +1843,7 @@ namespace PTL.ATT.GUI
                             {
                                 PredictionGroup group = node.Tag as PredictionGroup;
                                 if (group.AggregatePlot == null)
-                                    group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
+                                    group.AggregatePlot = DiscreteChoiceModel.GetAggregateSurveillancePlot(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
                             }
                             else if (node.Tag is Prediction)
                                 DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
@@ -1970,11 +1975,11 @@ namespace PTL.ATT.GUI
             Focus();
         }
 
-        public void RefreshAssessmentPlots()
+        public void RefreshAssessments()
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(RefreshAssessmentPlots));
+                Invoke(new Action(RefreshAssessments));
                 return;
             }
 
@@ -1986,6 +1991,15 @@ namespace PTL.ATT.GUI
                 plotBox.Image = plot.Image;
                 plotBox.MouseDoubleClick += new MouseEventHandler(plot_MouseDoubleClick);
                 assessments.AddPlot(plotBox);
+
+                float correlation = float.NaN;
+                if (plot.Slice == -1)
+                    correlation = threatMap.DisplayedPrediction.OverallCrimeThreatCorrelation;
+                else if (plot.Slice >= 0)
+                    correlation = threatMap.DisplayedPrediction.SliceThreatCorrelation[plot.Slice];
+
+                if (!float.IsNaN(correlation))
+                    toolTip.SetToolTip(plotBox, "Correlation between threat and crime count:  " + correlation);
             }
         }
 

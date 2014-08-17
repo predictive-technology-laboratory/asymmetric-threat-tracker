@@ -1091,7 +1091,7 @@ namespace PTL.ATT.GUI.Visualization
                         try
                         {
                             Set<string> logPointIdsToGet = new Set<string>(pointPredictions.Select(p => model.GetPointIdForLog(p.PointId, p.Time)).ToArray());
-                            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointPredictionLog = model.ReadPointPredictionLog(DisplayedPrediction.PointPredictionLogPath, logPointIdsToGet);
+                            Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> pointPredictionLog = model.ReadPointPredictionLog(DisplayedPrediction.PointPredictionLogPath, logPointIdsToGet);
                             for (int i = 0; i < pointPredictions.Length; ++i)
                             {
                                 PointPrediction pointPrediction = pointPredictions[i];
@@ -1102,10 +1102,10 @@ namespace PTL.ATT.GUI.Visualization
 
                                 foreach (Tuple<string, double> labelConfidence in pointPredictionLog[logPointId].Item1)
                                     if (labelConfidence.Item1 != PointPrediction.NullLabel)
-                                        dataView[incidentProbCol[labelConfidence.Item1], i].Value = Math.Round(labelConfidence.Item2, 3);
+                                        dataView[incidentProbCol[labelConfidence.Item1], i].Value = labelConfidence.Item2;
 
-                                foreach (Tuple<string, double> featureIdValue in pointPredictionLog[logPointId].Item2)
-                                    dataView[featureIdCol[featureIdValue.Item1], i].Value = Math.Round(featureIdValue.Item2, 3);
+                                foreach (Tuple<string, string> featureIdValue in pointPredictionLog[logPointId].Item2)
+                                    dataView[featureIdCol[featureIdValue.Item1], i].Value = featureIdValue.Item2;
                             }
                         }
                         catch (Exception ex) { Console.Out.WriteLine("Error while reading prediction log:  " + ex.Message); }
@@ -1123,7 +1123,13 @@ namespace PTL.ATT.GUI.Visualization
                                 else if (incidentCols.Contains(sortedColumn))
                                     args.SortResult = ((double)args.CellValue1).CompareTo((double)args.CellValue2);
                                 else if (featureCols.Contains(sortedColumn))
-                                    args.SortResult = Math.Abs((double)args.CellValue1).CompareTo(Math.Abs((double)args.CellValue2));
+                                {
+                                    double cellValue1, cellValue2;
+                                    if (double.TryParse(args.CellValue1.ToString(), out cellValue1) && double.TryParse(args.CellValue2.ToString(), out cellValue2))
+                                        args.SortResult = Math.Abs(cellValue1).CompareTo(Math.Abs(cellValue2));
+                                    else
+                                        args.SortResult = args.CellValue1.ToString().CompareTo(args.CellValue2.ToString());
+                                }
                                 else
                                     throw new Exception("Unknown column type");
 

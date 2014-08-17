@@ -136,13 +136,16 @@ namespace PTL.ATT.GUI
             TopMost = true;
         }
 
-        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false, bool addFileBrowsingButtons = false, string initialBrowsingDirectory = null, string fileFilter = null, Action<object, EventArgs> textChanged = null)
+        public void AddTextBox(string label, string text, int widthInCharacters, string valueId, char passwordChar = '\0', bool onlyUseTextWidth = false, bool addFileBrowsingButtons = false, string initialBrowsingDirectory = null, string fileFilter = null, Action<object, EventArgs> textChanged = null, string toolTipText = null)
         {
             Label l = new Label();
             l.Text = label;
             l.TextAlign = ContentAlignment.MiddleRight;
             l.Size = l.PreferredSize;
             l.Margin = new System.Windows.Forms.Padding(5);
+
+            if (toolTipText != null)
+                toolTip.SetToolTip(l, toolTipText);
 
             TextBox tb = new TextBox();
             tb.Name = valueId;
@@ -197,12 +200,15 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<string>(() => tb.Text));
         }
 
-        public void AddNumericUpdown(string label, decimal value, int decimalPlaces, decimal minimum, decimal maximum, decimal increment, string valueId)
+        public void AddNumericUpdown(string label, decimal value, int decimalPlaces, decimal minimum, decimal maximum, decimal increment, string valueId, string toolTipText = null)
         {
             Label l = new Label();
             l.Text = label;
             l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            if (toolTipText != null)
+                toolTip.SetToolTip(l, toolTipText);
 
             NumericUpDown ud = new NumericUpDown();
             ud.Name = valueId;
@@ -223,7 +229,7 @@ namespace PTL.ATT.GUI
             _valueIdReturn.Add(valueId, new Func<object>(() => ud.Value));
         }
 
-        public void AddCheckBox(string label, ContentAlignment checkAlign, bool isChecked, string valueId)
+        public void AddCheckBox(string label, ContentAlignment checkAlign, bool isChecked, string valueId, string toolTipText = null)
         {
             CheckBox cb = new CheckBox();
             cb.Name = valueId;
@@ -232,16 +238,22 @@ namespace PTL.ATT.GUI
             cb.Checked = isChecked;
             cb.Size = cb.PreferredSize;
 
+            if (toolTipText != null)
+                toolTip.SetToolTip(cb, toolTipText);
+
             _mainPanel.Controls.Add(cb);
             _valueIdReturn.Add(valueId, new Func<object>(() => cb.Checked));
         }
 
-        public void AddDropDown(string label, Array values, object selected, string valueId, bool sorted, Action<object, EventArgs> selectedValueChanged = null)
+        public void AddDropDown(string label, Array values, object selected, string valueId, bool sorted, Action<object, EventArgs> selectedValueChanged = null, string toolTipText = null)
         {
             Label l = new Label();
             l.Text = label;
             l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            if (toolTipText != null)
+                toolTip.SetToolTip(l, toolTipText);
 
             ComboBox cb = new ComboBox();
             cb.Name = valueId;
@@ -275,12 +287,15 @@ namespace PTL.ATT.GUI
                 cb.SelectedIndex = 0;
         }
 
-        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId, bool sorted)
+        public void AddListBox(string label, Array values, object selected, SelectionMode selectionMode, string valueId, bool sorted, string toolTipText = null)
         {
             Label l = new Label();
             l.Text = label;
             l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            if (toolTipText != null)
+                toolTip.SetToolTip(l, toolTipText);
 
             ListBox lb = new ListBox();
             lb.Name = valueId;
@@ -311,12 +326,15 @@ namespace PTL.ATT.GUI
                 lb.SelectedIndex = 0;
         }
 
-        public void AddControl(string label, Control control, Func<object> returnValueFunction, string valueId)
+        public void AddControl(string label, Control control, Func<object> returnValueFunction, string valueId, string toolTipText = null)
         {
             Label l = new Label();
             l.Text = label;
             l.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             l.Size = new System.Drawing.Size(l.PreferredSize.Width, l.Height);
+
+            if (toolTipText != null)
+                toolTip.SetToolTip(l, toolTipText);
 
             control.Name = valueId;
             control.Size = control.PreferredSize;

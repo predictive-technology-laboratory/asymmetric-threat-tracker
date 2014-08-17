@@ -124,6 +124,8 @@ namespace PTL.ATT
         private DateTime _predictionStartTime;
         private DateTime _predictionEndTime;
         private List<Plot> _assessmentPlots;
+        private Dictionary<long, float> _sliceCrimeThreatCorrelation;
+        private float _overallCrimeThreatCorrelation;
         private int _id;
         private bool _done;
         private DateTime _mostRecentlyEvaluatedIncidentTime;
@@ -248,6 +250,26 @@ namespace PTL.ATT
             }
         }
 
+        public float OverallCrimeThreatCorrelation
+        {
+            get { return _overallCrimeThreatCorrelation; }
+            set
+            {
+                _overallCrimeThreatCorrelation = value;
+                Update();
+            }
+        }
+
+        public Dictionary<long, float> SliceThreatCorrelation
+        {
+            get { return _sliceCrimeThreatCorrelation; }
+            set
+            {
+                _sliceCrimeThreatCorrelation = value;
+                Update();
+            }
+        }
+
         public string ModelDetails
         {
             get { return _modelDetails; }
@@ -319,6 +341,8 @@ namespace PTL.ATT
             _predictionStartTime = predictionStartTime;
             _predictionEndTime = predictionEndTime;
             _assessmentPlots = new List<Plot>();
+            _sliceCrimeThreatCorrelation = new Dictionary<long, float>();
+            _overallCrimeThreatCorrelation = float.NaN;
             _done = false;
             _mostRecentlyEvaluatedIncidentTime = DateTime.MinValue;
             _modelDetails = _smoothingDetails = null;

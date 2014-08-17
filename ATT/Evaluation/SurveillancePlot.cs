@@ -173,22 +173,30 @@ namespace PTL.ATT.Evaluation
 
             int locationsSurveilled = 0;
             int trueIncidentsCaptured = 0;
-            int totalTrueIncidents = locationTrueCount.Keys.Where(location => locationThreats.ContainsKey(location)).Select(location => locationTrueCount[location]).Sum(); // only count those true incidents in locations where we made a prediction. some of our incident data falls outside the prediction area and the prediction shouldn't be penalized for not retrieving these incidents.
-            int locationsSurveilledPerPlotPoint = (int)(sortedLocations.Count * 0.01);
+            int totalTrueIncidents = locationTrueCount.Values.Sum();
+            int locationsSurveilledPerPlotPoint = (int)(sortedLocations.Count * 0.01);  // plot 100 points
             foreach (string location in sortedLocations)
             {
                 ++locationsSurveilled;
 
                 int trueCount;
-                locationTrueCount.TryGetValue(location, out trueCount);
-                trueIncidentsCaptured += trueCount;
+                if (locationTrueCount.TryGetValue(location, out trueCount))
+                    trueIncidentsCaptured += trueCount;
 
                 if ((locationsSurveilled % locationsSurveilledPerPlotPoint) == 0)
                     plotPoints.Add(new PointF(locationsSurveilled / (float)(percentages ? locationAvgThreat.Count : 1), trueIncidentsCaptured / (float)(percentages ? totalTrueIncidents : 1)));
             }
 
-            if (addStartEndPoints)
-                plotPoints.Add(new PointF(percentages ? 1 : sortedLocations.Count, percentages ? 1 : totalTrueIncidents));
+            // add final point if the final iteration didn't do so above
+            if ((locationsSurveilled % locationsSurveilledPerPlotPoint) != 0)
+                plotPoints.Add(new PointF(locationsSurveilled / (float)(percentages ? locationAvgThreat.Count : 1), trueIncidentsCaptured / (float)(percentages ? totalTrueIncidents : 1)));
+
+            if (trueIncidentsCaptured != totalTrueIncidents)
+                Console.Out.WriteLine("WARNING:  The area covered by the prediction did not cover all of the ground-truth incidents during the prediction window. This probably means that a bug exists in the model.");
+
+            PointF endPoint = new PointF(percentages ? 1 : sortedLocations.Count, percentages ? 1 : totalTrueIncidents);
+            if (addStartEndPoints && plotPoints[plotPoints.Count - 1] != endPoint)
+                plotPoints.Add(endPoint);
 
             return plotPoints;
         }
@@ -202,16 +210,16 @@ namespace PTL.ATT.Evaluation
             get { return _seriesAUC; }
         }
 
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format, int aucDigits)
-            : base(title, seriesPoints, height, width, format)
+        public SurveillancePlot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format, int aucDigits)
+            : base(title, slice, seriesPoints, height, width, format)
         {
             _aucDigits = aucDigits;
 
             Render(height, width, true, new Tuple<string, string>(null, null), false, false);
         }
 
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
-            : base(title, seriesPoints, image, format)
+        public SurveillancePlot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
+            : base(title, slice, seriesPoints, image, format)
         {
             _aucDigits = aucDigits;
         }
