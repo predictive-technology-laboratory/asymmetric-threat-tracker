@@ -9,11 +9,11 @@
             Represents a spatial geometry
             </summary>
         </member>
-        <member name="M:LAIR.ResourceAPIs.PostGIS.Geometry.GetPoints(Npgsql.NpgsqlConnection,System.String,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.Double,Npgsql.NpgsqlParameter[])">
+        <member name="M:LAIR.ResourceAPIs.PostGIS.Geometry.GetPoints(Npgsql.NpgsqlCommand,System.String,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.Double,Npgsql.NpgsqlParameter[])">
             <summary>
             Gets points defining a geometry
             </summary>
-            <param name="connection">Connection to query</param>
+            <param name="command">Command to use</param>
             <param name="table">Table to query</param>
             <param name="geometryColumn">Geometry column</param>
             <param name="idColumn">Column containing a unique ID for each geometry</param>
@@ -22,22 +22,22 @@
             <param name="parameters">Parameters (e.g., for row-value constraints)</param>
             <returns>List of List of PointF structures</returns>
         </member>
-        <member name="M:LAIR.ResourceAPIs.PostGIS.Geometry.GetPoints(Npgsql.NpgsqlConnection,System.String,System.String,System.String,System.Double)">
+        <member name="M:LAIR.ResourceAPIs.PostGIS.Geometry.GetPoints(Npgsql.NpgsqlCommand,System.String,System.String,System.String,System.Double)">
             <summary>
             Gets points defining a geometry
             </summary>
-            <param name="connection">Connection to query</param>
+            <param name="command">Command to use</param>
             <param name="table">Table to query</param>
             <param name="geometryColumn">Geometry column</param>
             <param name="idColumn">Column containing a unique ID for each geometry</param>
             <param name="distanceFilterThreshold">Filter threshold (in units corresponding to the geometry's SRID). Two consecutive points this far apart or nearer will be combined.</param>
             <returns>List of List of PointF structures</returns>
         </member>
-        <member name="M:LAIR.ResourceAPIs.PostGIS.Geometry.GetPoints(Npgsql.NpgsqlConnection,System.String,System.String,System.String,System.String,System.Double,Npgsql.NpgsqlParameter[])">
+        <member name="M:LAIR.ResourceAPIs.PostGIS.Geometry.GetPoints(Npgsql.NpgsqlCommand,System.String,System.String,System.String,System.String,System.Double,Npgsql.NpgsqlParameter[])">
             <summary>
             Gets points defining a geometry
             </summary>
-            <param name="connection">Connection to query</param>
+            <param name="command">Command to use</param>
             <param name="table">Table to query</param>
             <param name="geometryColumn">Geometry column</param>
             <param name="idColumn">Column containing a unique ID for each geometry</param>

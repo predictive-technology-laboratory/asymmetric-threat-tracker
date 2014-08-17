@@ -87,6 +87,22 @@
             <param name="numbers">Numbers to get variance of</param>
             <returns>Variance</returns>
         </member>
+        <member name="M:LAIR.Math.GetCovariance(System.Collections.Generic.List{System.Single},System.Collections.Generic.List{System.Single})">
+            <summary>
+            Gets covariance between two variables
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Math.GetCorrelation(System.Collections.Generic.List{System.Single},System.Collections.Generic.List{System.Single})">
+            <summary>
+            Gets product-moment correlation coefficient between two variables
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
         <member name="M:LAIR.Math.Factorial(System.UInt32)">
             <summary>
             Gets the factorial of a number
@@ -655,7 +671,7 @@
         </member>
         <member name="T:LAIR.Misc.TitledImage">
             <summary>
-            TitledImage class
+            Encapsulates an image and a title
             </summary>
         </member>
         <member name="M:LAIR.Misc.TitledImage.#ctor(System.Drawing.Image,System.String)">
