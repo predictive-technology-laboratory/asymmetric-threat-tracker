@@ -17,6 +17,7 @@ using NUnit.Framework;
 using PTL.ATT;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace GuiTest
         [TestFixtureSetUp]
         public void SetUp()
         {
-            //PTL.ATT.Configuration.Initialize("Config/att_config.xml", true);
+            PTL.ATT.Configuration.Initialize(Path.Combine("Config", "att_config.xml"), false);
             //PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
         }
 
