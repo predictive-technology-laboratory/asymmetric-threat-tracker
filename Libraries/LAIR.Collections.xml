@@ -4,112 +4,6 @@
         <name>LAIR.Collections</name>
     </assembly>
     <members>
-        <member name="T:LAIR.Collections.Generic.IndexedItem`1">
-            <summary>
-            Represents an indexed item
-            </summary>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedItem`1.#ctor(`0)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="index">Index of item</param>
-        </member>
-        <member name="P:LAIR.Collections.Generic.IndexedItem`1.Index">
-            <summary>
-            Gets the index for an item
-            </summary>
-        </member>
-        <member name="T:LAIR.Collections.Generic.IndexedSet`2">
-            <summary>
-            Represents an indexable set
-            </summary>
-            <typeparam name="ItemType">Type of items to store</typeparam>
-            <typeparam name="IndexType">Type of index to use on items</typeparam>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.#ctor(System.Int32)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="initialCapacity">Initial capacity</param>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.Add(`0)">
-            <summary>
-            Adds an item
-            </summary>
-            <param name="item">Item to add</param>
-            <returns>True if item was new</returns>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.AddRange(System.Collections.Generic.IEnumerable{`0})">
-            <summary>
-            Adds a range of items
-            </summary>
-            <param name="items">Items to add</param>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.Get(`1)">
-            <summary>
-            Gets item by index
-            </summary>
-            <param name="index">Index of item to fetch</param>
-            <returns>Item</returns>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.TryGet(`1,`0@)">
-            <summary>
-            Tries to get an item for an index
-            </summary>
-            <param name="index">Index</param>
-            <param name="item">Item</param>
-            <returns>True if item was found and false otherwise</returns>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.Remove(`0)">
-            <summary>
-            Removes an item from this set
-            </summary>
-            <param name="item">Item to remove</param>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.GetEnumerator">
-            <summary>
-            Gets enumerator over items
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:LAIR.Collections.Generic.IndexedSet`2.System#Collections#IEnumerable#GetEnumerator">
-            <summary>
-            Gets enumerator over items
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="P:LAIR.Collections.Generic.IndexedSet`2.Item(`1)">
-            <summary>
-            Gets the item for an index
-            </summary>
-            <param name="index">Index of item to get</param>
-            <returns>Item</returns>
-        </member>
-        <member name="P:LAIR.Collections.Generic.IndexedSet`2.Count">
-            <summary>
-            Gets the number of items in this set
-            </summary>
-        </member>
-        <member name="T:LAIR.Collections.Generic.Permutor`1">
-            <summary>
-            Provides permutations of a sequence of items
-            </summary>
-            <typeparam name="T">Type of items to permute</typeparam>
-        </member>
-        <member name="M:LAIR.Collections.Generic.Permutor`1.#ctor(`0[],System.Int32)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="items">Items to permute</param>
-            <param name="permutationLength">Length of permutation to return (-1 for all permutations)</param>
-        </member>
-        <member name="M:LAIR.Collections.Generic.Permutor`1.GetEnumerator">
-            <summary>
-            Gets enumerator over permutations of items
-            </summary>
-            <returns>Enumerator over permutations of items</returns>
-        </member>
         <member name="T:LAIR.Collections.Generic.Set`1">
             <summary>
             Represents a set of unique items
@@ -532,6 +426,112 @@
             </summary>
             <param name="currentCapacity">Current capacity</param>
             <returns>Next capacity larger than a given capacity</returns>
+        </member>
+        <member name="T:LAIR.Collections.Generic.Permutor`1">
+            <summary>
+            Provides permutations of a sequence of items
+            </summary>
+            <typeparam name="T">Type of items to permute</typeparam>
+        </member>
+        <member name="M:LAIR.Collections.Generic.Permutor`1.#ctor(`0[],System.Int32)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="items">Items to permute</param>
+            <param name="permutationLength">Length of permutation to return (-1 for all permutations)</param>
+        </member>
+        <member name="M:LAIR.Collections.Generic.Permutor`1.GetEnumerator">
+            <summary>
+            Gets enumerator over permutations of items
+            </summary>
+            <returns>Enumerator over permutations of items</returns>
+        </member>
+        <member name="T:LAIR.Collections.Generic.IndexedItem`1">
+            <summary>
+            Represents an indexed item
+            </summary>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedItem`1.#ctor(`0)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="index">Index of item</param>
+        </member>
+        <member name="P:LAIR.Collections.Generic.IndexedItem`1.Index">
+            <summary>
+            Gets the index for an item
+            </summary>
+        </member>
+        <member name="T:LAIR.Collections.Generic.IndexedSet`2">
+            <summary>
+            Represents an indexable set
+            </summary>
+            <typeparam name="ItemType">Type of items to store</typeparam>
+            <typeparam name="IndexType">Type of index to use on items</typeparam>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.#ctor(System.Int32)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="initialCapacity">Initial capacity</param>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.Add(`0)">
+            <summary>
+            Adds an item
+            </summary>
+            <param name="item">Item to add</param>
+            <returns>True if item was new</returns>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.AddRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Adds a range of items
+            </summary>
+            <param name="items">Items to add</param>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.Get(`1)">
+            <summary>
+            Gets item by index
+            </summary>
+            <param name="index">Index of item to fetch</param>
+            <returns>Item</returns>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.TryGet(`1,`0@)">
+            <summary>
+            Tries to get an item for an index
+            </summary>
+            <param name="index">Index</param>
+            <param name="item">Item</param>
+            <returns>True if item was found and false otherwise</returns>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.Remove(`0)">
+            <summary>
+            Removes an item from this set
+            </summary>
+            <param name="item">Item to remove</param>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.GetEnumerator">
+            <summary>
+            Gets enumerator over items
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Collections.Generic.IndexedSet`2.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Gets enumerator over items
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:LAIR.Collections.Generic.IndexedSet`2.Item(`1)">
+            <summary>
+            Gets the item for an index
+            </summary>
+            <param name="index">Index of item to get</param>
+            <returns>Item</returns>
+        </member>
+        <member name="P:LAIR.Collections.Generic.IndexedSet`2.Count">
+            <summary>
+            Gets the number of items in this set
+            </summary>
         </member>
     </members>
 </doc>
