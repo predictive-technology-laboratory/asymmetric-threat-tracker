@@ -45,6 +45,4 @@ before_script:
 
 script:
  - ./.nunit.sh AttTest/bin/Release/AttTest.dll
- - echo "done 1"
  - ./.nunit.sh GuiTest/bin/Release/GuiTest.dll 
- - echo "done 2"
