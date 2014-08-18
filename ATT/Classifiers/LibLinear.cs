@@ -249,6 +249,8 @@ namespace PTL.ATT.Classifiers
 
         public override void Classify(FeatureVectorList featureVectors)
         {
+            base.Classify(featureVectors);
+
             _libLinear.Classify(featureVectors);
         }
 

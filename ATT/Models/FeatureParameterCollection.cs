@@ -54,6 +54,11 @@ namespace PTL.ATT.Models
             return int.Parse(_parameterValueTip[parameter].Item1);
         }
 
+        public float GetFloatValue(Enum parameter)
+        {
+            return float.Parse(_parameterValueTip[parameter].Item1);
+        }
+
         public TimeSpan GetTimeSpanValue(Enum parameter)
         {
             return TimeSpan.Parse(_parameterValueTip[parameter].Item1);

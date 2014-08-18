@@ -169,7 +169,7 @@ namespace PTL.ATT.Models
             foreach (Feature feature in Features.Where(f => f.EnumType == typeof(TimeSliceFeature)))
                 featureId.Add((TimeSliceFeature)feature.EnumValue, feature.Id);
 
-            List<TimeSliceFeature> dayIntervalFeatures = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
+            List<TimeSliceFeature> threeHourIntervals = new List<TimeSliceFeature>(new TimeSliceFeature[] { TimeSliceFeature.LateNight, TimeSliceFeature.EarlyMorning, TimeSliceFeature.Morning, TimeSliceFeature.MidMorning, TimeSliceFeature.Afternoon, TimeSliceFeature.MidAfternoon, TimeSliceFeature.Evening, TimeSliceFeature.Night });
 
             int processorCount = Configuration.ProcessorCount;
             Configuration.ProcessorCount = 1; // all sub-threads (e.g., those in FeatureBasedDCM) should use 1 core, since we're multi-threading here
@@ -198,21 +198,23 @@ namespace PTL.ATT.Models
                             DateTime sliceMid = new DateTime((sliceStart.Ticks + sliceEnd.Ticks) / 2L);
 
                             #region get interval features that are true for all points in the current slice
-                            List<NominalFeature> intervalFeatures = new List<NominalFeature>();
-                            int dayIntervalStart = sliceStart.Hour / 3;
-                            int dayIntervalEnd = (int)(((sliceEnd.Ticks - sliceStart.Ticks) / ticksPerHour) / 3);
-                            Set<int> coveredIntervals = new Set<int>(false);
-                            for (int dayInterval = dayIntervalStart; dayInterval <= dayIntervalEnd; ++dayInterval)
+                            Dictionary<NominalFeature, string> threeHourIntervalFeatureValue = new Dictionary<NominalFeature,string>();
+                            int startingThreeHourInterval = sliceStart.Hour / 3;                                                  // which 3-hour interval does the current slice start in?
+                            int threeHourIntervalsTouched = (int)(((sliceEnd.Ticks - sliceStart.Ticks) / ticksPerHour) / 3) + 1;  // how many 3-hour intervals does the current slice touch?
+                            int endingThreeHourInterval = startingThreeHourInterval + threeHourIntervalsTouched - 1;                  // which 3-hour interval does the current slice end in?
+                            for (int k = 0; k < threeHourIntervals.Count; ++k)
                             {
-                                int interval = dayInterval % 8;
-                                if (coveredIntervals.Add(interval))
+                                TimeSliceFeature threeHourInterval = threeHourIntervals[k];
+                                string id;
+                                if (featureId.TryGetValue(threeHourInterval, out id))  // if the current model uses the current 3-hour interval as a feature
                                 {
-                                    string id;
-                                    if (featureId.TryGetValue(dayIntervalFeatures[interval], out id))
-                                        intervalFeatures.Add(IdNominalFeature[id]);
+                                    bool covered = false;
+                                    for (int interval = startingThreeHourInterval; !covered && interval <= endingThreeHourInterval; ++interval)
+                                        if (interval % 8 == k)
+                                            covered = true;
+
+                                    threeHourIntervalFeatureValue.Add(IdNominalFeature[id], covered.ToString());
                                 }
-                                else
-                                    break;
                             }
                             #endregion
 
@@ -233,8 +235,8 @@ namespace PTL.ATT.Models
                                     else if ((long)(point.Time.Ticks / _timeSliceTicks) != slice)
                                         throw new Exception("Point should not be in slice:  " + point);
 
-                                    foreach (LAIR.MachineLearning.Feature feature in intervalFeatures)
-                                        featureVector.Add(feature, true);
+                                    foreach (LAIR.MachineLearning.NominalFeature feature in threeHourIntervalFeatureValue.Keys)
+                                        featureVector.Add(feature, threeHourIntervalFeatureValue[feature]);
 
                                     double percentThroughPeriod = (slice % _periodTimeSlices) / (double)(_periodTimeSlices - 1);
                                     double radians = 2 * Math.PI * percentThroughPeriod;

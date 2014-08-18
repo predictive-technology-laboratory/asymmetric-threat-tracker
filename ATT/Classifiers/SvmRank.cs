@@ -121,6 +121,8 @@ namespace PTL.ATT.Classifiers
 
         public override void Classify(FeatureVectorList featureVectors)
         {
+            base.Classify(featureVectors);
+
             if (Model.IncidentTypes.Count != 1)
                 throw new Exception("SvmRank cannot be used for multi-incident predictions. Select a single incident type.");
 

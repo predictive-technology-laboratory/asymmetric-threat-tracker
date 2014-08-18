@@ -74,13 +74,15 @@ namespace PTL.ATT.Models
         {
             LagOffset,
             LagDuration,
-            SampleSize
+            SampleSize,
+            DefaultValue
         }
 
         public enum GeometryAttributeParameter
         {
             AttributeColumn,
-            AttributeType
+            AttributeType,
+            DefaultValue
         }
 
         public enum IncidentDensityParameter
@@ -88,7 +90,8 @@ namespace PTL.ATT.Models
             LagOffset,
             LagDuration,
             LagCount,
-            SampleSize
+            SampleSize,
+            DefaultValue
         }
 
         public static IEnumerable<Feature> GetAvailableFeatures(Area area)
@@ -110,12 +113,14 @@ namespace PTL.ATT.Models
                     parameters.Add(SpatialDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
                     parameters.Add(SpatialDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
                     parameters.Add(SpatialDensityParameter.SampleSize, "500", "Sample size for spatial density estimate.");
+                    parameters.Add(SpatialDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few spatial objects).");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameters);
 
                     // geometry attribute
                     parameters = new FeatureParameterCollection();
                     parameters.Add(GeometryAttributeParameter.AttributeColumn, "", "Name of column within geometry from which to draw value.");
                     parameters.Add(GeometryAttributeParameter.AttributeType, "", "Type of attribute:  Nominal or Numeric");
+                    parameters.Add(GeometryAttributeParameter.DefaultValue, "0", "Value to use when geometry does not overlap a model point.");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttribute, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameters);
                 }
 
@@ -127,6 +132,7 @@ namespace PTL.ATT.Models
                 parameters.Add(IncidentDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
                 parameters.Add(IncidentDensityParameter.LagCount, "1", "Number of lags of the given offset and duration to use, with offsets being additive.");
                 parameters.Add(IncidentDensityParameter.SampleSize, "500", "Sample size for incident density estimate.");
+                parameters.Add(IncidentDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few incidents).");
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameters);
             }
 
@@ -140,15 +146,14 @@ namespace PTL.ATT.Models
         internal static List<Tuple<string, Parameter>> GetPointPredictionValues(FeatureVectorList featureVectors)
         {
             List<Tuple<string, Parameter>> pointPredictionValues = new List<Tuple<string, Parameter>>(featureVectors.Count);
-            int pointNum = 0; // must use this because point IDs get repeated for the timeslice model
+            int pointNum = 0; // must use this instead of point IDs because point IDs get repeated for the timeslice model
             foreach (FeatureVector featureVector in featureVectors)
-                if (featureVector.Count > 0) // sometimes points might have no extracted feature (e.g., for geometry attributes that don't cover the entire area). such cases can have strange probabilities that are not comparable to probabilities of points with features, so exclude them. this means that the surveillance plots might not reach (1,1) since all the area won't be surveilled -- seems okay.
-                {
-                    Point point = featureVector.DerivedFrom as Point;
-                    string timeParameterName = "@time_" + pointNum++;
-                    IEnumerable<KeyValuePair<string, double>> incidentScore = point.PredictionConfidenceScores.Where(kvp => kvp.Key != PointPrediction.NullLabel).Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value));
-                    pointPredictionValues.Add(new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, incidentScore, incidentScore.Sum(kvp => kvp.Value)), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time)));
-                }
+            {
+                Point point = featureVector.DerivedFrom as Point;
+                string timeParameterName = "@time_" + pointNum++;
+                IEnumerable<KeyValuePair<string, double>> incidentScore = point.PredictionConfidenceScores.Where(kvp => kvp.Key != PointPrediction.NullLabel).Select(kvp => new KeyValuePair<string, double>(kvp.Key, kvp.Value));
+                pointPredictionValues.Add(new Tuple<string, Parameter>(PointPrediction.GetValue(point.Id, timeParameterName, incidentScore, incidentScore.Sum(kvp => kvp.Value)), new Parameter(timeParameterName, NpgsqlDbType.Timestamp, point.Time)));
+            }
 
             return pointPredictionValues;
         }
@@ -481,8 +486,16 @@ namespace PTL.ATT.Models
                                 Console.Out.WriteLine("Computing spatial density of \"" + shapefile.Name + "\".");
                                 int sampleSize = spatialDensityFeature.Parameters.GetIntegerValue(SpatialDensityParameter.SampleSize);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, -1, -1, densityEvalPoints, false);
-                                if (densityEstimates.Count == densityEvalPoints.Count)
-                                    lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
+
+                                // the density might not be computable if too few points are provided -- use default value for all evaluation points in such cases
+                                if (densityEstimates.Count != densityEvalPoints.Count)
+                                {
+                                    float defaultValue = spatialDensityFeature.Parameters.GetFloatValue(SpatialDensityParameter.DefaultValue);
+                                    Console.Out.WriteLine("WARNING:  Using default value \"" + defaultValue + "\" for feature " + spatialDensityFeature);
+                                    densityEstimates = Enumerable.Repeat(defaultValue, densityEvalPoints.Count).ToList();
+                                }
+
+                                lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(spatialDensityFeature.Id, densityEstimates); }
                             }
 
                             DB.Connection.Return(command.Connection);
@@ -524,16 +537,16 @@ namespace PTL.ATT.Models
                                 string attributeColumn = geometryAttributeFeature.Parameters.GetStringValue(GeometryAttributeParameter.AttributeColumn);
                                 NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + pointTableName + "." + Point.Columns.Id + " as point_id," + shapefile.GeometryTable + "." + attributeColumn + " as geometry_attribute " +
                                                                              "FROM " + pointTableName + " " +
-                                                                             "JOIN " + shapefile.GeometryTable + " " +
-                                                                             "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") AND " +
-                                                                                 pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " +
-                                                                                 "(" +
-                                                                                     pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
-                                                                                     "(" +
-                                                                                         pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
-                                                                                         pointTableName + "." + Point.Columns.Time + "<=@point_end" +
-                                                                                     ")" +
-                                                                                 ") " +
+                                                                             "LEFT JOIN " + shapefile.GeometryTable + " " + // the geometry might not overlap the point, in which case we'll use the default feature value below
+                                                                             "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") " + 
+                                                                             "WHERE " + pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " +
+                                                                                        "(" +
+                                                                                          pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
+                                                                                          "(" +
+                                                                                            pointTableName + "." + Point.Columns.Time + ">=@point_start AND " +
+                                                                                            pointTableName + "." + Point.Columns.Time + "<=@point_end" +
+                                                                                          ")" +
+                                                                                        ") " +
                                                                              "ORDER BY " + pointTableName + "." + Point.Columns.Id, null, threadConnection);
 
                                 ConnectionPool.AddParameters(cmd, new Parameter("point_start", NpgsqlDbType.Timestamp, start),
@@ -562,7 +575,7 @@ namespace PTL.ATT.Models
                                             else if (values.Count == 1)
                                                 vector.Add(attributeFeature, Convert.ToString(values[0]), false);  // don't update range due to concurrent access to the feature
                                             else
-                                                throw new Exception("Nominal geometry attribute \"" + attributeColumn + "\" of shapefile \"" + shapefile.GeometryTable + "\" has multiple values at point \"" + (vector.DerivedFrom as Point).Location + "\".");
+                                                throw new Exception("Nominal geometry attribute \"" + attributeColumn + "\" of shapefile \"" + shapefile.GeometryTable + "\" has multiple non-numeric values at point \"" + (vector.DerivedFrom as Point).Location + "\".");
                                         }
 
                                         values.Clear();
@@ -570,14 +583,20 @@ namespace PTL.ATT.Models
                                     });
 
                                 NpgsqlDataReader reader = cmd.ExecuteReader();
+                                string defaultValue = geometryAttributeFeature.Parameters.GetStringValue(GeometryAttributeParameter.DefaultValue);
                                 while (reader.Read())
                                 {
                                     pointId = Convert.ToInt32(reader["point_id"]);
                                     if (pointId != currPointId)
                                         addFeatureToVector();
 
-                                    values.Add(reader["geometry_attribute"]);
+                                    object value = reader["geometry_attribute"];
+                                    if (value is DBNull)  // we did a left join above, so the value might be null meaning the geometry did not overlap the point
+                                        value = defaultValue;
+
+                                    values.Add(value);
                                 }
+                                reader.Close();
 
                                 addFeatureToVector();
                             }
@@ -632,8 +651,16 @@ namespace PTL.ATT.Models
                                 Console.Out.WriteLine("Computing spatial density of \"" + incident + "\" with " + lagCount + " lag(s) at offset " + lagOffset + ", each with duration " + lagDuration);
                                 int sampleSize = kdeFeature.Parameters.GetIntegerValue(IncidentDensityParameter.SampleSize);
                                 List<float> densityEstimates = KernelDensityDCM.GetDensityEstimate(kdeInputPoints, sampleSize, false, 0, 0, densityEvalPoints, false);
-                                if (densityEstimates.Count == densityEvalPoints.Count)
-                                    lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
+
+                                // the density might not be computable if too few points are provided -- use default density for all evaluation points in such cases
+                                if (densityEstimates.Count != densityEvalPoints.Count)
+                                {
+                                    float defaultValue = kdeFeature.Parameters.GetFloatValue(IncidentDensityParameter.DefaultValue);
+                                    Console.Out.WriteLine("WARNING:  Using default value \"" + defaultValue + "\" for feature " + kdeFeature);
+                                    densityEstimates = Enumerable.Repeat(defaultValue, densityEvalPoints.Count).ToList();
+                                }
+
+                                lock (featureIdDensityEstimates) { featureIdDensityEstimates.Add(kdeFeature.Id, densityEstimates); }
                             }
                         }));
 
