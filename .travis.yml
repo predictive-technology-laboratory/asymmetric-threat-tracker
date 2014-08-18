@@ -17,7 +17,7 @@ before_install:
  - sudo apt-get install libgdiplus
  - sudo ln -s /usr/lib/libgdiplus.so /opt/mono/lib/libgdiplus.so
  
- # install the nunit runners
+ # install the nunit runners, which requires updated certificates
  - mozroots --import --sync
  - mono --runtime=v4.0 .nuget/NuGet.exe install NUnit.Runners -Version 2.6.3 -o packages
 
@@ -45,4 +45,6 @@ before_script:
 
 script:
  - ./.nunit.sh AttTest/bin/Release/AttTest.dll
+ - echo "done 1"
  - ./.nunit.sh GuiTest/bin/Release/GuiTest.dll 
+ - echo "done 2"
