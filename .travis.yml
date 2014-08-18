@@ -44,4 +44,3 @@ before_script:
 
 script:
  - mono --runtime=v4.0 packages/NUnit.Runners.2.6.3/tools/nunit-console.exe AttTest/bin/Release/AttTest.dll GuiTest/bin/Release/GuiTest.dll -noxml -labels -stoponerror
- - echo "Mono tests done."
