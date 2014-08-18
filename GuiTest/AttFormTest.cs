@@ -32,13 +32,13 @@ namespace GuiTest
         public void SetUp()
         {
             PTL.ATT.Configuration.Initialize(Path.Combine("Config", "att_config.xml"), true);
-            //PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
+            PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
         }
 
         [Test]
         public void Test()
         {
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
         }
 
         [TestFixtureTearDown]
