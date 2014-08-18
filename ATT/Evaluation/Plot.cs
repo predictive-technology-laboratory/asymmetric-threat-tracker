@@ -94,18 +94,6 @@ namespace PTL.ATT.Evaluation
             _imageFormat = format;
         }
 
-        protected Plot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format)
-        {
-            _title = title;
-            _slice = slice;
-            _seriesPoints = seriesPoints;
-            _image = image;
-            _imageFormat = format;
-
-            if (_image == null)
-                throw new NullReferenceException("Passed null image to plot constructor");
-        }
-
         public void Render(int height, int width, bool includeTitle, Tuple<string, string> plotSeriesDifference, bool blackAndWhite, bool retainImageOnDisk, params string[] args)
         {
             _imagePath = CreateImageOnDisk(height, width, includeTitle, plotSeriesDifference, blackAndWhite, args);

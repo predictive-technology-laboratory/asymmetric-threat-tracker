@@ -215,13 +215,15 @@ namespace PTL.ATT.Evaluation
         {
             _aucDigits = aucDigits;
 
-            Render(height, width, true, new Tuple<string, string>(null, null), false, false);
-        }
+            // x and y values must be non-decreasing
+            foreach (string series in seriesPoints.Keys)
+                for (int i = 1; i < seriesPoints[series].Count; ++i)
+                    if (seriesPoints[series][i].X < seriesPoints[series][i - 1].X)
+                        throw new Exception("Series x values decrease");
+                    else if (seriesPoints[series][i].Y < seriesPoints[series][i - 1].Y)
+                        throw new Exception("Series y values decrease");
 
-        public SurveillancePlot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
-            : base(title, slice, seriesPoints, image, format)
-        {
-            _aucDigits = aucDigits;
+            Render(height, width, true, new Tuple<string, string>(null, null), false, false);
         }
 
         /// <summary>

@@ -291,7 +291,7 @@ namespace PTL.ATT.Models
             if (training && incidentPointTuples.Count == 0)
                 Console.Out.WriteLine("WARNING:  Zero positive incident points retrieved for \"" + prediction.Model.IncidentTypes.Concatenate(", ") + "\" during the training period \"" + prediction.Model.TrainingStart.ToShortDateString() + " " + prediction.Model.TrainingStart.ToShortTimeString() + " -- " + prediction.Model.TrainingEnd.ToShortDateString() + " " + prediction.Model.TrainingEnd.ToShortTimeString() + "\"");
 
-            Point.Insert(connection, incidentPointTuples, prediction, area, vacuum);  // all incidents are constrained to be in the area upon import
+            Point.Insert(connection, incidentPointTuples, prediction, area, vacuum);  // all incidents are constrained to be in the area upon import, so we don't need to filter them before inserting
 
             // insert negative points
             int negativePointSpacing = training ? _trainingPointSpacing : prediction.PredictionPointSpacing;
