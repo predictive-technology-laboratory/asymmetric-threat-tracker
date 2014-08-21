@@ -38,7 +38,6 @@ namespace GuiTest
         [Test]
         public void Test()
         {
-            Thread.Sleep(5000);
         }
 
         [TestFixtureTearDown]
