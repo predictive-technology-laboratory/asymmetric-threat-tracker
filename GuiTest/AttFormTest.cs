@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GuiTest
@@ -31,12 +32,13 @@ namespace GuiTest
         public void SetUp()
         {
             PTL.ATT.Configuration.Initialize(Path.Combine("Config", "att_config.xml"), true);
-            //PTL.ATT.GUI.Configuration.Initialize("Config/gui_config.xml");
+            PTL.ATT.GUI.Configuration.Initialize(Path.Combine("Config", "gui_config.xml"));
         }
 
         [Test]
         public void Test()
         {
+            Thread.Sleep(5000);
         }
 
         [TestFixtureTearDown]

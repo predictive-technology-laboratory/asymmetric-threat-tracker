@@ -17,7 +17,7 @@ before_install:
  - sudo apt-get install libgdiplus
  - sudo ln -s /usr/lib/libgdiplus.so /opt/mono/lib/libgdiplus.so
  
- # install the nunit runners
+ # install the nunit runners, which requires updated certificates
  - mozroots --import --sync
  - mono --runtime=v4.0 .nuget/NuGet.exe install NUnit.Runners -Version 2.6.3 -o packages
 
@@ -41,5 +41,8 @@ install:
 before_script:
  - psql -U postgres -c "CREATE DATABASE test"
  - psql -U postgres -d test -c "CREATE EXTENSION postgis"
+ - chmod +x .nunit.sh
 
-script:  mono --runtime=v4.0 packages/NUnit.Runners.2.6.3/tools/nunit-console.exe AttTest/bin/Release/AttTest.dll GuiTest/bin/Release/GuiTest.dll -noxml -labels -stoponerror
+script:
+ - ./.nunit.sh AttTest/bin/Release/AttTest.dll
+ - ./.nunit.sh GuiTest/bin/Release/GuiTest.dll 

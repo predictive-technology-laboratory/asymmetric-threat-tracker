@@ -161,8 +161,6 @@ namespace PTL.ATT.Models
                 seriesPoints.Add("Overall", SurveillancePlot.GetSurveillancePlotPoints(overallLocationTrueCount, overallLocationThreats, true, true));
                 seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(overallLocationTrueCount, overallLocationThreats, true, true));
                 prediction.AssessmentPlots.Add(new SurveillancePlot(prediction.Name, -1, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
-
-                List<string> sortedLocations = overallLocationThreats.Keys.OrderBy(k => k).ToList();
                 prediction.OverallCrimeThreatCorrelation = GetThreatCorrelation(overallLocationThreats, overallLocationTrueCount);
             }
 

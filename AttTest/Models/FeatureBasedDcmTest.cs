@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AttTest.Models
@@ -20,6 +21,7 @@ namespace AttTest.Models
         [Test]
         public void Test()
         {
+            Thread.Sleep(5000);
         }
 
         [TestFixtureTearDown]
