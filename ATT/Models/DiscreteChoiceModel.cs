@@ -67,7 +67,7 @@ namespace PTL.ATT.Models
 
         public static IEnumerable<DiscreteChoiceModel> GetAll(bool excludeThoseCopiedForPredictions)
         {
-            FeatureExtractor fex;
+            IFeatureExtractor fex;
             Configuration.TryGetFeatureExtractor(typeof(FeatureBasedDCM),out fex);
             List<DiscreteChoiceModel> models = new List<DiscreteChoiceModel>();
             BinaryFormatter bf = new BinaryFormatter();
@@ -127,6 +127,8 @@ namespace PTL.ATT.Models
                 sliceTicks = (model as TimeSliceDCM).TimeSliceTicks;
 
             prediction.AssessmentPlots.Clear();
+            prediction.SliceThreatCorrelation.Clear();
+            prediction.OverallCrimeThreatCorrelation = -1;
             int sliceNum = 1;
             Dictionary<long, Dictionary<string, int>> sliceLocationTrueCount = SurveillancePlot.GetSliceLocationTrueCount(incidents, prediction);
             Dictionary<long, Dictionary<string, List<double>>> sliceLocationThreats = SurveillancePlot.GetSliceLocationThreats(prediction);
@@ -147,7 +149,8 @@ namespace PTL.ATT.Models
                     Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
                     seriesPoints.Add("Slice " + sliceNum++, SurveillancePlot.GetSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
                     seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
-                    prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
+                    prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, slice, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
+                    prediction.SliceThreatCorrelation.Add(slice, GetThreatCorrelation(sliceLocationThreats[slice], sliceLocationTrueCount[slice]));
                 }
 
             if (sliceLocationTrueCount.Count > 1)
@@ -157,14 +160,20 @@ namespace PTL.ATT.Models
                 Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
                 seriesPoints.Add("Overall", SurveillancePlot.GetSurveillancePlotPoints(overallLocationTrueCount, overallLocationThreats, true, true));
                 seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(overallLocationTrueCount, overallLocationThreats, true, true));
-                prediction.AssessmentPlots.Add(new SurveillancePlot(prediction.Name, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
+                prediction.AssessmentPlots.Add(new SurveillancePlot(prediction.Name, -1, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
+                prediction.OverallCrimeThreatCorrelation = GetThreatCorrelation(overallLocationThreats, overallLocationTrueCount);
             }
 
             prediction.MostRecentlyEvaluatedIncidentTime = incidents.Max(i => i.Time);
             prediction.ReleaseAllLazyLoadedData();
         }
 
-        public static Plot EvaluateAggregate(IEnumerable<Prediction> predictions, int plotWidth, int plotHeight, string seriesName, string plotTitle)
+        public static SurveillancePlot GetAggregateSurveillancePlot(IEnumerable<Prediction> predictions, int plotWidth, int plotHeight, string seriesName, string plotTitle)
+        {
+            return GetAggregateSurveillancePlotAndCorrelation(predictions, plotWidth, plotHeight, seriesName, plotTitle).Item1;
+        }
+
+        public static Tuple<SurveillancePlot, float> GetAggregateSurveillancePlotAndCorrelation(IEnumerable<Prediction> predictions, int plotWidth, int plotHeight, string seriesName, string plotTitle)
         {
             Dictionary<string, int> aggregateLocationTrueCount = new Dictionary<string, int>();
             Dictionary<string, List<double>> aggregateLocationThreats = new Dictionary<string, List<double>>();
@@ -186,14 +195,20 @@ namespace PTL.ATT.Models
             seriesPoints.Add(seriesName, SurveillancePlot.GetSurveillancePlotPoints(aggregateLocationTrueCount, aggregateLocationThreats, true, true));
             seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(aggregateLocationTrueCount, aggregateLocationThreats, true, true));
 
-            return new SurveillancePlot(plotTitle, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2);
+            return new Tuple<SurveillancePlot, float>(new SurveillancePlot(plotTitle, -1, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2), GetThreatCorrelation(aggregateLocationThreats, aggregateLocationTrueCount));
+        }
+
+        private static float GetThreatCorrelation(Dictionary<string, List<double>> locationThreats, Dictionary<string, int> locationTrueCount)
+        {
+            List<string> sortedLocations = locationThreats.Keys.OrderBy(k => k).ToList();
+            return LAIR.Math.GetCorrelation(sortedLocations.Select(location => (float)locationThreats[location].Average()).ToList(),
+                                            sortedLocations.Select(location => locationTrueCount.ContainsKey(location) ? (float)locationTrueCount[location] : 0).ToList());
         }
         #endregion
         #endregion
 
         private int _id;
         private string _name;
-        private int _pointSpacing;
         private Set<string> _incidentTypes;
         private Area _trainingArea;
         private DateTime _trainingStart;
@@ -214,16 +229,6 @@ namespace PTL.ATT.Models
             set
             {
                 _name = value;
-                Update();
-            }
-        }
-
-        public int PointSpacing
-        {
-            get { return _pointSpacing; }
-            set
-            {
-                _pointSpacing = value;
                 Update();
             }
         }
@@ -324,7 +329,6 @@ namespace PTL.ATT.Models
         }
 
         protected DiscreteChoiceModel(string name,
-                                      int pointSpacing,
                                       IEnumerable<string> incidentTypes,
                                       Area trainingArea,
                                       DateTime trainingStart,
@@ -333,7 +337,6 @@ namespace PTL.ATT.Models
             : this()
         {
             _name = name;
-            _pointSpacing = pointSpacing;
             _incidentTypes = new Set<string>(incidentTypes.ToArray());
             _trainingArea = trainingArea;
             _trainingStart = trainingStart;
@@ -343,16 +346,14 @@ namespace PTL.ATT.Models
             Update();
         }
 
-        public Prediction Run(Area predictionArea, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
+        public Prediction Run(Area predictionArea, int predictionPointSpacing, DateTime startTime, DateTime endTime, string predictionName, bool newRun)
         {
-            DiscreteChoiceModel modelCopy = null;
             Prediction prediction = null;
             try
             {
-                modelCopy = Copy();
-                modelCopy.PredictionArea = predictionArea;
-                prediction = new Prediction(modelCopy, newRun, predictionName, predictionArea, startTime, endTime, true);
-                modelCopy.Run(prediction);
+                PredictionArea = predictionArea;
+                prediction = new Prediction(this, newRun, predictionName, predictionArea, predictionPointSpacing, startTime, endTime, true);
+                Run(prediction);
                 prediction.Done = true;
 
                 return prediction;
@@ -365,9 +366,6 @@ namespace PTL.ATT.Models
                 try { prediction.Delete(); }
                 catch (Exception ex2) { Console.Out.WriteLine("Failed to delete prediction:  " + ex2.Message); }
 
-                try { modelCopy.Delete(); }
-                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete model:  " + ex2.Message); }
-
                 throw ex;
             }
         }
@@ -378,20 +376,20 @@ namespace PTL.ATT.Models
 
         /// <summary>
         /// Reads the point log for this prediction. The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.
+        /// list contains the labels and their confidence scores and the second list contains the feature IDs and their values.
         /// </summary>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
         /// <param name="pointIds">Point IDs to read log for, or null for all points.</param>
         /// <returns></returns>
-        public abstract Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null);
+        public abstract Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> ReadPointPredictionLog(string pointPredictionLogPath, Set<string> pointIds = null);
 
         /// <summary>
         /// Writes the point log for this prediction.
         /// </summary>
         /// <param name="pointIdLabelsFeatureValues">The key is the point ID, which is mapped to two lists of tuples. The first
-        /// list contains the label confidence scores and the second list contains the feature ID values.</param>
+        /// list contains the labels and their confidence scores and the second list contains the feature IDs and their values.</param>
         /// <param name="pointPredictionLogPath">Path to point prediction log</param>
-        public abstract void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath);
+        public abstract void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath);
 
         public abstract string GetDetails(Prediction prediction);
 
@@ -404,7 +402,6 @@ namespace PTL.ATT.Models
             return (indentLevel > 0 ? Environment.NewLine : "") + indent + "Type:  " + GetType() + Environment.NewLine +
                    indent + "ID:  " + _id + Environment.NewLine +
                    indent + "Name:  " + _name + Environment.NewLine +
-                   indent + "Point spacing:  " + _pointSpacing + Environment.NewLine +
                    indent + "Incident types:  " + _incidentTypes.Concatenate(",") + Environment.NewLine +
                    indent + "Training area:  " + TrainingArea.GetDetails(indentLevel + 1) + Environment.NewLine +
                    indent + "Training start:  " + _trainingStart.ToShortDateString() + " " + _trainingStart.ToShortTimeString() + Environment.NewLine +

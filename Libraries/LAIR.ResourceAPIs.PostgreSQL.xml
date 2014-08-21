@@ -23,13 +23,6 @@
             <param name="command"></param>
             <param name="parameters"></param>
         </member>
-        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Test(Npgsql.NpgsqlConnection)">
-            <summary>
-            Tests a connection by executing a simple command
-            </summary>
-            <param name="connection"></param>
-            <returns></returns>
-        </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.#ctor(Npgsql.NpgsqlConnection,System.Int32,System.Int32)">
             <summary>
             Constructor
@@ -69,6 +62,15 @@
             <param name="parameters"></param>
             <returns></returns>
         </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.NewCommand(System.String,System.Collections.Generic.IEnumerable{LAIR.ResourceAPIs.PostgreSQL.Parameter},Npgsql.NpgsqlConnection)">
+            <summary>
+            Creates a new command
+            </summary>
+            <param name="commandText"></param>
+            <param name="parameters"></param>
+            <param name="connection"></param>
+            <returns></returns>
+        </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.ExecuteNonQuery(System.String,LAIR.ResourceAPIs.PostgreSQL.Parameter[])">
             <summary>
             Executes a non-query command
@@ -104,6 +106,13 @@
             Returns a connection to the pool
             </summary>
             <param name="c"></param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Test(Npgsql.NpgsqlConnection)">
+            <summary>
+            Tests a connection by executing a simple command
+            </summary>
+            <param name="connection"></param>
+            <returns></returns>
         </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.GetSchemas">
             <summary>
@@ -185,7 +194,7 @@
         </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Dispose">
             <summary>
-            Closes all open connections
+            Closes all open connections and releases held resoures
             </summary>
         </member>
         <member name="P:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.RetryLimit">

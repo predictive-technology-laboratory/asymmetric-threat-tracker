@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- NOTE:  You must not remove any fields below unless noted otherwise. -->
+
+<configuration>
+
+  <application_data_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/ApplicationData</application_data_directory> <!-- Path to application data directory (for logs, etc.). If left blank, the default local application data directory will be used (sometimes this isn't writable, hence the option). -->
+  
+  <postgis>
+    <shapefile_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Shapefiles</shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., ATT/Data/Shapefiles). -->
+  </postgis>
+
+  <logging>
+    <editor>/usr/bin/emacs</editor> <!-- Path to editor executable for viewing the log file. -->
+  </logging>
+
+  <incidents>
+    <import_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Crimes</import_directory> <!-- The default directory that should be opened when browsing for incidents to import (e.g., ATT/Data/Crimes). -->
+  </incidents>
+
+  <events>
+    <import_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Events</import_directory> <!-- The default directory that should be opened when browsing for events to import (e.g., ATT/Data/Events). -->
+  </events>  
+
+  <importers>
+    <load_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Importers</load_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., C:\ATT\Importers). -->
+  </importers>    
+
+  <plugins>
+    <!-- Each element within <plugins> should have the form <plugin>typename</plugin>, where typename is the type of the plugin. This is optional.  -->
+  </plugins>
+
+  <notifications>                              <!-- Setup for email notification of prediction completion / errors. Requires an SMTP account on a server. This is optional. -->
+    <setup>
+      <host></host>                            <!-- Host name for SMTP server. -->
+      <port>587</port>                         <!-- Host port for SMTP server. -->
+      <enable_ssl>true</enable_ssl>            <!-- Whether or not to use SSL encryption (true/false). -->
+      <username></username>                    <!-- Username on SMTP server. -->
+      <password></password>                    <!-- Password for username, in encrypted format. To obtain an encrypted password, run ATT and select File -> Encrypt string. Then insert the resulting value here. -->
+      <from>                    
+        <email></email>                        <!-- Source email address from which messages originate. -->
+        <name>Asymmetric Threat Tracker</name> <!-- Source name from which messages originate. -->
+      </from>        
+    </setup>
+    <to>                                       <!-- The <to> element may contain one or more <address> elements. Each message will be sent to all addresses. -->
+      <address>
+        <email></email>                        <!-- Destination email address. -->
+        <name></name>                          <!-- Destination name. -->
+      </address>      
+    </to>
+  </notifications>
+
+  <mono_hacks>                                         <!-- Hacks used to make ATT run via Mono. These are only needed when running via Mono. -->
+    <add_incident_refresh>false</add_incident_refresh> <!-- Whether or not to add a "Refresh" menu item to the incident types menu. Mono does not yet handle the CloseUp event for DateTimePickers, which is where we automatically fire the incident refresh. -->
+  </mono_hacks>
+
+  <system>
+    <processor_count>-1</processor_count> <!-- Number of processor cores to use within the GUI, or -1 to use all processor cores. -->
+  </system>    
+
+</configuration>

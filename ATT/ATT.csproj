@@ -57,6 +57,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\LAIR.MachineLearning.dll</HintPath>
     </Reference>
+    <Reference Include="LAIR.Misc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\LAIR.Misc.dll</HintPath>
+    </Reference>
     <Reference Include="LAIR.ResourceAPIs.PostGIS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\LAIR.ResourceAPIs.PostGIS.dll</HintPath>
@@ -101,7 +105,8 @@
     <Compile Include="Importers\ShapefileImporter.cs" />
     <Compile Include="Importers\XmlImporter.cs" />
     <Compile Include="Importers\IShapefileInfoRetriever.cs" />
-    <Compile Include="Models\FeatureExtractor.cs" />
+    <Compile Include="Models\FeatureParameterCollection.cs" />
+    <Compile Include="Models\IFeatureExtractor.cs" />
     <Compile Include="Models\IDiscreteChoiceModel.cs" />
     <Compile Include="Models\IFeatureBasedDCM.cs" />
     <Compile Include="Models\KernelDensityDCM.cs" />
@@ -142,7 +147,6 @@
   <ItemGroup>
     <Content Include="att_config.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

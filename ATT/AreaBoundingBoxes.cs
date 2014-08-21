@@ -74,8 +74,6 @@ namespace PTL.ATT
         {
             Console.Out.WriteLine("Creating bounding boxes for area \"" + area + "\".");
 
-            string tableName = CreateTable(area);
-
             NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT min(st_xmin(" + ShapefileGeometry.Columns.Geometry + "))," +
                                                                 "max(st_xmax(" + ShapefileGeometry.Columns.Geometry + "))," +
                                                                 "min(st_ymin(" + ShapefileGeometry.Columns.Geometry + "))," +
@@ -100,26 +98,27 @@ namespace PTL.ATT
                         new PostGIS.Point(x + pointContainmentBoundingBoxSize, y, area.Shapefile.SRID),
                         new PostGIS.Point(x, y, area.Shapefile.SRID)}, area.Shapefile.SRID));
 
+            string tableName = CreateTable(area);
             StringBuilder cmdText = new StringBuilder();
-            int batchNum = 0;
+            int boxNum = 0;
             foreach (PostGIS.Polygon boundingBox in pointContainmentBoundingBoxes)
             {
                 cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + tableName + " (" + Columns.Insert + ") VALUES " : ",") + "(" + boundingBox.StGeometryFromText + ")");
-                if (++batchNum >= 1000)
+                if (++boxNum >= 1000)
                 {
                     cmd.CommandText = cmdText.ToString();
                     cmd.ExecuteNonQuery();
                     cmdText.Clear();
-                    batchNum = 0;
+                    boxNum = 0;
                 }
             }
 
-            if (batchNum > 0)
+            if (boxNum > 0)
             {
                 cmd.CommandText = cmdText.ToString();
                 cmd.ExecuteNonQuery();
                 cmdText.Clear();
-                batchNum = 0;
+                boxNum = 0;
             }
 
             cmd.CommandText = "UPDATE " + tableName + " " +

@@ -64,7 +64,7 @@ namespace PTL.ATT.GUI
             this.normalize.Size = new System.Drawing.Size(75, 17);
             this.normalize.TabIndex = 0;
             this.normalize.Text = "Normalize:";
-            this.toolTip.SetToolTip(this.normalize, "Whether or not to normalize the resulting density estimate to be in [0,1]");
+            this.toolTip.SetToolTip(this.normalize, "Whether or not to normalize the resulting density estimates to be in [0,1]");
             this.normalize.UseVisualStyleBackColor = true;
             // 
             // trainingSampleSize

@@ -30,8 +30,8 @@ namespace PTL.ATT.GUI
         private TextBoxBase _textBox;
         private bool _scrollTextBox;
 
-        public LogWriter(TextBoxBase textBox, string path, bool writeTimestamp, params TextWriter[] otherOutputs)
-            : base(path, writeTimestamp, otherOutputs)
+        public LogWriter(TextBoxBase textBox, string path, bool writeTimestamp, bool append, params TextWriter[] otherOutputs)
+            : base(path, writeTimestamp, append, otherOutputs)
         {
             _textBox = textBox;
             _scrollTextBox = true;

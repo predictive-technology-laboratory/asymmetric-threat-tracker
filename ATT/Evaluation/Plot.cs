@@ -36,6 +36,7 @@ namespace PTL.ATT.Evaluation
 
         private Dictionary<string, List<PointF>> _seriesPoints;
         private string _title;
+        private long _slice;
         private Image _image;
         private Format _imageFormat;
         private string _imagePath;
@@ -55,6 +56,11 @@ namespace PTL.ATT.Evaluation
                         Render(_image.Height, _image.Width, true, null, false, false);
                 }
             }
+        }
+
+        public long Slice
+        {
+            get { return _slice; }
         }
 
         public Dictionary<string, List<PointF>> SeriesPoints
@@ -80,22 +86,12 @@ namespace PTL.ATT.Evaluation
             get { return _imagePath; }
         }
 
-        protected Plot(string title, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format)
+        protected Plot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format)
         {
             _title = title;
+            _slice = slice;
             _seriesPoints = seriesPoints;
             _imageFormat = format;
-        }
-
-        protected Plot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format)
-        {
-            _title = title;
-            _seriesPoints = seriesPoints;
-            _image = image;
-            _imageFormat = format;
-
-            if (_image == null)
-                throw new NullReferenceException("Passed null image to plot constructor");
         }
 
         public void Render(int height, int width, bool includeTitle, Tuple<string, string> plotSeriesDifference, bool blackAndWhite, bool retainImageOnDisk, params string[] args)

@@ -183,7 +183,6 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
         public KernelDensityDCM() : base() { }
 
         public KernelDensityDCM(string name,
-                                int pointSpacing,
                                 IEnumerable<string> incidentTypes,
                                 Area trainingArea,
                                 DateTime trainingStart,
@@ -191,7 +190,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
                                 IEnumerable<Smoother> smoothers,
                                 int trainingSampleSize,
                                 bool normalize)
-            : base(name, pointSpacing, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
+            : base(name, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers)
         {
             _trainingSampleSize = trainingSampleSize;
             _normalize = normalize;
@@ -207,15 +206,15 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             double areaMaxX = predictionArea.BoundingBox.MaxX;
             double areaMinY = predictionArea.BoundingBox.MinY;
             double areaMaxY = predictionArea.BoundingBox.MaxY;
-            for (double x = areaMinX + PointSpacing / 2d; x <= areaMaxX; x += PointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
-                for (double y = areaMinY + PointSpacing / 2d; y <= areaMaxY; y += PointSpacing)
+            for (double x = areaMinX + prediction.PredictionPointSpacing / 2d; x <= areaMaxX; x += prediction.PredictionPointSpacing)  // place points in the middle of the square boxes that cover the region - we get display errors from pixel rounding if the points are exactly on the boundaries
+                for (double y = areaMinY + prediction.PredictionPointSpacing / 2d; y <= areaMaxY; y += prediction.PredictionPointSpacing)
                     predictionPoints.Add(new PostGIS.Point(x, y, predictionArea.Shapefile.SRID));
 
             List<PostGIS.Point> incidentPoints = new List<PostGIS.Point>(Incident.Get(TrainingStart, TrainingEnd, predictionArea, IncidentTypes.ToArray()).Select(i => i.Location));
             predictionPoints.AddRange(incidentPoints);
 
             Console.Out.WriteLine("Filtering prediction points to prediction area");
-            predictionPoints = predictionArea.Contains(predictionPoints).Select(i => predictionPoints[i]).ToList();
+            predictionPoints = predictionArea.Intersects(predictionPoints, prediction.PredictionPointSpacing / 2f).Select(i => predictionPoints[i]).ToList();
 
             NpgsqlConnection connection = DB.Connection.OpenConnection;
 
@@ -223,7 +222,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             {
                 Console.Out.WriteLine("Inserting points into prediction");
                 Point.CreateTable(prediction, predictionArea.Shapefile.SRID);
-                List<int> predictionPointIds = Point.Insert(connection, predictionPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false, false);
+                List<int> predictionPointIds = Point.Insert(connection, predictionPoints.Select(p => new Tuple<PostGIS.Point, string, DateTime>(p, PointPrediction.NullLabel, DateTime.MinValue)), prediction, predictionArea, false);
 
                 Console.Out.WriteLine("Running overall KDE for " + IncidentTypes.Count + " incident type(s)");
                 List<float> density = GetDensityEstimate(incidentPoints, _trainingSampleSize, false, 0, 0, predictionPoints, _normalize);
@@ -278,7 +277,7 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
 
         public override DiscreteChoiceModel Copy()
         {
-            return new KernelDensityDCM(Name, PointSpacing, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _trainingSampleSize, _normalize);
+            return new KernelDensityDCM(Name, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, _trainingSampleSize, _normalize);
         }
 
         public override string ToString()
@@ -302,12 +301,12 @@ write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALS
             throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
         }
 
-        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> ReadPointPredictionLog(string pointPredictionLogPath, LAIR.Collections.Generic.Set<string> pointIds = null)
+        public override Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> ReadPointPredictionLog(string pointPredictionLogPath, LAIR.Collections.Generic.Set<string> pointIds = null)
         {
             throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
         }
 
-        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
+        public override void WritePointPredictionLog(Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> pointIdLabelsFeatureValues, string pointPredictionLogPath)
         {
             throw new NotImplementedException("Point prediction log not implemented for " + GetType().FullName);
         }

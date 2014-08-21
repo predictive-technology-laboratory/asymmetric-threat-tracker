@@ -67,7 +67,7 @@ namespace PTL.ATT.Importers
             NpgsqlDataReader reader = null;
             try
             {
-                cmd = new NpgsqlCommand("SELECT " + Columns.Select + " FROM " + Table, DB.Connection.OpenConnection);
+                cmd = DB.Connection.NewCommand("SELECT " + Columns.Select + " FROM " + Table);
                 reader = cmd.ExecuteReader();
                 BinaryFormatter bf = new BinaryFormatter();
                 List<Importer> importers = new List<Importer>();
@@ -91,7 +91,7 @@ namespace PTL.ATT.Importers
                 if (reader != null)
                     reader.Close();
 
-                if (cmd != null)
+                if (cmd != null && cmd.Connection != null)
                     DB.Connection.Return(cmd.Connection);
             }
         }

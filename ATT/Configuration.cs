@@ -192,6 +192,9 @@ namespace PTL.ATT
         }
         #endregion
 
+        private static string _path = null;
+        private static bool _initialized = false;
+
         public static string LicenseText
         {
             get
@@ -210,7 +213,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
         public static void Initialize(string path, bool initializeDB)
         {
-            XmlParser p = new XmlParser(File.ReadAllText(path));
+            if(_initialized)
+            {
+                Console.Out.WriteLine("ATT configuration is already initialized");
+                return;
+            }
+
+            _path = path;
+
+            XmlParser p = new XmlParser(File.ReadAllText(_path));
 
             XmlParser postgresP = new XmlParser(p.OuterXML("postgres"));
             _postgresHost = postgresP.ElementText("host");
@@ -302,7 +313,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
                     Type modelType = Reflection.GetType(configOptions["model_type"]);
 
-                    // if the configuration is referencing a feature extractor in an external DLL file, copy the DLL into the executing directory so that it can be found when deserializing models of the given type
+                    // get external feature extractor type
                     string featureExtractorTypeStr = featureExtractorConfigP.ElementText("feature_extractor");
                     string[] parts = featureExtractorTypeStr.Split('@');
                     if (parts.Length > 1)
@@ -328,6 +339,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
             if (initializeDB)
                 DB.Initialize();
+
+            _initialized = true;
+        }
+
+        public static void Reload(bool reinitializeDB)
+        {
+            _initialized = false;
+            Initialize(_path, reinitializeDB);
         }
 
         private static Assembly LoadExternalFeatureExtractorAssembly(object sender, ResolveEventArgs args)
@@ -343,13 +362,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
             return Assembly.LoadFrom(assemblyPath);
         }
 
-        public static bool TryGetFeatureExtractor(Type modelType, out FeatureExtractor featureExtractor)
+        public static bool TryGetFeatureExtractor(Type modelType, out IFeatureExtractor featureExtractor)
         {
             featureExtractor = null;
 
             Type featureExtractorType;
             if (_modelTypeFeatureExtractorType.TryGetValue(modelType, out featureExtractorType))
-                featureExtractor = Activator.CreateInstance(featureExtractorType) as FeatureExtractor;
+                featureExtractor = Activator.CreateInstance(featureExtractorType) as IFeatureExtractor;
 
             return featureExtractor != null;
         }

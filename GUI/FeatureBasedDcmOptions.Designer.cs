@@ -45,6 +45,7 @@ namespace PTL.ATT.GUI
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FeatureBasedDcmOptions));
             this.label2 = new System.Windows.Forms.Label();
             this.features = new System.Windows.Forms.ListBox();
             this.featuresMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -56,33 +57,29 @@ namespace PTL.ATT.GUI
             this.featureDistanceThreshold = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
-            this.trainingSampleSize = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.predictionSampleSize = new System.Windows.Forms.NumericUpDown();
-            this.label8 = new System.Windows.Forms.Label();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.label6 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.negativePointStandoff = new System.Windows.Forms.NumericUpDown();
-            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.trainingPointSpacing = new System.Windows.Forms.NumericUpDown();
             this.classifiers = new PTL.ATT.GUI.ClassifierList();
             this.featuresMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.featureDistanceThreshold)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.negativePointStandoff)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trainingPointSpacing)).BeginInit();
             this.SuspendLayout();
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(10, 260);
+            this.label2.Location = new System.Drawing.Point(14, 234);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(51, 13);
             this.label2.TabIndex = 42;
             this.label2.Text = "Features:";
-            this.toolTip.SetToolTip(this.label2, "Features to use");
+            this.toolTip.SetToolTip(this.label2, "Features to use (right-click for options).");
             // 
             // features
             // 
@@ -92,7 +89,7 @@ namespace PTL.ATT.GUI
             this.features.ContextMenuStrip = this.featuresMenu;
             this.features.FormattingEnabled = true;
             this.features.HorizontalScrollbar = true;
-            this.features.Location = new System.Drawing.Point(67, 260);
+            this.features.Location = new System.Drawing.Point(71, 234);
             this.features.Name = "features";
             this.features.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.features.Size = new System.Drawing.Size(232, 147);
@@ -140,7 +137,7 @@ namespace PTL.ATT.GUI
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(264, 57);
+            this.label4.Location = new System.Drawing.Point(268, 57);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(38, 13);
             this.label4.TabIndex = 30;
@@ -148,7 +145,7 @@ namespace PTL.ATT.GUI
             // 
             // featureDistanceThreshold
             // 
-            this.featureDistanceThreshold.Location = new System.Drawing.Point(181, 55);
+            this.featureDistanceThreshold.Location = new System.Drawing.Point(185, 55);
             this.featureDistanceThreshold.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -171,113 +168,48 @@ namespace PTL.ATT.GUI
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(40, 57);
+            this.label3.Location = new System.Drawing.Point(44, 57);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(135, 13);
             this.label3.TabIndex = 29;
             this.label3.Text = "Feature distance threshold:";
-            this.toolTip.SetToolTip(this.label3, "Distance to search for existence of spatial features. Higher values require longe" +
-        "r runtimes but have more spatial fidelity than lower values, which are quicker b" +
-        "ut have lower spatial fidelity.");
+            this.toolTip.SetToolTip(this.label3, resources.GetString("label3.ToolTip"));
             // 
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(10, 107);
+            this.label11.Location = new System.Drawing.Point(14, 81);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(51, 13);
             this.label11.TabIndex = 27;
             this.label11.Text = "Classifier:";
-            this.toolTip.SetToolTip(this.label11, "Classifier to use");
+            this.toolTip.SetToolTip(this.label11, "Classifier to use.");
             // 
-            // trainingSampleSize
+            // label6
             // 
-            this.trainingSampleSize.Location = new System.Drawing.Point(181, 3);
-            this.trainingSampleSize.Maximum = new decimal(new int[] {
-            999999999,
-            0,
-            0,
-            0});
-            this.trainingSampleSize.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.trainingSampleSize.Name = "trainingSampleSize";
-            this.trainingSampleSize.Size = new System.Drawing.Size(77, 20);
-            this.trainingSampleSize.TabIndex = 46;
-            this.trainingSampleSize.Value = new decimal(new int[] {
-            30000,
-            0,
-            0,
-            0});
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(22, 31);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(157, 13);
+            this.label6.TabIndex = 53;
+            this.label6.Text = "Negative training point standoff:";
+            this.toolTip.SetToolTip(this.label6, "How far a negative training point must be from a positive training point in order" +
+        " to be included in the training sample.");
             // 
-            // label1
+            // label9
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(264, 5);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 13);
-            this.label1.TabIndex = 49;
-            this.label1.Text = "points";
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(70, 5);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(105, 13);
-            this.label12.TabIndex = 48;
-            this.label12.Text = "Training sample size:";
-            this.toolTip.SetToolTip(this.label12, "Number of points (both positive and negative) to use when training the model. Pos" +
-        "itive points will be randomly removed to meet this requirement.");
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(61, 31);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(114, 13);
-            this.label10.TabIndex = 50;
-            this.label10.Text = "Prediction sample size:";
-            this.toolTip.SetToolTip(this.label10, "Number of points to use when making predictions using this model. Points will be " +
-        "randomly removed to meet this requirement.");
-            // 
-            // predictionSampleSize
-            // 
-            this.predictionSampleSize.Location = new System.Drawing.Point(181, 29);
-            this.predictionSampleSize.Maximum = new decimal(new int[] {
-            999999999,
-            0,
-            0,
-            0});
-            this.predictionSampleSize.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.predictionSampleSize.Name = "predictionSampleSize";
-            this.predictionSampleSize.Size = new System.Drawing.Size(77, 20);
-            this.predictionSampleSize.TabIndex = 47;
-            this.predictionSampleSize.Value = new decimal(new int[] {
-            30000,
-            0,
-            0,
-            0});
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(264, 31);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(35, 13);
-            this.label8.TabIndex = 51;
-            this.label8.Text = "points";
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(23, 5);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(156, 13);
+            this.label9.TabIndex = 56;
+            this.label9.Text = "Negative training point spacing:";
+            this.toolTip.SetToolTip(this.label9, "How far apart negative training points should be spaced.");
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(264, 83);
+            this.label5.Location = new System.Drawing.Point(268, 31);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(38, 13);
             this.label5.TabIndex = 54;
@@ -285,7 +217,7 @@ namespace PTL.ATT.GUI
             // 
             // negativePointStandoff
             // 
-            this.negativePointStandoff.Location = new System.Drawing.Point(181, 81);
+            this.negativePointStandoff.Location = new System.Drawing.Point(185, 29);
             this.negativePointStandoff.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -300,24 +232,43 @@ namespace PTL.ATT.GUI
             0,
             0});
             // 
-            // label6
+            // label7
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(55, 83);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(120, 13);
-            this.label6.TabIndex = 53;
-            this.label6.Text = "Negative point standoff:";
-            this.toolTip.SetToolTip(this.label6, "Distance to search for existence of spatial features. Higher values require longe" +
-        "r runtimes but have more spatial fidelity than lower values, which are quicker b" +
-        "ut have lower spatial fidelity.");
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(268, 5);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(38, 13);
+            this.label7.TabIndex = 57;
+            this.label7.Text = "meters";
+            // 
+            // trainingPointSpacing
+            // 
+            this.trainingPointSpacing.Location = new System.Drawing.Point(185, 3);
+            this.trainingPointSpacing.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.trainingPointSpacing.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.trainingPointSpacing.Name = "trainingPointSpacing";
+            this.trainingPointSpacing.Size = new System.Drawing.Size(77, 20);
+            this.trainingPointSpacing.TabIndex = 55;
+            this.trainingPointSpacing.Value = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
             // 
             // classifiers
             // 
             this.classifiers.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.classifiers.FormattingEnabled = true;
-            this.classifiers.Location = new System.Drawing.Point(67, 107);
+            this.classifiers.Location = new System.Drawing.Point(71, 81);
             this.classifiers.Name = "classifiers";
             this.classifiers.Size = new System.Drawing.Size(232, 147);
             this.classifiers.Sorted = true;
@@ -327,15 +278,12 @@ namespace PTL.ATT.GUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.trainingPointSpacing);
+            this.Controls.Add(this.label9);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.negativePointStandoff);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.trainingSampleSize);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.label12);
-            this.Controls.Add(this.label10);
-            this.Controls.Add(this.predictionSampleSize);
-            this.Controls.Add(this.label8);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.features);
             this.Controls.Add(this.label4);
@@ -343,13 +291,13 @@ namespace PTL.ATT.GUI
             this.Controls.Add(this.featureDistanceThreshold);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label11);
+            this.MinimumSize = new System.Drawing.Size(306, 384);
             this.Name = "FeatureBasedDcmOptions";
-            this.Size = new System.Drawing.Size(306, 414);
+            this.Size = new System.Drawing.Size(306, 384);
             this.featuresMenu.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.featureDistanceThreshold)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trainingSampleSize)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.predictionSampleSize)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.negativePointStandoff)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trainingPointSpacing)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -367,17 +315,14 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.ContextMenuStrip featuresMenu;
         private System.Windows.Forms.ToolStripMenuItem selectAllFeaturesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem remapSelectedFeaturesDuringPredictionToolStripMenuItem;
-        public System.Windows.Forms.NumericUpDown trainingSampleSize;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Label label10;
-        public System.Windows.Forms.NumericUpDown predictionSampleSize;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.ToolStripMenuItem parameterizeFeatureToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem parameterizeSelectedFeaturesToolStripMenuItem;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.NumericUpDown negativePointStandoff;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        public System.Windows.Forms.NumericUpDown trainingPointSpacing;
+        private System.Windows.Forms.Label label9;
     }
 }

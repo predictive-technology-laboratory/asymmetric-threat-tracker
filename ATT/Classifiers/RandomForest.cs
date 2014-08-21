@@ -138,6 +138,8 @@ save(rf, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
 
         public override void Classify(FeatureVectorList featureVectors)
         {
+            base.Classify(featureVectors);
+
             if (featureVectors != null && featureVectors.Count > 0)
             {
                 using (StreamWriter predictionsFile = new StreamWriter(RawPredictionInstancesPath))

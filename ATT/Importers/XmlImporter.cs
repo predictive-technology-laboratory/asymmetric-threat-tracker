@@ -172,7 +172,11 @@ namespace PTL.ATT.Importers
             internal override void Cleanup()
             {
                 _existingNativeIDs = null;
-            }   
+
+                // remove all incidents that didn't fall into the area
+                DB.Connection.ExecuteNonQuery("DELETE FROM " + XmlImporter.InsertTable + " " +
+                                              "WHERE NOT " + _importArea.GetIntersectsCondition(XmlImporter.InsertTable + "." + Incident.Columns.Location));
+            }
         }
 
         /// <summary>
@@ -261,6 +265,9 @@ namespace PTL.ATT.Importers
 
             internal override void Cleanup()
             {
+                // remove all points that didn't fall into the area
+                DB.Connection.ExecuteNonQuery("DELETE FROM " + XmlImporter.InsertTable + " " +
+                                              "WHERE NOT " + _importArea.GetIntersectsCondition(XmlImporter.InsertTable + "." + ShapefileGeometry.Columns.Geometry));
             }
         }
         #endregion
@@ -371,7 +378,7 @@ namespace PTL.ATT.Importers
                     DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + InsertTable);
                     _xmlRowInserter.Cleanup();
 
-                    Console.Out.WriteLine("Import from \"" + Path + "\" was successful.  Imported " + totalImported + " rows of " + totalRows + " total in the file (" + skippedRows + " rows were skipped)");
+                    Console.Out.WriteLine("Import from \"" + Path + "\" was successful.  Imported " + DB.Connection.ExecuteScalar("SELECT COUNT(*) FROM " + InsertTable) + " rows of " + totalRows + " total in the file.");
                 }
                 catch (Exception ex)
                 {

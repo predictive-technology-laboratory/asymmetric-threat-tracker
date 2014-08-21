@@ -39,6 +39,7 @@ namespace PTL.ATT.Classifiers
 
         private FeatureBasedDCM _model;
         private bool _runFeatureSelection;
+        private int _numFeaturesInEachVector;
 
         public FeatureBasedDCM Model
         {
@@ -71,6 +72,7 @@ namespace PTL.ATT.Classifiers
         {
             _model = model;
             _runFeatureSelection = runFeatureSelection;
+            _numFeaturesInEachVector = -1;
         }
 
         public abstract void Initialize();
@@ -79,19 +81,24 @@ namespace PTL.ATT.Classifiers
         {
             if (featureVectors != null)
             {
-                IFeatureBasedDCM model = Model;
-                Area trainingArea = model.TrainingArea;
-                long timeSliceTicks = model is TimeSliceDCM ? (model as TimeSliceDCM).TimeSliceTicks : -1;
+                long timeSliceTicks = _model is TimeSliceDCM ? (_model as TimeSliceDCM).TimeSliceTicks : -1;
 
                 using (StreamWriter instanceLocationsFile = new StreamWriter(TrainingInstanceLocationsPath, true))
                 {
-                    foreach (Point point in featureVectors.Select(v => v.DerivedFrom as Point))
+                    foreach (FeatureVector featureVector in featureVectors)
                     {
+                        Point point = featureVector.DerivedFrom as Point;
                         long slice = timeSliceTicks > 0 ? point.Time.Ticks / timeSliceTicks : 1;
-                        int row = (int)((point.Location.Y - trainingArea.BoundingBox.MinY) / model.PointSpacing);
-                        int col = (int)((point.Location.X - trainingArea.BoundingBox.MinX) / model.PointSpacing);
+                        int row = (int)((point.Location.Y - _model.TrainingArea.BoundingBox.MinY) / _model.TrainingPointSpacing);
+                        int col = (int)((point.Location.X - _model.TrainingArea.BoundingBox.MinX) / _model.TrainingPointSpacing);
                         instanceLocationsFile.WriteLine(slice + " " + row + " " + col);
+
+                        if (_numFeaturesInEachVector == -1)
+                            _numFeaturesInEachVector = featureVector.Count;
+                        else if (_numFeaturesInEachVector != featureVector.Count)
+                            throw new Exception("Feature vectors do not contain the same number of features. This probably indicates missing features during the feature extraction process.");
                     }
+
                     instanceLocationsFile.Close();
                 }
             }
@@ -115,7 +122,13 @@ namespace PTL.ATT.Classifiers
 
         public abstract IEnumerable<string> SelectFeatures(Prediction prediction);
 
-        public abstract void Classify(FeatureVectorList featureVectors);
+        public virtual void Classify(FeatureVectorList featureVectors)
+        {
+            if (featureVectors != null)
+                foreach (FeatureVector featureVector in featureVectors)
+                    if (featureVector.Count != _numFeaturesInEachVector)
+                        throw new Exception("Expected " + _numFeaturesInEachVector + " features in each vector, but saw " + featureVector.Count + ".");
+        }
 
         public virtual string GetDetails(int indentLevel)
         {

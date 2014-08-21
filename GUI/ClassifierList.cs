@@ -66,7 +66,7 @@ namespace PTL.ATT.GUI
                 if (classifier is LibLinear)
                 {
                     LibLinear liblinear = classifier as LibLinear;
-                    DynamicForm f = new DynamicForm("Set LibLinear parameters");
+                    DynamicForm f = new DynamicForm("Set LibLinear parameters", DynamicForm.CloseButtons.OkCancel);
                     f.AddCheckBox("Run feature selection:", ContentAlignment.MiddleRight, liblinear.RunFeatureSelection, "run_feature_selection");
                     f.AddDropDown("Positive weighting:", Enum.GetValues(typeof(LibLinear.PositiveClassWeighting)), liblinear.Weighting, "positive_weighting", true);
                     if (f.ShowDialog() == DialogResult.OK)
@@ -78,7 +78,7 @@ namespace PTL.ATT.GUI
                 else if (classifier is SvmRank)
                 {
                     SvmRank svmRank = classifier as SvmRank;
-                    DynamicForm f = new DynamicForm("Set SvmRank parameters");
+                    DynamicForm f = new DynamicForm("Set SvmRank parameters", DynamicForm.CloseButtons.OkCancel);
                     f.AddNumericUpdown("c:", (decimal)svmRank.C, 3, decimal.MinValue, decimal.MaxValue, (decimal)0.01, "c");
                     if (f.ShowDialog() == DialogResult.OK)
                     {
@@ -89,7 +89,7 @@ namespace PTL.ATT.GUI
                 else if (classifier is RandomForest)
                 {
                     RandomForest randomForest = classifier as RandomForest;
-                    DynamicForm f = new DynamicForm("Set RandomForest parameters");
+                    DynamicForm f = new DynamicForm("Set RandomForest parameters", DynamicForm.CloseButtons.OkCancel);
                     f.AddNumericUpdown("Number of trees:", randomForest.NumTrees, 0, 1, decimal.MaxValue, 1, "ntree");
                     if (f.ShowDialog() == DialogResult.OK)
                     {
@@ -99,7 +99,7 @@ namespace PTL.ATT.GUI
                 else if (classifier is AdaBoost)
                 {
                     AdaBoost adaBoost = classifier as AdaBoost;
-                    DynamicForm f = new DynamicForm("Set AdaBoost parameters");
+                    DynamicForm f = new DynamicForm("Set AdaBoost parameters", DynamicForm.CloseButtons.OkCancel);
                     f.AddNumericUpdown("Number of iterations:", adaBoost.Iterations, 0, 1, decimal.MaxValue, 1, "iterations");
                     if (f.ShowDialog() == DialogResult.OK)
                     {

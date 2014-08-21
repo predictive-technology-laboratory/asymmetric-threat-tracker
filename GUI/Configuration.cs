@@ -80,7 +80,16 @@ namespace PTL.ATT.GUI
             get { return Configuration._eventsImportDirectory; }
             set { Configuration._eventsImportDirectory = value; }
         }
+        #endregion
 
+        #region importers
+        private static string _importersLoadDirectory;
+
+        public static string ImportersLoadDirectory
+        {
+            get { return Configuration._importersLoadDirectory; }
+            set { Configuration._importersLoadDirectory = value; }
+        }
         #endregion
 
         #region plugins
@@ -227,6 +236,9 @@ namespace PTL.ATT.GUI
             XmlParser eventsP = new XmlParser(p.OuterXML("events"));
             _eventsImportDirectory = eventsP.ElementText("import_directory");
 
+            XmlParser importersP = new XmlParser(p.OuterXML("importers"));
+            _importersLoadDirectory = importersP.ElementText("load_directory");
+
             _pluginTypes = new Set<Plugin>();
             XmlParser pluginsP = new XmlParser(p.OuterXML("plugins"));
             string pluginTypeStr;
@@ -284,7 +296,7 @@ namespace PTL.ATT.GUI
 
             while (true)
             {
-                DynamicForm f = new DynamicForm("Enter encryption passphrase");
+                DynamicForm f = new DynamicForm("Enter encryption passphrase", DynamicForm.CloseButtons.OkCancel);
                 f.AddTextBox("Passphrase:", null, 20, "passphrase", '*', true);
                 f.AddTextBox("Confirm passphrase:", null, 20, "confirmed", '*', true);
 

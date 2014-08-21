@@ -123,4 +123,7 @@
   <metadata name="featuresMenu.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <data name="label3.ToolTip" xml:space="preserve">
+    <value>Distance from training points to search for existence of spatial features. Higher values require longer runtimes but have more spatial fidelity than lower values, which are quicker but have lower spatial fidelity.</value>
+  </data>
 </root>

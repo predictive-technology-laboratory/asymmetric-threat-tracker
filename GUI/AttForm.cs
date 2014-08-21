@@ -85,7 +85,7 @@ namespace PTL.ATT.GUI
 
             public void GetShapefileInfo(string shapefilePath, List<string> optionValuesToGet, Dictionary<string, string> optionValue)
             {
-                DynamicForm df = new DynamicForm("Supply shapefile import options...", MessageBoxButtons.OK);
+                DynamicForm df = new DynamicForm("Supply shapefile import options...", DynamicForm.CloseButtons.OK);
                 foreach (string optionValueToGet in optionValuesToGet)
                 {
                     string value = null;
@@ -114,7 +114,7 @@ namespace PTL.ATT.GUI
         }
 
         [Serializable]
-        public class IncidentShapefileImportInfoRetriever : IIncidentTableShapefileTableMappingRetriever
+        public class IncidentTableShapefileTableMappingRetriever : IIncidentTableShapefileTableMappingRetriever
         {
             private Dictionary<string, string> _incidentColumnShapefileColumn;
 
@@ -128,7 +128,7 @@ namespace PTL.ATT.GUI
                     _incidentColumnShapefileColumn = new Dictionary<string, string>();
 
                     string[] shapefileColumns = DB.Connection.GetColumnNames(shapefileGeometryTable).ToArray();
-                    DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", MessageBoxButtons.OK);
+                    DynamicForm f = new DynamicForm("Supply column mapping from incident table to shapefile table...", DynamicForm.CloseButtons.OK);
                     string[] incidentColumns = new string[] { Incident.Columns.Location, Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type };
                     foreach (string incidentColumn in incidentColumns)
                         f.AddDropDown(incidentColumn + ":", shapefileColumns, null, incidentColumn, true);
@@ -198,12 +198,15 @@ namespace PTL.ATT.GUI
         {
             get
             {
-                return new DateTime(predictionStartDate.Value.Year,
-                                    predictionStartDate.Value.Month,
-                                    predictionStartDate.Value.Day,
-                                    predictionStartTime.Value.Hour,
-                                    predictionStartTime.Value.Minute,
-                                    predictionStartTime.Value.Second);
+                if (InvokeRequired)
+                    return (DateTime)Invoke(new Func<DateTime>(() => PredictionStartDateTime));
+                else
+                    return new DateTime(predictionStartDate.Value.Year,
+                                        predictionStartDate.Value.Month,
+                                        predictionStartDate.Value.Day,
+                                        predictionStartTime.Value.Hour,
+                                        predictionStartTime.Value.Minute,
+                                        predictionStartTime.Value.Second);
             }
             set
             {
@@ -216,12 +219,15 @@ namespace PTL.ATT.GUI
         {
             get
             {
-                return new DateTime(predictionEndDate.Value.Year,
-                                    predictionEndDate.Value.Month,
-                                    predictionEndDate.Value.Day,
-                                    predictionEndTime.Value.Hour,
-                                    predictionEndTime.Value.Minute,
-                                    predictionEndTime.Value.Second);
+                if (InvokeRequired)
+                    return (DateTime)Invoke(new Func<DateTime>(() => PredictionEndDateTime));
+                else
+                    return new DateTime(predictionEndDate.Value.Year,
+                                        predictionEndDate.Value.Month,
+                                        predictionEndDate.Value.Day,
+                                        predictionEndTime.Value.Hour,
+                                        predictionEndTime.Value.Minute,
+                                        predictionEndTime.Value.Second);
             }
             set
             {
@@ -232,27 +238,55 @@ namespace PTL.ATT.GUI
 
         public DiscreteChoiceModel SelectedModel
         {
-            get { return models.SelectedItem as DiscreteChoiceModel; }
+            get
+            {
+                if (InvokeRequired)
+                    return Invoke(new Func<DiscreteChoiceModel>(() => SelectedModel)) as DiscreteChoiceModel;
+                else
+                    return models.SelectedItem as DiscreteChoiceModel;
+            }
         }
 
         public Area SelectedPredictionArea
         {
-            get { return predictionAreas.SelectedItem as Area; }
+            get
+            {
+                if (InvokeRequired)
+                    return Invoke(new Func<Area>(() => SelectedPredictionArea)) as Area;
+                else
+                    return predictionAreas.SelectedItem as Area;
+            }
+        }
+
+        public int PredictionPointSpacing
+        {
+            get
+            {
+                if (InvokeRequired)
+                    return (int)Invoke(new Func<int>(() => PredictionPointSpacing));
+                else
+                    return (int)predictionPointSpacing.Value;
+            }
         }
 
         public List<Prediction> SelectedPredictions
         {
             get
             {
-                Set<Prediction> selectedPredictions = new Set<Prediction>(false);
-                foreach (TreeNode node in TraversePredictionTree())
-                    if (node.Checked)
-                        if (node.Tag is PredictionGroup)
-                            selectedPredictions.AddRange(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction));
-                        else
-                            selectedPredictions.Add(node.Tag as Prediction);
+                if (InvokeRequired)
+                    return Invoke(new Func<List<Prediction>>(() => SelectedPredictions)) as List<Prediction>;
+                else
+                {
+                    Set<Prediction> selectedPredictions = new Set<Prediction>(false);
+                    foreach (TreeNode node in TraversePredictionTree())
+                        if (node.Checked)
+                            if (node.Tag is PredictionGroup)
+                                selectedPredictions.AddRange(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction));
+                            else
+                                selectedPredictions.Add(node.Tag as Prediction);
 
-                return selectedPredictions.ToList();
+                    return selectedPredictions.ToList();
+                }
             }
         }
 
@@ -260,11 +294,16 @@ namespace PTL.ATT.GUI
         {
             get
             {
-                List<Prediction> selectedPredictions = SelectedPredictions;
-                if (selectedPredictions.Count == 1)
-                    return selectedPredictions[0];
+                if (InvokeRequired)
+                    return Invoke(new Func<Prediction>(() => SelectedPrediction)) as Prediction;
                 else
-                    throw new Exception("Other than 1 prediction is selected");
+                {
+                    List<Prediction> selectedPredictions = SelectedPredictions;
+                    if (selectedPredictions.Count == 1)
+                        return selectedPredictions[0];
+                    else
+                        throw new Exception("Other than 1 prediction is selected");
+                }
             }
         }
         #endregion
@@ -322,7 +361,7 @@ namespace PTL.ATT.GUI
                         pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
                     }
 
-                _logWriter = new LogWriter(log, Configuration.LogPath, true, Console.Out);
+                _logWriter = new LogWriter(log, Configuration.LogPath, true, true, Console.Out);
                 Console.SetOut(_logWriter);
                 Console.SetError(_logWriter);
             }
@@ -468,7 +507,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No geographic data available for deletion.");
             else
             {
-                DynamicForm f = new DynamicForm("Select geographic data to delete...");
+                DynamicForm f = new DynamicForm("Select geographic data to delete...", DynamicForm.CloseButtons.OkCancel);
                 f.AddListBox("Geographic data:", shapefiles, null, SelectionMode.MultiExtended, "shapefiles", true);
                 if (f.ShowDialog() == DialogResult.OK)
                 {
@@ -524,7 +563,6 @@ namespace PTL.ATT.GUI
                            }
 
                            f.AddDropDown("Import into area:", areas, null, "area", true);
-                           f.AddNumericUpdown("Source SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
                            f.AddNumericUpdown("Incident hour offset:", 0, 0, decimal.MinValue, decimal.MaxValue, 1, "offset");
 
                            return f;
@@ -533,12 +571,16 @@ namespace PTL.ATT.GUI
                    new CreateImporterDelegate((name, path, sourceURI, importerForm) =>
                        {
                            Area importArea = importerForm.GetValue<Area>("area");
-                           int sourceSRID = Convert.ToInt32(importerForm.GetValue<decimal>("source_srid"));
                            int hourOffset = Convert.ToInt32(importerForm.GetValue<decimal>("offset"));
 
                            string extension = Path.GetExtension(path).ToLower();
                            if (extension == ".xml")
                            {
+                               DynamicForm f = new DynamicForm("Location SRID", DynamicForm.CloseButtons.OK);
+                               f.AddNumericUpdown("Location SRID:", 0, 0, 0, decimal.MaxValue, 1, "source_srid");
+                               f.ShowDialog();
+                               int sourceSRID = Convert.ToInt32(f.GetValue<decimal>("source_srid"));
+
                                Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
                                string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
 
@@ -550,8 +592,8 @@ namespace PTL.ATT.GUI
                            else if (extension == ".shp")
                            {
                                int targetSRID = importArea.Shapefile.SRID;
-                               ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
-                               return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, sourceSRID, targetSRID, shapefileInfoRetriever, importArea, new IncidentShapefileImportInfoRetriever(), hourOffset);
+                               ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, 0, targetSRID);
+                               return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, 0, targetSRID, shapefileInfoRetriever, importArea, new IncidentTableShapefileTableMappingRetriever(), hourOffset);
                            }
                            else
                                throw new NotImplementedException("Unrecognized incident import file extension:  " + extension);
@@ -565,7 +607,7 @@ namespace PTL.ATT.GUI
 
         private void collapseIncidentTypesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DynamicForm f = new DynamicForm("Collapse incident types...", MessageBoxButtons.OKCancel);
+            DynamicForm f = new DynamicForm("Collapse incident types...", DynamicForm.CloseButtons.OkCancel);
 
             f.AddDropDown("Area:", Area.GetAll().ToArray(), null, "area", true, new Action<object, EventArgs>((o, args) =>
                 {
@@ -647,7 +689,7 @@ namespace PTL.ATT.GUI
             {
                 try
                 {
-                    DynamicForm importerForm = new DynamicForm("Enter import information...", MessageBoxButtons.OKCancel);
+                    DynamicForm importerForm = new DynamicForm("Enter import information...", DynamicForm.CloseButtons.OkCancel);
 
                     importerForm.AddTextBox("Import name (descriptive):", null, 70, "name");
                     importerForm.AddTextBox("Path:", null, 200, "path", addFileBrowsingButtons: true, initialBrowsingDirectory: initialBrowsingDirectory, fileFilter: fileBrowserFilter, textChanged: (o, e) =>
@@ -775,7 +817,7 @@ namespace PTL.ATT.GUI
 
         private XmlImporter CreateXmlImporter(string name, string path, string relativePathBase, PathRelativizationId relativizationId, string sourceURI, Type[] rowInserterTypes, string[] databaseColumns, CreateXmlRowInserterDelegate createXmlRowInserter)
         {
-            DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", MessageBoxButtons.OKCancel);
+            DynamicForm rowInserterForm = new DynamicForm("Define row inserter...", DynamicForm.CloseButtons.OkCancel);
 
             rowInserterForm.AddDropDown("Row inserter:", rowInserterTypes, null, "row_inserter", true);
 
@@ -815,7 +857,7 @@ namespace PTL.ATT.GUI
                             refreshStoredImporters = false;
                         }
 
-                        DynamicForm f = new DynamicForm("Stored importers...", MessageBoxButtons.OKCancel);
+                        DynamicForm f = new DynamicForm("Stored importers...", DynamicForm.CloseButtons.OkClose);
                         f.AddListBox("Importers:", storedImporters, null, SelectionMode.MultiExtended, "importers", true);
                         f.AddDropDown("Action:", Enum.GetValues(typeof(ManageImporterAction)), null, "action", false);
                         if ((manageDialogResult = f.ShowDialog()) == System.Windows.Forms.DialogResult.OK)
@@ -824,8 +866,8 @@ namespace PTL.ATT.GUI
 
                             if (action == ManageImporterAction.Load)
                             {
-                                DynamicForm df = new DynamicForm("Select importer source...");
-                                df.AddTextBox("Path:", null, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                                DynamicForm df = new DynamicForm("Select importer source...", DynamicForm.CloseButtons.OkCancel);
+                                df.AddTextBox("Path:", GUI.Configuration.ImportersLoadDirectory, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: GUI.Configuration.ImportersLoadDirectory);
                                 if (df.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
                                     string path = df.GetValue<string>("path");
@@ -887,7 +929,7 @@ namespace PTL.ATT.GUI
                                     else if (action == ManageImporterAction.Edit)
                                     {
                                         Dictionary<string, object> updateKeyValue = new Dictionary<string, object>();
-                                        DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...");
+                                        DynamicForm updateForm = new DynamicForm("Update importer \"" + importer + "\"...", DynamicForm.CloseButtons.OkCancel);
                                         importer.GetUpdateRequests(new Importer.UpdateRequestDelegate((itemName, currentValue, possibleValues, id) =>
                                             {
                                                 itemName += ":";
@@ -917,7 +959,7 @@ namespace PTL.ATT.GUI
                                     else if (action == ManageImporterAction.Store)
                                     {
                                         if (exportDirectory == null)
-                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", GUI.Configuration.ImportersLoadDirectory);
 
                                         if (Directory.Exists(exportDirectory))
                                         {
@@ -971,7 +1013,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("No areas available to model. Import one first.");
             else
             {
-                DynamicForm modelForm = new DynamicForm("Select model type...", MessageBoxButtons.OKCancel);
+                DynamicForm modelForm = new DynamicForm("Select model type...", DynamicForm.CloseButtons.OkCancel);
                 modelForm.AddDropDown("Model type:", modelTypes, null, "model_type", false);
                 if (modelForm.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -1140,11 +1182,9 @@ namespace PTL.ATT.GUI
 
         public void Run(bool newRun, string predictionName, Action<int> runFinishedCallback)
         {
-            DiscreteChoiceModel m = SelectedModel;
-
             predictionName = predictionName.Trim();
 
-            if (m == null)
+            if (SelectedModel == null)
                 MessageBox.Show("Select a model to run.");
             else if (SelectedPredictionArea == null)
                 MessageBox.Show("Select a prediction area.");
@@ -1152,32 +1192,30 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Provide a non-empty prediction name.");
             else
             {
-                Area predictionArea = SelectedPredictionArea;
-                Set<string> incidentTypes = m.IncidentTypes;
-
                 Thread t = new Thread(new ThreadStart(delegate()
                     {
-                        DateTime trainingStart = m.TrainingStart;
-                        DateTime trainingEnd = m.TrainingEnd;
                         Prediction mostRecentPrediction = null;
-                        for (int i = (int)startPrediction.Value - 1; i < numPredictions.Value; ++i)
-                        {
-                            Console.Out.WriteLine("Running prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
 
-                            TimeSpan offset = new TimeSpan(0, i * (int)predictionSpacingHours.Value, 0, 0);
+                        for (int predictionNum = (int)startPrediction.Value; predictionNum <= numPredictions.Value; ++predictionNum)
+                        {
+                            Console.Out.WriteLine("Running prediction \"" + predictionName + "\" (" + predictionNum + " of " + numPredictions.Value + ")");
+
+                            TimeSpan timeOffset = new TimeSpan(0, (predictionNum - 1) * (int)predictionSpacingHours.Value, 0, 0);
 
                             if (perIncident.Checked)
                             {
-                                foreach (string incidentType in incidentTypes)
+                                foreach (string incidentType in SelectedModel.IncidentTypes)
                                 {
                                     Console.Out.WriteLine("Running per-incident prediction \"" + incidentType + "\"");
 
+                                    DiscreteChoiceModel modelToRun = null;
                                     try
                                     {
-                                        m.TrainingStart = trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L));
-                                        m.TrainingEnd = trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L));
-                                        m.IncidentTypes = new Set<string>(new string[] { incidentType });
-                                        mostRecentPrediction = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                        modelToRun = SelectedModel.Copy();
+                                        modelToRun.TrainingStart = SelectedModel.TrainingStart + (slideTrainingStart.Checked ? timeOffset : new TimeSpan(0L));
+                                        modelToRun.TrainingEnd = SelectedModel.TrainingEnd + (slideTrainingEnd.Checked ? timeOffset : new TimeSpan(0L));
+                                        modelToRun.IncidentTypes = new Set<string>(new string[] { incidentType });
+                                        mostRecentPrediction = modelToRun.Run(SelectedPredictionArea, PredictionPointSpacing, PredictionStartDateTime + timeOffset, PredictionEndDateTime + timeOffset, predictionName + " " + incidentType + (numPredictions.Value > 1 ? " " + predictionNum : ""), newRun);
                                         newRun = false;
                                     }
                                     catch (Exception ex)
@@ -1186,16 +1224,21 @@ namespace PTL.ATT.GUI
                                                       ex.StackTrace;
                                         Console.Out.WriteLine(msg);
                                         Notify("Error", msg);
+
+                                        try { modelToRun.Delete(); }
+                                        catch (Exception) { Console.Out.WriteLine("Failed to delete model:  " + ex.Message); }
                                     }
                                 }
                             }
                             else
                             {
+                                DiscreteChoiceModel modelToRun = null;
                                 try
                                 {
-                                    m.TrainingStart = trainingStart + (slideTrainingStart.Checked ? offset : new TimeSpan(0L));
-                                    m.TrainingEnd = trainingEnd + (slideTrainingEnd.Checked ? offset : new TimeSpan(0L));
-                                    mostRecentPrediction = m.Run(predictionArea, PredictionStartDateTime + offset, PredictionEndDateTime + offset, predictionName + (numPredictions.Value > 1 ? " " + (i + 1) : ""), newRun);
+                                    modelToRun = SelectedModel.Copy();
+                                    modelToRun.TrainingStart = SelectedModel.TrainingStart + (slideTrainingStart.Checked ? timeOffset : new TimeSpan(0L));
+                                    modelToRun.TrainingEnd = SelectedModel.TrainingEnd + (slideTrainingEnd.Checked ? timeOffset : new TimeSpan(0L));
+                                    mostRecentPrediction = modelToRun.Run(SelectedPredictionArea, PredictionPointSpacing, PredictionStartDateTime + timeOffset, PredictionEndDateTime + timeOffset, predictionName + (numPredictions.Value > 1 ? " " + predictionNum : ""), newRun);
                                     newRun = false;
                                 }
                                 catch (Exception ex)
@@ -1204,15 +1247,14 @@ namespace PTL.ATT.GUI
                                                   ex.StackTrace;
                                     Console.Out.WriteLine(msg);
                                     Notify("Error", msg);
+
+                                    try { modelToRun.Delete(); }
+                                    catch (Exception) { Console.Out.WriteLine("Failed to delete model:  " + ex.Message); }
                                 }
                             }
 
-                            Console.Out.WriteLine("Completed prediction \"" + predictionName + "\" (" + (i + 1) + " of " + numPredictions.Value + ")");
+                            Console.Out.WriteLine("Completed prediction \"" + predictionName + "\" (" + predictionNum + " of " + numPredictions.Value + ")");
                         }
-
-                        m.TrainingStart = trainingStart;
-                        m.TrainingEnd = trainingEnd;
-                        m.IncidentTypes = incidentTypes;
 
                         if (mostRecentPrediction != null)
                         {
@@ -1396,9 +1438,9 @@ namespace PTL.ATT.GUI
                             Thread areaT = new Thread(new ParameterizedThreadStart(delegate(object o)
                                 {
                                     Area area = o as Area;
-                                    NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(connection, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
-                                    DB.Connection.Return(connection);
+                                    NpgsqlCommand command = DB.Connection.NewCommand(null);
+                                    lock (overlays) { overlays.Add(new Overlay(area.Name, Geometry.GetPoints(command, area.Shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold), Color.Black, true, 0)); }
+                                    DB.Connection.Return(command.Connection);
                                 }));
 
                             areaT.Start(p.PredictionArea);
@@ -1423,10 +1465,10 @@ namespace PTL.ATT.GUI
                                                                                                                 feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.GeometryDensity)))
                                                 {
                                                     Shapefile shapefile = new Shapefile(int.Parse(feature.PredictionResourceId));
-                                                    NpgsqlConnection connection = DB.Connection.OpenConnection;
-                                                    List<List<PointF>> points = Geometry.GetPoints(connection, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
-                                                    DB.Connection.Return(connection);
-                                                    lock (overlays) { overlays.Add(new Overlay(feature.Description, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
+                                                    NpgsqlCommand command = DB.Connection.NewCommand(null);
+                                                    List<List<PointF>> points = Geometry.GetPoints(command, shapefile.GeometryTable, ShapefileGeometry.Columns.Geometry, ShapefileGeometry.Columns.Id, pointDistanceThreshold);
+                                                    DB.Connection.Return(command.Connection);
+                                                    lock (overlays) { overlays.Add(new Overlay(shapefile.Name, points, ColorPalette.GetColor(), false, featureIdViewPriority[f.Id])); }
                                                 }
                                             }));
 
@@ -1445,7 +1487,7 @@ namespace PTL.ATT.GUI
                             threatMap.Display(p, overlays);
 
                             if (threatMap.DisplayedPrediction != null)
-                                Invoke(new Action(RefreshAssessmentPlots));
+                                Invoke(new Action(RefreshAssessments));
                         }));
 
                     displayThread.Start();
@@ -1484,7 +1526,7 @@ namespace PTL.ATT.GUI
                     List<Plot> newPlots = selectedPredictions.Where(p => p.Id == threatMap.DisplayedPrediction.Id).First().AssessmentPlots.ToList();
                     threatMap.DisplayedPrediction.AssessmentPlots.Clear();
                     threatMap.DisplayedPrediction.AssessmentPlots.AddRange(newPlots);
-                    RefreshAssessmentPlots();
+                    RefreshAssessments();
                 }
 
                 RefreshPredictions(selectedPredictions.ToArray());
@@ -1517,7 +1559,7 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Select one or more predictions to copy.");
             else if (selectedPredictions.Count == 1 || MessageBox.Show("Are you sure you want to copy " + selectedPredictions.Count + " prediction(s)?", "Confirm copy", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
             {
-                DynamicForm f = new DynamicForm("Set copy parameters");
+                DynamicForm f = new DynamicForm("Set copy parameters", DynamicForm.CloseButtons.OkCancel);
                 f.AddNumericUpdown("Number of copies of each prediction:  ", 1, 0, 1, decimal.MaxValue, 1, "copies");
                 if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -1591,16 +1633,16 @@ namespace PTL.ATT.GUI
                                     if (File.Exists(selectedPrediction.PointPredictionLogPath))
                                     {
                                         DiscreteChoiceModel model = selectedPrediction.Model;
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
-                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>>();
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> oldLog = model.ReadPointPredictionLog(selectedPrediction.PointPredictionLogPath);
+                                        Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>> newLog = new Dictionary<string, Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>>();
                                         foreach (PointPrediction pointPrediction in selectedPrediction.PointPredictions)
                                         {
                                             List<Tuple<string, double>> smoothedIncidentScore = new List<Tuple<string, double>>();
                                             foreach (string incident in pointPrediction.IncidentScore.Keys)
-                                                smoothedIncidentScore.Add(new Tuple<string, double>(incident, Math.Round(pointPrediction.IncidentScore[incident], 3)));
+                                                smoothedIncidentScore.Add(new Tuple<string, double>(incident, pointPrediction.IncidentScore[incident]));
 
                                             string logPointId = model.GetPointIdForLog(pointPrediction.PointId, pointPrediction.Time);
-                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, double>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
+                                            newLog.Add(logPointId, new Tuple<List<Tuple<string, double>>, List<Tuple<string, string>>>(smoothedIncidentScore, oldLog[logPointId].Item2));
                                         }
 
                                         model.WritePointPredictionLog(newLog, selectedPrediction.PointPredictionLogPath);
@@ -1674,7 +1716,7 @@ namespace PTL.ATT.GUI
                             }
                     }
 
-                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), seriesPoints, 500, 500, Plot.Format.JPEG, 2);
+                    SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), -1, seriesPoints, 500, 500, Plot.Format.JPEG, 2);
                     List<TitledImage> comparisonPlotImages = new List<TitledImage>(new TitledImage[] { new TitledImage(comparisonPlot.Image, null) });
                     new ImageViewer(comparisonPlotImages, 0).ShowDialog();
                 }
@@ -1718,10 +1760,15 @@ namespace PTL.ATT.GUI
                 if (TraversePredictionTree().Count(n => n.Checked) == 1)
                     title = TraversePredictionTree().Where(n => n.Checked).First().Text;
 
-                try { images.Add(new TitledImage(DiscreteChoiceModel.EvaluateAggregate(SelectedPredictions, 500, 500, title, title).Image, title)); }
+                try
+                {
+                    Tuple<SurveillancePlot, float> surveillancePlotAndCorrelation = DiscreteChoiceModel.GetAggregateSurveillancePlotAndCorrelation(SelectedPredictions, 500, 500, title, title);
+                    images.Add(new TitledImage(surveillancePlotAndCorrelation.Item1.Image, title));
+                    ImageViewer viewer = new ImageViewer(images, 0);
+                    viewer.Text = "Correlation between threat and crime count:  " + surveillancePlotAndCorrelation.Item2;
+                    viewer.Show();
+                }
                 catch (Exception ex) { MessageBox.Show("Error rendering aggregate plot:  " + ex.Message); }
-
-                new ImageViewer(images, 0).ShowDialog();
             }
         }
 
@@ -1796,7 +1843,7 @@ namespace PTL.ATT.GUI
                             {
                                 PredictionGroup group = node.Tag as PredictionGroup;
                                 if (group.AggregatePlot == null)
-                                    group.AggregatePlot = DiscreteChoiceModel.EvaluateAggregate(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
+                                    group.AggregatePlot = DiscreteChoiceModel.GetAggregateSurveillancePlot(TraversePredictionTree(node.Nodes).Where(n => n.Tag is Prediction).Select(n => n.Tag as Prediction), 500, 500, group.Name, group.Name);
                             }
                             else if (node.Tag is Prediction)
                                 DiscreteChoiceModel.Evaluate(node.Tag as Prediction, PlotHeight, PlotHeight);
@@ -1928,11 +1975,11 @@ namespace PTL.ATT.GUI
             Focus();
         }
 
-        public void RefreshAssessmentPlots()
+        public void RefreshAssessments()
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(RefreshAssessmentPlots));
+                Invoke(new Action(RefreshAssessments));
                 return;
             }
 
@@ -1944,6 +1991,15 @@ namespace PTL.ATT.GUI
                 plotBox.Image = plot.Image;
                 plotBox.MouseDoubleClick += new MouseEventHandler(plot_MouseDoubleClick);
                 assessments.AddPlot(plotBox);
+
+                float correlation = float.NaN;
+                if (plot.Slice == -1)
+                    correlation = threatMap.DisplayedPrediction.OverallCrimeThreatCorrelation;
+                else if (plot.Slice >= 0)
+                    correlation = threatMap.DisplayedPrediction.SliceThreatCorrelation[plot.Slice];
+
+                if (!float.IsNaN(correlation))
+                    toolTip.SetToolTip(plotBox, "Correlation between threat and crime count:  " + correlation);
             }
         }
 
@@ -2016,7 +2072,7 @@ namespace PTL.ATT.GUI
 
             while (true)
             {
-                DynamicForm f = new DynamicForm("Encrypt text...", MessageBoxButtons.OKCancel);
+                DynamicForm f = new DynamicForm("Encrypt text...", DynamicForm.CloseButtons.OkCancel);
                 f.AddTextBox("Text:", null, 20, "text", '*', true);
                 f.AddTextBox("Confirm text:", null, 20, "confirmed", '*', true);
 
@@ -2037,7 +2093,7 @@ namespace PTL.ATT.GUI
 
             try
             {
-                DynamicForm showEncrypted = new DynamicForm("Encrypted text", MessageBoxButtons.OK);
+                DynamicForm showEncrypted = new DynamicForm("Encrypted text", DynamicForm.CloseButtons.OK);
                 showEncrypted.AddTextBox("Result:", textToEncrypt.Encrypt(Configuration.EncryptionKey, Configuration.EncryptionInitialization).Select(b => b.ToString()).Concatenate("-"), -1, "encrypted");
                 showEncrypted.ShowDialog();
             }
@@ -2045,7 +2101,37 @@ namespace PTL.ATT.GUI
         }
         #endregion
 
-        #region about
+        #region help
+        private void resetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string[] candidateTables = DB.Connection.GetTables().Where(t => t != "spatial_ref_sys").ToArray();
+            if (candidateTables.Length == 0)
+            {
+                MessageBox.Show("It appears as though the ATT system has not yet been initialized. This indicates an error somewhere in the configuration.");
+                return;
+            }
+
+            DynamicForm f = new DynamicForm("Reset ATT System", DynamicForm.CloseButtons.OkCancel);
+            f.AddListBox("Tables to KEEP:", candidateTables, null, SelectionMode.MultiExtended, "keep", true, "Select the tables that you wish to keep.");
+            f.GetControl<ListBox>("keep").SelectedItem = null;
+            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Set<string> tablesToKeep = new Set<string>(f.GetValue<ListBox.SelectedObjectCollection>("keep").Cast<string>().ToArray());
+                string tablesToDelete = candidateTables.Where(t => !tablesToKeep.Contains(t)).Concatenate(",");
+                if (!string.IsNullOrWhiteSpace(tablesToDelete) && MessageBox.Show("This will permanently delete data from the database. Proceed?", "WARNING", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    try
+                    {
+                        DB.Connection.ExecuteNonQuery("DROP TABLE " + tablesToDelete + " CASCADE");
+                        PTL.ATT.Configuration.Reload(true);
+                        _logWriter.Clear();
+                        RefreshAll();
+                    }
+                    catch (Exception ex) { Console.Out.WriteLine("Error resetting the ATT system:  " + ex.Message); }
+                }
+            }
+        }
+
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(ATT.Configuration.LicenseText, "About the Asymmetric Threat Tracker");
@@ -2103,7 +2189,7 @@ namespace PTL.ATT.GUI
                 return null;
             }
 
-            DynamicForm f = new DynamicForm(prompt, MessageBoxButtons.OKCancel);
+            DynamicForm f = new DynamicForm(prompt, DynamicForm.CloseButtons.OkCancel);
             f.AddDropDown("Areas:", areas, null, "area", true);
             Area importArea = null;
             if (f.ShowDialog() == DialogResult.OK)

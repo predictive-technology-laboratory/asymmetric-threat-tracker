@@ -46,11 +46,6 @@ namespace PTL.ATT.GUI
             get { return trainingAreas.SelectedItem as Area; }
         }
 
-        public int PointSpacing
-        {
-            get { return (int)pointSpacing.Value; }
-        }
-
         public DateTime TrainingStart
         {
             get { return trainingStart.Value; }
@@ -178,7 +173,6 @@ namespace PTL.ATT.GUI
             if (_discreteChoiceModel == null)
             {
                 modelName.Text = "";
-                pointSpacing.Value = 200;
                 Incident firstIncident = Incident.GetFirst(TrainingArea);
                 Incident lastIncident = Incident.GetLast(TrainingArea);
                 trainingStart.Value = firstIncident == null ? DateTime.Today.Add(new TimeSpan(-7, 0, 0, 0)) : new DateTime(firstIncident.Time.Year, firstIncident.Time.Month, firstIncident.Time.Day, 0, 0, 0);
@@ -189,7 +183,6 @@ namespace PTL.ATT.GUI
             {
                 modelName.Text = _discreteChoiceModel.Name;
                 trainingAreas.SelectedItem = _discreteChoiceModel.TrainingArea;
-                pointSpacing.Value = _discreteChoiceModel.PointSpacing;
                 trainingStart.Value = _discreteChoiceModel.TrainingStart;
                 trainingEnd.Value = _discreteChoiceModel.TrainingEnd;
                 RefreshIncidentTypes();
@@ -275,7 +268,6 @@ namespace PTL.ATT.GUI
         {
             model.Name = ModelName;
             model.TrainingArea = TrainingArea;
-            model.PointSpacing = PointSpacing;
             model.TrainingStart = TrainingStart;
             model.TrainingEnd = TrainingEnd;
             model.IncidentTypes = IncidentTypes;

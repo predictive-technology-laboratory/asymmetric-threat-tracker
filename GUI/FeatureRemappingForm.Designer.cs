@@ -44,12 +44,14 @@ namespace PTL.ATT.GUI
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.training = new System.Windows.Forms.ListBox();
             this.prediction = new System.Windows.Forms.ListBox();
             this.ok = new System.Windows.Forms.Button();
             this.reset = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // training
@@ -100,6 +102,7 @@ namespace PTL.ATT.GUI
             this.label1.Size = new System.Drawing.Size(84, 13);
             this.label1.TabIndex = 4;
             this.label1.Text = "Training feature:";
+            this.toolTip.SetToolTip(this.label1, "Original feature to remap during prediction.");
             // 
             // label2
             // 
@@ -109,6 +112,8 @@ namespace PTL.ATT.GUI
             this.label2.Size = new System.Drawing.Size(93, 13);
             this.label2.TabIndex = 5;
             this.label2.Text = "Prediction feature:";
+            this.toolTip.SetToolTip(this.label2, "Feature to use during prediction. Right-click to map the selected training featur" +
+        "e to a prediction feature.");
             // 
             // FeatureRemappingForm
             // 
@@ -138,5 +143,6 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.Button reset;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }

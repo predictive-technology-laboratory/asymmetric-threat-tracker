@@ -55,8 +55,8 @@ namespace PTL.ATT.Evaluation
                 if (sliceTicks > 0)
                     slice = incident.Time.Ticks / sliceTicks;
 
-                int row = (int)((incident.Location.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.Model.PointSpacing);
-                int col = (int)((incident.Location.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.Model.PointSpacing);
+                int row = (int)((incident.Location.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.PredictionPointSpacing);
+                int col = (int)((incident.Location.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.PredictionPointSpacing);
                 string location = row + "-" + col;
 
                 sliceLocationTrueCount.EnsureContainsKey(slice, typeof(Dictionary<string, int>));
@@ -98,8 +98,8 @@ namespace PTL.ATT.Evaluation
                     slice = pointPrediction.Time.Ticks / sliceTicks;
 
                 PostGIS.Point point = idPoint[pointPrediction.PointId].Location;
-                int row = (int)((point.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.Model.PointSpacing);
-                int col = (int)((point.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.Model.PointSpacing);
+                int row = (int)((point.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.PredictionPointSpacing);
+                int col = (int)((point.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.PredictionPointSpacing);
                 string location = row + "-" + col;
 
                 sliceLocationThreats.EnsureContainsKey(slice, typeof(Dictionary<string, List<double>>));
@@ -173,22 +173,30 @@ namespace PTL.ATT.Evaluation
 
             int locationsSurveilled = 0;
             int trueIncidentsCaptured = 0;
-            int totalTrueIncidents = locationTrueCount.Keys.Where(location => locationThreats.ContainsKey(location)).Select(location => locationTrueCount[location]).Sum(); // only count those true incidents in locations where we made a prediction. some of our incident data falls outside the prediction area and the prediction shouldn't be penalized for not retrieving these incidents.
-            int locationsSurveilledPerPlotPoint = (int)(sortedLocations.Count * 0.01);
+            int totalTrueIncidents = locationTrueCount.Values.Sum();
+            int locationsSurveilledPerPlotPoint = (int)(sortedLocations.Count * 0.01);  // plot 100 points
             foreach (string location in sortedLocations)
             {
                 ++locationsSurveilled;
 
                 int trueCount;
-                locationTrueCount.TryGetValue(location, out trueCount);
-                trueIncidentsCaptured += trueCount;
+                if (locationTrueCount.TryGetValue(location, out trueCount))
+                    trueIncidentsCaptured += trueCount;
 
                 if ((locationsSurveilled % locationsSurveilledPerPlotPoint) == 0)
                     plotPoints.Add(new PointF(locationsSurveilled / (float)(percentages ? locationAvgThreat.Count : 1), trueIncidentsCaptured / (float)(percentages ? totalTrueIncidents : 1)));
             }
 
-            if (addStartEndPoints)
-                plotPoints.Add(new PointF(percentages ? 1 : sortedLocations.Count, percentages ? 1 : totalTrueIncidents));
+            // add final point if the final iteration didn't do so above
+            if ((locationsSurveilled % locationsSurveilledPerPlotPoint) != 0)
+                plotPoints.Add(new PointF(locationsSurveilled / (float)(percentages ? locationAvgThreat.Count : 1), trueIncidentsCaptured / (float)(percentages ? totalTrueIncidents : 1)));
+
+            if (trueIncidentsCaptured != totalTrueIncidents)
+                Console.Out.WriteLine("WARNING:  The area covered by the prediction did not cover all of the ground-truth incidents during the prediction window. This probably means that a bug exists in the model.");
+
+            PointF endPoint = new PointF(percentages ? 1 : sortedLocations.Count, percentages ? 1 : totalTrueIncidents);
+            if (addStartEndPoints && plotPoints[plotPoints.Count - 1] != endPoint)
+                plotPoints.Add(endPoint);
 
             return plotPoints;
         }
@@ -202,18 +210,20 @@ namespace PTL.ATT.Evaluation
             get { return _seriesAUC; }
         }
 
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format, int aucDigits)
-            : base(title, seriesPoints, height, width, format)
+        public SurveillancePlot(string title, long slice, Dictionary<string, List<PointF>> seriesPoints, int height, int width, Format format, int aucDigits)
+            : base(title, slice, seriesPoints, height, width, format)
         {
             _aucDigits = aucDigits;
+
+            // x and y values must be non-decreasing
+            foreach (string series in seriesPoints.Keys)
+                for (int i = 1; i < seriesPoints[series].Count; ++i)
+                    if (seriesPoints[series][i].X < seriesPoints[series][i - 1].X)
+                        throw new Exception("Series x values decrease");
+                    else if (seriesPoints[series][i].Y < seriesPoints[series][i - 1].Y)
+                        throw new Exception("Series y values decrease");
 
             Render(height, width, true, new Tuple<string, string>(null, null), false, false);
-        }
-
-        public SurveillancePlot(string title, Dictionary<string, List<PointF>> seriesPoints, Image image, Format format, int aucDigits)
-            : base(title, seriesPoints, image, format)
-        {
-            _aucDigits = aucDigits;
         }
 
         /// <summary>
@@ -355,9 +365,9 @@ points = read.csv(""" + diffSeriesPath.Replace(@"\", @"\\") + @""",header=FALSE)
 x = points[,1]
 y = points[,2]
 lines(x,y,type=""o"",col=" + plotColors.Last() + ",pch=" + plotCharacterVector + (args == null ? "" : "," + args[1]) + @")
-legend_labels=c(legend_labels,expression(paste(Delta, "" peak @ (" + string.Format("{0:0.00},{1:0.00}", diffMax.X, diffMax.Y) + @")"")))
-abline(v=" + diffMax.X + @",lty=1)
-abline(h=" + diffMax.Y + @",lty=1)");
+legend_labels=c(legend_labels,expression(paste(Delta, "" - Peak @ (" + string.Format("{0:0.00},{1:0.00}", diffMax.X, diffMax.Y) + @")"")))
+abline(v=" + diffMax.X + @",lty=""dotted"",col=""grey"")
+abline(h=" + diffMax.Y + @",lty=""dotted"",col=""grey"")");
             }
 
             rCmd.Append(@"

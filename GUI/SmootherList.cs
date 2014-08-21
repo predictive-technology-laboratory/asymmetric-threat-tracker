@@ -66,7 +66,7 @@ namespace PTL.ATT.GUI
                     if (smoother is KdeSmoother)
                     {
                         KdeSmoother kdeSmoother = smoother as KdeSmoother;
-                        DynamicForm f = new DynamicForm("Set KDE smoother parameters");
+                        DynamicForm f = new DynamicForm("Set KDE smoother parameters", DynamicForm.CloseButtons.OkCancel);
                         f.AddNumericUpdown("Sample size:", kdeSmoother.SampleSize, 0, 1, decimal.MaxValue, 1, "sample_size");
                         f.AddCheckBox("Normalize:", ContentAlignment.MiddleRight, kdeSmoother.Normalize, "normalize");
                         if (f.ShowDialog() == DialogResult.OK)
@@ -80,7 +80,7 @@ namespace PTL.ATT.GUI
                     else if (smoother is WeightedAverageSmoother)
                     {
                         WeightedAverageSmoother avgSmoother = smoother as WeightedAverageSmoother;
-                        DynamicForm f = new DynamicForm("Set weighted average smoother parameters");
+                        DynamicForm f = new DynamicForm("Set weighted average smoother parameters", DynamicForm.CloseButtons.OkCancel);
                         f.AddNumericUpdown("Minimum:", (decimal)avgSmoother.Minimum, 0, 0, decimal.MaxValue, 1, "minimum");
                         f.AddNumericUpdown("Maximum:", (decimal)avgSmoother.Maximum, 0, 0, decimal.MaxValue, 1, "maximum");
                         if (f.ShowDialog() == DialogResult.OK)
@@ -105,7 +105,7 @@ namespace PTL.ATT.GUI
                     else if (smoother is MarsSmoother)
                     {
                         MarsSmoother marsSmoother = smoother as MarsSmoother;
-                        DynamicForm f = new DynamicForm("Set MARS smoother parameters");
+                        DynamicForm f = new DynamicForm("Set MARS smoother parameters", DynamicForm.CloseButtons.OkCancel);
                         f.AddNumericUpdown("Number of considered parent terms (-1 for all):", marsSmoother.ConsideredParentTerms, 0, -1, decimal.MaxValue, 1, "parent");
                         f.AddNumericUpdown("Degree of interaction:", marsSmoother.InteractionDegree, 0, 1, decimal.MaxValue, 1, "interaction");
                         f.AddNumericUpdown("Number of knots (-1 for auto):", marsSmoother.NumberOfKnots, 0, -1, decimal.MaxValue, 1, "knots");

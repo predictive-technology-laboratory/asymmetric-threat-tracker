@@ -32,8 +32,6 @@ namespace PTL.ATT.Models
 
         Area TrainingArea { get; set; }
 
-        int PointSpacing { get; set; }
-
         DateTime TrainingStart { get; set; }
 
         DateTime TrainingEnd { get; set; }
