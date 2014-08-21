@@ -7,8 +7,8 @@
     <ProjectGuid>{E7E71FEC-673B-4D13-A5EB-FFB4CF543814}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GuiTest</RootNamespace>
-    <AssemblyName>GuiTest</AssemblyName>
+    <RootNamespace>PTL.ATT.GuiTest</RootNamespace>
+    <AssemblyName>PTL.ATT.GuiTest</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -41,6 +41,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AttTest.Models
+namespace PTL.ATT.AttTest.Models
 {
     [TestFixture]
     public class FeatureBasedDcmTest
@@ -15,7 +15,6 @@ namespace AttTest.Models
         [TestFixtureSetUp]
         public void SetUp()
         {
-            Configuration.Initialize("att_config.xml", true);
         }
 
         [Test]
