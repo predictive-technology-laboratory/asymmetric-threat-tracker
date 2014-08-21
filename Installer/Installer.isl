@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <?xml-stylesheet type="text/xsl" href="is.xsl" ?>
 <!DOCTYPE msi [
    <!ELEMENT msi   (summary,table*)>
@@ -345,6 +345,7 @@
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{8833679A-3263-4152-A6BC-4ABCE618666C}</td><td>DATA</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{76B42875-734D-43FA-B1F6-068AB027F36F}</td><td>AO1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT11</td><td>{8475D061-7034-4005-B6E2-B4C312F44935}</td><td>FEATURES1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT12</td><td>{0E92742B-2BA4-4AB9-A8AA-287212EBFCB8}</td><td>IMPORTERS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{277D309B-2704-4A22-9086-EFFE9E82C8D2}</td><td>CRIMES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{6B7D951F-B43D-429A-8E09-7768DCBD2C79}</td><td>EVENTS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{1EB9B531-BD72-483B-9D02-32F91981B65D}</td><td>SHAPEFILES</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1168,6 +1169,7 @@
 		<row><td>FavoritesFolder</td><td>TARGETDIR</td><td>.:FAVORI~1|Favorites</td><td/><td>0</td><td/></row>
 		<row><td>FontsFolder</td><td>TARGETDIR</td><td>.:Fonts</td><td/><td>0</td><td/></row>
 		<row><td>GlobalAssemblyCache</td><td>TARGETDIR</td><td>.:Global~1|GlobalAssemblyCache</td><td/><td>0</td><td/></row>
+		<row><td>IMPORTERS</td><td>INSTALLDIR</td><td>IMPORT~1|Importers</td><td/><td>0</td><td/></row>
 		<row><td>INSTALLDIR</td><td>ASYMMETRIC_THREAT_TRACKER</td><td>.</td><td/><td>0</td><td/></row>
 		<row><td>ISCommonFilesFolder</td><td>CommonFilesFolder</td><td>Instal~1|InstallShield</td><td/><td>0</td><td/></row>
 		<row><td>ISMyCompanyDir</td><td>ProgramFilesFolder</td><td>MYCOMP~1|My Company Name</td><td/><td>0</td><td/></row>
@@ -1897,6 +1899,7 @@
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT10</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT11</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT12</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
@@ -1922,11 +1925,16 @@
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\ATT\att_config.xml</td><td>1</td><td/></row>
 		<row><td>building_violations_jan_mar_</td><td>ISX_DEFAULTCOMPONENT3</td><td>BUILDI~1.ZIP|building_violations_jan-mar_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Events\building_violations_jan-mar_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago.attimp</td><td>1</td><td/></row>
+		<row><td>chicago_bicycle_racks.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Bicycle_Racks.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Bicycle_Racks.attimp</td><td>1</td><td/></row>
 		<row><td>chicago_bike_racks.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_bike_racks.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.zip</td><td>1</td><td/></row>
 		<row><td>chicago_city_boundary.zip</td><td>ISX_DEFAULTCOMPONENT6</td><td>CHICAG~1.ZIP|chicago_city_boundary.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.zip</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_january_march</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.ZIP|chicago_crimes_january-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_january-march_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago_crime_dec_2012_to_ma</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Crime_Dec_2012_to_Mar_2013.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Crime_Dec_2012_to_Mar_2013.attimp</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_december_2012</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.ZIP|chicago_crimes_december_2012-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_december_2012-march_2013.zip</td><td>1</td><td/></row>
 		<row><td>chicago_crimes_simple_format</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.XML|chicago_crimes_simple_format_sample.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_simple_format_sample.xml</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Major_Streets.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Major_Streets.attimp</td><td>1</td><td/></row>
 		<row><td>chicago_major_streets.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_major_streets.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.zip</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.atti</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Police_Stations.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Police_Stations.attimp</td><td>1</td><td/></row>
 		<row><td>chicago_police_stations.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_police_stations.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.zip</td><td>1</td><td/></row>
 		<row><td>gui.primary_output</td><td>GUI.Primary_output</td><td>GUI.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;GUI&gt;|Built</td><td>3</td><td/></row>
 		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\GUI\gui_config.xml</td><td>1</td><td/></row>
@@ -2088,6 +2096,7 @@
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_36A2A84A_0A58_4B02_8766_02FCE3B4BE67_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_662BE1BF_B3E4_4D4D_9CC3_EE941F2825FA_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT11</td><td/><td/><td>_F7D8414F_75F6_49F2_A1FF_5186EC7C3A32_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT12</td><td/><td/><td>_5895B393_D1F0_4F11_9DB1_4517221CDE95_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_3A89B3F5_BEE4_47EC_A1FD_31100FE21120_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_B0CC8BD7_FAAD_45A3_84C8_CB7680EB28AD_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_E1A42CDC_3343_48DE_9D1E_BB11D643B12C_FILTER</td><td/><td/><td/><td/></row>
@@ -4448,7 +4457,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{55543AF0-BB2E-4BC0-A41E-3370CA7C8F2C}</td><td/></row>
 		<row><td>ProductName</td><td>Asymmetric Threat Tracker</td><td/></row>
-		<row><td>ProductVersion</td><td>1.3</td><td/></row>
+		<row><td>ProductVersion</td><td>2.0.0</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
