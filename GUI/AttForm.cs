@@ -361,7 +361,7 @@ namespace PTL.ATT.GUI
                         pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
                     }
 
-                _logWriter = new LogWriter(log, Configuration.LogPath, true, Console.Out);
+                _logWriter = new LogWriter(log, Configuration.LogPath, true, true, Console.Out);
                 Console.SetOut(_logWriter);
                 Console.SetError(_logWriter);
             }
@@ -2101,7 +2101,37 @@ namespace PTL.ATT.GUI
         }
         #endregion
 
-        #region about
+        #region help
+        private void resetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string[] candidateTables = DB.Connection.GetTables().Where(t => t != "spatial_ref_sys").ToArray();
+            if (candidateTables.Length == 0)
+            {
+                MessageBox.Show("It appears as though the ATT system has not yet been initialized. This indicates an error somewhere in the configuration.");
+                return;
+            }
+
+            DynamicForm f = new DynamicForm("Reset ATT System", DynamicForm.CloseButtons.OkCancel);
+            f.AddListBox("Tables to KEEP:", candidateTables, null, SelectionMode.MultiExtended, "keep", true, "Select the tables that you wish to keep.");
+            f.GetControl<ListBox>("keep").SelectedItem = null;
+            if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Set<string> tablesToKeep = new Set<string>(f.GetValue<ListBox.SelectedObjectCollection>("keep").Cast<string>().ToArray());
+                string tablesToDelete = candidateTables.Where(t => !tablesToKeep.Contains(t)).Concatenate(",");
+                if (!string.IsNullOrWhiteSpace(tablesToDelete) && MessageBox.Show("This will permanently delete data from the database. Proceed?", "WARNING", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    try
+                    {
+                        DB.Connection.ExecuteNonQuery("DROP TABLE " + tablesToDelete + " CASCADE");
+                        PTL.ATT.Configuration.Reload(true);
+                        _logWriter.Clear();
+                        RefreshAll();
+                    }
+                    catch (Exception ex) { Console.Out.WriteLine("Error resetting the ATT system:  " + ex.Message); }
+                }
+            }
+        }
+
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(ATT.Configuration.LicenseText, "About the Asymmetric Threat Tracker");

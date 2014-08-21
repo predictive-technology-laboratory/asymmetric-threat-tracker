@@ -365,9 +365,9 @@ points = read.csv(""" + diffSeriesPath.Replace(@"\", @"\\") + @""",header=FALSE)
 x = points[,1]
 y = points[,2]
 lines(x,y,type=""o"",col=" + plotColors.Last() + ",pch=" + plotCharacterVector + (args == null ? "" : "," + args[1]) + @")
-legend_labels=c(legend_labels,expression(paste(Delta, "" peak @ (" + string.Format("{0:0.00},{1:0.00}", diffMax.X, diffMax.Y) + @")"")))
-abline(v=" + diffMax.X + @",lty=1)
-abline(h=" + diffMax.Y + @",lty=1)");
+legend_labels=c(legend_labels,expression(paste(Delta, "" - Peak @ (" + string.Format("{0:0.00},{1:0.00}", diffMax.X, diffMax.Y) + @")"")))
+abline(v=" + diffMax.X + @",lty=""dotted"",col=""grey"")
+abline(h=" + diffMax.Y + @",lty=""dotted"",col=""grey"")");
             }
 
             rCmd.Append(@"

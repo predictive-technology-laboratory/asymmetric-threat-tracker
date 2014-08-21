@@ -192,6 +192,7 @@ namespace PTL.ATT
         }
         #endregion
 
+        private static string _path = null;
         private static bool _initialized = false;
 
         public static string LicenseText
@@ -218,7 +219,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
                 return;
             }
 
-            XmlParser p = new XmlParser(File.ReadAllText(path));
+            _path = path;
+
+            XmlParser p = new XmlParser(File.ReadAllText(_path));
 
             XmlParser postgresP = new XmlParser(p.OuterXML("postgres"));
             _postgresHost = postgresP.ElementText("host");
@@ -338,6 +341,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
                 DB.Initialize();
 
             _initialized = true;
+        }
+
+        public static void Reload(bool reinitializeDB)
+        {
+            _initialized = false;
+            Initialize(_path, reinitializeDB);
         }
 
         private static Assembly LoadExternalFeatureExtractorAssembly(object sender, ResolveEventArgs args)

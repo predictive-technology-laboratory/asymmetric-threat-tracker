@@ -55,6 +55,8 @@ namespace PTL.ATT.GUI
             _mainPanel = new FlowLayoutPanel();
             _mainPanel.FlowDirection = FlowDirection.TopDown;
 
+            Controls.Add(_mainPanel);
+
             Load += new EventHandler(DynamicForm_Load);
             Shown += new EventHandler(DynamicForm_Shown);
         }
@@ -125,7 +127,6 @@ namespace PTL.ATT.GUI
             _mainPanel.Controls.Add(buttonPanel);
             _mainPanel.Size = _mainPanel.PreferredSize;
 
-            Controls.Add(_mainPanel);
             Size = PreferredSize;
             Width = Math.Max(Width, TextRenderer.MeasureText(Text, Font).Width + 50);
         }

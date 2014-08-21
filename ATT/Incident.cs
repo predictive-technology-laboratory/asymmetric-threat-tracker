@@ -77,7 +77,8 @@ namespace PTL.ATT
                         "CREATE INDEX ON " + tableName + " (" + Columns.NativeId + ");" +
                         "CREATE INDEX ON " + tableName + " (" + Columns.Simulated + ");" +
                         "CREATE INDEX ON " + tableName + " (" + Columns.Time + ");" +
-                        "CREATE INDEX ON " + tableName + " (" + Columns.Type + ");");
+                        "CREATE INDEX ON " + tableName + " (" + Columns.Type + ");" +
+                        "ALTER SEQUENCE " + nativeIdSeqName + " OWNED BY " + tableName + "." + Columns.NativeId + ";");
             }
 
             return tableName;

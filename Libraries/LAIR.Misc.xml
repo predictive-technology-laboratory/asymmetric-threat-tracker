@@ -4,6 +4,103 @@
         <name>LAIR.Misc</name>
     </assembly>
     <members>
+        <member name="T:LAIR.Misc.GetValue">
+            <summary>
+            Form for getting a value from the user
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.GetValue.Show(System.String,System.String,System.Boolean)">
+            <summary>
+            Shows a dialog and returns the value
+            </summary>
+            <param name="title">Title for dialog</param>
+            <param name="defaultText">Default text to display in value field</param>
+            <param name="passwordField">Whether or not the textbox should be a password field</param>
+            <returns>Value</returns>
+        </member>
+        <member name="M:LAIR.Misc.GetValue.#ctor(System.String,System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="windowTitle">Title of window</param>
+            <param name="defaultText">Default to text to show in value field</param>
+        </member>
+        <member name="F:LAIR.Misc.GetValue.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.GetValue.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:LAIR.Misc.GetValue.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="P:LAIR.Misc.GetValue.Value">
+            <summary>
+            Gets the value entered by the user
+            </summary>
+        </member>
+        <member name="T:LAIR.Misc.HPCC">
+            <summary>
+            Provides functionality for interacting with MSU's HPCC
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.HPCC.CreateJobScripts(System.String,System.String,LAIR.Collections.Generic.Set{System.String},System.String,LAIR.Misc.HPCC.ScriptCompleter)">
+            <summary>
+            Creates HPCC job scripts for input files in a given directory
+            </summary>
+            <param name="directory">Directory to look for files in</param>
+            <param name="filePattern">File pattern to match</param>
+            <param name="excludeExtensions">File extensions to exclude (include . in extensions), or null for no exclusion</param>
+            <param name="stubScriptPath">Stub script path, which will be completed for each input file</param>
+            <param name="scriptCompleter">Script completion function</param>
+        </member>
+        <member name="M:LAIR.Misc.HPCC.ConvertFeatureTransformForSelection(System.String)">
+            <summary>
+            Converts a feature name transform into a mapping from feature numbers to groups
+            </summary>
+            <param name="path">Path to transform</param>
+        </member>
+        <member name="T:LAIR.Misc.HPCC.ScriptCompleter">
+            <summary>
+            Delegate for functions that complete HPCC job scripts
+            </summary>
+            <param name="filePath">Path to file that is to be processed</param>
+            <returns>Completion of job script</returns>
+        </member>
+        <member name="T:LAIR.Misc.IUpdatesStatus">
+            <summary>
+            Interface for classes that update their status
+            </summary>
+        </member>
+        <member name="E:LAIR.Misc.IUpdatesStatus.OnUpdateStatus">
+            <summary>
+            Fired when status is updated
+            </summary>
+        </member>
+        <member name="T:LAIR.Misc.UpdateStatusArg">
+            <summary>
+            Update status argument class
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.UpdateStatusArg.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="newStatus">New status</param>
+        </member>
+        <member name="P:LAIR.Misc.UpdateStatusArg.NewStatus">
+            <summary>
+            Gets the new status
+            </summary>
+        </member>
         <member name="T:LAIR.Misc.LanguageModel">
             <summary>
             Provides language modeling functionality
@@ -35,6 +132,173 @@
             <summary>
             Gets the n-grams in this model
             </summary>
+        </member>
+        <member name="T:LAIR.Misc.ChartCell">
+            <summary>
+            ChartCell class
+            </summary>
+        </member>
+        <member name="T:LAIR.Misc.MinEdit">
+            <summary>
+            Min edit class
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.MinEdit.EditDistance(System.String,System.String,System.Boolean)">
+            <summary>
+            Gets edit distance between two strings
+            </summary>
+            <param name="s1">First string</param>
+            <param name="s2">Second string</param>
+            <param name="caseSensitive">Perform in case-sensitive manner</param>
+            <returns>Minimum edit distance between two strings</returns>
+        </member>
+        <member name="T:LAIR.Misc.PrefixTreeNode">
+            <summary>
+            Represents the prefix tree (trie) data structure
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.PrefixTreeNode.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.PrefixTreeNode.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="s">String to initialize this tree with</param>
+        </member>
+        <member name="M:LAIR.Misc.PrefixTreeNode.Add(System.String)">
+            <summary>
+            Adds a string to the current tree
+            </summary>
+            <param name="s">String to add</param>
+        </member>
+        <member name="T:LAIR.Misc.StopWordHandler">
+            <summary>
+            Removes stop words
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.StopWordHandler.#ctor">
+            <summary>
+            Constructs a stop word handler using the default stop word list, which is fairly aggressive.
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.StopWordHandler.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Constructor
+            </summary>
+            <param name="stopWords">List of stop words to use</param>
+        </member>
+        <member name="M:LAIR.Misc.StopWordHandler.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="path">Path to stop word list (one word per line)</param>
+        </member>
+        <member name="M:LAIR.Misc.StopWordHandler.IsStopWord(System.String)">
+            <summary>
+            Check if a word is a stop word
+            </summary>
+            <param name="word">Word to check</param>
+            <returns>True if word is a stop word, false otherwise</returns>
+        </member>
+        <member name="M:LAIR.Misc.StopWordHandler.RemoveStopWords(System.Collections.Generic.List{System.String})">
+            <summary>
+            Removes stop words from a list of words
+            </summary>
+            <param name="words">Words to check</param>
+        </member>
+        <member name="T:LAIR.Misc.EventDelegates">
+            <summary>
+            Miscellaneous event delegates
+            </summary>
+        </member>
+        <member name="T:LAIR.Misc.EventDelegates.ProgressUpdateDelegate">
+            <summary>
+            Represents a method called to give updates on processing progress
+            </summary>
+            <param name="percentDone"></param>
+        </member>
+        <member name="T:LAIR.Misc.EventDelegates.ProcessingDoneDelegate">
+            <summary>
+            Represents a method called to notify of processing completion
+            </summary>
+        </member>
+        <member name="T:LAIR.Misc.EventDelegates.GenericDelegate">
+            <summary>
+            Generic, void-return, no-parameter delegate
+            </summary>
+        </member>
+        <member name="T:LAIR.Misc.ImageViewer">
+            <summary>
+            ImageViewer form
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.ImageViewer.#ctor(System.Collections.Generic.List{LAIR.Misc.TitledImage})">
+            <summary>
+            Constructor
+            </summary>
+            <param name="images">List of images to view</param>
+        </member>
+        <member name="M:LAIR.Misc.ImageViewer.#ctor(System.Collections.Generic.List{LAIR.Misc.TitledImage},System.Int32)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="images">List of images to view</param>
+            <param name="startImage">Zero-based index of image to start on</param>
+        </member>
+        <member name="M:LAIR.Misc.ImageViewer.OnImageChange(System.Object,LAIR.Misc.ImageChangedEventArgs)">
+            <summary>
+            Fires OnImageChange event
+            </summary>
+            <param name="o"></param>
+            <param name="icea"></param>
+        </member>
+        <member name="F:LAIR.Misc.ImageViewer.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.ImageViewer.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:LAIR.Misc.ImageViewer.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="E:LAIR.Misc.ImageViewer.ImageChanged">
+            <summary>
+            Fired when images changes
+            </summary>
+        </member>
+        <member name="T:LAIR.Misc.ImageViewer.ImageChangedHandler">
+            <summary>
+            Handles the event in which the image that is being displayed is changed
+            </summary>
+            <param name="o"></param>
+            <param name="icea"></param>
+        </member>
+        <member name="T:LAIR.Misc.ImageChangedEventArgs">
+            <summary>
+            The event arguments for the ImageChanged event
+            </summary>
+        </member>
+        <member name="F:LAIR.Misc.ImageChangedEventArgs.title">
+            <summary>
+            Title of image
+            </summary>
+        </member>
+        <member name="M:LAIR.Misc.ImageChangedEventArgs.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="Title"></param>
         </member>
         <member name="T:LAIR.Misc.InteractivePictureBox">
             <summary>
@@ -311,30 +575,39 @@
             <param name="statistic">Resulting statistic</param>
             <returns>True if statistic should be used and false otherwise</returns>
         </member>
-        <member name="T:LAIR.Misc.IUpdatesStatus">
+        <member name="T:LAIR.Misc.TidyHTML">
             <summary>
-            Interface for classes that update their status
+            Provides access to the Tidy HTML program
             </summary>
         </member>
-        <member name="E:LAIR.Misc.IUpdatesStatus.OnUpdateStatus">
+        <member name="M:LAIR.Misc.TidyHTML.Run(System.String,System.String)">
             <summary>
-            Fired when status is updated
+            Runs Tidy HTML on some input
+            </summary>
+            <param name="tidyExePath">Path to executable</param>
+            <param name="input">Input text</param>
+            <returns>Tidy HTML output</returns>
+        </member>
+        <member name="T:LAIR.Misc.TitledImage">
+            <summary>
+            Encapsulates an image and a title
             </summary>
         </member>
-        <member name="T:LAIR.Misc.UpdateStatusArg">
-            <summary>
-            Update status argument class
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.UpdateStatusArg.#ctor(System.String)">
+        <member name="M:LAIR.Misc.TitledImage.#ctor(System.Drawing.Image,System.String)">
             <summary>
             Constructor
             </summary>
-            <param name="newStatus">New status</param>
+            <param name="image"></param>
+            <param name="title"></param>
         </member>
-        <member name="P:LAIR.Misc.UpdateStatusArg.NewStatus">
+        <member name="P:LAIR.Misc.TitledImage.Title">
             <summary>
-            Gets the new status
+            Gets or sets the title on this titled image
+            </summary>
+        </member>
+        <member name="P:LAIR.Misc.TitledImage.Image">
+            <summary>
+            Gets or sets the image for this titled image
             </summary>
         </member>
         <member name="T:LAIR.Misc.Properties.Resources">
@@ -438,279 +711,6 @@
             c
             c [rest of string was truncated]&quot;;.
              </summary>
-        </member>
-        <member name="T:LAIR.Misc.StopWordHandler">
-            <summary>
-            Removes stop words
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.StopWordHandler.#ctor">
-            <summary>
-            Constructs a stop word handler using the default stop word list, which is fairly aggressive.
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.StopWordHandler.#ctor(System.Collections.Generic.IEnumerable{System.String})">
-            <summary>
-            Constructor
-            </summary>
-            <param name="stopWords">List of stop words to use</param>
-        </member>
-        <member name="M:LAIR.Misc.StopWordHandler.#ctor(System.String)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="path">Path to stop word list (one word per line)</param>
-        </member>
-        <member name="M:LAIR.Misc.StopWordHandler.IsStopWord(System.String)">
-            <summary>
-            Check if a word is a stop word
-            </summary>
-            <param name="word">Word to check</param>
-            <returns>True if word is a stop word, false otherwise</returns>
-        </member>
-        <member name="M:LAIR.Misc.StopWordHandler.RemoveStopWords(System.Collections.Generic.List{System.String})">
-            <summary>
-            Removes stop words from a list of words
-            </summary>
-            <param name="words">Words to check</param>
-        </member>
-        <member name="T:LAIR.Misc.ChartCell">
-            <summary>
-            ChartCell class
-            </summary>
-        </member>
-        <member name="T:LAIR.Misc.MinEdit">
-            <summary>
-            Min edit class
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.MinEdit.EditDistance(System.String,System.String,System.Boolean)">
-            <summary>
-            Gets edit distance between two strings
-            </summary>
-            <param name="s1">First string</param>
-            <param name="s2">Second string</param>
-            <param name="caseSensitive">Perform in case-sensitive manner</param>
-            <returns>Minimum edit distance between two strings</returns>
-        </member>
-        <member name="T:LAIR.Misc.GetValue">
-            <summary>
-            Form for getting a value from the user
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.GetValue.Show(System.String,System.String,System.Boolean)">
-            <summary>
-            Shows a dialog and returns the value
-            </summary>
-            <param name="title">Title for dialog</param>
-            <param name="defaultText">Default text to display in value field</param>
-            <param name="passwordField">Whether or not the textbox should be a password field</param>
-            <returns>Value</returns>
-        </member>
-        <member name="M:LAIR.Misc.GetValue.#ctor(System.String,System.String)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="windowTitle">Title of window</param>
-            <param name="defaultText">Default to text to show in value field</param>
-        </member>
-        <member name="F:LAIR.Misc.GetValue.components">
-            <summary>
-            Required designer variable.
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.GetValue.Dispose(System.Boolean)">
-            <summary>
-            Clean up any resources being used.
-            </summary>
-            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        </member>
-        <member name="M:LAIR.Misc.GetValue.InitializeComponent">
-            <summary>
-            Required method for Designer support - do not modify
-            the contents of this method with the code editor.
-            </summary>
-        </member>
-        <member name="P:LAIR.Misc.GetValue.Value">
-            <summary>
-            Gets the value entered by the user
-            </summary>
-        </member>
-        <member name="T:LAIR.Misc.HPCC">
-            <summary>
-            Provides functionality for interacting with MSU's HPCC
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.HPCC.CreateJobScripts(System.String,System.String,LAIR.Collections.Generic.Set{System.String},System.String,LAIR.Misc.HPCC.ScriptCompleter)">
-            <summary>
-            Creates HPCC job scripts for input files in a given directory
-            </summary>
-            <param name="directory">Directory to look for files in</param>
-            <param name="filePattern">File pattern to match</param>
-            <param name="excludeExtensions">File extensions to exclude (include . in extensions), or null for no exclusion</param>
-            <param name="stubScriptPath">Stub script path, which will be completed for each input file</param>
-            <param name="scriptCompleter">Script completion function</param>
-        </member>
-        <member name="M:LAIR.Misc.HPCC.ConvertFeatureTransformForSelection(System.String)">
-            <summary>
-            Converts a feature name transform into a mapping from feature numbers to groups
-            </summary>
-            <param name="path">Path to transform</param>
-        </member>
-        <member name="T:LAIR.Misc.HPCC.ScriptCompleter">
-            <summary>
-            Delegate for functions that complete HPCC job scripts
-            </summary>
-            <param name="filePath">Path to file that is to be processed</param>
-            <returns>Completion of job script</returns>
-        </member>
-        <member name="T:LAIR.Misc.TidyHTML">
-            <summary>
-            Provides access to the Tidy HTML program
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.TidyHTML.Run(System.String,System.String)">
-            <summary>
-            Runs Tidy HTML on some input
-            </summary>
-            <param name="tidyExePath">Path to executable</param>
-            <param name="input">Input text</param>
-            <returns>Tidy HTML output</returns>
-        </member>
-        <member name="T:LAIR.Misc.ImageViewer">
-            <summary>
-            ImageViewer form
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.ImageViewer.#ctor(System.Collections.Generic.List{LAIR.Misc.TitledImage})">
-            <summary>
-            Constructor
-            </summary>
-            <param name="images">List of images to view</param>
-        </member>
-        <member name="M:LAIR.Misc.ImageViewer.#ctor(System.Collections.Generic.List{LAIR.Misc.TitledImage},System.Int32)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="images">List of images to view</param>
-            <param name="startImage">Zero-based index of image to start on</param>
-        </member>
-        <member name="M:LAIR.Misc.ImageViewer.OnImageChange(System.Object,LAIR.Misc.ImageChangedEventArgs)">
-            <summary>
-            Fires OnImageChange event
-            </summary>
-            <param name="o"></param>
-            <param name="icea"></param>
-        </member>
-        <member name="F:LAIR.Misc.ImageViewer.components">
-            <summary>
-            Required designer variable.
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.ImageViewer.Dispose(System.Boolean)">
-            <summary>
-            Clean up any resources being used.
-            </summary>
-            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        </member>
-        <member name="M:LAIR.Misc.ImageViewer.InitializeComponent">
-            <summary>
-            Required method for Designer support - do not modify
-            the contents of this method with the code editor.
-            </summary>
-        </member>
-        <member name="E:LAIR.Misc.ImageViewer.ImageChanged">
-            <summary>
-            Fired when images changes
-            </summary>
-        </member>
-        <member name="T:LAIR.Misc.ImageViewer.ImageChangedHandler">
-            <summary>
-            Handles the event in which the image that is being displayed is changed
-            </summary>
-            <param name="o"></param>
-            <param name="icea"></param>
-        </member>
-        <member name="T:LAIR.Misc.ImageChangedEventArgs">
-            <summary>
-            The event arguments for the ImageChanged event
-            </summary>
-        </member>
-        <member name="F:LAIR.Misc.ImageChangedEventArgs.title">
-            <summary>
-            Title of image
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.ImageChangedEventArgs.#ctor(System.String)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="Title"></param>
-        </member>
-        <member name="T:LAIR.Misc.PrefixTreeNode">
-            <summary>
-            Represents the prefix tree (trie) data structure
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.PrefixTreeNode.#ctor">
-            <summary>
-            Constructor
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.PrefixTreeNode.#ctor(System.String)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="s">String to initialize this tree with</param>
-        </member>
-        <member name="M:LAIR.Misc.PrefixTreeNode.Add(System.String)">
-            <summary>
-            Adds a string to the current tree
-            </summary>
-            <param name="s">String to add</param>
-        </member>
-        <member name="T:LAIR.Misc.TitledImage">
-            <summary>
-            Encapsulates an image and a title
-            </summary>
-        </member>
-        <member name="M:LAIR.Misc.TitledImage.#ctor(System.Drawing.Image,System.String)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="image"></param>
-            <param name="title"></param>
-        </member>
-        <member name="P:LAIR.Misc.TitledImage.Title">
-            <summary>
-            Gets or sets the title on this titled image
-            </summary>
-        </member>
-        <member name="P:LAIR.Misc.TitledImage.Image">
-            <summary>
-            Gets or sets the image for this titled image
-            </summary>
-        </member>
-        <member name="T:LAIR.Misc.EventDelegates">
-            <summary>
-            Miscellaneous event delegates
-            </summary>
-        </member>
-        <member name="T:LAIR.Misc.EventDelegates.ProgressUpdateDelegate">
-            <summary>
-            Represents a method called to give updates on processing progress
-            </summary>
-            <param name="percentDone"></param>
-        </member>
-        <member name="T:LAIR.Misc.EventDelegates.ProcessingDoneDelegate">
-            <summary>
-            Represents a method called to notify of processing completion
-            </summary>
-        </member>
-        <member name="T:LAIR.Misc.EventDelegates.GenericDelegate">
-            <summary>
-            Generic, void-return, no-parameter delegate
-            </summary>
         </member>
     </members>
 </doc>
