@@ -1,8 +1,10 @@
 The process for cutting a release is as follows:
 
-* Check out the most recent version of develop and test it, correcting any errors.
+* Check out the most recent version of develop and test it, fixing any errors.
+* Edit README.md, adding links to the new release under the "Binary Installer" and "Compilation from Source" sections.
+* Commit all changes to develop.
 * Merge all changes from develop into master.
-* Check out the master.
+* Check out master.
 * Open ATT within Visual Studio and load the Installer project if not currently loaded.
 * Within the Installer project, set the Product Version under Installer -> Organize Your Setup -> General Information -> General. Follow Semantic Versioning guidelines in forming the version number:  http://semver.org/
 * Build the ATT Solution, resolve any errors, and test the ATT by installing and running it. The installer should be at the following location:
@@ -10,3 +12,4 @@ The process for cutting a release is as follows:
     {att_repository}\Installer\Installer\Express\SingleImage\DiskImages\DISK1\setup.exe
   
 * On GitHub, draft a new release with tag "vX.Y.Z" and release title "ATT release X.Y.Z", attaching the binary installer file (setup.exe) that you built above.
+* Rebuild the GitHub website via Settings -> Automatic page generator. Click Load README.md, use the Tactile layout, publish the page, select the gh-pages branch, and edit the page to include "<img src="./images/att.png"/>" at the end of the header element. The updated website should appear within a few minutes.
