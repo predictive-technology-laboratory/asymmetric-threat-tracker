@@ -3,9 +3,9 @@ The process for cutting a release is as follows:
 * Merge all changes from develop into master.
 * Check out the master branch.
 * Open ATT within Visual Studio and load the Installer project if not currently loaded.
-* Within the Installer project, set the Product Version under -> General Information -> General. Follow the Semantic Versioning guidelines:  http://semver.org/
+* Within the Installer project, set the Product Version under General Information -> General. Follow Semantic Versioning guidelines in forming the version number:  http://semver.org/
 * Build the ATT Solution, resolve any errors, and test the ATT by installing and running it. The installer should be at the following location:
 
     {att_repository}\Installer\Installer\Express\SingleImage\DiskImages\DISK1\setup.exe
   
-* On GitHub, draft a new release with tag "vX.Y" and release title "ATT release vX.Y", attaching the binary installer file that you built above (setup.exe).
+* On GitHub, draft a new release with tag "X.Y.Z" and release title "ATT release X.Y.Z", attaching the binary installer file that you built above (setup.exe).
