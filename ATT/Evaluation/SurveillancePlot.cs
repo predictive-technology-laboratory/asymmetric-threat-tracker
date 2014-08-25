@@ -36,8 +36,7 @@ namespace PTL.ATT.Evaluation
         #region static members
         static SurveillancePlot()
         {
-            if (Configuration.RCranMirror != null)
-                R.InstallPackages(R.CheckForMissingPackages(new string[] { "zoo" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "zoo" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
         public static Dictionary<long, Dictionary<string, int>> GetSliceLocationTrueCount(IEnumerable<Incident> incidents, Prediction prediction)
@@ -245,8 +244,8 @@ namespace PTL.ATT.Evaluation
             List<string> tmpPaths = new List<string>();
 
             #region difference series
-            // make sure series have the same x coordinates across the entire series
-            if (plotSeriesDifference != null && !SeriesPoints.Keys.All(series => SeriesPoints[series].Count == SeriesPoints.Values.First().Count && SeriesPoints[series].Zip(SeriesPoints.Values.First(), (p1, p2) => new Tuple<PointF, PointF>(p1, p2)).All(t => t.Item1.X == t.Item2.X)))
+            // make sure we have more than one series and that all series have the same x coordinates across the series (i.e., they're comparable)
+            if (SeriesPoints.Count == 1 || !SeriesPoints.Keys.All(series => SeriesPoints[series].Count == SeriesPoints.Values.First().Count && SeriesPoints[series].Zip(SeriesPoints.Values.First(), (p1, p2) => new Tuple<PointF, PointF>(p1, p2)).All(t => t.Item1.X == t.Item2.X)))
                 plotSeriesDifference = null;
 
             string diffSeriesPath = null;
@@ -257,7 +256,7 @@ namespace PTL.ATT.Evaluation
                 diffSeriesPath = Path.GetTempFileName();
                 tmpPaths.Add(diffSeriesPath);
 
-                Func<List<PointF>, List<PointF>, List<PointF>> seriesDifferencer = new Func<List<PointF>,List<PointF>,List<PointF>>((series1, series2) => 
+                Func<List<PointF>, List<PointF>, List<PointF>> seriesDifferencer = new Func<List<PointF>, List<PointF>, List<PointF>>((series1, series2) =>
                     series1.Zip(series2, (p1, p2) =>
                         {
                             if (p1.X != p2.X)
@@ -356,6 +355,7 @@ cat(as.character(auc),file=""" + aucOutputPath.Replace(@"\", @"\\") + @""",sep="
                 seriesOrder.Add(series);
             }
 
+            #region difference series
             if (plotSeriesDifference != null && diffMax.Y != 0)
             {
                 string plotCharacterVector = "c(" + plotCharacters.Last() + ",rep(NA_integer_," + (SeriesPoints.Values.First().Count / 10) + "))";  // show 10 plot characters for series
@@ -369,6 +369,7 @@ legend_labels=c(legend_labels,expression(paste(Delta, "" - Peak @ (" + string.Fo
 abline(v=" + diffMax.X + @",lty=""dotted"",col=""grey"")
 abline(h=" + diffMax.Y + @",lty=""dotted"",col=""grey"")");
             }
+            #endregion
 
             rCmd.Append(@"
 grid()
@@ -377,8 +378,11 @@ dev.off()");
 
             R.Execute(rCmd.ToString(), false);
 
-            _seriesAUC = new Dictionary<string, float>();
             string[] aucOutput = File.ReadLines(aucOutputPath).ToArray();
+            if (aucOutput.Length != seriesOrder.Count)
+                throw new Exception("Failed to compute AUC for all " + seriesOrder + " surveillance plot series:  " + aucOutput.Length + " of " + seriesOrder.Count + " succeeded.");
+
+            _seriesAUC = new Dictionary<string, float>();
             for (int i = 0; i < aucOutput.Length; ++i)
                 _seriesAUC.Add(seriesOrder[i], aucOutput[i] == "NA" ? float.NaN : float.Parse(aucOutput[i]));
 

@@ -36,8 +36,7 @@ namespace PTL.ATT.Models
     {
         static KernelDensityDCM()
         {
-            if (Configuration.RCranMirror != null)
-                R.InstallPackages(R.CheckForMissingPackages(new string[] { "ks" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "ks" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
         public static List<float> GetDensityEstimate(IEnumerable<PostGIS.Point> inputPoints, int inputSampleSize, bool binned, float bGridSizeX, float bGridSizeY, IEnumerable<PostGIS.Point> evalPoints, bool normalize)
