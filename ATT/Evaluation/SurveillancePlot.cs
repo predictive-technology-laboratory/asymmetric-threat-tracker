@@ -233,7 +233,7 @@ namespace PTL.ATT.Evaluation
         /// <param name="includeTitle">Whether or not to include the title</param>
         /// <param name="plotSeriesDifference">Pass non-null to plot a series difference. If both elements are null, the series difference with largest difference is plotted. Or you can pass specific series names to plot a specific difference. If only one series name is provided, the maximum difference between that series and another will be computed.</param>
         /// <param name="blackAndWhite">Whether or not to use black and white only</param>
-        /// <param name="args">Additional arguments:  1) plot margins in 0,0,0,0 format (default is 5,4,4,2), 2) additional arguments to plot and lines commands (e.g., cex), 3) additional arguments to legend command (e.g., cex)</param>
+        /// <param name="args">Additional arguments:  (0) plot margins in 0,0,0,0 format (default is 5,4,4,2), (1) additional arguments to plot and lines commands (e.g., cex), (2) additional arguments to legend command (e.g., cex)</param>
         /// <returns>Path to rendered image file</returns>
         protected override string CreateImageOnDisk(int height, int width, bool includeTitle, Tuple<string, string> plotSeriesDifference, bool blackAndWhite, params string[] args)
         {
@@ -314,7 +314,7 @@ if(length(title.lines) > 3) { title.lines = title.lines[1:3] }
 main.title = paste(title.lines, sep=""\n"")");
 
             int seriesNum = 0;
-            List<string> seriesOrder = new List<string>();
+            string[] seriesOrder = new string[SeriesPoints.Count];
             string[] seriesDiffDummy = plotSeriesDifference == null ? new string[] { } : new string[] { "dummy" };
             List<int> plotCharacters = SeriesPoints.Keys.OrderBy(k => k).Union(seriesDiffDummy).Select((s, i) => ((i + 1) % 25)).ToList();  // R has 25 plot characters indexed starting at 1
             List<string> plotColors = SeriesPoints.Keys.OrderBy(k => k).Union(seriesDiffDummy).Select((s, i) => blackAndWhite ? "\"black\"" : (i + 1).ToString()).ToList(); // R color numbers start at 1 and wrap
@@ -340,19 +340,31 @@ main.title = paste(title.lines, sep=""\n"")");
                 if (seriesTitle.Length > 20)
                     seriesTitle = seriesTitle.Substring(0, 20);
 
+                string plotCommand;
+                if (seriesNum == 0)
+                    plotCommand = "plot(x,y,type=\"o\",col=" + plotColor + ",pch=" + plotCharacterVector + ",xlim=c(0,1),xlab=\"% area surveilled\",ylim=c(" + minY + ",1),ylab=\"% incidents captured\"" + (includeTitle ? ",main=main.title" : ""); // for the first series, plot the series
+                else
+                    plotCommand = "lines(x,y,type=\"o\",col=" + plotColor + ",pch=" + plotCharacterVector; // for subsequent series, just plot the series line
+
+                if(args != null)
+                    plotCommand += "," + args[1]; // add additional plot arguments, which are passed in
+
+                plotCommand += ")"; // close plot command
+
+                if(seriesNum == 0)
+                    plotCommand += Environment.NewLine + "abline(0,1,lty=\"dashed\")"; //  and add the diagonal line for the first series
+
                 rCmd.Append(@"
 points = read.csv(""" + pointsInputPath.Replace(@"\", @"\\") + @""",header=FALSE)
 x = points[,1]
 y = points[,2]
-" + (seriesNum == 0 ? @"plot(x,y,type=""o"",col=" + plotColor + ",pch=" + plotCharacterVector + @",xlim=c(0,1),xlab=""% area surveilled"",ylim=c(" + minY + @",1),ylab=""% incidents captured""" + (includeTitle ? ",main=main.title" : "") + (args == null ? "" : "," + args[1]) + @")
-abline(0,1,lty=""dashed"")" : @"lines(x,y,type=""o"",col=" + plotColor + ",pch=" + plotCharacterVector + (args == null ? "" : "," + args[1]) + ")") + @"
+" + plotCommand + @"
 idx = order(x)
 auc = round(sum(diff(x[idx])*rollmean(y[idx],2)),digits=" + _aucDigits + @")
 legend_labels=c(legend_labels,paste(""" + seriesTitle + @" (AUC="",auc,"")"",sep=""""))" + @"
 cat(as.character(auc),file=""" + aucOutputPath.Replace(@"\", @"\\") + @""",sep=""\n"",append=TRUE)");
 
-                seriesNum++;
-                seriesOrder.Add(series);
+                seriesOrder[seriesNum++] = series;
             }
 
             #region difference series
@@ -379,8 +391,8 @@ dev.off()");
             R.Execute(rCmd.ToString(), false);
 
             string[] aucOutput = File.ReadLines(aucOutputPath).ToArray();
-            if (aucOutput.Length != seriesOrder.Count)
-                throw new Exception("Failed to compute AUC for all " + seriesOrder + " surveillance plot series:  " + aucOutput.Length + " of " + seriesOrder.Count + " succeeded.");
+            if (aucOutput.Length != seriesOrder.Length)
+                throw new Exception("Failed to compute AUC for all " + seriesOrder + " surveillance plot series:  " + aucOutput.Length + " of " + seriesOrder.Length + " succeeded.");
 
             _seriesAUC = new Dictionary<string, float>();
             for (int i = 0; i < aucOutput.Length; ++i)
