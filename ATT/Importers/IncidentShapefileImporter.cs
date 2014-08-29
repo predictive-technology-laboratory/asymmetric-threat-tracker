@@ -44,7 +44,7 @@ namespace PTL.ATT.Importers
             _importArea = importArea;
             _incidentColumnShapefileColumn = incidentColumnShapefileColumn;
             _hourOffset = hourOffset;
-        }            
+        }
 
         public override void Import()
         {
@@ -67,6 +67,22 @@ namespace PTL.ATT.Importers
             ImportedShapefile.Delete();
 
             Console.Out.WriteLine("Incident import from shapefile finished.");
+        }
+
+        public override void GetUpdateRequests(UpdateRequestDelegate updateRequest)
+        {
+            base.GetUpdateRequests(updateRequest);
+
+            updateRequest("Area", _importArea, Area.GetAll(), GetUpdateRequestId("area"));
+            updateRequest("Hour offset", _hourOffset, null, GetUpdateRequestId("offset"));
+        }
+
+        public override void Update(Dictionary<string, object> updateKeyValue)
+        {
+            base.Update(updateKeyValue);
+
+            _importArea = (Area)updateKeyValue[GetUpdateRequestId("area")];
+            _hourOffset = Convert.ToInt32(updateKeyValue[GetUpdateRequestId("offset")]);
         }
     }
 }

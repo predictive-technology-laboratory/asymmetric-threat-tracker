@@ -147,7 +147,8 @@ namespace PTL.ATT.Models
                     }
 
                     Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
-                    seriesPoints.Add("Slice " + sliceNum++, SurveillancePlot.GetSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
+                    string predictionSeriesName = sliceLocationTrueCount.Count > 1 ? "Slice " + sliceNum++ : "Prediction";
+                    seriesPoints.Add(predictionSeriesName, SurveillancePlot.GetSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
                     seriesPoints.Add(OptimalSeriesName, SurveillancePlot.GetOptimalSurveillancePlotPoints(sliceLocationTrueCount[slice], sliceLocationThreats[slice], true, true));
                     prediction.AssessmentPlots.Add(new SurveillancePlot(slicePlotTitle, slice, seriesPoints, plotHeight, plotWidth, Plot.Format.JPEG, 2));
                     prediction.SliceThreatCorrelation.Add(slice, GetThreatCorrelation(sliceLocationThreats[slice], sliceLocationTrueCount[slice]));
