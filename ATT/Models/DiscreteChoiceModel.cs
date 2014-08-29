@@ -214,7 +214,6 @@ namespace PTL.ATT.Models
         private DateTime _trainingStart;
         private DateTime _trainingEnd;
         private List<Smoother> _smoothers;
-        private string _modelDirectory;
         private Area _predictionArea;
 
         #region properties
@@ -285,7 +284,7 @@ namespace PTL.ATT.Models
 
         public string ModelDirectory
         {
-            get { return _modelDirectory; }
+            get { return Path.Combine(Configuration.ModelsDirectory, _id.ToString()); }
         }
 
         public Area PredictionArea
@@ -318,12 +317,11 @@ namespace PTL.ATT.Models
             string predictionAreaId = _predictionArea == null ? "NULL" : _predictionArea.Id.ToString();
             _id = Convert.ToInt32(DB.Connection.ExecuteScalar("INSERT INTO " + Table + " (" + Columns.Insert + ") VALUES (@bytes," + predictionAreaId + "," + trainingAreaId + ") RETURNING " + Columns.Id, new Parameter("bytes", NpgsqlDbType.Bytea, ms.ToArray())));
 
-            _modelDirectory = Path.Combine(Configuration.ModelsDirectory, _id.ToString());
+            // if the database gets reset, there could be an old model directory hanging around -- delete it
+            if (Directory.Exists(ModelDirectory))
+                Directory.Delete(ModelDirectory, true);
 
-            if (Directory.Exists(_modelDirectory))
-                Directory.Delete(_modelDirectory, true);
-
-            Directory.CreateDirectory(_modelDirectory);
+            Directory.CreateDirectory(ModelDirectory);
 
             Update();
         }
@@ -407,7 +405,7 @@ namespace PTL.ATT.Models
                    indent + "Training start:  " + _trainingStart.ToShortDateString() + " " + _trainingStart.ToShortTimeString() + Environment.NewLine +
                    indent + "Training end:  " + _trainingEnd.ToShortDateString() + " " + _trainingEnd.ToShortTimeString() + Environment.NewLine +
                    indent + "Smoothers:  " + _smoothers.Select(s => s.GetSmoothingDetails()).Concatenate(", ") + Environment.NewLine +
-                   (_modelDirectory == "" ? "" : indent + "Model directory:  " + _modelDirectory);
+                   (ModelDirectory == "" ? "" : indent + "Model directory:  " + ModelDirectory);
         }
 
         public void Update()
@@ -431,8 +429,8 @@ namespace PTL.ATT.Models
 
             try
             {
-                if (Directory.Exists(_modelDirectory))
-                    Directory.Delete(_modelDirectory, true);
+                if (Directory.Exists(ModelDirectory))
+                    Directory.Delete(ModelDirectory, true);
             }
             catch (Exception ex) { Console.Out.WriteLine("Failed to delete model directory:  " + ex.Message); }
 
