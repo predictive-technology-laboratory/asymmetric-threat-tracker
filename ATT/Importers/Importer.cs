@@ -159,6 +159,7 @@ namespace PTL.ATT.Importers
 
         public virtual void Import()
         {
+            // if the file doesn't exist but we have a source URI, try to download it
             if (!System.IO.File.Exists(_path) && !string.IsNullOrWhiteSpace(_sourceURI))
             {
                 // if the import path used to reside within an unzipped archive that no longer exists, download the source URI to the original archive path (we'll unzip below)
@@ -181,9 +182,12 @@ namespace PTL.ATT.Importers
             {
                 string potentialZipFilePath = parentDirectory.Substring(0, unzippedIndex);
                 string extension = System.IO.Path.GetExtension(potentialZipFilePath);
-                if (!System.IO.Directory.Exists(parentDirectory) && System.IO.File.Exists(potentialZipFilePath) && extension == ".zip")
+                if (!System.IO.Directory.Exists(parentDirectory) && System.IO.File.Exists(potentialZipFilePath) && extension.ToLower() == ".zip")
                     ZipFile.ExtractToDirectory(potentialZipFilePath, parentDirectory);
             }
+
+            if (!System.IO.File.Exists(_path))
+                throw new FileNotFoundException("File to import does not exist and could not be downloaded:  \"" + _path + "\".");
         }
 
         public void Save(bool deleteFirst)
