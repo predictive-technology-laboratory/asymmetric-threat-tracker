@@ -104,23 +104,23 @@ namespace PTL.ATT.Models
                 {
                     // spatial distance
                     parameters = new FeatureParameterCollection();
-                    parameters.Add(SpatialDistanceParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
-                    parameters.Add(SpatialDistanceParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDistanceParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDistanceParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
                     yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameters);
 
                     // spatial density
                     parameters = new FeatureParameterCollection();
-                    parameters.Add(SpatialDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
-                    parameters.Add(SpatialDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
-                    parameters.Add(SpatialDensityParameter.SampleSize, "500", "Sample size for spatial density estimate.");
-                    parameters.Add(SpatialDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few spatial objects).");
+                    parameters.Set(SpatialDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDensityParameter.SampleSize, "500", "Sample size for spatial density estimate.");
+                    parameters.Set(SpatialDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few spatial objects).");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameters);
 
                     // geometry attribute
                     parameters = new FeatureParameterCollection();
-                    parameters.Add(GeometryAttributeParameter.AttributeColumn, "", "Name of column within geometry from which to draw value.");
-                    parameters.Add(GeometryAttributeParameter.AttributeType, "", "Type of attribute:  Nominal or Numeric");
-                    parameters.Add(GeometryAttributeParameter.DefaultValue, "0", "Value to use when geometry does not overlap a model point.");
+                    parameters.Set(GeometryAttributeParameter.AttributeColumn, "", "Name of column within geometry from which to draw value.");
+                    parameters.Set(GeometryAttributeParameter.AttributeType, "", "Type of attribute:  Nominal or Numeric");
+                    parameters.Set(GeometryAttributeParameter.DefaultValue, "0", "Value to use when geometry does not overlap a model point.");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttribute, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameters);
                 }
 
@@ -128,11 +128,11 @@ namespace PTL.ATT.Models
             foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
             {
                 parameters = new FeatureParameterCollection();
-                parameters.Add(IncidentDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
-                parameters.Add(IncidentDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
-                parameters.Add(IncidentDensityParameter.LagCount, "1", "Number of lags of the given offset and duration to use, with offsets being additive.");
-                parameters.Add(IncidentDensityParameter.SampleSize, "500", "Sample size for incident density estimate.");
-                parameters.Add(IncidentDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few incidents).");
+                parameters.Set(IncidentDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                parameters.Set(IncidentDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                parameters.Set(IncidentDensityParameter.LagCount, "1", "Number of lags of the given offset and duration to use, with offsets being additive.");
+                parameters.Set(IncidentDensityParameter.SampleSize, "500", "Sample size for incident density estimate.");
+                parameters.Set(IncidentDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few incidents).");
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameters);
             }
 

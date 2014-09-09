@@ -109,9 +109,9 @@
         </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.Test(Npgsql.NpgsqlConnection)">
             <summary>
-            Tests a connection by executing a simple command
+            Tests a connection by querying the server. Disposes connection if it's bad.
             </summary>
-            <param name="connection"></param>
+            <param name="connection">Connection to test.</param>
             <returns></returns>
         </member>
         <member name="M:LAIR.ResourceAPIs.PostgreSQL.ConnectionPool.GetSchemas">

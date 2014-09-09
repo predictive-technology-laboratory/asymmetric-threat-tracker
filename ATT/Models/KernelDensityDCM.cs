@@ -99,7 +99,7 @@ eval.points = read.csv(""" + evalPointsPath.Replace(@"\", @"\\") + @""",header=F
 h = Hpi(input.points,pilot=""dscalar""" + (binned ? ",binned=TRUE,bgridsize=" + bGridSizes : "") + @")
 est = kde(input.points,H=h," + (binned ? "binned=TRUE,bgridsize=" + bGridSizes + "," : "") + @"eval.points=eval.points)$estimate
 " + (normalize ? "est = (est - min(est))  / (max(est) - min(est))" : "") + @"
-write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALSE,col.names=FALSE)", out rOutput, out rError, false);
+write.table(est,file=""" + outputPath.Replace(@"\", @"\\") + @""",row.names=FALSE,col.names=FALSE)", false, out rOutput, out rError);
 
             }
             catch (Exception ex)
