@@ -2101,7 +2101,7 @@ namespace PTL.ATT.GUI
         #region help
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string[] candidateTables = DB.Connection.GetTables().Where(t => t != "spatial_ref_sys").ToArray();
+            string[] candidateTables = DB.Tables;
             if (candidateTables.Length == 0)
             {
                 MessageBox.Show("It appears as though the ATT system has not yet been initialized. This indicates an error somewhere in the configuration.");
@@ -2114,18 +2114,14 @@ namespace PTL.ATT.GUI
             if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 Set<string> tablesToKeep = new Set<string>(f.GetValue<ListBox.SelectedObjectCollection>("keep").Cast<string>().ToArray());
-                string tablesToDelete = candidateTables.Where(t => !tablesToKeep.Contains(t)).Concatenate(",");
-                if (!string.IsNullOrWhiteSpace(tablesToDelete) && MessageBox.Show("This will permanently delete data from the database. Proceed?", "WARNING", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                {
+                if (candidateTables.Where(t => !tablesToKeep.Contains(t)).Count() > 0 && MessageBox.Show("This will permanently delete data from the database. Proceed?", "WARNING", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                     try
                     {
-                        DB.Connection.ExecuteNonQuery("DROP TABLE " + tablesToDelete + " CASCADE");
-                        PTL.ATT.Configuration.Reload(true);
+                        ATT.Configuration.Reset(tablesToKeep);
                         _logWriter.Clear();
                         RefreshAll();
                     }
                     catch (Exception ex) { Console.Out.WriteLine("Error resetting the ATT system:  " + ex.Message); }
-                }
             }
         }
 

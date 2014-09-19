@@ -24,6 +24,7 @@ using LAIR.MachineLearning.ClassifierWrappers.LibLinear;
 using LAIR.ResourceAPIs.R;
 using PTL.ATT.Models;
 using System.Reflection;
+using LAIR.Extensions;
 
 namespace PTL.ATT
 {
@@ -343,6 +344,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
             _initialized = true;
         }
 
+        /// <summary>
+        /// Resets the entire ATT system, deleting and recreating tables.
+        /// </summary>
+        /// <param name="tablesToKeep">Tables to keep</param>
+        public static void Reset(IEnumerable<string> tablesToKeep)
+        {
+            string tablesToDrop = DB.Tables.Where(t => tablesToKeep == null || !tablesToKeep.Contains(t)).Concatenate(",");
+            if (!string.IsNullOrWhiteSpace(tablesToDrop))
+            {
+                DB.Connection.ExecuteNonQuery("DROP TABLE " + tablesToDrop + " CASCADE");
+                PTL.ATT.Configuration.Reload(true);
+            }
+        }
+
+        /// <summary>
+        /// Reloads the configuration, keeping all existing data.
+        /// </summary>
+        /// <param name="reinitializeDB">Whether or not to reinitialize the database.</param>
         public static void Reload(bool reinitializeDB)
         {
             _initialized = false;
