@@ -25,7 +25,6 @@ using PTL.ATT.GUI.Plugins;
 using PTL.ATT.GUI.Properties;
 using LAIR.Extensions;
 using System.Windows.Forms;
-using LAIR.Misc;
 using System.Security.Cryptography;
 using System.Configuration;
 

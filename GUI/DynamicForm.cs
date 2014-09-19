@@ -327,6 +327,23 @@ namespace PTL.ATT.GUI
                 lb.SelectedIndex = 0;
         }
 
+        public void AddPictureBox(Image image, string toolTipText = null)
+        {
+            PictureBox pictureBox = new PictureBox();
+            pictureBox.Image = image;
+            pictureBox.Size = pictureBox.PreferredSize;
+
+            if (toolTipText != null)
+                toolTip.SetToolTip(pictureBox, toolTipText);
+
+            FlowLayoutPanel p = new FlowLayoutPanel();
+            p.FlowDirection = FlowDirection.LeftToRight;
+            p.Controls.Add(pictureBox);
+            p.Size = p.PreferredSize;
+
+            _mainPanel.Controls.Add(p);
+        }
+
         public void AddControl(string label, Control control, Func<object> returnValueFunction, string valueId, string toolTipText = null)
         {
             Label l = new Label();

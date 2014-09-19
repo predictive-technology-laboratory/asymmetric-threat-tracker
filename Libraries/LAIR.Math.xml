@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LAIR.Math</name>
+    </assembly>
+    <members>
+        <member name="T:LAIR.Math">
+            <summary>
+            Core math routines
+            </summary>
+        </member>
+        <member name="M:LAIR.Math.GetMean(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets the mean of a list of numbers
+            </summary>
+            <param name="numbers">Numbers to get mean of</param>
+            <returns>Mean of numbers</returns>
+        </member>
+        <member name="M:LAIR.Math.GetVariance(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets the variance of a list of numbers
+            </summary>
+            <param name="numbers">Numbers to get variance of</param>
+            <returns>Variance</returns>
+        </member>
+        <member name="M:LAIR.Math.GetCovariance(System.Collections.Generic.IEnumerable{System.Single},System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets covariance between two variables
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Math.GetCorrelation(System.Collections.Generic.IEnumerable{System.Single},System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets product-moment correlation coefficient between two variables
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Math.Factorial(System.UInt32)">
+            <summary>
+            Gets the factorial of a number
+            </summary>
+            <param name="n">Number to get factorial of</param>
+            <returns>Factorial of number</returns>
+        </member>
+        <member name="M:LAIR.Math.GetStandardDeviation(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets the standard deviation of a list of numbers
+            </summary>
+            <param name="numbers">Numbers to get standard deviation for</param>
+            <returns>Standard deviation</returns>
+        </member>
+        <member name="M:LAIR.Math.GetAverageDeviation(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets the average deviation of a list of numbers
+            </summary>
+            <param name="numbers">Numbers to get average deviation for</param>
+            <returns>Average deviation</returns>
+        </member>
+        <member name="M:LAIR.Math.GetEntropy(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets the entropy of a distribution
+            </summary>
+            <param name="distribution"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Math.GetKLDivergence(System.Collections.Generic.List{System.Single})">
+            <summary>
+            Gets the KL-divergence between a distribution and the uniform distribution
+            </summary>
+            <param name="distribution"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Math.GetKLDivergence(System.Collections.Generic.List{System.Single},System.Collections.Generic.List{System.Single})">
+            <summary>
+            Gets the KL-divergence between two distributiona
+            </summary>
+            <param name="distribution1"></param>
+            <param name="distribution2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Math.ScaleToDistribution(System.Collections.Generic.List{System.Single})">
+            <summary>
+            Scales a list of floats to a distribution
+            </summary>
+            <param name="vals"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Math.GetCosineSimilarity(System.Collections.Generic.Dictionary{System.String,System.Single},System.Collections.Generic.Dictionary{System.String,System.Single})">
+            <summary>
+            Gets cosine similarity between two vectors indexed by strings
+            </summary>
+            <param name="v1">First vector</param>
+            <param name="v2">Second vector</param>
+            <returns>Cosine similarity in [0, 1]</returns>
+        </member>
+        <member name="M:LAIR.Math.GetCosineSimilarity(System.Collections.Generic.Dictionary{System.Int32,System.Single},System.Collections.Generic.Dictionary{System.Int32,System.Single})">
+            <summary>
+            Gets cosine similarity between two vectors indexed by integers
+            </summary>
+            <param name="v1">First vector</param>
+            <param name="v2">Second vector</param>
+            <returns>Cosine similarity in [0, 1]</returns>
+        </member>
+        <member name="M:LAIR.Math.GetCosineSimilarity(System.Single[],System.Single[])">
+            <summary>
+            Gets cosine similarity of two vectors
+            </summary>
+            <param name="v1">Vector 1</param>
+            <param name="v2">Vector 2</param>
+            <returns>Cosine similarity</returns>
+        </member>
+        <member name="M:LAIR.Math.GetDisjunctiveProbability(System.Single[])">
+            <summary>
+            Gets the disjunctive probability for a list of event probabilities
+            </summary>
+            <param name="probabilities">Probabilities to process</param>
+            <returns>Disjunctive probability for a list of event probabilities</returns>
+        </member>
+        <member name="M:LAIR.Math.GetDisjunctiveProbability(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Gets the disjunctive probability for a list of event probabilities
+            </summary>
+            <param name="probabilities">Probabilities to process</param>
+            <returns>Disjunctive probability for a list of event probabilities</returns>
+        </member>
+        <member name="M:LAIR.Math.GetFMeasureFromCounts(System.Single,System.Single,System.Single)">
+            <summary>
+            Gets F-measure given total reference items, predicted items, and true predictions
+            </summary>
+            <param name="total">Total number of reference items</param>
+            <param name="predicted">Number of predictions</param>
+            <param name="correctPredictions">Number of correct predictions</param>
+            <returns>F-measure</returns>
+        </member>
+        <member name="M:LAIR.Math.GetFMeasure(System.Single,System.Single,System.Single)">
+            <summary>
+            Gets F-measure given precision, recall, and beta.
+            </summary>
+            <param name="precision">Precision</param>
+            <param name="recall">Recall</param>
+            <param name="beta">Beta</param>
+            <returns>F-measure</returns>
+        </member>
+        <member name="M:LAIR.Math.GetFMeasure(System.Single,System.Single)">
+            <summary>
+            Gets F-measure given precision, recall, and beta=1
+            </summary>
+            <param name="precision">Precision</param>
+            <param name="recall">Recall</param>
+            <returns>F-measure</returns>
+        </member>
+        <member name="M:LAIR.Math.GetHistogram(System.Collections.Generic.List{System.Single},System.Single)">
+            <summary>
+            Gets a basic histogram of data
+            </summary>
+            <param name="data">Data to get histograph for</param>
+            <param name="intervalWidth">Width of histogram intervals</param>
+            <returns>Histogram y values</returns>
+        </member>
+        <member name="M:LAIR.Math.WriteRocCurve(System.Collections.Generic.List{System.Tuple{System.Single,System.Boolean}},System.String)">
+            <summary>
+            Writes an ROC curve from predictions
+            </summary>
+            <param name="predictions">Predictions, where each tuple is the predicted probability and the true binary class.</param>
+            <param name="outputPath">Where to write ROC curve</param>
+        </member>
+        <member name="M:LAIR.Math.GetBootstrapStatistics(System.Collections.Generic.List{System.Object},System.Int32,LAIR.Math.BootstrapStatisticDelegate)">
+            <summary>
+            Gets bootstrap statistics
+            </summary>
+            <param name="sample">Data to resample from</param>
+            <param name="numResamples">Number of bootstrap resamples to take</param>
+            <param name="statisticDelegate">Delegate for computing a statistic over a resample</param>
+            <returns>Bootstrap statistics</returns>
+        </member>
+        <member name="M:LAIR.Math.GetPercentileConfidenceInterval(System.Single,System.Collections.Generic.List{System.Single},LAIR.Math.Tail,System.Single@,System.Single@)">
+            <summary>
+            Gets the (1-alpha)*100 percent confidence interval using the bootstrap sampling method described by Keller et. al (2005).
+            </summary>
+            <param name="alpha">Critical region alpha value</param>
+            <param name="statistics">Statistics to get confidence interval for</param>
+            <param name="intervalTail">Interval tail</param>
+            <param name="intervalMin">Start of interval</param>
+            <param name="intervalMax">End of interval</param>
+        </member>
+        <member name="M:LAIR.Math.GetFisherExactSignificance(System.Int32[][],System.Boolean)">
+            <summary>
+            Performs a one-sided exact Fisher significance test on a 2-by-2 matrix, optionally performing a two-sided test.
+            </summary>
+            <param name="matrix">2-by-2 matrix to test. The main diagonal denotes the reference "situation". All "more
+            extreme situations" are computed by subtracting from the non-main diagonal and adding to the main diagonal. See
+            the literature for a discussion.</param>
+            <param name="twoSided">Whether or not to perform a two-sided test</param>
+            <returns>Probability of the matrix proportions (or those more extreme) being generated by chance, assuming
+            the marginals remain the same.</returns>
+        </member>
+        <member name="M:LAIR.Math.GetFisherExactProbability(System.Int32[][])">
+            <summary>
+            Gets the Fisher-exact probability of a 2-by-2 matrix
+            </summary>
+            <param name="matrix">Matrix</param>
+            <returns>Fisher-exact probability</returns>
+        </member>
+        <member name="M:LAIR.Math.GetFactorial(System.Int32)">
+            <summary>
+            Gets a factorial
+            </summary>
+            <param name="n">Integer to get factorial for</param>
+            <returns>Factorial</returns>
+        </member>
+        <member name="M:LAIR.Math.CopyMatrix(System.Int32[][])">
+            <summary>
+            Copies a matrix
+            </summary>
+            <param name="matrix">Matrix to copy</param>
+            <returns>Copy of matrix</returns>
+        </member>
+        <member name="T:LAIR.Math.Tail">
+            <summary>
+            Tails
+            </summary>
+        </member>
+        <member name="F:LAIR.Math.Tail.Left">
+            <summary>
+            Left tail
+            </summary>
+        </member>
+        <member name="F:LAIR.Math.Tail.Right">
+            <summary>
+            Right tail
+            </summary>
+        </member>
+        <member name="F:LAIR.Math.Tail.Both">
+            <summary>
+            Two-tailed
+            </summary>
+        </member>
+        <member name="T:LAIR.Math.BootstrapStatisticDelegate">
+            <summary>
+            Delegate for functions that compute a bootstrap statistic
+            </summary>
+            <param name="bootstrapSample">Sample data from which to compute bootstrap </param>
+            <param name="statistic">Resulting statistic</param>
+            <returns>True if statistic should be used and false otherwise</returns>
+        </member>
+    </members>
+</doc>

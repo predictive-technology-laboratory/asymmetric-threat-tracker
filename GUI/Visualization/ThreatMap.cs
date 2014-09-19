@@ -27,7 +27,6 @@ using System.IO;
 using PTL.ATT.Models;
 using LAIR.Extensions;
 using PTL.ATT.Evaluation;
-using LAIR.Misc;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using Npgsql;
 using System.Drawing.Drawing2D;

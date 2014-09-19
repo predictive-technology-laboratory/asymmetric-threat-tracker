@@ -34,7 +34,6 @@ using LAIR.Collections.Generic;
 using PTL.ATT.GUI.Visualization;
 using LAIR.ResourceAPIs.PostGIS;
 using LAIR.Extensions;
-using LAIR.Misc;
 using PTL.ATT.Evaluation;
 using System.Diagnostics;
 using PTL.ATT.GUI.Plugins;
@@ -45,7 +44,6 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
-using Newtonsoft.Json.Linq;
 using LAIR.ResourceAPIs.PostgreSQL;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using PTL.ATT.Importers;
@@ -1172,11 +1170,14 @@ namespace PTL.ATT.GUI
             else
             {
                 string defaultPredictionName = m.Name + " (" + m.GetType().Name + ")" + (!perIncident.Checked ? " " + m.IncidentTypes.Concatenate("+") : "");
-                string predictionName = GetValue.Show("Enter name for prediction" + (perIncident.Checked ? " (per-incident names will be added)" : "") + "...", defaultPredictionName);
-                if (predictionName == null)
-                    return;
-
-                Run(true, predictionName, null);
+                DynamicForm f = new DynamicForm("Enter name for prediction" + (perIncident.Checked ? " (per-incident names will be added)" : "") + "...", DynamicForm.CloseButtons.OkCancel);
+                f.AddTextBox("Prediction name:", defaultPredictionName, -1, "name");
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    string predictionName = f.GetValue<string>("name").Trim();
+                    if (predictionName != "")
+                        Run(true, predictionName, null);
+                }
             }
         }
 
@@ -1506,16 +1507,26 @@ namespace PTL.ATT.GUI
                 List<Prediction> selectedPredictions = SelectedPredictions;
                 if (selectedPredictions.Count == 1)
                 {
-                    string name = GetValue.Show("New prediction name.", SelectedPrediction.Name);
-                    if (name != null && name.Trim() != "")
-                        selectedPredictions[0].Name = name.Trim();
+                    DynamicForm f = new DynamicForm("", DynamicForm.CloseButtons.OkCancel);
+                    f.AddTextBox("New prediction name:", SelectedPrediction.Name, -1, "name");
+                    if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        string name = f.GetValue<string>("name").Trim();
+                        if (name != "")
+                            selectedPredictions[0].Name = name;
+                    }
                 }
                 else if (selectedPredictions.Count > 1)
                 {
-                    string name = GetValue.Show("Common base name for " + selectedPredictions.Count + " predictions.");
-                    if (name != null && name.Trim() != "")
-                        for (int i = 0; i < selectedPredictions.Count; ++i)
-                            selectedPredictions[i].Name = name.Trim() + "-" + i;
+                    DynamicForm f = new DynamicForm("", DynamicForm.CloseButtons.OkCancel);
+                    f.AddTextBox("Common base name for " + selectedPredictions.Count + " predictions:", null, -1, "name");
+                    if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        string name = f.GetValue<string>("name").Trim();
+                        if (name != "")
+                            for (int i = 0; i < selectedPredictions.Count; ++i)
+                                selectedPredictions[i].Name = name.Trim() + "-" + i;
+                    }
                 }
                 else
                     return;
@@ -1539,16 +1550,16 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Select one or more predictions to edit run number for.");
             else
             {
-                string newRunIdStr = GetValue.Show("New run number for " + SelectedPredictions.Count + " prediction(s).");
-                if (newRunIdStr == null)
-                    return;
-
-                int newRunId;
-                if (int.TryParse(newRunIdStr, out newRunId))
+                DynamicForm f = new DynamicForm("", DynamicForm.CloseButtons.OkCancel);
+                f.AddNumericUpdown("New run number for " + SelectedPredictions.Count + " prediction(s):", 1, 0, 1, int.MaxValue, 1, "run");
+                if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    int run = Convert.ToInt32(f.GetValue<decimal>("run"));
                     foreach (Prediction prediction in SelectedPredictions)
-                        prediction.RunId = newRunId;
+                        prediction.RunId = run;
 
-                RefreshPredictions(SelectedPredictions.ToArray());
+                    RefreshPredictions(SelectedPredictions.ToArray());
+                }
             }
         }
 
@@ -1717,8 +1728,9 @@ namespace PTL.ATT.GUI
                     }
 
                     SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), -1, seriesPoints, 500, 500, Plot.Format.JPEG, 2);
-                    List<TitledImage> comparisonPlotImages = new List<TitledImage>(new TitledImage[] { new TitledImage(comparisonPlot.Image, null) });
-                    new ImageViewer(comparisonPlotImages, 0).ShowDialog();
+                    DynamicForm f = new DynamicForm("Result comparison", DynamicForm.CloseButtons.OK);
+                    f.AddPictureBox(comparisonPlot.Image);
+                    f.ShowDialog();
                 }
             }
         }
@@ -1754,19 +1766,16 @@ namespace PTL.ATT.GUI
                 MessageBox.Show("Select at least two predictions to run an aggregate evaluation.");
             else
             {
-                List<TitledImage> images = new List<TitledImage>();
-
-                string title = "Aggregated";
-                if (TraversePredictionTree().Count(n => n.Checked) == 1)
-                    title = TraversePredictionTree().Where(n => n.Checked).First().Text;
-
                 try
                 {
+                    string title = "Aggregated";
+                    if (TraversePredictionTree().Count(n => n.Checked) == 1)
+                        title = TraversePredictionTree().Where(n => n.Checked).First().Text;
+
                     Tuple<SurveillancePlot, float> surveillancePlotAndCorrelation = DiscreteChoiceModel.GetAggregateSurveillancePlotAndCorrelation(SelectedPredictions, 500, 500, title, title);
-                    images.Add(new TitledImage(surveillancePlotAndCorrelation.Item1.Image, title));
-                    ImageViewer viewer = new ImageViewer(images, 0);
-                    viewer.Text = "Correlation between threat and crime count:  " + surveillancePlotAndCorrelation.Item2;
-                    viewer.Show();
+                    DynamicForm f = new DynamicForm(title, DynamicForm.CloseButtons.OK);
+                    f.AddPictureBox(surveillancePlotAndCorrelation.Item1.Image, "Correlation between threat and crime count:  " + surveillancePlotAndCorrelation.Item2);
+                    f.ShowDialog();
                 }
                 catch (Exception ex) { MessageBox.Show("Error rendering aggregate plot:  " + ex.Message); }
             }
@@ -1989,7 +1998,6 @@ namespace PTL.ATT.GUI
                 PictureBox plotBox = new PictureBox();
                 plotBox.Size = plot.Image.Size;
                 plotBox.Image = plot.Image;
-                plotBox.MouseDoubleClick += new MouseEventHandler(plot_MouseDoubleClick);
                 assessments.AddPlot(plotBox);
 
                 float correlation = float.NaN;
@@ -2001,17 +2009,6 @@ namespace PTL.ATT.GUI
                 if (!float.IsNaN(correlation))
                     toolTip.SetToolTip(plotBox, "Correlation between threat and crime count:  " + correlation);
             }
-        }
-
-        private void plot_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            List<TitledImage> images = new List<TitledImage>();
-            foreach (Plot plot in threatMap.DisplayedPrediction.AssessmentPlots)
-                try { images.Add(new TitledImage(plot.Image, null)); }
-                catch (Exception ex) { MessageBox.Show("Error rendering plot:  " + ex.Message); }
-
-            ImageViewer v = new ImageViewer(images, assessments.GetIndexOf(sender as Control));
-            v.ShowDialog();
         }
         #endregion
 
