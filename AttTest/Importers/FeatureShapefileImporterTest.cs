@@ -2,6 +2,7 @@
 using PTL.ATT;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,10 @@ namespace AttTest.Importers
         [TestFixtureSetUp]
         public void SetUp()
         {
-            Configuration.Reset(null);
+            if (Configuration.Initialized)
+                Configuration.Reset(null);
+            else
+                Configuration.Initialize("att_config.xml", true);
         }
 
         [Test]
@@ -25,7 +29,6 @@ namespace AttTest.Importers
         [TestFixtureTearDown]
         public void TearDown()
         {
-            DB.Connection.Dispose();
         }
     }
 }

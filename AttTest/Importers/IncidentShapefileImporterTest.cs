@@ -14,7 +14,10 @@ namespace AttTest.Importers
         [TestFixtureSetUp]
         public void SetUp()
         {
-            Configuration.Reset(null);
+            if (Configuration.Initialized)
+                Configuration.Reset(null);
+            else
+                Configuration.Initialize("att_config.xml", true);
         }
 
         [Test]
@@ -25,7 +28,6 @@ namespace AttTest.Importers
         [TestFixtureTearDown]
         public void TearDown()
         {
-            DB.Connection.Dispose();
         }
     }
 }

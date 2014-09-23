@@ -233,6 +233,11 @@ namespace PTL.ATT
         private static string _path = null;
         private static bool _initialized = false;
 
+        public static bool Initialized
+        {
+            get { return _initialized; }
+        }
+
         public static string LicenseText
         {
             get
@@ -386,17 +391,21 @@ Unless required by applicable law or agreed to in writing, software distributed 
                 throw new Exception("Invalid processor count (must be >= 1):  " + _processorCount);
 
             if (initializeDB)
+            {
                 DB.Initialize();
-
-            _initialized = true;
+                _initialized = true;
+            }
         }
 
         /// <summary>
-        /// Resets the entire ATT system, deleting and recreating tables.
+        /// Resets the entire ATT system, deleting and recreating tables. ATT system must be initialized before calling this.
         /// </summary>
         /// <param name="tablesToKeep">Tables to keep</param>
         public static void Reset(IEnumerable<string> tablesToKeep)
         {
+            if (!_initialized)
+                throw new InvalidOperationException("ATT system has not been initialized. Cannot reset.");
+
             string tablesToDrop = DB.Tables.Where(t => tablesToKeep == null || !tablesToKeep.Contains(t)).Concatenate(",");
             if (!string.IsNullOrWhiteSpace(tablesToDrop))
             {
