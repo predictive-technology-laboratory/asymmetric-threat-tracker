@@ -419,7 +419,7 @@ namespace PTL.ATT.GUI
         #region data
         public void importShapefilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Import(Configuration.PostGisShapefileDirectory,
+            Import(ATT.Configuration.PostGisShapefileDirectory,
 
                    new CompleteImporterFormDelegate(f =>
                        {
@@ -443,7 +443,7 @@ namespace PTL.ATT.GUI
                            Shapefile.ShapefileType shapefileType = importerForm.GetValue<Shapefile.ShapefileType>("type");
 
                            ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, sourceSRID, targetSRID);
-                           string relativePath = RelativizePath(path, Configuration.PostGisShapefileDirectory, PathRelativizationId.ShapefileDirectory);
+                           string relativePath = RelativizePath(path, ATT.Configuration.PostGisShapefileDirectory, PathRelativizationId.ShapefileDirectory);
 
                            if (shapefileType == Shapefile.ShapefileType.Area)
                            {
@@ -456,14 +456,14 @@ namespace PTL.ATT.GUI
                                throw new NotImplementedException("Unrecognized shapefile type:  " + shapefileType);
                        }),
 
-                   Configuration.PostGisShapefileDirectory,
+                   ATT.Configuration.PostGisShapefileDirectory,
                    "Shapefiles (*.shp;*.zip)|*.shp;*.zip", new string[] { "*.shp" },
                    new ImportCompletionDelegate(() => { RefreshPredictionAreas(); }));
         }
 
         private void importPointfilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Import(Configuration.EventsImportDirectory,
+            Import(ATT.Configuration.EventsImportDirectory,
 
                    new CompleteImporterFormDelegate(f =>
                        {
@@ -488,13 +488,13 @@ namespace PTL.ATT.GUI
                            Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.PointfileXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.PointfileXmlRowInserter)))).ToArray();
                            string[] databaseColumns = new string[] { XmlImporter.PointfileXmlRowInserter.Columns.X, XmlImporter.PointfileXmlRowInserter.Columns.Y, XmlImporter.PointfileXmlRowInserter.Columns.Time };
 
-                           return CreateXmlImporter(name, path, Configuration.EventsImportDirectory, PathRelativizationId.EventDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
+                           return CreateXmlImporter(name, path, ATT.Configuration.EventsImportDirectory, PathRelativizationId.EventDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
                                                     {
                                                         return new XmlImporter.PointfileXmlRowInserter(databaseColumnInputColumn, sourceSRID, importArea);
                                                     });
                        }),
 
-                   Configuration.EventsImportDirectory,
+                   ATT.Configuration.EventsImportDirectory,
                    null, null, null);
         }
 
@@ -549,7 +549,7 @@ namespace PTL.ATT.GUI
 
         public void importIncidentsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Import(Configuration.IncidentsImportDirectory,
+            Import(ATT.Configuration.IncidentsImportDirectory,
 
                    new CompleteImporterFormDelegate(f =>
                        {
@@ -582,7 +582,7 @@ namespace PTL.ATT.GUI
                                Type[] rowInserterTypes = Assembly.GetAssembly(typeof(XmlImporter.XmlRowInserter)).GetTypes().Where(type => !type.IsAbstract && (type == typeof(XmlImporter.IncidentXmlRowInserter) || type.IsSubclassOf(typeof(XmlImporter.IncidentXmlRowInserter)))).ToArray();
                                string[] databaseColumns = new string[] { Incident.Columns.NativeId, Incident.Columns.Time, Incident.Columns.Type, Incident.Columns.X(importArea), Incident.Columns.Y(importArea) };
 
-                               return CreateXmlImporter(name, path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
+                               return CreateXmlImporter(name, path, ATT.Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory, sourceURI, rowInserterTypes, databaseColumns, databaseColumnInputColumn =>
                                                         {
                                                             return new XmlImporter.IncidentXmlRowInserter(databaseColumnInputColumn, importArea, hourOffset, sourceSRID);
                                                         });
@@ -591,13 +591,13 @@ namespace PTL.ATT.GUI
                            {
                                int targetSRID = importArea.Shapefile.SRID;
                                ShapefileInfoRetriever shapefileInfoRetriever = new ShapefileInfoRetriever(name, 0, targetSRID);
-                               return new IncidentShapefileImporter(name, path, RelativizePath(path, Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, 0, targetSRID, shapefileInfoRetriever, importArea, new IncidentTableShapefileTableMappingRetriever(), hourOffset);
+                               return new IncidentShapefileImporter(name, path, RelativizePath(path, ATT.Configuration.IncidentsImportDirectory, PathRelativizationId.IncidentDirectory), sourceURI, 0, targetSRID, shapefileInfoRetriever, importArea, new IncidentTableShapefileTableMappingRetriever(), hourOffset);
                            }
                            else
                                throw new NotImplementedException("Unrecognized incident import file extension:  " + extension);
                        }),
 
-                   Configuration.IncidentsImportDirectory,
+                   ATT.Configuration.IncidentsImportDirectory,
                    "Incident files (*.shp;*.xml;*.zip)|*.shp;*.xml;*.zip",
                    new string[] { "*.xml", "*.shp" },
                    null);
@@ -865,7 +865,7 @@ namespace PTL.ATT.GUI
                             if (action == ManageImporterAction.Load)
                             {
                                 DynamicForm df = new DynamicForm("Select importer source...", DynamicForm.CloseButtons.OkCancel);
-                                df.AddTextBox("Path:", GUI.Configuration.ImportersLoadDirectory, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: GUI.Configuration.ImportersLoadDirectory);
+                                df.AddTextBox("Path:", ATT.Configuration.ImportersLoadDirectory, 75, "path", addFileBrowsingButtons: true, fileFilter: "ATT importers|*.attimp", initialBrowsingDirectory: ATT.Configuration.ImportersLoadDirectory);
                                 if (df.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                                 {
                                     string path = df.GetValue<string>("path");
@@ -893,11 +893,11 @@ namespace PTL.ATT.GUI
                                                         PathRelativizationId pathRelativizationId = (PathRelativizationId)Enum.Parse(typeof(PathRelativizationId), relativizationId);
                                                         string relativeTrailingPath = importer.RelativePath.Substring(relativizationIdEnd + 1).Trim(Path.DirectorySeparatorChar);
                                                         if (pathRelativizationId == PathRelativizationId.EventDirectory)
-                                                            absolutePath = Path.Combine(Configuration.EventsImportDirectory, relativeTrailingPath);
+                                                            absolutePath = Path.Combine(ATT.Configuration.EventsImportDirectory, relativeTrailingPath);
                                                         else if (pathRelativizationId == PathRelativizationId.IncidentDirectory)
-                                                            absolutePath = Path.Combine(Configuration.IncidentsImportDirectory, relativeTrailingPath);
+                                                            absolutePath = Path.Combine(ATT.Configuration.IncidentsImportDirectory, relativeTrailingPath);
                                                         else if (pathRelativizationId == PathRelativizationId.ShapefileDirectory)
-                                                            absolutePath = Path.Combine(Configuration.PostGisShapefileDirectory, relativeTrailingPath);
+                                                            absolutePath = Path.Combine(ATT.Configuration.PostGisShapefileDirectory, relativeTrailingPath);
                                                         else
                                                             throw new NotImplementedException("Unrecognized path relativization id:  " + pathRelativizationId);
                                                     }
@@ -957,7 +957,7 @@ namespace PTL.ATT.GUI
                                     else if (action == ManageImporterAction.Store)
                                     {
                                         if (exportDirectory == null)
-                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", GUI.Configuration.ImportersLoadDirectory);
+                                            exportDirectory = LAIR.IO.Directory.PromptForDirectory("Select export directory...", ATT.Configuration.ImportersLoadDirectory);
 
                                         if (Directory.Exists(exportDirectory))
                                         {

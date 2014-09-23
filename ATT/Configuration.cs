@@ -109,6 +109,7 @@ namespace PTL.ATT
         #region postgis
         private static string _shp2pgsqlPath;
         private static string _pgsql2shpPath;
+        private static string _postgisShapefileDirectory;
 
         public static string Shp2PgsqlPath
         {
@@ -120,6 +121,12 @@ namespace PTL.ATT
         {
             get { return _pgsql2shpPath; }
             set { _pgsql2shpPath = value; }
+        }
+
+        public static string PostGisShapefileDirectory
+        {
+            get { return Configuration._postgisShapefileDirectory; }
+            set { Configuration._postgisShapefileDirectory = value; }
         }
         #endregion
 
@@ -147,6 +154,36 @@ namespace PTL.ATT
         {
             get { return Configuration._classifierTypeOptions; }
             set { Configuration._classifierTypeOptions = value; }
+        }
+        #endregion
+
+        #region incidents
+        private static string _incidentsImportDirectory;
+
+        public static string IncidentsImportDirectory
+        {
+            get { return Configuration._incidentsImportDirectory; }
+            set { Configuration._incidentsImportDirectory = value; }
+        }
+        #endregion
+
+        #region events
+        private static string _eventsImportDirectory;
+
+        public static string EventsImportDirectory
+        {
+            get { return Configuration._eventsImportDirectory; }
+            set { Configuration._eventsImportDirectory = value; }
+        }
+        #endregion
+
+        #region importers
+        private static string _importersLoadDirectory;
+
+        public static string ImportersLoadDirectory
+        {
+            get { return Configuration._importersLoadDirectory; }
+            set { Configuration._importersLoadDirectory = value; }
         }
         #endregion
 
@@ -239,6 +276,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
             XmlParser postgisP = new XmlParser(p.OuterXML("postgis"));
             _shp2pgsqlPath = postgisP.ElementText("shp2pgsql");
             _pgsql2shpPath = postgisP.ElementText("pgsql2shp");
+            _postgisShapefileDirectory = postgisP.ElementText("shapefile_directory");
 
             if (string.IsNullOrWhiteSpace(_shp2pgsqlPath) || !File.Exists(_shp2pgsqlPath))
                 throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");
@@ -288,6 +326,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
                 _classifierTypeOptions.Add(type, optionValue);
             }
+
+            XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
+            _incidentsImportDirectory = incidentsP.ElementText("import_directory");
+
+            XmlParser eventsP = new XmlParser(p.OuterXML("events"));
+            _eventsImportDirectory = eventsP.ElementText("import_directory");
+
+            XmlParser importersP = new XmlParser(p.OuterXML("importers"));
+            _importersLoadDirectory = importersP.ElementText("load_directory");
 
             XmlParser modelingP = new XmlParser(p.OuterXML("modeling"));
             _modelsDirectory = modelingP.ElementText("model_directory");

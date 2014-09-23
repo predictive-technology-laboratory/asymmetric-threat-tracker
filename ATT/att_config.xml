@@ -20,6 +20,7 @@
   <postgis>                 <!-- Requires PostGIS 2.0 or higher. Install using the PostgreSQL Application Stack Builder. -->
     <shp2pgsql></shp2pgsql> <!-- Path to shp2pgsql executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
     <pgsql2shp></pgsql2shp> <!-- Path to pgsql2shp executable, which will appear in the PostgreSQL installation directory after installing PostGIS via the PostgreSQL Application Stack Builder. -->
+    <shapefile_directory></shapefile_directory> <!-- Directory containing shapefiles (e.g., {install directory}\Data\Shapefiles). -->
   </postgis>
 
   <r>                                                       <!-- Requires R 2.15.0 or higher (http://www.r-project.org/). The following packages are required:  "ada", "randomForest", "zoo", "ks", "earth". If the following options are configured correctly (and if you have an Internet connection), any missing packages will be installed automatically. -->
@@ -43,6 +44,18 @@
       <classify></classify>                         <!-- Path to svm_rank_classify.exe executable for SvmRank. --> 
     </classifier>
   </classifiers>
+ 
+  <incidents>
+    <import_directory></import_directory> <!-- Directory containing incident data (e.g., {install directory}\Data\Crimes). -->
+  </incidents>
+
+  <events>
+    <import_directory></import_directory> <!-- Directory containing event data (e.g., {install directory}\Data\Events). -->
+  </events>
+
+  <importers>
+    <load_directory></load_directory> <!-- Directory for loading and storing importers (e.g., {install directory}\Importers). -->
+  </importers>    
 
   <modeling>
     <model_directory></model_directory> <!-- Path to directory in which to store data related to the models that are built when running predictions. This can be any empty or non-existent directory. If left blank, the default local application data directory will be used. -->

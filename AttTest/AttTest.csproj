@@ -48,6 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Importers\AreaShapefileImporterTest.cs" />
+    <Compile Include="Importers\FeatureShapefileImporterTest.cs" />
+    <Compile Include="Importers\IncidentShapefileImporterTest.cs" />
+    <Compile Include="Importers\XmlImporterTest.cs" />
     <Compile Include="Models\FeatureBasedDcmTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

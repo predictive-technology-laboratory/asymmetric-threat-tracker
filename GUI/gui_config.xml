@@ -6,25 +6,9 @@
 
   <application_data_directory></application_data_directory> <!-- Path to application data directory (for logs, etc.). If left blank, the default local application data directory will be used (sometimes this isn't writable, hence the option). -->
   
-  <postgis>
-    <shapefile_directory></shapefile_directory> <!-- The default directory that should be opened when browsing for shapefiles to import (e.g., {install directory}\Data\Shapefiles). -->
-  </postgis>
-
   <logging>
     <editor>notepad.exe</editor> <!-- Path to editor executable for viewing the log file. -->
   </logging>
-
-  <incidents>
-    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for incidents to import (e.g., {install directory}\Data\Crimes). -->
-  </incidents>
-
-  <events>
-    <import_directory></import_directory> <!-- The default directory that should be opened when browsing for events to import (e.g., {install directory}\Data\Events). -->
-  </events>
-
-  <importers>
-    <load_directory></load_directory> <!-- The default directory that should be opened when browsing for importers to load (e.g., {install directory}\Importers). -->
-  </importers>  
 
   <plugins>
     <!-- Each element within <plugins> should have the form <plugin>typename</plugin>, where typename is the type of the plugin. Leave blank of no plugins are to be used.  -->
