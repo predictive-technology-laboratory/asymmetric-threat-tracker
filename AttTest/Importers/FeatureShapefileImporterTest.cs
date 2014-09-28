@@ -33,7 +33,8 @@ namespace AttTest.Importers
         [Test]
         public void Test()
         {
-            ImportTestFeatureShapefiles();
+            int featureShapefileCount = ImportTestFeatures();
+            Assert.AreEqual(featureShapefileCount, Shapefile.GetAll().Count());
         }
 
         public static void UnzipTestFeatures()
@@ -46,16 +47,16 @@ namespace AttTest.Importers
             }
         }
 
-        public static void ImportTestFeatureShapefiles()
+        public static int ImportTestFeatures()
         {
             int shapefileCount = 0;
-            foreach (string distanceShapefilePath in Directory.GetFiles(FeaturesDirectory, "*.shp"))
+            foreach (string distanceShapefilePath in Directory.GetFiles(FeaturesDirectory, "*.shp", SearchOption.AllDirectories))
             {
                 new FeatureShapefileImporter(Path.GetFileName(distanceShapefilePath), distanceShapefilePath, null, null, -1, -1, null).Import();
                 ++shapefileCount;
             }
 
-            Assert.AreEqual(shapefileCount, Shapefile.GetAll().Count());
+            return shapefileCount;
         }
     }
 }

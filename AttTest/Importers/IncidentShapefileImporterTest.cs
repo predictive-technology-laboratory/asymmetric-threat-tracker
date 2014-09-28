@@ -25,9 +25,14 @@ namespace AttTest.Importers
         {
         }
 
-        [TestFixtureTearDown]
-        public void TearDown()
+        public static void UnzipTestIncidents()
         {
+
+        }
+
+        public static void ImportTestIncidents()
+        {
+
         }
     }
 }
