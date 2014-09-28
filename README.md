@@ -15,8 +15,8 @@ There are two installation choices: binary installer and compilation from source
 
 ## Binary Installer
 Download and run the installer for the version you would like:
-* [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe) (5/27/2014)
 * [2.0.0](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v2.0.0/setup.exe) (8/21/2014)
+* [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe) (5/27/2014)
 
 After you run the installer, edit the configuration files in the Config sub-directory of the installation directory. Use values appropriate for your machine. Then run the ATT. If everything is installed/configured correctly, the system will start.
 
@@ -28,8 +28,8 @@ After you run the installer, edit the configuration files in the Config sub-dire
 * Obtain the source code:
   * Clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker.git).
   * Source archives:
-    * 1.3 (5/27/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip), [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
     * 2.0.0 (8/21/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v2.0.0.zip), [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v2.0.0.tar.gz))
+    * 1.3 (5/27/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip), [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
 * If you're going to build the installer or cut releases, edit "Installer\Installer.isl" replacing "C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker" (or whatever appears) with the appropriate path to your local repository. This assumes that you have installed the InstallShield add-on as described above. If you're not going to work with the installer, skip this step.
 * Open the ATT solution in Visual Studio by double-clicking the "ATT.sln" file.
 * If you're not going to build the installer, unload the Installer project.
