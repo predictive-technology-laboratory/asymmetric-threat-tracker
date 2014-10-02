@@ -316,7 +316,7 @@ main.title = paste(title.lines, sep=""\n"")");
             int seriesNum = 0;
             string[] seriesOrder = new string[SeriesPoints.Count];
             string[] seriesDiffDummy = plotSeriesDifference == null ? new string[] { } : new string[] { "dummy" };
-            List<int> plotCharacters = SeriesPoints.Keys.OrderBy(k => k).Union(seriesDiffDummy).Select((s, i) => ((i + 1) % 25)).ToList();  // R has 25 plot characters indexed starting at 1
+            List<string> plotCharacters = SeriesPoints.Keys.OrderBy(k => k).Union(seriesDiffDummy).Select((s, i) => ((i + 1) % 25).ToString()).ToList();                    // R has 25 plot characters indexed starting at 1
             List<string> plotColors = SeriesPoints.Keys.OrderBy(k => k).Union(seriesDiffDummy).Select((s, i) => blackAndWhite ? "\"black\"" : (i + 1).ToString()).ToList(); // R color numbers start at 1 and wrap
             string aucOutputPath = Path.GetTempFileName();
             tmpPaths.Add(aucOutputPath);
@@ -385,7 +385,7 @@ abline(h=" + diffMax.Y + @",lty=""dotted"",col=""grey"")");
 
             rCmd.Append(@"
 grid()
-legend(0.4,0.4,legend_labels,pch=c(" + plotCharacters.Select(c => c.ToString()).Concatenate(",") + @"),col=c(" + plotColors.Select(c => c.ToString()).Concatenate(",") + @")" + (args == null ? "" : "," + args[2]) + @",bg=""white"")
+legend(0.4,0.4,legend_labels,pch=c(" + plotCharacters.Concatenate(",") + @"),col=c(" + plotColors.Concatenate(",") + @")" + (args == null ? "" : "," + args[2]) + @",bg=""white"")
 dev.off()");
 
             R.Execute(rCmd.ToString(), false);
