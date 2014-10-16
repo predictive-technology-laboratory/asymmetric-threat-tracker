@@ -427,7 +427,10 @@ namespace PTL.ATT.Models
                                 NumericFeature distanceFeature = _idNumericFeature[spatialDistanceFeature.Id];
                                 while (reader.Read())
                                 {
-                                    FeatureVector vector = pointIdFeatureVector[Convert.ToInt32(reader["points_" + Point.Columns.Id])];
+                                    FeatureVector vector;
+                                    if (!pointIdFeatureVector.TryGetValue(Convert.ToInt32(reader["points_" + Point.Columns.Id]), out vector))  // above, we select all points that fall between point_start and point_end. the latter can be one tick short of the next minute, and npgsql rounds up causing points to appear in the reader that we didn't add to the pointIdFeatureVector collection.
+                                        continue;
+
                                     double value = Convert.ToDouble(reader["feature_value"]);
 
                                     // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again and reset appropriately
