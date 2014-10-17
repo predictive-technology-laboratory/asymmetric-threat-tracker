@@ -318,7 +318,7 @@ namespace PTL.ATT.GUI
         {
             Splash splash = new Splash(4);
             bool done = false;
-            Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+            Thread t = new Thread(new ParameterizedThreadStart(o =>
                 {
                     Splash s = o as Splash;
                     s.Show();
@@ -1436,7 +1436,7 @@ namespace PTL.ATT.GUI
                             double pointDistanceThreshold = 100;
 
                             List<Overlay> overlays = new List<Overlay>();
-                            Thread areaT = new Thread(new ParameterizedThreadStart(delegate(object o)
+                            Thread areaT = new Thread(new ParameterizedThreadStart(o =>
                                 {
                                     Area area = o as Area;
                                     NpgsqlCommand command = DB.Connection.NewCommand(null);
@@ -1459,7 +1459,7 @@ namespace PTL.ATT.GUI
                                     string minId = features.Min(f => f.Id);
                                     foreach (Feature f in features)
                                     {
-                                        Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                                        Thread t = new Thread(new ParameterizedThreadStart(o =>
                                             {
                                                 Feature feature = o as Feature;
                                                 if (feature.EnumType == typeof(FeatureBasedDCM.FeatureType) && (feature.EnumValue.Equals(FeatureBasedDCM.FeatureType.MinimumDistanceToGeometry) ||
@@ -1842,7 +1842,7 @@ namespace PTL.ATT.GUI
             Set<Thread> threads = new Set<Thread>(PTL.ATT.GUI.Configuration.ProcessorCount);
             for (int i = 0; i < PTL.ATT.GUI.Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                Thread t = new Thread(new ParameterizedThreadStart(o =>
                     {
                         int core = (int)o;
                         for (int j = 0; j + core < selectedNodes.Count; j += PTL.ATT.GUI.Configuration.ProcessorCount)

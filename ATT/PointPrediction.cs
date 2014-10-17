@@ -120,7 +120,7 @@ namespace PTL.ATT
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                Thread t = new Thread(new ParameterizedThreadStart(o =>
                     {
                         int core = (int)o;
                         NpgsqlCommand cmd = DB.Connection.NewCommand(null);
@@ -191,7 +191,7 @@ namespace PTL.ATT
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                Thread t = new Thread(new ParameterizedThreadStart(o =>
                     {
                         int core = (int)o;
                         int pointsPerBatch = 1000;

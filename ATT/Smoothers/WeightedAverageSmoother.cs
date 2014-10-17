@@ -62,7 +62,7 @@ namespace PTL.ATT.Smoothers
                 Set<Thread> threads = new Set<Thread>(Configuration.ProcessorCount);
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(o =>
                         {
                             int core = (int)o;
                             List<Tuple<PointPrediction, Dictionary<string, double>>> threadPointPredictionIncidentScore = new List<Tuple<PointPrediction, Dictionary<string, double>>>((int)((pointPredictions.Count / (float)Configuration.ProcessorCount) + 1));

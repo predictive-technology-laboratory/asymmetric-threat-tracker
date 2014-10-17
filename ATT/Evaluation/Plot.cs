@@ -94,6 +94,17 @@ namespace PTL.ATT.Evaluation
             _imageFormat = format;
         }
 
+        /// <summary>
+        /// Renders this surveillance plot
+        /// </summary>
+        /// <param name="height">Height in pixels</param>
+        /// <param name="width">Width in pixels</param>
+        /// <param name="includeTitle">Whether or not to include the title</param>
+        /// <param name="plotSeriesDifference">Pass non-null to plot a series difference. If both elements are null, the series difference with largest difference is plotted. Or you can pass specific series names to plot a specific difference. If only one series name is provided, the maximum difference between that series and another will be computed.</param>
+        /// <param name="blackAndWhite">Whether or not to use black and white only</param>
+        /// <param name="retainImageOnDisk">Whether or not to retain the image on disk</param>
+        /// <param name="args">Additional arguments:  (0) plot margins in 0,0,0,0 format (default is 5,4,4,2), (1) additional arguments to plot and lines commands (e.g., cex), (2) additional arguments to legend command (e.g., cex)</param>
+        /// <returns>Path to rendered image file</returns>
         public void Render(int height, int width, bool includeTitle, Tuple<string, string> plotSeriesDifference, bool blackAndWhite, bool retainImageOnDisk, params string[] args)
         {
             _imagePath = CreateImageOnDisk(height, width, includeTitle, plotSeriesDifference, blackAndWhite, args);

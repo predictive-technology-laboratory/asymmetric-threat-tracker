@@ -183,7 +183,7 @@ namespace PTL.ATT.Models
             IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
             for (int i = 0; i < processorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                Thread t = new Thread(new ParameterizedThreadStart(o =>
                     {
                         int core = (int)o;
 

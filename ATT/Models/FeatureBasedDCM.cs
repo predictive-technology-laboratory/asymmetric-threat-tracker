@@ -370,7 +370,7 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(o =>
                         {
                             int core = (int)o;
                             NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
@@ -463,7 +463,7 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(o =>
                         {
                             int core = (int)o;
                             NpgsqlCommand command = DB.Connection.NewCommand(null);
@@ -529,7 +529,7 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(o =>
                         {
                             int core = (int)o;
                             NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
@@ -625,7 +625,7 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(o =>
                         {
                             int core = (int)o;
                             for (int j = 0; j + core < kdeFeatures.Count; j += Configuration.ProcessorCount)
