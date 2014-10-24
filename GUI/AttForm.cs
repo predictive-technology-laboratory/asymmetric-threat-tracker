@@ -1842,12 +1842,11 @@ namespace PTL.ATT.GUI
             Set<Thread> threads = new Set<Thread>(PTL.ATT.GUI.Configuration.ProcessorCount);
             for (int i = 0; i < PTL.ATT.GUI.Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(o =>
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        int core = (int)o;
-                        for (int j = 0; j + core < selectedNodes.Count; j += PTL.ATT.GUI.Configuration.ProcessorCount)
+                        for (int j = (int)core; j < selectedNodes.Count; j += PTL.ATT.GUI.Configuration.ProcessorCount)
                         {
-                            TreeNode node = selectedNodes[j + core];
+                            TreeNode node = selectedNodes[j];
                             if (node.Tag is PredictionGroup)
                             {
                                 PredictionGroup group = node.Tag as PredictionGroup;

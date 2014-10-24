@@ -463,13 +463,12 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(o =>
+                    Thread t = new Thread(new ParameterizedThreadStart(core =>
                         {
-                            int core = (int)o;
                             NpgsqlCommand command = DB.Connection.NewCommand(null);
-                            for (int j = 0; j + core < spatialDensityFeatures.Count; j += Configuration.ProcessorCount)
+                            for (int j = (int)core; j < spatialDensityFeatures.Count; j += Configuration.ProcessorCount)
                             {
-                                Feature spatialDensityFeature = spatialDensityFeatures[j + core];
+                                Feature spatialDensityFeature = spatialDensityFeatures[j];
 
                                 DateTime spatialDensityFeatureStart = start - spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagOffset);
                                 DateTime spatialDensityFeatureEnd = spatialDensityFeatureStart + spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagDuration);
@@ -541,7 +540,7 @@ namespace PTL.ATT.Models
                                 NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + pointTableName + "." + Point.Columns.Id + " as point_id," + shapefile.GeometryTable + "." + attributeColumn + " as geometry_attribute " +
                                                                              "FROM " + pointTableName + " " +
                                                                              "LEFT JOIN " + shapefile.GeometryTable + " " + // the geometry might not overlap the point, in which case we'll use the default feature value below
-                                                                             "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") " + 
+                                                                             "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") " +
                                                                              "WHERE " + pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " +
                                                                                         "(" +
                                                                                           pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
@@ -625,12 +624,11 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(o =>
+                    Thread t = new Thread(new ParameterizedThreadStart(core =>
                         {
-                            int core = (int)o;
-                            for (int j = 0; j + core < kdeFeatures.Count; j += Configuration.ProcessorCount)
+                            for (int j = (int)core; j < kdeFeatures.Count; j += Configuration.ProcessorCount)
                             {
-                                Feature kdeFeature = kdeFeatures[j + core];
+                                Feature kdeFeature = kdeFeatures[j];
 
                                 List<PostGIS.Point> kdeInputPoints = new List<PostGIS.Point>();
                                 string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;

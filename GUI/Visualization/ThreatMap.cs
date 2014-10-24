@@ -275,13 +275,11 @@ namespace PTL.ATT.GUI.Visualization
             List<Thread> threads = new List<Thread>(Configuration.ProcessorCount);
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(o =>
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        int core = (int)o;
-
-                        for (int j = 0; j + core < _sliceIncidentPointScores.Count; j += Configuration.ProcessorCount)
+                        for (int j = (int)core; j < slices.Count; j += Configuration.ProcessorCount)
                         {
-                            long slice = slices[j + core];
+                            long slice = slices[j];
 
                             #region create bitmap for current slice's threat surface
                             try
@@ -378,16 +376,14 @@ namespace PTL.ATT.GUI.Visualization
             threads.Clear();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(o =>
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        int core = (int)o;
-
                         using(Pen pen = new Pen(BackColor, 1))
                         using(SolidBrush brush = new SolidBrush(BackColor))
                         {
-                            for (int j = 0; j + core < slices.Count; j += Configuration.ProcessorCount)
+                            for (int j = (int)core; j < slices.Count; j += Configuration.ProcessorCount)
                             {
-                                long slice = slices[j + core];
+                                long slice = slices[j];
 
                                 Graphics g = Graphics.FromImage(newSliceThreatSurface[slice]);
                                 g.Clear(BackColor);

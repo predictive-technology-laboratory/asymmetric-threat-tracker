@@ -62,13 +62,12 @@ namespace PTL.ATT.Smoothers
                 Set<Thread> threads = new Set<Thread>(Configuration.ProcessorCount);
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(o =>
+                    Thread t = new Thread(new ParameterizedThreadStart(core =>
                         {
-                            int core = (int)o;
                             List<Tuple<PointPrediction, Dictionary<string, double>>> threadPointPredictionIncidentScore = new List<Tuple<PointPrediction, Dictionary<string, double>>>((int)((pointPredictions.Count / (float)Configuration.ProcessorCount) + 1));
-                            for (int j = 0; j + core < pointPredictions.Count; j += Configuration.ProcessorCount)
+                            for (int j = (int)core; j < pointPredictions.Count; j += Configuration.ProcessorCount)
                             {
-                                PointPrediction pointPrediction = pointPredictions[j + core];
+                                PointPrediction pointPrediction = pointPredictions[j];
                                 Dictionary<PointPrediction, double> neighborInvDist = new Dictionary<PointPrediction, double>();
                                 foreach (PointPrediction neighbor in pointPredictions)
                                 {
