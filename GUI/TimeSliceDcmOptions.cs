@@ -31,7 +31,8 @@ namespace PTL.ATT.GUI
     {
         private TimeSliceDCM _timeSliceDCM;
         private bool _initializing;
-
+        private int slicesToRun;
+        private bool _buildingCheckboxItems;
         public TimeSliceDCM TimeSliceDCM
         {
             get { return _timeSliceDCM; }
@@ -53,12 +54,17 @@ namespace PTL.ATT.GUI
         {
             get { return (int)timeSlicesPerPeriod.Value; }
         }
-
+        public int SlicesToRun
+        {
+            get { return slicesToRun; }
+        }
         public TimeSliceDcmOptions()
         {
             _initializing = true;
             InitializeComponent();
+            BuildSlicesToRun(slicesToRun);
             _initializing = false;
+        
         }
 
         public void RefreshAll()
@@ -70,6 +76,7 @@ namespace PTL.ATT.GUI
             {
                 timeSliceHours.Value = _timeSliceDCM.TimeSliceHours;
                 timeSlicesPerPeriod.Value = _timeSliceDCM.PeriodTimeSlices;
+                BuildSlicesToRun(_timeSliceDCM.SlicesToRun);
             }
         }
 
@@ -82,6 +89,39 @@ namespace PTL.ATT.GUI
         {
             model.TimeSliceHours = TimeSliceHours;
             model.PeriodTimeSlices = TimeSlicesPerPeriod;
+            model.SlicesToRun = SlicesToRun;
+        }
+        private void BuildSlicesToRun(int slicesToRun)
+        {
+            _buildingCheckboxItems = true;
+            _CheckedListBoxSlicesToRun.Items.Clear();
+            DateTime TimeInterval = new DateTime(2000, 1, 1, 0, 0, 0);
+            int Mask = (int)Math.Pow(2, (double)timeSlicesPerPeriod.Value-1);
+           
+            for (int i = 0; i < timeSlicesPerPeriod.Value; i++)
+            {
+                _CheckedListBoxSlicesToRun.Items.Add(String.Format("{0} to {1}", TimeInterval.ToShortTimeString(), TimeInterval.AddHours(6).AddTicks(-1).ToShortTimeString()), slicesToRun == 0 || (slicesToRun & Mask) != 0);
+                TimeInterval = TimeInterval.AddHours(Convert.ToInt32(timeSliceHours.Value));
+                Mask = Mask >> 1;
+            }
+            _buildingCheckboxItems = false;
+        }
+        private void timeSliceHours_ValueChanged(object sender, EventArgs e)
+        {
+            BuildSlicesToRun(slicesToRun);
+        }
+
+        
+
+        private void _CheckedListBoxSlicesToRun_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            if (!_buildingCheckboxItems)
+            {
+                slicesToRun = (int)(Math.Pow(2, 4) - 1);
+                    for (int i = 0; i < _CheckedListBoxSlicesToRun.Items.Count; i++)
+                        if ((e.Index != i && !_CheckedListBoxSlicesToRun.GetItemChecked(i)) || (e.Index == i && e.NewValue != CheckState.Checked))
+                            slicesToRun -= (int)Math.Pow(2, _CheckedListBoxSlicesToRun.Items.Count - (i + 1));
+            }
         }
     }
 }

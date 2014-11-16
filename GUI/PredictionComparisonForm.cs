@@ -23,7 +23,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using PTL.ATT.Evaluation;
-
+using LAIR.Extensions;
 namespace PTL.ATT.GUI
 {
     public partial class PredictionComparisonForm : Form
@@ -41,12 +41,12 @@ namespace PTL.ATT.GUI
                 return plots;
             }
         }
-
+        private IEnumerable<IEnumerable<Plot>> _plotRows;
         public PredictionComparisonForm(IEnumerable<IEnumerable<Plot>> plotRows, Size size)
         {
             InitializeComponent();
             Size = size;
-
+            this._plotRows =  plotRows;
             foreach (IEnumerable<Plot> plotRow in plotRows)
                 if(plotRow.Count() > 0)
                 {
@@ -98,6 +98,57 @@ namespace PTL.ATT.GUI
                 foreach (FlowLayoutPanel panel in predictionImageRows.Controls)
                     if (panel != sender)
                         panel.HorizontalScroll.Value = (int)((panel.HorizontalScroll.Maximum - panel.HorizontalScroll.Minimum) * percentScrolled);
+            }
+        }
+        private void CombineAndSavePlots(SurveillancePlot[] Plots, string Path)
+        {
+            StringBuilder comparisonTitle = new StringBuilder();
+            Dictionary<string, List<PointF>> seriesPoints = new Dictionary<string, List<PointF>>();
+
+            Array.ForEach(Plots, selectedPlot =>
+            {
+
+                string plotTitle = selectedPlot.Title.Replace(Environment.NewLine, " ").RemoveRepeatedWhitespace();
+                comparisonTitle.Append((comparisonTitle.Length == 0 ? "Comparison of " : ", ") + plotTitle);
+                foreach (string series in selectedPlot.SeriesPoints.Keys)
+                    if (series != PTL.ATT.Models.DiscreteChoiceModel.OptimalSeriesName)
+                    {
+                        string baseSeriesTitle = plotTitle;
+                        if (series == PTL.ATT.Models.DiscreteChoiceModel.OptimalSeriesName)
+                            baseSeriesTitle = PTL.ATT.Models.DiscreteChoiceModel.OptimalSeriesName + " " + baseSeriesTitle;
+
+                        string seriesTitle = baseSeriesTitle;
+                        int dupNameNum = 2;
+                        while (seriesPoints.Keys.Count(k => k == seriesTitle) > 0)
+                            seriesTitle = baseSeriesTitle + " " + dupNameNum++;
+
+                        seriesPoints.Add(seriesTitle, selectedPlot.SeriesPoints[series]);
+
+                    }
+            });
+            SurveillancePlot comparisonPlot = new SurveillancePlot(comparisonTitle.ToString(), -1, seriesPoints, 500, 500, Plot.Format.JPEG, 2);
+            comparisonPlot.Image.Save(String.Format("{0}\\{1}.jpeg",Path ,comparisonTitle.Replace(':','_').Replace('/','_') ));
+        }
+        private void _ButtonSaveOneToOneImages_Click(object sender, EventArgs e)
+        {
+            if (_FolderBrowserDialogSaveImages.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                try
+                {
+                    int MinNumberOfPlotsPerRow = (from plotrow in _plotRows select plotrow.Count()).Min();
+                    for (int i = 0; i < MinNumberOfPlotsPerRow; i++)
+                    {
+                        SurveillancePlot[] plots = new SurveillancePlot[_plotRows.Count()];
+                        for (int j = 0; j < _plotRows.Count(); j++)
+                            plots[j] = (SurveillancePlot)_plotRows.ElementAt(j).ElementAt(i);
+                        CombineAndSavePlots(plots, _FolderBrowserDialogSaveImages.SelectedPath);
+                    }
+                    System.Windows.Forms.MessageBox.Show("Images are saved!", "Save 1-to-1", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
             }
         }
     }

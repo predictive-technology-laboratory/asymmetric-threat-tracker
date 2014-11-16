@@ -47,13 +47,15 @@ namespace PTL.ATT.GUI
             this.predictionImageRows = new System.Windows.Forms.FlowLayoutPanel();
             this.cancel = new System.Windows.Forms.Button();
             this.ok = new System.Windows.Forms.Button();
+            this._ButtonSaveOneToOneImages = new System.Windows.Forms.Button();
+            this._FolderBrowserDialogSaveImages = new System.Windows.Forms.FolderBrowserDialog();
             this.SuspendLayout();
             // 
             // predictionImageRows
             // 
-            this.predictionImageRows.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.predictionImageRows.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.predictionImageRows.AutoScroll = true;
             this.predictionImageRows.BackColor = System.Drawing.SystemColors.Control;
             this.predictionImageRows.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -87,11 +89,23 @@ namespace PTL.ATT.GUI
             this.ok.UseVisualStyleBackColor = true;
             this.ok.Click += new System.EventHandler(this.ok_Click);
             // 
+            // _ButtonSaveOneToOneImages
+            // 
+            this._ButtonSaveOneToOneImages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this._ButtonSaveOneToOneImages.Location = new System.Drawing.Point(12, 475);
+            this._ButtonSaveOneToOneImages.Name = "_ButtonSaveOneToOneImages";
+            this._ButtonSaveOneToOneImages.Size = new System.Drawing.Size(75, 23);
+            this._ButtonSaveOneToOneImages.TabIndex = 10;
+            this._ButtonSaveOneToOneImages.Text = "Save 1-to-1";
+            this._ButtonSaveOneToOneImages.UseVisualStyleBackColor = true;
+            this._ButtonSaveOneToOneImages.Click += new System.EventHandler(this._ButtonSaveOneToOneImages_Click);
+            // 
             // PredictionComparisonForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(560, 505);
+            this.Controls.Add(this._ButtonSaveOneToOneImages);
             this.Controls.Add(this.ok);
             this.Controls.Add(this.cancel);
             this.Controls.Add(this.predictionImageRows);
@@ -108,5 +122,7 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.FlowLayoutPanel predictionImageRows;
         private System.Windows.Forms.Button cancel;
         private System.Windows.Forms.Button ok;
+        private System.Windows.Forms.Button _ButtonSaveOneToOneImages;
+        private System.Windows.Forms.FolderBrowserDialog _FolderBrowserDialogSaveImages;
     }
 }

@@ -85,6 +85,7 @@ namespace PTL.ATT.GUI
             this.featureBasedDcmOptions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.featureBasedDcmOptions.FeatureBasedDCM = null;
             this.featureBasedDcmOptions.Location = new System.Drawing.Point(3, 3);
+            this.featureBasedDcmOptions.MinimumSize = new System.Drawing.Size(306, 384);
             this.featureBasedDcmOptions.Name = "featureBasedDcmOptions";
             this.featureBasedDcmOptions.Size = new System.Drawing.Size(570, 510);
             this.featureBasedDcmOptions.TabIndex = 0;
@@ -148,14 +149,14 @@ namespace PTL.ATT.GUI
             // oKToolStripMenuItem
             // 
             this.oKToolStripMenuItem.Name = "oKToolStripMenuItem";
-            this.oKToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
+            this.oKToolStripMenuItem.Size = new System.Drawing.Size(33, 20);
             this.oKToolStripMenuItem.Text = "OK";
             this.oKToolStripMenuItem.Click += new System.EventHandler(this.ok_Click);
             // 
             // cancelToolStripMenuItem
             // 
             this.cancelToolStripMenuItem.Name = "cancelToolStripMenuItem";
-            this.cancelToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
+            this.cancelToolStripMenuItem.Size = new System.Drawing.Size(51, 20);
             this.cancelToolStripMenuItem.Text = "Cancel";
             this.cancelToolStripMenuItem.Click += new System.EventHandler(this.cancel_Click);
             // 

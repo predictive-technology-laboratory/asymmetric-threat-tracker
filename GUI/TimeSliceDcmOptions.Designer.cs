@@ -51,6 +51,8 @@ namespace PTL.ATT.GUI
             this.timeSliceHours = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
+            this._CheckedListBoxSlicesToRun = new System.Windows.Forms.CheckedListBox();
+            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.timeSlicesPerPeriod)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeSliceHours)).BeginInit();
             this.SuspendLayout();
@@ -117,6 +119,7 @@ namespace PTL.ATT.GUI
             0,
             0,
             0});
+            this.timeSliceHours.ValueChanged += new System.EventHandler(this.timeSliceHours_ValueChanged);
             // 
             // label1
             // 
@@ -128,17 +131,37 @@ namespace PTL.ATT.GUI
             this.label1.Text = "Time slice:";
             this.toolTip.SetToolTip(this.label1, "Duration of a single time slice.");
             // 
+            // _CheckedListBoxSlicesToRun
+            // 
+            this._CheckedListBoxSlicesToRun.FormattingEnabled = true;
+            this._CheckedListBoxSlicesToRun.Location = new System.Drawing.Point(122, 55);
+            this._CheckedListBoxSlicesToRun.Name = "_CheckedListBoxSlicesToRun";
+            this._CheckedListBoxSlicesToRun.Size = new System.Drawing.Size(151, 139);
+            this._CheckedListBoxSlicesToRun.TabIndex = 24;
+            this._CheckedListBoxSlicesToRun.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this._CheckedListBoxSlicesToRun_ItemCheck);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(10, 55);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(106, 13);
+            this.label2.TabIndex = 23;
+            this.label2.Text = "Which slice(s) to run:";
+            // 
             // TimeSliceDcmOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this._CheckedListBoxSlicesToRun);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.timeSlicesPerPeriod);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.timeSliceHours);
             this.Name = "TimeSliceDcmOptions";
-            this.Size = new System.Drawing.Size(247, 55);
+            this.Size = new System.Drawing.Size(298, 259);
             ((System.ComponentModel.ISupportInitialize)(this.timeSlicesPerPeriod)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeSliceHours)).EndInit();
             this.ResumeLayout(false);
@@ -154,5 +177,7 @@ namespace PTL.ATT.GUI
         private System.Windows.Forms.NumericUpDown timeSliceHours;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolTip toolTip;
+        private System.Windows.Forms.CheckedListBox _CheckedListBoxSlicesToRun;
+        private System.Windows.Forms.Label label2;
     }
 }
