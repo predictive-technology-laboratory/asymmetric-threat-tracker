@@ -100,7 +100,7 @@ namespace PTL.ATT.GUI
            
             for (int i = 0; i < timeSlicesPerPeriod.Value; i++)
             {
-                _CheckedListBoxSlicesToRun.Items.Add(String.Format("{0} to {1}", TimeInterval.ToShortTimeString(), TimeInterval.AddHours(6).AddTicks(-1).ToShortTimeString()), slicesToRun == 0 || (slicesToRun & Mask) != 0);
+                _CheckedListBoxSlicesToRun.Items.Add(String.Format("{0} to {1}", TimeInterval.ToShortTimeString(), TimeInterval.AddHours(TimeSliceHours).AddTicks(-1).ToShortTimeString()), slicesToRun == 0 || (slicesToRun & Mask) != 0);
                 TimeInterval = TimeInterval.AddHours(Convert.ToInt32(timeSliceHours.Value));
                 Mask = Mask >> 1;
             }

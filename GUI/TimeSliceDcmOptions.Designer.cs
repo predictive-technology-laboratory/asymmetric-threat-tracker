@@ -78,6 +78,7 @@ namespace PTL.ATT.GUI
             0,
             0,
             0});
+            this.timeSlicesPerPeriod.ValueChanged += new System.EventHandler(this.timeSliceHours_ValueChanged);
             // 
             // label9
             // 
@@ -136,7 +137,8 @@ namespace PTL.ATT.GUI
             this._CheckedListBoxSlicesToRun.FormattingEnabled = true;
             this._CheckedListBoxSlicesToRun.Location = new System.Drawing.Point(122, 55);
             this._CheckedListBoxSlicesToRun.Name = "_CheckedListBoxSlicesToRun";
-            this._CheckedListBoxSlicesToRun.Size = new System.Drawing.Size(151, 139);
+            this._CheckedListBoxSlicesToRun.ScrollAlwaysVisible = true;
+            this._CheckedListBoxSlicesToRun.Size = new System.Drawing.Size(151, 199);
             this._CheckedListBoxSlicesToRun.TabIndex = 24;
             this._CheckedListBoxSlicesToRun.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this._CheckedListBoxSlicesToRun_ItemCheck);
             // 
