@@ -45,14 +45,33 @@ namespace PTL.ATT.Evaluation
 
             DiscreteChoiceModel model = prediction.Model;
             long sliceTicks = -1;
+            List<long> SlicesToRun = new List<long>();
             if (model is TimeSliceDCM)
+            {
                 sliceTicks = (model as TimeSliceDCM).TimeSliceTicks;
+                int sliceToRun = (model as TimeSliceDCM).SlicesToRun;
+                long firstSlice = prediction.PredictionStartTime.Ticks / sliceTicks;
+                long lastSlice = prediction.PredictionEndTime.Ticks / sliceTicks;
+                int preiodTimeSlices = (model as TimeSliceDCM).PeriodTimeSlices;
+                int Mask = (int)Math.Pow(2, preiodTimeSlices - 1);
+                for (long k = firstSlice; k <= lastSlice; k++)
+                {
+                    if (k % preiodTimeSlices == 0) Mask = (int)Math.Pow(2, preiodTimeSlices - 1);
+                    if ((sliceToRun & Mask) != 0)
+                        SlicesToRun.Add(k);
+                    Mask = Mask >> 1;
+                }
+            }
 
             foreach (Incident incident in incidents)
             {
                 long slice = 1;
                 if (sliceTicks > 0)
+                {
                     slice = incident.Time.Ticks / sliceTicks;
+                    if (!SlicesToRun.Contains(slice))
+                        continue;
+                }
 
                 int row = (int)((incident.Location.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.PredictionPointSpacing);
                 int col = (int)((incident.Location.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.PredictionPointSpacing);
