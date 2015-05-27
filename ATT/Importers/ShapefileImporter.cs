@@ -75,7 +75,12 @@ namespace PTL.ATT.Importers
                 if (!importOptionValue.ContainsKey("reprojection") || string.IsNullOrWhiteSpace(importOptionValue["reprojection"])) neededValues.Add("reprojection");
                 if (!importOptionValue.ContainsKey("name") || string.IsNullOrWhiteSpace(importOptionValue["name"])) neededValues.Add("name");
                 if (neededValues.Count > 0)
-                    _shapefileInfoRetriever.GetShapefileInfo(Path, neededValues, importOptionValue);
+                {
+                    if (_shapefileInfoRetriever == null)
+                        throw new Exception("Missing the following shapefile options, and no information retriever was present:  " + neededValues.Concatenate(","));
+                    else
+                        _shapefileInfoRetriever.GetShapefileInfo(Path, neededValues, importOptionValue);
+                }
 
                 string missingValues = neededValues.Where(v => !importOptionValue.ContainsKey(v) || string.IsNullOrWhiteSpace(importOptionValue[v])).Concatenate(", ");
                 if (missingValues != "")
@@ -160,8 +165,11 @@ namespace PTL.ATT.Importers
             }
             catch (Exception ex)
             {
-                try { _importedShapefile.Delete(); }
-                catch (Exception ex2) { Console.Out.WriteLine("Failed to delete shapefile:  " + ex2.Message); }
+                if (_importedShapefile != null)
+                {
+                    try { _importedShapefile.Delete(); }
+                    catch (Exception ex2) { Console.Out.WriteLine("Failed to delete shapefile:  " + ex2.Message); }
+                }
 
                 _importedShapefile = null;
 

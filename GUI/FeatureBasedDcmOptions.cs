@@ -238,7 +238,7 @@ namespace PTL.ATT.GUI
 
             if (f.ShowDialog() == DialogResult.OK)
                 foreach (Enum parameter in feature.Parameters.OrderBy(p => p))
-                    feature.Parameters.SetValue(parameter, f.GetValue<string>(parameter.ToString()));
+                    feature.Parameters.Set(parameter, f.GetValue<string>(parameter.ToString()));
         }
 
         private void parameterizeSelectedFeaturesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -265,7 +265,7 @@ namespace PTL.ATT.GUI
                     foreach (Feature feature in Features)
                         foreach (Enum parameter in feature.Parameters.ToArray())
                             if (parameter.GetType().FullName.EndsWith("+" + enumType) && parameter.ToString() == enumValue)
-                                feature.Parameters.SetValue(parameter, f.GetValue<string>(parameterId));
+                                feature.Parameters.Set(parameter, f.GetValue<string>(parameterId));
                 }
         }
 

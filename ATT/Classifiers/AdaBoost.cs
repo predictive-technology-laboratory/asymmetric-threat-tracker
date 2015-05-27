@@ -33,8 +33,7 @@ namespace PTL.ATT.Classifiers
     {
         static AdaBoost()
         {
-            if (Configuration.RCranMirror != null)
-                R.InstallPackages(R.CheckForMissingPackages(new string[] { "ada" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "ada" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
         private int _iterations;
@@ -107,7 +106,7 @@ namespace PTL.ATT.Classifiers
         }
 
         protected override void BuildModel()
-        { 
+        {
             StringBuilder rCmd = new StringBuilder(@"
 trainRaw=read.csv(""" + RawTrainPath.Replace(@"\", "/") + @""", header = TRUE, sep = ',')" + @"
 trainNorm=trainRaw
@@ -223,9 +222,11 @@ if(length(cls)==2) {
 }
 write.table(mult, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names=FALSE, sep=',')" + @"
 ");
-                R.Execute(rCmd.ToString(), false);
+                string output, error;
+                R.Execute(rCmd.ToString(), false, out output, out error);
 
-                if (File.Exists(PredictionsPath))
+                try
+                {
                     using (StreamReader predictionsFile = new StreamReader(PredictionsPath))
                     {
                         string[] colnames = predictionsFile.ReadLine().Split(',');
@@ -238,7 +239,7 @@ write.table(mult, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.name
 
                             for (int i = 0; i < colnames.Length; i++)
                             {
-                                string label = colnames[i].Replace("\"", @""); ;
+                                string label = colnames[i].Replace("\"", "");
                                 float prob = float.Parse(lines[i]);
                                 featureVectors[row].DerivedFrom.PredictionConfidenceScores.Add(label, prob);
                             }
@@ -250,14 +251,27 @@ write.table(mult, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.name
                         if (row != featureVectors.Count)
                             throw new Exception("Number of predictions doesn't match number of input vectors");
                     }
-                else
-                    Console.Out.WriteLine("WARNING:  AdaBoost failed to classify points. See previous messages for hints.");
-
-                File.Delete(ColumnMaxMinPath);
-                File.Delete(ClassPath);
-                File.Delete(AdaModelPath);
-                File.Delete(RawPredictionInstancesPath);
-                File.Delete(PredictionsPath);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("ERROR:  AdaBoost failed to classify points. Output and error messages follow:" + Environment.NewLine +
+                                        "\tException message:  " + ex.Message + Environment.NewLine +
+                                        "\tR output:  " + output + Environment.NewLine +
+                                        "\tR orror:  " + error);
+                }
+                finally
+                {
+                    try { File.Delete(ColumnMaxMinPath); }
+                    catch { }
+                    try { File.Delete(ClassPath); }
+                    catch { }
+                    try { File.Delete(AdaModelPath); }
+                    catch { }
+                    try { File.Delete(RawPredictionInstancesPath); }
+                    catch { }
+                    try { File.Delete(PredictionsPath); }
+                    catch { }
+                }
             }
         }
 

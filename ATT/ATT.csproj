@@ -57,9 +57,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\LAIR.MachineLearning.dll</HintPath>
     </Reference>
-    <Reference Include="LAIR.Misc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libraries\LAIR.Misc.dll</HintPath>
+    <Reference Include="LAIR.Math">
+      <HintPath>..\Libraries\LAIR.Math.dll</HintPath>
     </Reference>
     <Reference Include="LAIR.ResourceAPIs.PostGIS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

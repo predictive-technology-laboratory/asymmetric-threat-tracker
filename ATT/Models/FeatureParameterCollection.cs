@@ -36,17 +36,20 @@ namespace PTL.ATT.Models
             _parameterValueTip = new Dictionary<Enum, Tuple<string, string>>();
         }
 
-        public void Add(Enum parameter, string value, string tip)
+        public void Set(Enum parameter, string value)
         {
-            _parameterValueTip.Add(parameter, new Tuple<string, string>(value, tip));
+            if (_parameterValueTip.ContainsKey(parameter))
+                _parameterValueTip[parameter] = new Tuple<string, string>(value, _parameterValueTip[parameter].Item2);
+            else
+                _parameterValueTip.Add(parameter, new Tuple<string, string>(value, ""));
         }
 
-        public void SetValue(Enum parameter, string value)
+        public void Set(Enum parameter, string value, string tip)
         {
-            if (!_parameterValueTip.ContainsKey(parameter))
-                throw new KeyNotFoundException("Cannot set missing parameter:  " + parameter);
-
-            _parameterValueTip[parameter] = new Tuple<string, string>(value, _parameterValueTip[parameter].Item2);
+            if (_parameterValueTip.ContainsKey(parameter))
+                _parameterValueTip[parameter] = new Tuple<string, string>(value, tip);
+            else
+                _parameterValueTip.Add(parameter, new Tuple<string, string>(value, tip));
         }
 
         public int GetIntegerValue(Enum parameter)

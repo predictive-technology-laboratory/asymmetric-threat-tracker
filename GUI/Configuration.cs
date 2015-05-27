@@ -25,7 +25,6 @@ using PTL.ATT.GUI.Plugins;
 using PTL.ATT.GUI.Properties;
 using LAIR.Extensions;
 using System.Windows.Forms;
-using LAIR.Misc;
 using System.Security.Cryptography;
 using System.Configuration;
 
@@ -33,16 +32,6 @@ namespace PTL.ATT.GUI
 {
     public static class Configuration
     {
-        #region postgis
-        private static string _postgisShapefileDirectory;
-
-        public static string PostGisShapefileDirectory
-        {
-            get { return Configuration._postgisShapefileDirectory; }
-            set { Configuration._postgisShapefileDirectory = value; }
-        }
-        #endregion
-
         #region logging
         private static string _logPath;
 
@@ -60,36 +49,6 @@ namespace PTL.ATT.GUI
             set { Configuration._loggingEditor = value; }
         }
         
-        #endregion
-
-        #region incidents
-        private static string _incidentsImportDirectory;
-
-        public static string IncidentsImportDirectory
-        {
-            get { return Configuration._incidentsImportDirectory; }
-            set { Configuration._incidentsImportDirectory = value; }
-        }
-        #endregion
-
-        #region events
-        private static string _eventsImportDirectory;
-
-        public static string EventsImportDirectory
-        {
-            get { return Configuration._eventsImportDirectory; }
-            set { Configuration._eventsImportDirectory = value; }
-        }
-        #endregion
-
-        #region importers
-        private static string _importersLoadDirectory;
-
-        public static string ImportersLoadDirectory
-        {
-            get { return Configuration._importersLoadDirectory; }
-            set { Configuration._importersLoadDirectory = value; }
-        }
         #endregion
 
         #region plugins
@@ -223,21 +182,9 @@ namespace PTL.ATT.GUI
                 File.WriteAllText(encryptionInitPath, string.Join("-", _encryptionInitialization));
             }
 
-            XmlParser postgisP = new XmlParser(p.OuterXML("postgis"));
-            _postgisShapefileDirectory = postgisP.ElementText("shapefile_directory");
-
             XmlParser loggingP = new XmlParser(p.OuterXML("logging"));
-            _logPath = Path.Combine(applicationDataDirectory, "log.txt");
             _loggingEditor = loggingP.ElementText("editor");
-
-            XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
-            _incidentsImportDirectory = incidentsP.ElementText("import_directory");
-
-            XmlParser eventsP = new XmlParser(p.OuterXML("events"));
-            _eventsImportDirectory = eventsP.ElementText("import_directory");
-
-            XmlParser importersP = new XmlParser(p.OuterXML("importers"));
-            _importersLoadDirectory = importersP.ElementText("load_directory");
+            _logPath = Path.Combine(applicationDataDirectory, "log.txt");
 
             _pluginTypes = new Set<Plugin>();
             XmlParser pluginsP = new XmlParser(p.OuterXML("plugins"));

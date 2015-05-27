@@ -16,6 +16,7 @@
   <postgis>
     <shp2pgsql>/usr/bin/shp2pgsql</shp2pgsql>
     <pgsql2shp>/usr/bin/pgsql2shp</pgsql2shp>
+    <shapefile_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Shapefiles</shapefile_directory>
   </postgis>
 
   <r>
@@ -35,6 +36,18 @@
       <solver>0</solver>
     </classifier>
   </classifiers>
+
+  <incidents>
+    <import_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Crimes</import_directory>
+  </incidents>
+
+  <events>
+    <import_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Data/Events</import_directory>
+  </events>
+
+  <importers>
+    <load_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Importers</load_directory>
+  </importers>  
 
   <modeling>
     <model_directory>/home/travis/MatthewGerber/asymmetric-threat-tracker/Models</model_directory>

@@ -24,6 +24,7 @@ using LAIR.MachineLearning.ClassifierWrappers.LibLinear;
 using LAIR.ResourceAPIs.R;
 using PTL.ATT.Models;
 using System.Reflection;
+using LAIR.Extensions;
 
 namespace PTL.ATT
 {
@@ -108,6 +109,7 @@ namespace PTL.ATT
         #region postgis
         private static string _shp2pgsqlPath;
         private static string _pgsql2shpPath;
+        private static string _postgisShapefileDirectory;
 
         public static string Shp2PgsqlPath
         {
@@ -119,6 +121,12 @@ namespace PTL.ATT
         {
             get { return _pgsql2shpPath; }
             set { _pgsql2shpPath = value; }
+        }
+
+        public static string PostGisShapefileDirectory
+        {
+            get { return Configuration._postgisShapefileDirectory; }
+            set { Configuration._postgisShapefileDirectory = value; }
         }
         #endregion
 
@@ -146,6 +154,36 @@ namespace PTL.ATT
         {
             get { return Configuration._classifierTypeOptions; }
             set { Configuration._classifierTypeOptions = value; }
+        }
+        #endregion
+
+        #region incidents
+        private static string _incidentsImportDirectory;
+
+        public static string IncidentsImportDirectory
+        {
+            get { return Configuration._incidentsImportDirectory; }
+            set { Configuration._incidentsImportDirectory = value; }
+        }
+        #endregion
+
+        #region events
+        private static string _eventsImportDirectory;
+
+        public static string EventsImportDirectory
+        {
+            get { return Configuration._eventsImportDirectory; }
+            set { Configuration._eventsImportDirectory = value; }
+        }
+        #endregion
+
+        #region importers
+        private static string _importersLoadDirectory;
+
+        public static string ImportersLoadDirectory
+        {
+            get { return Configuration._importersLoadDirectory; }
+            set { Configuration._importersLoadDirectory = value; }
         }
         #endregion
 
@@ -195,6 +233,11 @@ namespace PTL.ATT
         private static string _path = null;
         private static bool _initialized = false;
 
+        public static bool Initialized
+        {
+            get { return _initialized; }
+        }
+
         public static string LicenseText
         {
             get
@@ -238,6 +281,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
             XmlParser postgisP = new XmlParser(p.OuterXML("postgis"));
             _shp2pgsqlPath = postgisP.ElementText("shp2pgsql");
             _pgsql2shpPath = postgisP.ElementText("pgsql2shp");
+            _postgisShapefileDirectory = postgisP.ElementText("shapefile_directory");
 
             if (string.IsNullOrWhiteSpace(_shp2pgsqlPath) || !File.Exists(_shp2pgsqlPath))
                 throw new FileNotFoundException("Failed to locate shp2pgsql executable. Check configuration.");
@@ -287,6 +331,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
                 _classifierTypeOptions.Add(type, optionValue);
             }
+
+            XmlParser incidentsP = new XmlParser(p.OuterXML("incidents"));
+            _incidentsImportDirectory = incidentsP.ElementText("import_directory");
+
+            XmlParser eventsP = new XmlParser(p.OuterXML("events"));
+            _eventsImportDirectory = eventsP.ElementText("import_directory");
+
+            XmlParser importersP = new XmlParser(p.OuterXML("importers"));
+            _importersLoadDirectory = importersP.ElementText("load_directory");
 
             XmlParser modelingP = new XmlParser(p.OuterXML("modeling"));
             _modelsDirectory = modelingP.ElementText("model_directory");
@@ -338,11 +391,33 @@ Unless required by applicable law or agreed to in writing, software distributed 
                 throw new Exception("Invalid processor count (must be >= 1):  " + _processorCount);
 
             if (initializeDB)
+            {
                 DB.Initialize();
-
-            _initialized = true;
+                _initialized = true;
+            }
         }
 
+        /// <summary>
+        /// Resets the entire ATT system, deleting and recreating tables. ATT system must be initialized before calling this.
+        /// </summary>
+        /// <param name="tablesToKeep">Tables to keep</param>
+        public static void Reset(IEnumerable<string> tablesToKeep)
+        {
+            if (!_initialized)
+                throw new InvalidOperationException("ATT system has not been initialized. Cannot reset.");
+
+            string tablesToDrop = DB.Tables.Where(t => tablesToKeep == null || !tablesToKeep.Contains(t)).Concatenate(",");
+            if (!string.IsNullOrWhiteSpace(tablesToDrop))
+            {
+                DB.Connection.ExecuteNonQuery("DROP TABLE " + tablesToDrop + " CASCADE");
+                PTL.ATT.Configuration.Reload(true);
+            }
+        }
+
+        /// <summary>
+        /// Reloads the configuration, keeping all existing data.
+        /// </summary>
+        /// <param name="reinitializeDB">Whether or not to reinitialize the database.</param>
         public static void Reload(bool reinitializeDB)
         {
             _initialized = false;

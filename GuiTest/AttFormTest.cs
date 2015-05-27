@@ -43,7 +43,6 @@ namespace GuiTest
         [TestFixtureTearDown]
         public void TearDown()
         {
-            DB.Connection.Dispose();
         }
     }
 }

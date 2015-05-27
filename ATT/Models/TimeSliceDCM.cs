@@ -183,14 +183,10 @@ namespace PTL.ATT.Models
             IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
             for (int i = 0; i < processorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        int core = (int)o;
-
-                        for (long j = firstSlice; j + core <= lastSlice; j += processorCount)
+                        for (long slice = firstSlice + (int)core; slice <= lastSlice; slice += processorCount)
                         {
-                            long slice = j + core;
-
                             Console.Out.WriteLine("Processing slice " + (slice - firstSlice + 1) + " of " + (lastSlice - firstSlice + 1));
 
                             DateTime sliceStart = new DateTime(slice * _timeSliceTicks);
@@ -198,10 +194,10 @@ namespace PTL.ATT.Models
                             DateTime sliceMid = new DateTime((sliceStart.Ticks + sliceEnd.Ticks) / 2L);
 
                             #region get interval features that are true for all points in the current slice
-                            Dictionary<NominalFeature, string> threeHourIntervalFeatureValue = new Dictionary<NominalFeature,string>();
+                            Dictionary<NumericFeature, int> threeHourIntervalFeatureValue = new Dictionary<NumericFeature, int>();
                             int startingThreeHourInterval = sliceStart.Hour / 3;                                                  // which 3-hour interval does the current slice start in?
                             int threeHourIntervalsTouched = (int)(((sliceEnd.Ticks - sliceStart.Ticks) / ticksPerHour) / 3) + 1;  // how many 3-hour intervals does the current slice touch?
-                            int endingThreeHourInterval = startingThreeHourInterval + threeHourIntervalsTouched - 1;                  // which 3-hour interval does the current slice end in?
+                            int endingThreeHourInterval = startingThreeHourInterval + threeHourIntervalsTouched - 1;              // which 3-hour interval does the current slice end in?
                             for (int k = 0; k < threeHourIntervals.Count; ++k)
                             {
                                 TimeSliceFeature threeHourInterval = threeHourIntervals[k];
@@ -213,7 +209,7 @@ namespace PTL.ATT.Models
                                         if (interval % 8 == k)
                                             covered = true;
 
-                                    threeHourIntervalFeatureValue.Add(IdNominalFeature[id], covered.ToString());
+                                    threeHourIntervalFeatureValue.Add(IdNumericFeature[id], covered ? 1 : 0);
                                 }
                             }
                             #endregion
@@ -235,8 +231,8 @@ namespace PTL.ATT.Models
                                     else if ((long)(point.Time.Ticks / _timeSliceTicks) != slice)
                                         throw new Exception("Point should not be in slice:  " + point);
 
-                                    foreach (LAIR.MachineLearning.NominalFeature feature in threeHourIntervalFeatureValue.Keys)
-                                        featureVector.Add(feature, threeHourIntervalFeatureValue[feature]);
+                                    foreach (LAIR.MachineLearning.NumericFeature threeHourIntervalFeature in threeHourIntervalFeatureValue.Keys)
+                                        featureVector.Add(threeHourIntervalFeature, threeHourIntervalFeatureValue[threeHourIntervalFeature]);
 
                                     double percentThroughPeriod = (slice % _periodTimeSlices) / (double)(_periodTimeSlices - 1);
                                     double radians = 2 * Math.PI * percentThroughPeriod;

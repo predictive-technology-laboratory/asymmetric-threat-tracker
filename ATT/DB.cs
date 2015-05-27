@@ -28,6 +28,11 @@ namespace PTL.ATT
     {
         public static ConnectionPool Connection;
 
+        public static string[] Tables
+        {
+            get { return Connection.GetTables().Where(t => t != "spatial_ref_sys").ToArray(); }
+        }
+
         public static void Initialize()
         {
             Connection = new ConnectionPool(Configuration.PostgresHost, Configuration.PostgresPort, Configuration.PostgresSSL, Configuration.PostgresUser, Configuration.PostgresPassword, Configuration.PostgresDatabase, Configuration.PostgresConnectionTimeout, Configuration.PostgresRetryLimit, Configuration.PostgresCommandTimeout, Configuration.PostgresMaxPoolSize);

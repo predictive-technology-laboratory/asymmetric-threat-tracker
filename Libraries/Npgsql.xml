@@ -1274,10 +1274,362 @@
             value will normalised it to 00:00:00.</remarks>
             </summary>
         </member>
+        <member name="T:NpgsqlTypes.Fastpath">
+            <summary>
+            This class implements the Fastpath api.
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.Fastpath.func">
+            <summary>
+            This maps the functions names to their id's (possible unique just
+            to a connection).
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.Fastpath.conn">
+            <summary>
+            Our connection.
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.Fastpath.stream">
+            <summary>
+            The network stream.
+            </summary>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.#ctor(Npgsql.NpgsqlConnection,System.IO.Stream)">
+            <summary>
+            Initialises the fastpath system.
+            </summary>
+            <param name="conn">BaseConnection to attach to.</param>
+            <param name="stream">The network stream to the backend.</param>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.#ctor(Npgsql.NpgsqlConnection)">
+            <summary>
+            Initialises the fastpath system.
+            </summary>
+            <param name="conn">BaseConnection to attach to.</param>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.FastpathCall(System.Int32,System.Boolean,NpgsqlTypes.FastpathArg[])">
+            <summary>
+            Send a function call to the PostgreSQL backend.
+            </summary>
+            <param name="fnid">Function id.</param>
+            <param name="resulttype">True if the result is an integer, false for other results.</param>
+            <param name="args">FastpathArguments to pass to fastpath.</param>
+            <returns>null if no data, Integer if an integer result, or byte[] otherwise.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.FastpathCall(System.String,System.Boolean,NpgsqlTypes.FastpathArg[])">
+            <summary>
+            Send a function call to the PostgreSQL backend by name.
+            Note: the mapping for the procedure name to function id needs to exist,
+            usually to an earlier call to addfunction().
+            This is the prefered method to call, as function id's can/may change
+            between versions of the backend.
+            For an example of how this works, refer to NpgsqlTypes.LargeObject
+            </summary>
+            <param name="name">Function name.</param>
+            <param name="resulttype">True if the result is an integer, false for other results.</param>
+            <param name="args">FastpathArguments to pass to fastpath.</param>
+            <returns>null if no data, Integer if an integer result, or byte[] otherwise.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.GetInteger(System.String,NpgsqlTypes.FastpathArg[])">
+            <summary>
+            This convenience method assumes that the return value is an Integer.
+            </summary>
+            <param name="name">Function name.</param>
+            <param name="args">Function arguments.</param>
+            <returns>Integer result.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.GetData(System.String,NpgsqlTypes.FastpathArg[])">
+            <summary>
+            This convenience method assumes that the return value is an Integer.
+            </summary>
+            <param name="name">Function name.</param>
+            <param name="args">Function arguments.</param>
+            <returns>Array containing result</returns>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.AddFunction(System.String,System.Int32)">
+            <summary>
+            This adds a function to our lookup table.
+            User code should use the addFunctions method, which is based upon a
+            query, rather than hard coding the oid. The oid for a function is not
+            guaranteed to remain static, even on different servers of the same
+            version.
+            </summary>
+            <param name="name">Function name.</param>
+            <param name="fnid">Function id.</param>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.AddFunctions(System.Data.IDataReader)">
+            <summary>
+            This takes a ResultSet containing two columns. Column 1 contains the
+            function name, Column 2 the oid.
+            It reads the entire ResultSet, loading the values into the function
+            table.
+            REMEMBER to close() the resultset after calling this!!
+            Implementation note about function name lookups:
+            PostgreSQL stores the function id's and their corresponding names in
+            the pg_proc table. To speed things up locally, instead of querying each
+            function from that table when required, a Dictionary is used. Also, only
+            the function's required are entered into this table, keeping connection
+            times as fast as possible.
+            The org.postgresql.largeobject.LargeObject class performs a query upon it's startup,
+            and passes the returned ResultSet to the addFunctions() method here.
+            Once this has been done, the LargeObject api refers to the functions by
+            name.
+            Dont think that manually converting them to the oid's will work. Ok,
+            they will for now, but they can change during development (there was some
+            discussion about this for V7.0), so this is implemented to prevent any
+            unwarranted headaches in the future.
+            </summary>
+            <param name="rs">ResultSet</param>
+        </member>
+        <member name="M:NpgsqlTypes.Fastpath.GetID(System.String)">
+            <summary>
+            This returns the function id associated by its name
+            If addFunction() or addFunctions() have not been called for this name,
+            then an NpgsqlException is thrown.
+            </summary>
+            <param name="name">Function name to lookup.</param>
+            <returns>Function ID for fastpath call.</returns>
+        </member>
+        <member name="T:NpgsqlTypes.FastpathArg">
+            <summary>
+            Fast Path Arg.
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.FastpathArg.type">
+            <summary>
+            Type of argument, true=integer, false=byte[].
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.FastpathArg.value">
+            <summary>
+            Integer value if type=true.
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.FastpathArg.bytes">
+            <summary>
+            Byte value if type=false;
+            </summary>
+        </member>
+        <member name="M:NpgsqlTypes.FastpathArg.#ctor(System.Int32)">
+            <summary>
+            Constructs an argument that consists of an integer value.
+            </summary>
+            <param name="value">Int value to set.</param>
+        </member>
+        <member name="M:NpgsqlTypes.FastpathArg.#ctor(System.Byte[])">
+            <summary>
+            Constructs an argument that consists of an array of bytes.
+            </summary>
+            <param name="bytes">Array to store.</param>
+        </member>
+        <member name="M:NpgsqlTypes.FastpathArg.#ctor(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Constructs an argument that consists of part of a byte array.
+            </summary>
+            <param name="buf">Source array.</param>
+            <param name="off">offset within array.</param>
+            <param name="len">length of data to include.</param>
+        </member>
+        <member name="M:NpgsqlTypes.FastpathArg.#ctor(System.String)">
+            <summary>
+            Constructs an argument that consists of a String.
+            </summary>
+            <param name="s">String to store.</param>
+        </member>
+        <member name="M:NpgsqlTypes.FastpathArg.Send(System.IO.Stream)">
+            <summary>
+            This sends this argument down the network stream.
+            The stream sent consists of the length.int4 then the contents.
+            Note: This is called from Fastpath, and cannot be called from
+            client code.
+            </summary>
+            <param name="s"></param>
+        </member>
+        <member name="M:NpgsqlTypes.FastpathArg.SendSize">
+            <summary>
+            Report send size.
+            </summary>
+            <returns>Send size.</returns>
+        </member>
+        <member name="T:NpgsqlTypes.LargeObject">
+            <summary>
+            Large Object.
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.LargeObject.SEEK_SET">
+            <summary>
+            Indicates a seek from the begining of a file.
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.LargeObject.SEEK_CUR">
+            <summary>
+            Indicates a seek from the current position.
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.LargeObject.SEEK_END">
+            <summary>
+            Indicates a seek from the end of a file.
+            </summary>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.#ctor(NpgsqlTypes.Fastpath,System.Int32,System.Int32)">
+            <summary>
+            This opens a large object.
+            If the object does not exist, then an NpgsqlException is thrown.
+            </summary>
+            <param name="fp">FastPath API for the connection to use.</param>
+            <param name="oid">OID of the Large Object to open.</param>
+            <param name="mode">Mode of opening the large object</param>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.GetOID">
+            <summary>
+            OID getter.
+            </summary>
+            <returns>The OID of this LargeObject.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Close">
+            <summary>
+            This method closes the object. You must not call methods in this
+            object after this is called.
+            </summary>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Read(System.Int32)">
+            <summary>
+            Reads some data from the object, and return as a byte[] array.
+            </summary>
+            <param name="len">Number of bytes to read.</param>
+            <returns>Array containing data read.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads some data from the object into an existing array.
+            </summary>
+            <param name="buf">Destination array.</param>
+            <param name="off">Offset within array.</param>
+            <param name="len">Maximum number of bytes to read.</param>
+            <returns>The number of bytes actually read.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Write(System.Byte[])">
+            <summary>
+            Writes an array to the object.
+            </summary>
+            <param name="buf">Array to write.</param>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes some data from an array to the object.
+            </summary>
+            <param name="buf">Destination array.</param>
+            <param name="off">Offset within array.</param>
+            <param name="len">Number of bytes to write.</param>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Seek(System.Int32,System.Int32)">
+            <summary>
+            Sets the current position within the object.
+            This is similar to the fseek() call in the standard C library. It
+            allows you to have random access to the large object.
+            </summary>
+            <param name="pos">Position within object.</param>
+            <param name="refi">Either SEEK_SET, SEEK_CUR or SEEK_END.</param>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Seek(System.Int32)">
+            <summary>
+            Sets the current position within the object.
+            This is similar to the fseek() call in the standard C library. It
+            allows you to have random access to the large object.
+            </summary>
+            <param name="pos">Position within object from begining.</param>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Tell">
+            <summary>
+            Report the current position within the object.
+            </summary>
+            <returns>The current position within the object.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObject.Size">
+            <summary>
+            This method is inefficient, as the only way to find out the size of
+            the object is to seek to the end, record the current position, then
+            return to the original position.
+            A better method will be found in the future.
+            </summary>
+            <returns>The size of the large object.</returns>
+        </member>
+        <member name="P:NpgsqlTypes.LargeObject.OID">
+            <summary>
+            OID.
+            </summary>
+        </member>
         <member name="T:NpgsqlTypes.LargeObjectManager">
             <summary>
-            Summary description for LargeObjectManager.
+            Large Object Manager.
             </summary>
+        </member>
+        <member name="F:NpgsqlTypes.LargeObjectManager.WRITE">
+            <summary>
+            This mode indicates we want to write to an object
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.LargeObjectManager.READ">
+            <summary>
+            This mode indicates we want to read an object
+            </summary>
+        </member>
+        <member name="F:NpgsqlTypes.LargeObjectManager.READWRITE">
+            <summary>
+            This mode is the default. It indicates we want read and write access to
+            </summary>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObjectManager.#ctor(Npgsql.NpgsqlConnection)">
+            <summary>
+            Constructs the LargeObject API.
+            There should only be one LargeObjectManager per Connection. The
+            org.postgresql.Connection class keeps track of the various extension API's
+            and it's advised you use those to gain access, and not going direct.
+            </summary>
+            <param name="conn"></param>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObjectManager.Open(System.Int32)">
+            <summary>
+            This opens an existing large object, based on its OID. This method
+            assumes that READ and WRITE access is required (the default).
+            </summary>
+            <param name="oid">OID of large object.</param>
+            <returns>LargeObject instance providing access to the object</returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObjectManager.Open(System.Int32,System.Int32)">
+            <summary>
+            This opens an existing large object, based on its OID.
+            </summary>
+            <param name="oid">OID of large object.</param>
+            <param name="mode">Mode of open.</param>
+            <returns></returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObjectManager.Create">
+            <summary>
+            This creates a large object, returning its OID.
+            </summary>
+            <returns>OID of new object.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObjectManager.Create(System.Int32)">
+            <summary>
+            This creates a large object, returning its OID.
+            </summary>
+            <param name="mode">Bitmask describing different attributes of the new object.</param>
+            <returns>OID of new object.</returns>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObjectManager.Delete(System.Int32)">
+            <summary>
+            This deletes a large object.
+            </summary>
+            <param name="oid">OID describing object to delete.</param>
+        </member>
+        <member name="M:NpgsqlTypes.LargeObjectManager.Unlink(System.Int32)">
+            <summary>
+            This deletes a large object.
+            It is identical to the Delete() method, and is supplied as the C API uses unlink.
+            </summary>
+            <param name="oid">OID describing object to delete.</param>
         </member>
         <member name="T:NpgsqlTypes.NativeToBackendTypeConverterOptions">
             <summary>
@@ -1496,7 +1848,7 @@
             Convert to a postgres money.
             </summary>
         </member>
-        <member name="M:NpgsqlTypes.BasicNativeToBackendTypeConverter.SingleDoubleToFloat4Float8Text(NpgsqlTypes.NpgsqlNativeTypeInfo,System.Object,System.Boolean,NpgsqlTypes.NativeToBackendTypeConverterOptions,System.Boolean)">
+        <member name="M:NpgsqlTypes.BasicNativeToBackendTypeConverter.SingleToFloat4Text(NpgsqlTypes.NpgsqlNativeTypeInfo,System.Object,System.Boolean,NpgsqlTypes.NativeToBackendTypeConverterOptions,System.Boolean)">
             <summary>
             Convert to a postgres double with maximum precision.
             </summary>
@@ -1955,6 +2307,16 @@
             <param name="TypeMappings">Mapping object to add types too.</param>
             <param name="TypeInfoList">List of types that need to have OID's mapped.</param>
         </member>
+        <member name="T:Npgsql.NpgsqlQuery">
+            <summary>
+            Summary description for NpgsqlQuery
+            </summary>
+        </member>
+        <member name="T:Npgsql.ClientMessage">
+            <summary>
+            For classes representing messages sent from the client to the server.
+            </summary>
+        </member>
         <member name="P:Npgsql.Cache`1.CacheSize">
             <summary>
             Set Cache Size. The default value is 20.
@@ -1974,10 +2336,6 @@
             </summary>
         </member>
         <member name="T:Npgsql.NpgsqlState">
-            <summary> This class represents the base class for the state pattern design pattern
-             implementation.
-             </summary>
-            
             <summary> This class represents the base class for the state pattern design pattern
              implementation.
              </summary>
@@ -2155,7 +2513,7 @@
             <param name="inputOffset">Position in buffer in bytes to get data from.</param>
             <param name="inputCount">How much data in bytes in the buffer to use.</param>
         </member>
-        <member name="T:Npgsql.StringRowReaderV3">
+        <member name="T:Npgsql.StringRowReader">
             <summary>
             Implements <see cref="T:Npgsql.RowReader"/> for version 3 of the protocol.
             </summary>
@@ -2203,18 +2561,6 @@
             Completes the implementation of Streamer for byte data.
             </summary>
         </member>
-        <member name="T:Npgsql.StringRowReaderV2">
-            <summary>
-            Implements <see cref="T:Npgsql.RowReader"/> for version 2 of the protocol.
-            </summary>
-        </member>
-        <member name="T:Npgsql.StringRowReaderV2.NullMap">
-            <summary>
-            Encapsulates the null mapping bytes sent at the start of a version 2
-            datarow message, and the process of identifying the nullity of the data
-            at a particular index
-            </summary>
-        </member>
         <member name="T:Npgsql.NpgsqlBackEndKeyData">
             <summary>
             This class represents a BackEndKeyData message received
@@ -2227,11 +2573,6 @@
              server.
              </summary>
             
-        </member>
-        <member name="T:Npgsql.ClientMessage">
-            <summary>
-            For classes representing messages sent from the client to the server.
-            </summary>
         </member>
         <member name="T:Npgsql.NpgsqlCancelRequest">
              <summary>
@@ -2315,13 +2656,25 @@
             </summary>
             <returns>A <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see> object.</returns>
         </member>
-        <member name="M:Npgsql.NpgsqlCommand.ExecuteBlind">
+        <member name="M:Npgsql.NpgsqlCommand.Dispose(System.Boolean)">
             <summary>
-            Slightly optimised version of ExecuteNonQuery() for internal use in cases where the number
-            of affected rows is of no interest.
-            This function must not be called with a query that returns result rows, after calling Prepare(), or.
-            with a query that requires parameter substitution of any kind.
+            Releases the resources used by the <see cref="T:Npgsql.NpgsqlCommand">NpgsqlCommand</see>.
             </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCommand.ExecuteBlind(Npgsql.NpgsqlConnector,System.String)">
+            <summary>
+            Internal query shortcut for use in cases where the number
+            of affected rows is of no interest.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCommand.ExecuteSetStatementTimeoutBlind(Npgsql.NpgsqlConnector,System.Int32)">
+            <summary>
+            Special adaptation of ExecuteBlind() that sets statement_timeout.
+            This exists to prevent Connector.SetBackendCommandTimeout() from calling Command.ExecuteBlind(),
+            which will cause an endless recursive loop.
+            </summary>
+            <param name="connector"></param>
+            <param name="timeout">Timeout in seconds.</param>
         </member>
         <member name="M:Npgsql.NpgsqlCommand.ExecuteNonQuery">
             <summary>
@@ -2392,35 +2745,24 @@
             </summary>
             <returns>A version of <see cref="P:Npgsql.NpgsqlCommand.CommandText">CommandText</see> with the <see cref="P:Npgsql.NpgsqlCommand.Parameters">Parameters</see> inserted.</returns>
         </member>
-        <member name="M:Npgsql.NpgsqlCommand.GetCommandText(System.Boolean,System.Boolean)">
+        <member name="M:Npgsql.NpgsqlCommand.GetCommandText(System.Boolean)">
             <summary>
             Process this.commandText, trimming each distinct command and substituting paramater
             tokens.
             </summary>
             <param name="prepare"></param>
-            <param name="forExtendQuery"></param>
             <returns>UTF8 encoded command ready to be sent to the backend.</returns>
         </member>
-        <member name="M:Npgsql.NpgsqlCommand.GetDistinctTrimmedCommands(System.String)">
-            <summary>
-            Find the beginning and end of each distinct SQL command and produce
-            a list of descriptors, one for each command.  Commands described are trimmed of
-            leading and trailing white space and their terminating semi-colons.
-            </summary>
-            <param name="src">Raw command text.</param>
-            <returns>List of chunk descriptors.</returns>
-        </member>
-        <member name="M:Npgsql.NpgsqlCommand.AppendCommandReplacingParameterValues(System.IO.Stream,System.String,System.Int32,System.Int32,System.Boolean,System.Boolean)">
+        <member name="M:Npgsql.NpgsqlCommand.AppendCommandReplacingParameterValues(System.IO.Stream,System.String,System.Boolean,System.Boolean)">
             <summary>
             Append a region of a source command text to an output command, performing parameter token
             substitutions.
             </summary>
             <param name="dest">Stream to which to append output.</param>
             <param name="src">Command text.</param>
-            <param name="begin">Starting index within src.</param>
-            <param name="length">Length of region to be processed.</param>
             <param name="prepare"></param>
-            <param name="forExtendedQuery"></param>
+            <param name="allowMultipleStatements"></param>
+            <returns>false if the query has multiple statements which are not allowed</returns>
         </member>
         <member name="P:Npgsql.NpgsqlCommand.CommandText">
             <summary>
@@ -2443,6 +2785,11 @@
             </summary>
             <value>One of the <see cref="T:System.Data.CommandType">CommandType</see> values. The default is <see cref="T:System.Data.CommandType">CommandType.Text</see>.</value>
         </member>
+        <member name="P:Npgsql.NpgsqlCommand.DbConnection">
+            <summary>
+            DB connection.
+            </summary>
+        </member>
         <member name="P:Npgsql.NpgsqlCommand.Connection">
             <summary>
             Gets or sets the <see cref="T:Npgsql.NpgsqlConnection">NpgsqlConnection</see>
@@ -2450,11 +2797,21 @@
             </summary>
             <value>The connection to a data source. The default value is a null reference.</value>
         </member>
+        <member name="P:Npgsql.NpgsqlCommand.DbParameterCollection">
+            <summary>
+            DB parameter collection.
+            </summary>
+        </member>
         <member name="P:Npgsql.NpgsqlCommand.Parameters">
             <summary>
             Gets the <see cref="T:Npgsql.NpgsqlParameterCollection">NpgsqlParameterCollection</see>.
             </summary>
             <value>The parameters of the SQL statement or function (stored procedure). The default is an empty collection.</value>
+        </member>
+        <member name="P:Npgsql.NpgsqlCommand.DbTransaction">
+            <summary>
+            DB transaction.
+            </summary>
         </member>
         <member name="P:Npgsql.NpgsqlCommand.Transaction">
             <summary>
@@ -2475,6 +2832,11 @@
         <member name="P:Npgsql.NpgsqlCommand.LastInsertedOID">
             <summary>
             Returns oid of inserted row. This is only updated when using executenonQuery and when command inserts just a single row. If table is created without oids, this will always be 0.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCommand.DesignTimeVisible">
+            <summary>
+            Design time visible.
             </summary>
         </member>
         <member name="T:Npgsql.NpgsqlCommandBuilder">
@@ -2875,6 +3237,22 @@
             </param>
             <returns>The collection specified.</returns>
         </member>
+        <member name="M:Npgsql.NpgsqlConnection.ClearPool">
+            <summary>
+            Clear connection pool.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlConnection.ClearAllPools">
+            <summary>
+            Clear all connection pools.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlConnection.EnlistTransaction(System.Transactions.Transaction)">
+            <summary>
+            Enlist transation.
+            </summary>
+            <param name="transaction"></param>
+        </member>
         <member name="E:Npgsql.NpgsqlConnection.Notice">
             <summary>
             Occurs on NoticeResponses from the PostgreSQL backend.
@@ -3047,16 +3425,27 @@
             </summary>
             <value>ConnectionState.Open or ConnectionState.Closed</value>
         </member>
+        <member name="P:Npgsql.NpgsqlConnection.NpgsqlCompatibilityVersion">
+            <summary>
+            Compatibility version.
+            </summary>
+        </member>
         <member name="P:Npgsql.NpgsqlConnection.PostgreSqlVersion">
             <summary>
             Version of the PostgreSQL backend.
             This can only be called when there is an active connection.
             </summary>
         </member>
+        <member name="P:Npgsql.NpgsqlConnection.ServerVersion">
+            <summary>
+            PostgreSQL server version.
+            </summary>
+        </member>
         <member name="P:Npgsql.NpgsqlConnection.BackendProtocolVersion">
             <summary>
             Protocol version in use.
             This can only be called when there is an active connection.
+            Always retuna Version3
             </summary>
         </member>
         <member name="P:Npgsql.NpgsqlConnection.ProcessID">
@@ -3098,6 +3487,11 @@
             User name.
             </summary>
         </member>
+        <member name="P:Npgsql.NpgsqlConnection.UseExtendedTypes">
+            <summary>
+            Use extended types.
+            </summary>
+        </member>
         <member name="P:Npgsql.NpgsqlConnection.Password">
             <summary>
             Password.
@@ -3106,6 +3500,11 @@
         <member name="P:Npgsql.NpgsqlConnection.Pooling">
             <summary>
             Determine if connection pooling will be used for this connection.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlConnection.DbProviderFactory">
+            <summary>
+            DB provider factory.
             </summary>
         </member>
         <member name="M:Npgsql.NpgsqlConnectionStringBuilder.Clone">
@@ -3158,11 +3557,6 @@
             Gets or sets the backend server port.
             </summary>
         </member>
-        <member name="P:Npgsql.NpgsqlConnectionStringBuilder.Protocol">
-            <summary>
-            Gets or sets the specified backend communication protocol version.
-            </summary>
-        </member>
         <member name="P:Npgsql.NpgsqlConnectionStringBuilder.Database">
             <summary>
              Gets or sets the name of the database to be used after a connection is opened.
@@ -3173,15 +3567,6 @@
         <member name="P:Npgsql.NpgsqlConnectionStringBuilder.UserName">
             <summary>
             Gets or sets the login user name.
-            </summary>
-        </member>
-        <member name="P:Npgsql.NpgsqlConnectionStringBuilder.WindowsIdentityUserName">
-            <summary>
-            This is a pretty horrible hack to fix https://github.com/npgsql/Npgsql/issues/133
-            In a nutshell, starting with .NET 4.5 WindowsIdentity inherits from ClaimsIdentity
-            which doesn't exist in mono, and calling UserName getter above bombs.
-            The workaround is that the function that actually deals with WindowsIdentity never
-            gets called on mono, so never gets JITted and the problem goes away.
             </summary>
         </member>
         <member name="P:Npgsql.NpgsqlConnectionStringBuilder.PasswordAsByteArray">
@@ -3202,11 +3587,6 @@
         <member name="P:Npgsql.NpgsqlConnectionStringBuilder.SslMode">
             <summary>
             Gets or sets a value indicating whether to attempt to use SSL.
-            </summary>
-        </member>
-        <member name="P:Npgsql.NpgsqlConnectionStringBuilder.Encoding">
-            <summary>
-            Gets the backend encoding.  Always returns "UTF8".
             </summary>
         </member>
         <member name="P:Npgsql.NpgsqlConnectionStringBuilder.Timeout">
@@ -3282,6 +3662,16 @@
             Gets or sets a value indicating whether to silently Prepare() all commands before execution.
             </summary>
         </member>
+        <member name="P:Npgsql.NpgsqlConnectionStringBuilder.Protocol">
+            <summary>
+            Gets or sets the specified backend communication protocol version.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlConnectionStringBuilder.Encoding">
+            <summary>
+            Gets the backend encoding.  Always returns "UTF8".
+            </summary>
+        </member>
         <member name="P:Npgsql.NpgsqlConnectionStringBuilder.Item(System.String)">
             <summary>
             Case insensative accessor for indivual connection string values.
@@ -3349,6 +3739,12 @@
             <summary>
             This method is responsible to release all portals used by this Connector.
             </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlConnector.SetBackendCommandTimeout(System.Int32)">
+            <summary>
+            Modify the backend statement_timeout value if needed.
+            </summary>
+            <param name="timeout">New timeout</param>
         </member>
         <member name="M:Npgsql.NpgsqlConnector.DefaultCertificateSelectionCallback(System.Security.Cryptography.X509Certificates.X509CertificateCollection,System.Security.Cryptography.X509Certificates.X509Certificate,System.String,System.Security.Cryptography.X509Certificates.X509CertificateCollection)">
             <summary>
@@ -3453,11 +3849,6 @@
             Version of backend server this connector is connected to.
             </summary>
         </member>
-        <member name="P:Npgsql.NpgsqlConnector.BackendProtocolVersion">
-            <summary>
-            Backend protocol version in use by this connector.
-            </summary>
-        </member>
         <member name="P:Npgsql.NpgsqlConnector.Socket">
             <summary>
             The physical connection socket to the backend.
@@ -3486,11 +3877,6 @@
         <member name="P:Npgsql.NpgsqlConnector.Transaction">
             <summary>
             Report if the connection is in a transaction.
-            </summary>
-        </member>
-        <member name="P:Npgsql.NpgsqlConnector.SupportsPrepare">
-            <summary>
-            Report whether the current connection can support prepare functionality.
             </summary>
         </member>
         <member name="P:Npgsql.NpgsqlConnector.NativeToBackendTypeConverterOptions">
@@ -3978,6 +4364,187 @@
             Writes given objects into a stream for PostgreSQL COPY in default copy format (not CSV or BINARY).
             </summary>
         </member>
+        <member name="F:Npgsql.NpgsqlCopySerializer.DEFAULT_DELIMITER">
+            <summary>
+            Default delimiter.
+            </summary>
+        </member>
+        <member name="F:Npgsql.NpgsqlCopySerializer.DEFAULT_SEPARATOR">
+            <summary>
+            Default separator.
+            </summary>
+        </member>
+        <member name="F:Npgsql.NpgsqlCopySerializer.DEFAULT_NULL">
+            <summary>
+            Default null.
+            </summary>
+        </member>
+        <member name="F:Npgsql.NpgsqlCopySerializer.DEFAULT_ESCAPE">
+            <summary>
+            Default escape.
+            </summary>
+        </member>
+        <member name="F:Npgsql.NpgsqlCopySerializer.DEFAULT_QUOTE">
+            <summary>
+            Default quote.
+            </summary>
+        </member>
+        <member name="F:Npgsql.NpgsqlCopySerializer.DEFAULT_BUFFER_SIZE">
+            <summary>
+            Default buffer size.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.#ctor(Npgsql.NpgsqlConnection)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="conn"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.Flush">
+            <summary>
+            Flush buffers.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.FlushRows">
+            <summary>
+            Flush rows.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.FlushFields">
+            <summary>
+            Flush fields.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.Close">
+            <summary>
+            Close the serializer.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.EscapeSequenceFor(System.Char)">
+            <summary>
+            Escape sequence for the given character.
+            </summary>
+            <param name="c"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.MakeRoomForBytes(System.Int32)">
+            <summary>
+            Make room for bytes.
+            </summary>
+            <param name="len"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddBytes(System.Byte[])">
+            <summary>
+            Add bytes.
+            </summary>
+            <param name="bytes"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.EndRow">
+            <summary>
+            End row.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.PrefixField">
+            <summary>
+            Prefix field.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.FieldAdded">
+            <summary>
+            Field added.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddNull">
+            <summary>
+            Add null.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddString(System.String)">
+            <summary>
+            Add string.
+            </summary>
+            <param name="fieldValue"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddInt32(System.Int32)">
+            <summary>
+            add Int32.
+            </summary>
+            <param name="fieldValue"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddInt64(System.Int64)">
+            <summary>
+            Add Int64.
+            </summary>
+            <param name="fieldValue"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddNumber(System.Double)">
+            <summary>
+            Add number.
+            </summary>
+            <param name="fieldValue"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddBool(System.Boolean)">
+            <summary>
+            Add bool
+            </summary>
+            <param name="fieldValue"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlCopySerializer.AddDateTime(System.DateTime)">
+            <summary>
+            Add DateTime.
+            </summary>
+            <param name="fieldValue"></param>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.IsActive">
+            <summary>
+            Report whether the serializer is active.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.ToStream">
+            <summary>
+            To Stream.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.Delimiter">
+            <summary>
+            Delimiter.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.Separator">
+            <summary>
+            Separator.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.Escape">
+            <summary>
+            Escape.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.Null">
+            <summary>
+            Null.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.BufferSize">
+            <summary>
+            Buffer size.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.SpaceInBuffer">
+            <summary>
+            Report whether space remains in the buffer.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.StringsToEscape">
+            <summary>
+            Strings to escape.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlCopySerializer.EscapeSequenceBytes">
+            <summary>
+            Escape sequence bytes.
+            </summary>
+        </member>
         <member name="T:Npgsql.NpgsqlRowUpdatedEventHandler">
             <summary>
             Represents the method that handles the <see cref="E:Npgsql.NpgsqlDataAdapter.RowUpdated">RowUpdated</see> events.
@@ -3995,6 +4562,93 @@
         <member name="T:Npgsql.NpgsqlDataAdapter">
             <summary>
             This class represents an adapter from many commands: select, update, insert and delete to fill <see cref="T:System.Data.DataSet">Datasets.</see>
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.#ctor">
+            <summary>
+            Default constructor.
+            </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.#ctor(Npgsql.NpgsqlCommand)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="selectCommand"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.#ctor(System.String,Npgsql.NpgsqlConnection)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="selectCommandText"></param>
+            <param name="selectConnection"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.#ctor(System.String,System.String)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="selectCommandText"></param>
+            <param name="selectConnectionString"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.CreateRowUpdatedEvent(System.Data.DataRow,System.Data.IDbCommand,System.Data.StatementType,System.Data.Common.DataTableMapping)">
+            <summary>
+            Create row updated event.
+            </summary>
+            <param name="dataRow"></param>
+            <param name="command"></param>
+            <param name="statementType"></param>
+            <param name="tableMapping"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.CreateRowUpdatingEvent(System.Data.DataRow,System.Data.IDbCommand,System.Data.StatementType,System.Data.Common.DataTableMapping)">
+            <summary>
+            Create row updating event.
+            </summary>
+            <param name="dataRow"></param>
+            <param name="command"></param>
+            <param name="statementType"></param>
+            <param name="tableMapping"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.OnRowUpdated(System.Data.Common.RowUpdatedEventArgs)">
+            <summary>
+            Raise the RowUpdated event.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataAdapter.OnRowUpdating(System.Data.Common.RowUpdatingEventArgs)">
+            <summary>
+            Raise the RowUpdating event.
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="E:Npgsql.NpgsqlDataAdapter.RowUpdated">
+            <summary>
+            Row updated event.
+            </summary>
+        </member>
+        <member name="E:Npgsql.NpgsqlDataAdapter.RowUpdating">
+            <summary>
+            Row updating event.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlDataAdapter.DeleteCommand">
+            <summary>
+            Delete command.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlDataAdapter.SelectCommand">
+            <summary>
+            Select command.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlDataAdapter.UpdateCommand">
+            <summary>
+            Update command.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlDataAdapter.InsertCommand">
+            <summary>
+            Insert command.
             </summary>
         </member>
         <member name="T:Npgsql.NpgsqlDataReader">
@@ -4030,6 +4684,13 @@
             </summary>
             FIXME: Why this method returns String?
         </member>
+        <member name="M:Npgsql.NpgsqlDataReader.HasOrdinal(System.String)">
+            <summary>
+            Has ordinal.
+            </summary>
+            <param name="fieldName"></param>
+            <returns></returns>
+        </member>
         <member name="M:Npgsql.NpgsqlDataReader.GetOrdinal(System.String)">
             <summary>
             Return the column name of the column named <param name="Name"></param>.
@@ -4045,6 +4706,13 @@
             Return the data NpgsqlDbType of the column at index <param name="Index"></param>.
             </summary>
         </member>
+        <member name="M:Npgsql.NpgsqlDataReader.GetBitString(System.Int32)">
+            <summary>
+            Get specified field value.
+            /// </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
         <member name="M:Npgsql.NpgsqlDataReader.GetInterval(System.Int32)">
             <summary>
             Get the value of a column as a <see cref="T:NpgsqlTypes.NpgsqlInterval"/>.
@@ -4054,6 +4722,46 @@
             </summary>
             <param name="i">Index of the field to find.</param>
             <returns><see cref="T:NpgsqlTypes.NpgsqlInterval"/> value of the field.</returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataReader.GetTime(System.Int32)">
+            <summary>
+            Get specified field value.
+            /// </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataReader.GetTimeTZ(System.Int32)">
+            <summary>
+            Get specified field value.
+            /// </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataReader.GetTimeStamp(System.Int32)">
+            <summary>
+            Get specified field value.
+            /// </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataReader.GetTimeStampTZ(System.Int32)">
+            <summary>
+            Get specified field value.
+            /// </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataReader.GetDate(System.Int32)">
+            <summary>
+            Get specified field value.
+            /// </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataReader.SendClosedEvent">
+            <summary>
+            Send closed event.
+            </summary>
         </member>
         <member name="M:Npgsql.NpgsqlDataReader.GetGuid(System.Int32)">
             <summary>
@@ -4121,7 +4829,7 @@
         </member>
         <member name="M:Npgsql.NpgsqlDataReader.GetByte(System.Int32)">
             <summary>
-            Gets the value of a column as Byte.  Not implemented.
+            Gets the value of a column as Byte.
             </summary>
         </member>
         <member name="M:Npgsql.NpgsqlDataReader.GetChar(System.Int32)">
@@ -4144,6 +4852,12 @@
              This methods parses the command text and tries to get the tablename
              from it.
             </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlDataReader.GetEnumerator">
+            <summary>
+            Get enumerator.
+            </summary>
+            <returns></returns>
         </member>
         <member name="E:Npgsql.NpgsqlDataReader.ReaderClosed">
             <summary>
@@ -4653,12 +5367,6 @@
             <param name="MethodName">The name of the Method</param>
             <param name="MethodParameters">A <see cref="T:System.Object">Object</see>-Array with zero or more Ojects that are Arguments of the Method.</param>
         </member>
-        <member name="P:Npgsql.NpgsqlEventLog.Level">
-            <summary>
-             Sets/Returns the level of information to log to the logfile.
-             </summary>
-             <value>The current <see cref="T:Npgsql.LogLevel">LogLevel</see></value>
-        </member>
         <member name="P:Npgsql.NpgsqlEventLog.LogName">
             <summary>
              Sets/Returns the filename to use for logging.
@@ -4676,12 +5384,19 @@
             The exception that is thrown when the PostgreSQL backend reports errors.
             </summary>
         </member>
-        <member name="M:Npgsql.NpgsqlException.#ctor(System.Collections.IList)">
+        <member name="M:Npgsql.NpgsqlException.#ctor(System.Collections.Generic.IList{Npgsql.NpgsqlError})">
             <summary>
             Construct a backend error exception based on a list of one or more
             backend errors.  The basic Exception.Message will be built from the
             first (usually the only) error in the list.
             </summary>
+        </member>
+        <member name="M:Npgsql.NpgsqlException.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Get object data.
+            </summary>
+            <param name="info"></param>
+            <param name="context"></param>
         </member>
         <member name="M:Npgsql.NpgsqlException.ToString">
             <summary>
@@ -4823,6 +5538,12 @@
              </summary>
             
         </member>
+        <member name="P:Npgsql.NpgsqlMediator.BackendCommandTimeout">
+            <summary>
+            The current command timeout on the backend.  This is set via "SET statement_timeout = (milliseconds)".
+            A value of -1 means the backend's timeout value is unknown because it has not yet been set.
+            </summary>
+        </member>
         <member name="T:Npgsql.NpgsqlNotificationEventArgs">
             <summary>
             EventArgs class to send Notification parameters.
@@ -4877,10 +5598,24 @@
             <param m_Name="parameterName">The m_Name of the parameter to map.</param>
             <param m_Name="parameterType">One of the <see cref="T:System.Data.DbType">DbType</see> values.</param>
         </member>
+        <member name="M:Npgsql.NpgsqlParameter.#ctor(System.String,System.Data.DbType)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.
+            </summary>
+            <param m_Name="parameterName">The m_Name of the parameter to map.</param>
+            <param m_Name="parameterType">One of the <see cref="T:System.Data.DbType">DbType</see> values.</param>
+        </member>
         <member name="M:Npgsql.NpgsqlParameter.#ctor(System.String,NpgsqlTypes.NpgsqlDbType,System.Int32)">
             <summary>
-            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>
-            class with the parameter m_Name, the <see cref="T:System.Data.DbType">DbType</see>, and the size.
+            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.
+            </summary>
+            <param m_Name="parameterName">The m_Name of the parameter to map.</param>
+            <param m_Name="parameterType">One of the <see cref="T:NpgsqlTypes.NpgsqlDbType">NpgsqlDbType</see> values.</param>
+            <param m_Name="size">The length of the parameter.</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameter.#ctor(System.String,System.Data.DbType,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.
             </summary>
             <param m_Name="parameterName">The m_Name of the parameter to map.</param>
             <param m_Name="parameterType">One of the <see cref="T:System.Data.DbType">DbType</see> values.</param>
@@ -4889,8 +5624,15 @@
         <member name="M:Npgsql.NpgsqlParameter.#ctor(System.String,NpgsqlTypes.NpgsqlDbType,System.Int32,System.String)">
             <summary>
             Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>
-            class with the parameter m_Name, the <see cref="T:System.Data.DbType">DbType</see>, the size,
-            and the source column m_Name.
+            </summary>
+            <param m_Name="parameterName">The m_Name of the parameter to map.</param>
+            <param m_Name="parameterType">One of the <see cref="T:NpgsqlTypes.NpgsqlDbType">NpgsqlDbType</see> values.</param>
+            <param m_Name="size">The length of the parameter.</param>
+            <param m_Name="sourceColumn">The m_Name of the source column.</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameter.#ctor(System.String,System.Data.DbType,System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.
             </summary>
             <param m_Name="parameterName">The m_Name of the parameter to map.</param>
             <param m_Name="parameterType">One of the <see cref="T:System.Data.DbType">DbType</see> values.</param>
@@ -4899,12 +5641,25 @@
         </member>
         <member name="M:Npgsql.NpgsqlParameter.#ctor(System.String,NpgsqlTypes.NpgsqlDbType,System.Int32,System.String,System.Data.ParameterDirection,System.Boolean,System.Byte,System.Byte,System.Data.DataRowVersion,System.Object)">
             <summary>
-            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>
-            class with the parameter m_Name, the <see cref="T:System.Data.DbType">DbType</see>, the size,
-            the source column m_Name, a <see cref="T:System.Data.ParameterDirection">ParameterDirection</see>,
-            the precision of the parameter, the scale of the parameter, a
-            <see cref="T:System.Data.DataRowVersion">DataRowVersion</see> to use, and the
-            value of the parameter.
+            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.
+            </summary>
+            <param m_Name="parameterName">The m_Name of the parameter to map.</param>
+            <param m_Name="parameterType">One of the <see cref="T:NpgsqlTypes.NpgsqlDbType">NpgsqlDbType</see> values.</param>
+            <param m_Name="size">The length of the parameter.</param>
+            <param m_Name="sourceColumn">The m_Name of the source column.</param>
+            <param m_Name="direction">One of the <see cref="T:System.Data.ParameterDirection">ParameterDirection</see> values.</param>
+            <param m_Name="isNullable"><b>true</b> if the value of the field can be null, otherwise <b>false</b>.</param>
+            <param m_Name="precision">The total number of digits to the left and right of the decimal point to which
+            <see cref="P:Npgsql.NpgsqlParameter.Value">Value</see> is resolved.</param>
+            <param m_Name="scale">The total number of decimal places to which
+            <see cref="P:Npgsql.NpgsqlParameter.Value">Value</see> is resolved.</param>
+            <param m_Name="sourceVersion">One of the <see cref="T:System.Data.DataRowVersion">DataRowVersion</see> values.</param>
+            <param m_Name="value">An <see cref="T:System.Object">Object</see> that is the value
+            of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameter.#ctor(System.String,System.Data.DbType,System.Int32,System.String,System.Data.ParameterDirection,System.Boolean,System.Byte,System.Byte,System.Data.DataRowVersion,System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.
             </summary>
             <param m_Name="parameterName">The m_Name of the parameter to map.</param>
             <param m_Name="parameterType">One of the <see cref="T:System.Data.DbType">DbType</see> values.</param>
@@ -4919,6 +5674,11 @@
             <param m_Name="sourceVersion">One of the <see cref="T:System.Data.DataRowVersion">DataRowVersion</see> values.</param>
             <param m_Name="value">An <see cref="T:System.Object">Object</see> that is the value
             of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>.</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameter.ResetDbType">
+            <summary>
+            Reset DBType.
+            </summary>
         </member>
         <member name="M:Npgsql.NpgsqlParameter.Clone">
             <summary>
@@ -4941,6 +5701,11 @@
             <see cref="P:Npgsql.NpgsqlParameter.Value">Value</see> property.
             The default value is 0, which indicates that the data provider
             sets the precision for <b>Value</b>.</value>
+        </member>
+        <member name="P:Npgsql.NpgsqlParameter.UseCast">
+            <summary>
+            Whether to use an explicit cast when included in a query.
+            </summary>
         </member>
         <member name="P:Npgsql.NpgsqlParameter.Scale">
             <summary>
@@ -5025,6 +5790,11 @@
             </summary>
             <value>An <see cref="T:System.Object">Object</see> that is the value of the parameter.
             The default value is null.</value>
+        </member>
+        <member name="P:Npgsql.NpgsqlParameter.SourceColumnNullMapping">
+            <summary>
+            Source column mapping.
+            </summary>
         </member>
         <member name="T:Npgsql.NpgsqlParameterCollection">
             <summary>
@@ -5223,12 +5993,87 @@
             </summary>
             <returns>An <see cref="T:System.Collections.IEnumerator">IEnumerator</see> that can be used to iterate through the collection.</returns>
         </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.AddRange(System.Array)">
+            <summary>
+            Add an Array of parameters to the collection.
+            </summary>
+            <param name="values">Parameters to add.</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.GetParameter(System.String)">
+            <summary>
+            Get parameter.
+            </summary>
+            <param name="parameterName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.GetParameter(System.Int32)">
+            <summary>
+            Get parameter.
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.SetParameter(System.String,System.Data.Common.DbParameter)">
+            <summary>
+            Set parameter.
+            </summary>
+            <param name="parameterName"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.SetParameter(System.Int32,System.Data.Common.DbParameter)">
+            <summary>
+            Set parameter.
+            </summary>
+            <param name="index"></param>
+            <param name="value"></param>
+        </member>
         <member name="M:Npgsql.NpgsqlParameterCollection.CheckType(System.Object)">
             <summary>
             In methods taking an object as argument this method is used to verify
             that the argument has the type <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see>
             </summary>
             <param name="Object">The object to verify</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.IndexOf(Npgsql.NpgsqlParameter)">
+            <summary>
+            Report the offset within the collection of the given parameter.
+            </summary>
+            <param name="item">Parameter to find.</param>
+            <returns>Index of the parameter, or -1 if the parameter is not present.</returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.Insert(System.Int32,Npgsql.NpgsqlParameter)">
+            <summary>
+            Insert the specified parameter into the collection.
+            </summary>
+            <param name="index">Index of the existing parameter before which to insert the new one.</param>
+            <param name="item">Parameter to insert.</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.Contains(Npgsql.NpgsqlParameter)">
+            <summary>
+            Report whether the specified parameter is present in the collection.
+            </summary>
+            <param name="item">Parameter to find.</param>
+            <returns>True if the parameter was found, otherwise false.</returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.Remove(Npgsql.NpgsqlParameter)">
+            <summary>
+            Remove the specified parameter from the collection.
+            </summary>
+            <param name="item">Parameter to remove.</param>
+            <returns>True if the parameter was found and removed, otherwise false.</returns>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.CopyTo(Npgsql.NpgsqlParameter[],System.Int32)">
+            <summary>
+            Convert collection to a System.Array.
+            </summary>
+            <param name="array">Destination array.</param>
+            <param name="arrayIndex">Starting index in destination array.</param>
+        </member>
+        <member name="M:Npgsql.NpgsqlParameterCollection.ToArray">
+            <summary>
+            Convert collection to a System.Array.
+            </summary>
+            <returns>NpgsqlParameter[]</returns>
         </member>
         <member name="P:Npgsql.NpgsqlParameterCollection.Item(System.String)">
             <summary>
@@ -5244,11 +6089,31 @@
             <param name="index">The zero-based index of the <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see> to retrieve.</param>
             <value>The <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see> at the specified index.</value>
         </member>
+        <member name="P:Npgsql.NpgsqlParameterCollection.IsReadOnly">
+            <summary>
+            Report whether the collection is read only.  Always false.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlParameterCollection.IsFixedSize">
+            <summary>
+            Report whether the collection is fixed size.  Always false.
+            </summary>
+        </member>
+        <member name="P:Npgsql.NpgsqlParameterCollection.IsSynchronized">
+            <summary>
+            Report whether the collection is synchronized.
+            </summary>
+        </member>
         <member name="P:Npgsql.NpgsqlParameterCollection.Count">
             <summary>
             Gets the number of <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see> objects in the collection.
             </summary>
             <value>The number of <see cref="T:Npgsql.NpgsqlParameter">NpgsqlParameter</see> objects in the collection.</value>
+        </member>
+        <member name="P:Npgsql.NpgsqlParameterCollection.SyncRoot">
+            <summary>
+            Sync root.
+            </summary>
         </member>
         <member name="T:Npgsql.NpgsqlParameterStatus">
              <summary>
@@ -5275,14 +6140,15 @@
             Used when a connection is closed
             </summary>
         </member>
-        <member name="T:Npgsql.NpgsqlQuery">
-            <summary>
-            Summary description for NpgsqlQuery
-            </summary>
-        </member>
         <member name="T:Npgsql.NpgsqlRow">
             <summary>
             This is the abstract base class for NpgsqlAsciiRow and NpgsqlBinaryRow.
+            </summary>
+        </member>
+        <member name="F:Npgsql.ForwardsOnlyRow._i">
+            <summary>
+            The index of the current field in the stream, i.e. the one that hasn't
+            been read yet
             </summary>
         </member>
         <member name="T:Npgsql.NpgsqlRowDescription">
@@ -5378,6 +6244,12 @@
             Represents a transaction to be made in a PostgreSQL database. This class cannot be inherited.
             </summary>
         </member>
+        <member name="M:Npgsql.NpgsqlTransaction.Dispose(System.Boolean)">
+            <summary>
+            Dispose.
+            </summary>
+            <param name="disposing"></param>
+        </member>
         <member name="M:Npgsql.NpgsqlTransaction.Commit">
             <summary>
             Commits the database transaction.
@@ -5412,6 +6284,11 @@
             </summary>
             <value>The <see cref="T:Npgsql.NpgsqlConnection">NpgsqlConnection</see>
             object associated with the transaction.</value>
+        </member>
+        <member name="P:Npgsql.NpgsqlTransaction.DbConnection">
+            <summary>
+            DB connection.
+            </summary>
         </member>
         <member name="P:Npgsql.NpgsqlTransaction.IsolationLevel">
             <summary>

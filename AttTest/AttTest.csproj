@@ -41,6 +41,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,6 +49,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Importers\AreaShapefileImporterTest.cs" />
+    <Compile Include="Importers\FeatureShapefileImporterTest.cs" />
+    <Compile Include="Importers\IncidentShapefileImporterTest.cs" />
+    <Compile Include="Importers\XmlImporterTest.cs" />
     <Compile Include="Models\FeatureBasedDcmTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

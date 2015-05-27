@@ -2,16 +2,14 @@
 using PTL.ATT;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace AttTest.Models
+namespace AttTest.Importers
 {
     [TestFixture]
-    public class FeatureBasedDcmTest
+    public class IncidentShapefileImporterTest
     {
         [TestFixtureSetUp]
         public void SetUp()
@@ -27,9 +25,14 @@ namespace AttTest.Models
         {
         }
 
-        [TestFixtureTearDown]
-        public void TearDown()
+        public static void UnzipTestIncidents()
         {
+
+        }
+
+        public static void ImportTestIncidents()
+        {
+
         }
     }
 }

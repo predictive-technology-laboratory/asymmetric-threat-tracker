@@ -27,7 +27,6 @@ using System.IO;
 using PTL.ATT.Models;
 using LAIR.Extensions;
 using PTL.ATT.Evaluation;
-using LAIR.Misc;
 using PostGIS = LAIR.ResourceAPIs.PostGIS;
 using Npgsql;
 using System.Drawing.Drawing2D;
@@ -42,9 +41,6 @@ namespace PTL.ATT.GUI.Visualization
     public partial class ThreatMap : Visualizer
     {
         #region static members
-        private static Pen _pen;
-        private static SolidBrush _brush;
-
         private static PointF ConvertMetersPointToDrawingPoint(PointF pointInMeters, PointF regionBottomLeftInMeters, float pixelsPerMeter, Rectangle drawingRectangle)
         {
             float drawingPointX = (pointInMeters.X - regionBottomLeftInMeters.X) * pixelsPerMeter + drawingRectangle.Left;
@@ -127,8 +123,6 @@ namespace PTL.ATT.GUI.Visualization
         {
             InitializeComponent();
 
-            _pen = new Pen(BackColor, 1);
-            _brush = new SolidBrush(BackColor);
             _zoomIncrement = 0.1f;
             _clarifyZoomTimer = new System.Windows.Forms.Timer();
             _clarifyZoomTimer.Interval = 1000;
@@ -272,171 +266,225 @@ namespace PTL.ATT.GUI.Visualization
             float threatRectanglePixelWidth;
             GetDrawingParameters(bitmapDimensions, out pixelsPerMeter, out threatRectanglePixelWidth);
 
-            Dictionary<long, Bitmap> newSliceThreatSurface = new Dictionary<long, Bitmap>(_sliceIncidentPointScores.Count);
+            List<long> slices = _sliceIncidentPointScores.Keys.OrderBy(s => s).ToList();
+            Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>> sliceRowColScoreIncident = new Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>>(slices.Count);
+            Dictionary<long, Bitmap> newSliceThreatSurface = new Dictionary<long, Bitmap>(slices.Count);
+            double overallMinScore = double.MaxValue;
+            double overallMaxScore = double.MinValue;
 
-            #region get incident probabilities for each cell
-            Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>> sliceRowColIncidentScores = new Dictionary<long, Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>>();
-            foreach (long slice in _sliceIncidentPointScores.Keys)
+            List<Thread> threads = new List<Thread>(Configuration.ProcessorCount);
+            for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                try { newSliceThreatSurface.Add(slice, new Bitmap(bitmapDimensions.Width, bitmapDimensions.Height, PixelFormat.Format16bppRgb565)); }
-                catch (ArgumentException)
-                {
-                    Console.Out.WriteLine("Maximum zoom exceeded.");
-                    resetZoom_Click(null, null);
-                    return;
-                }
-
-                sliceRowColIncidentScores.EnsureContainsKey(slice, typeof(Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>));
-
-                foreach (string incident in _sliceIncidentPointScores[slice].Keys)
-                    if (selectedIncidents.Contains(incident))
-                        foreach (Tuple<PointF, double> pointScore in _sliceIncidentPointScores[slice][incident])
-                        {
-                            PointF drawingPoint = ConvertMetersPointToDrawingPoint(pointScore.Item1, _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
-
-                            int row, col;
-                            GetThreatRectangleRowColumn(drawingPoint, threatRectanglePixelWidth, out row, out col);
-
-                            sliceRowColIncidentScores[slice].EnsureContainsKey(row, typeof(Dictionary<int, Dictionary<string, List<double>>>));
-                            sliceRowColIncidentScores[slice][row].EnsureContainsKey(col, typeof(Dictionary<string, List<double>>));
-                            sliceRowColIncidentScores[slice][row][col].EnsureContainsKey(incident, typeof(List<double>));
-                            sliceRowColIncidentScores[slice][row][col][incident].Add(pointScore.Item2);
-                        }
-            }
-            #endregion
-
-            #region get score/color pairs for each cell
-            Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>> sliceRowColScoreColor = new Dictionary<long, Dictionary<int, Dictionary<int, Tuple<double, string>>>>();
-            double minScore = double.MaxValue;
-            double maxScore = double.MinValue;
-            foreach (long slice in sliceRowColIncidentScores.Keys)
-            {
-                Dictionary<int, Dictionary<int, Tuple<double, string>>> rowColScoreIncident = new Dictionary<int, Dictionary<int, Tuple<double, string>>>();
-
-                foreach (int row in sliceRowColIncidentScores[slice].Keys)
-                    foreach (int col in sliceRowColIncidentScores[slice][row].Keys)
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        string mostLikelyIncident = null;
-                        double max = -1;
-                        foreach (string incident in sliceRowColIncidentScores[slice][row][col].Keys)
+                        for (int j = (int)core; j < slices.Count; j += Configuration.ProcessorCount)
                         {
-                            double score = sliceRowColIncidentScores[slice][row][col][incident].Average();
-                            if (score > max)
+                            long slice = slices[j];
+
+                            #region create bitmap for current slice's threat surface
+                            try
                             {
-                                mostLikelyIncident = incident;
-                                max = score;
+                                lock (newSliceThreatSurface)
+                                {
+                                    newSliceThreatSurface.Add(slice, new Bitmap(bitmapDimensions.Width, bitmapDimensions.Height, PixelFormat.Format16bppRgb565));
+                                }
                             }
+                            catch (ArgumentException)
+                            {
+                                Console.Out.WriteLine("Maximum zoom exceeded. Reset zoom to refresh display.");
+                                return;
+                            }
+                            #endregion
+
+                            #region get incident scores for each row and column of current slice
+                            Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>> rowColIncidentScores = new Dictionary<int, Dictionary<int, Dictionary<string, List<double>>>>();
+                            foreach (string incident in _sliceIncidentPointScores[slice].Keys)
+                                if (selectedIncidents.Contains(incident))
+                                    foreach (Tuple<PointF, double> pointScore in _sliceIncidentPointScores[slice][incident])
+                                    {
+                                        PointF drawingPoint = ConvertMetersPointToDrawingPoint(pointScore.Item1, _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+
+                                        int row, col;
+                                        GetThreatRectangleRowColumn(drawingPoint, threatRectanglePixelWidth, out row, out col);
+
+                                        rowColIncidentScores.EnsureContainsKey(row, typeof(Dictionary<int, Dictionary<string, List<double>>>));
+                                        rowColIncidentScores[row].EnsureContainsKey(col, typeof(Dictionary<string, List<double>>));
+                                        rowColIncidentScores[row][col].EnsureContainsKey(incident, typeof(List<double>));
+                                        rowColIncidentScores[row][col][incident].Add(pointScore.Item2);
+                                    }
+                            #endregion
+
+                            #region get score/incident pairs for each cell, tracking min and max scores
+                            Dictionary<int, Dictionary<int, Tuple<double, string>>> rowColScoreIncident = new Dictionary<int, Dictionary<int, Tuple<double, string>>>();
+                            double sliceMinScore = double.MaxValue;
+                            double sliceMaxScore = double.MinValue;
+                            foreach (int row in rowColIncidentScores.Keys)
+                                foreach (int col in rowColIncidentScores[row].Keys)
+                                {
+                                    Dictionary<string, List<double>> incidentScores = rowColIncidentScores[row][col];
+                                    string mostLikelyIncident = null;
+                                    double scoreForMostLikelyIncident = double.MinValue;
+                                    foreach (string incident in incidentScores.Keys)
+                                    {
+                                        double score = incidentScores[incident].Average();
+                                        if (score > scoreForMostLikelyIncident)
+                                        {
+                                            mostLikelyIncident = incident;
+                                            scoreForMostLikelyIncident = score;
+                                        }
+                                    }
+
+                                    if (scoreForMostLikelyIncident < sliceMinScore) sliceMinScore = scoreForMostLikelyIncident;
+                                    if (scoreForMostLikelyIncident > sliceMaxScore) sliceMaxScore = scoreForMostLikelyIncident;
+
+                                    rowColScoreIncident.EnsureContainsKey(row, typeof(Dictionary<int, Tuple<double, string>>));
+                                    rowColScoreIncident[row].Add(col, new Tuple<double, string>(scoreForMostLikelyIncident, mostLikelyIncident));
+                                }
+                            #endregion
+
+                            #region store information from thread
+                            lock (sliceRowColScoreIncident)
+                            {
+                                sliceRowColScoreIncident.Add(slice, rowColScoreIncident);
+                            }
+
+                            lock (this)
+                            {
+                                if (sliceMinScore < overallMinScore) overallMinScore = sliceMinScore;
+                            }
+
+                            lock (this)
+                            {
+                                if (sliceMaxScore > overallMaxScore) overallMaxScore = sliceMaxScore;
+                            }
+                            #endregion
                         }
+                    }));
 
-                        if (max < minScore) minScore = max;
-                        if (max > maxScore) maxScore = max;
-
-                        rowColScoreIncident.EnsureContainsKey(row, typeof(Dictionary<int, Tuple<double, string>>));
-                        rowColScoreIncident[row].Add(col, new Tuple<double, string>(max, mostLikelyIncident));
-                    }
-
-                sliceRowColScoreColor.Add(slice, rowColScoreIncident);
+                t.Start(i);
+                threads.Add(t);
             }
-            #endregion
 
-            #region draw threat surface with colors shaded appropriately
-            double scoreRange = maxScore - minScore;
+            foreach (Thread t in threads)
+                t.Join();
+
+            #region draw threat surfaces
+            double scoreRange = overallMaxScore - overallMinScore;
             if (scoreRange == 0)
                 scoreRange = float.Epsilon;
 
-            foreach (long slice in sliceRowColScoreColor.Keys)
+            threads.Clear();
+            for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                Graphics g = Graphics.FromImage(newSliceThreatSurface[slice]);
-                g.Clear(BackColor);
-
-                #region threat
-                foreach (int row in sliceRowColScoreColor[slice].Keys)
-                    foreach (int col in sliceRowColScoreColor[slice][row].Keys)
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        Tuple<double, string> scoreIncident = sliceRowColScoreColor[slice][row][col];
-                        double scaledScore = (scoreIncident.Item1 - minScore) / scoreRange;
-                        double portionBackground = 1 - scaledScore;
-                        Color color = _incidentColor[scoreIncident.Item2];
-
-                        byte red = (byte)(scaledScore * color.R + portionBackground * BackColor.R);
-                        byte green = (byte)(scaledScore * color.G + portionBackground * BackColor.G);
-                        byte blue = (byte)(scaledScore * color.B + portionBackground * BackColor.B);
-                        _brush.Color = Color.FromArgb(red, green, blue);
-
-                        RectangleF threatSquare = new RectangleF(col * threatRectanglePixelWidth, row * threatRectanglePixelWidth, threatRectanglePixelWidth, threatRectanglePixelWidth);
-                        g.FillRectangle(_brush, threatSquare);
-
-                        if (sliceSquareThreatType != null)
+                        using(Pen pen = new Pen(BackColor, 1))
+                        using(SolidBrush brush = new SolidBrush(BackColor))
                         {
-                            sliceSquareThreatType.EnsureContainsKey(slice, typeof(List<Tuple<RectangleF, double, string>>));
-                            sliceSquareThreatType[slice].Add(new Tuple<RectangleF, double, string>(threatSquare, scoreIncident.Item1, scoreIncident.Item2));
-                        }
-                    }
-                #endregion
-
-                #region overlays
-                foreach (Overlay overlay in Overlays)
-                    if (overlay.Displayed)
-                    {
-                        _pen.Color = overlay.Color;
-                        _brush.Color = overlay.Color;
-                        foreach (List<PointF> points in overlay.Points)
-                            if (points.Count == 1)
+                            for (int j = (int)core; j < slices.Count; j += Configuration.ProcessorCount)
                             {
-                                PointF drawingPoint = ConvertMetersPointToDrawingPoint(points[0], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
-                                RectangleF circle = GetCircleBoundingBox(drawingPoint, _pointDrawingDiameter);
-                                g.FillEllipse(_brush, circle);
-                                g.DrawEllipse(_pen, circle);
+                                long slice = slices[j];
+
+                                Graphics g = Graphics.FromImage(newSliceThreatSurface[slice]);
+                                g.Clear(BackColor);
+
+                                #region threat
+                                foreach (int row in sliceRowColScoreIncident[slice].Keys)
+                                    foreach (int col in sliceRowColScoreIncident[slice][row].Keys)
+                                    {
+                                        Tuple<double, string> scoreIncident = sliceRowColScoreIncident[slice][row][col];
+                                        double scaledScore = (scoreIncident.Item1 - overallMinScore) / scoreRange;
+                                        double percentTransparent = 1 - scaledScore;
+                                        Color color = _incidentColor[scoreIncident.Item2];
+
+                                        byte red = (byte)(scaledScore * color.R + percentTransparent * BackColor.R);
+                                        byte green = (byte)(scaledScore * color.G + percentTransparent * BackColor.G);
+                                        byte blue = (byte)(scaledScore * color.B + percentTransparent * BackColor.B);
+                                        brush.Color = Color.FromArgb(red, green, blue);
+
+                                        RectangleF threatSquare = new RectangleF(col * threatRectanglePixelWidth, row * threatRectanglePixelWidth, threatRectanglePixelWidth, threatRectanglePixelWidth);
+                                        g.FillRectangle(brush, threatSquare);
+
+                                        if (sliceSquareThreatType != null)
+                                        {
+                                            sliceSquareThreatType.EnsureContainsKey(slice, typeof(List<Tuple<RectangleF, double, string>>));
+                                            sliceSquareThreatType[slice].Add(new Tuple<RectangleF, double, string>(threatSquare, scoreIncident.Item1, scoreIncident.Item2));
+                                        }
+                                    }
+                                #endregion
+
+                                #region overlays
+                                foreach (Overlay overlay in Overlays)
+                                    if (overlay.Displayed)
+                                    {
+                                        pen.Color = overlay.Color;
+                                        brush.Color = overlay.Color;
+                                        foreach (List<PointF> points in overlay.Points)
+                                            if (points.Count == 1)
+                                            {
+                                                PointF drawingPoint = ConvertMetersPointToDrawingPoint(points[0], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                                                RectangleF circle = GetCircleBoundingBox(drawingPoint, _pointDrawingDiameter);
+                                                g.FillEllipse(brush, circle);
+                                                g.DrawEllipse(pen, circle);
+                                            }
+                                            else
+                                                for (int p = 1; p < points.Count; ++p)
+                                                    g.DrawLine(pen, ConvertMetersPointToDrawingPoint(points[p - 1], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions), ConvertMetersPointToDrawingPoint(points[p], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions));
+                                    }
+                                #endregion
+
+                                #region true incidents
+                                Set<string> selectedTrueIncidentOverlays = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState == CheckState.Checked).Select(c => c.Text).ToArray());
+                                DateTime sliceStart = DisplayedPrediction.PredictionStartTime;
+                                DateTime sliceEnd = DisplayedPrediction.PredictionEndTime;
+                                if (slice != -1)
+                                {
+                                    if (!(DisplayedPrediction.Model is TimeSliceDCM))
+                                        throw new Exception("Expected TimeSliceDCM since slice != 1");
+
+                                    long sliceTicks = (DisplayedPrediction.Model as TimeSliceDCM).TimeSliceTicks;
+                                    sliceStart = new DateTime(slice * sliceTicks);
+                                    sliceEnd = sliceStart + new TimeSpan(sliceTicks);
+                                }
+
+                                foreach (string trueIncidentOverlay in selectedTrueIncidentOverlays)
+                                {
+                                    brush.Color = _incidentColor[trueIncidentOverlay];
+                                    pen.Color = Color.Black;
+                                    foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, DisplayedPrediction.PredictionArea, trueIncidentOverlay))
+                                    {
+                                        PointF drawingPoint = ConvertMetersPointToDrawingPoint(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                                        RectangleF circle = GetCircleBoundingBox(drawingPoint, _pointDrawingDiameter);
+                                        g.FillEllipse(brush, circle);
+                                        g.DrawEllipse(pen, circle);
+                                    }
+                                }
+                                #endregion
+
+                                #region prediction points
+                                if (_displayPredictionPoints)
+                                {
+                                    brush.Color = _predictionPointColor;
+                                    pen.Color = Color.Black;
+                                    foreach (Point p in DisplayedPrediction.Points)
+                                    {
+                                        PointF drawingPoint = ConvertMetersPointToDrawingPoint(new PointF((float)p.Location.X, (float)p.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
+                                        RectangleF circle = GetCircleBoundingBox(drawingPoint, _pointDrawingDiameter);
+                                        g.FillEllipse(brush, circle);
+                                        g.DrawEllipse(pen, circle);
+                                    }
+                                }
+                                #endregion
                             }
-                            else
-                                for (int i = 1; i < points.Count; ++i)
-                                    g.DrawLine(_pen, ConvertMetersPointToDrawingPoint(points[i - 1], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions), ConvertMetersPointToDrawingPoint(points[i], _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions));
-                    }
-                #endregion
+                        }
+                    }));
 
-                #region true incidents
-                Set<string> selectedTrueIncidentOverlays = new Set<string>(incidentTypeCheckBoxes.Controls.Cast<ColoredCheckBox>().Where(c => c.CheckState == CheckState.Checked).Select(c => c.Text).ToArray());
-                DateTime sliceStart = DisplayedPrediction.PredictionStartTime;
-                DateTime sliceEnd = DisplayedPrediction.PredictionEndTime;
-                if (slice != -1)
-                {
-                    if (!(DisplayedPrediction.Model is TimeSliceDCM))
-                        throw new Exception("Expected TimeSliceDCM since slice != 1");
-
-                    long sliceTicks = (DisplayedPrediction.Model as TimeSliceDCM).TimeSliceTicks;
-                    sliceStart = new DateTime(slice * sliceTicks);
-                    sliceEnd = sliceStart + new TimeSpan(sliceTicks);
-                }
-
-                foreach (string trueIncidentOverlay in selectedTrueIncidentOverlays)
-                {
-                    _brush.Color = _incidentColor[trueIncidentOverlay];
-                    _pen.Color = Color.Black;
-                    foreach (Incident incident in Incident.Get(sliceStart, sliceEnd, DisplayedPrediction.PredictionArea, trueIncidentOverlay))
-                    {
-                        PointF drawingPoint = ConvertMetersPointToDrawingPoint(new PointF((float)incident.Location.X, (float)incident.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
-                        RectangleF circle = GetCircleBoundingBox(drawingPoint, _pointDrawingDiameter);
-                        g.FillEllipse(_brush, circle);
-                        g.DrawEllipse(_pen, circle);
-                    }
-                }
-                #endregion
-
-                #region prediction points
-                if (_displayPredictionPoints)
-                {
-                    _brush.Color = _predictionPointColor;
-                    _pen.Color = Color.Black;
-                    foreach (Point p in DisplayedPrediction.Points)
-                    {
-                        PointF drawingPoint = ConvertMetersPointToDrawingPoint(new PointF((float)p.Location.X, (float)p.Location.Y), _regionBottomLeftInMeters, pixelsPerMeter, bitmapDimensions);
-                        RectangleF circle = GetCircleBoundingBox(drawingPoint, _pointDrawingDiameter);
-                        g.FillEllipse(_brush, circle);
-                        g.DrawEllipse(_pen, circle);
-                    }
-                }
-                #endregion
+                t.Start(i);
+                threads.Add(t);
             }
+
+            foreach (Thread t in threads)
+                t.Join();
             #endregion
 
             if (_sliceThreatSurface != null)
@@ -497,11 +545,13 @@ namespace PTL.ATT.GUI.Visualization
 
             e.Graphics.DrawImage(CurrentThreatSurface, e.ClipRectangle, sourceRectangle, GraphicsUnit.Pixel);
 
+
+
             if (_highlightedThreatRectangle != Rectangle.Empty && e.ClipRectangle.IntersectsWith(_highlightedThreatRectangle))
-            {
-                _pen.Color = Color.Yellow;
-                e.Graphics.DrawRectangle(_pen, _highlightedThreatRectangle);
-            }
+                using (Pen pen = new Pen(Color.Yellow, 1))
+                {
+                    e.Graphics.DrawRectangle(pen, _highlightedThreatRectangle);
+                }
         }
 
         #region mouse events

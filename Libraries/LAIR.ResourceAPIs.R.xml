@@ -34,18 +34,26 @@
             <summary>
             Executes a script
             </summary>
-            <param name="scriptBody"></param>
+            <param name="scriptBody">Script to execute</param>
             <param name="throwExceptionOnErrorOutput">Whether or not to throw an exception on error output</param>
-            <returns>Content written to standard output</returns>
         </member>
-        <member name="M:LAIR.ResourceAPIs.R.R.Execute(System.String,System.String@,System.String@,System.Boolean)">
+        <member name="M:LAIR.ResourceAPIs.R.R.Execute(System.String,System.Boolean,System.String@,System.String@)">
             <summary>
             Executes a script
             </summary>
             <param name="scriptBody">Script to execute</param>
+            <param name="throwExceptionOnErrorOutput">Whether or not to throw an exception on error output</param>
             <param name="output">Output content</param>
             <param name="error">Error content</param>
-            <param name="throwExceptionOnErrorOutput">Whether or not to throw an exception on error output</param>
+        </member>
+        <member name="M:LAIR.ResourceAPIs.R.R.TrainTopics(System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.Collections.Generic.IEnumerable{System.String}}},System.Int32,System.Int32,System.Collections.Generic.Dictionary{System.String,System.Collections.Generic.List{System.Tuple{System.Int32,System.Single}}}@)">
+            <summary>
+            Trains a topic model
+            </summary>
+            <param name="docIdsWords"></param>
+            <param name="numTopics"></param>
+            <param name="numTopWords"></param>
+            <param name="docIdTopicProbs"></param>
         </member>
         <member name="M:LAIR.ResourceAPIs.R.R.GetAUC(System.Collections.Generic.IEnumerable{System.Drawing.PointF})">
             <summary>

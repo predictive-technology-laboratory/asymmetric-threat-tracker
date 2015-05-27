@@ -33,8 +33,7 @@ namespace PTL.ATT.Classifiers
     {
         static RandomForest()
         {
-            if (Configuration.RCranMirror != null)
-                R.InstallPackages(R.CheckForMissingPackages(new string[] { "randomForest" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+            R.InstallPackages(R.CheckForMissingPackages(new string[] { "randomForest" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
         private int _numTrees;
@@ -104,7 +103,7 @@ namespace PTL.ATT.Classifiers
                 }
             }
         }
-        
+
         protected override void BuildModel()
         {
             StringBuilder rCmd = new StringBuilder(@"
@@ -126,9 +125,26 @@ library(randomForest)
 rf=randomForest(Class ~., data=trainNorm, ntree=" + _numTrees + ", importance=TRUE, seed=99)" + @"
 save(rf, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
 ");
-            R.Execute(rCmd.ToString(), false);
+            string output, error;
+            R.Execute(rCmd.ToString(), false, out output, out error);
 
-            File.Delete(RawTrainPath);
+            try
+            {
+                if (!File.Exists(RandomForestModelPath))
+                    throw new Exception("RandomForest model was not created at \"" + RandomForestModelPath + "\".");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("ERROR:  RandomForest failed to build model. Output and error messages follow:" + Environment.NewLine +
+                                    "\tException message:  " + ex.Message + Environment.NewLine +
+                                    "\tR output:  " + output + Environment.NewLine +
+                                    "\tR orror:  " + error);
+            }
+            finally
+            {
+                try { File.Delete(RawTrainPath); }
+                catch { }
+            }
         }
 
         public override IEnumerable<string> SelectFeatures(Prediction prediction)
@@ -182,9 +198,11 @@ dfp<-data.frame(rf.pred)
 names(dfp)[names(dfp)=='NULL.'] <- 'NULL'
 write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names=FALSE, sep=',')" + @"
 ");
-                R.Execute(rCmd.ToString(), false);
+                string output, error;
+                R.Execute(rCmd.ToString(), false, out output, out error);
 
-                if (File.Exists(PredictionsPath))
+                try
+                {
                     using (StreamReader predictionsFile = new StreamReader(PredictionsPath))
                     {
                         string[] colnames = predictionsFile.ReadLine().Split(',');
@@ -210,13 +228,25 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
                         if (row != featureVectors.Count)
                             throw new Exception("Number of predictions doesn't match number of input vectors");
                     }
-                else
-                    Console.Out.WriteLine("WARNING:  RandomForest failed to classify points. See previous messages for hints.");
-
-                File.Delete(ColumnMaxMinPath);
-                File.Delete(RandomForestModelPath);
-                File.Delete(RawPredictionInstancesPath);
-                File.Delete(PredictionsPath);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("ERROR:  RandomForest failed to classify points. Output and error messages follow:" + Environment.NewLine +
+                                        "\tException message:  " + ex.Message + Environment.NewLine +
+                                        "\tR output:  " + output + Environment.NewLine +
+                                        "\tR orror:  " + error);
+                }
+                finally
+                {
+                    try { File.Delete(ColumnMaxMinPath); }
+                    catch { }
+                    try { File.Delete(RandomForestModelPath); }
+                    catch { }
+                    try { File.Delete(RawPredictionInstancesPath); }
+                    catch { }
+                    try { File.Delete(PredictionsPath); }
+                    catch { }
+                }
             }
         }
 

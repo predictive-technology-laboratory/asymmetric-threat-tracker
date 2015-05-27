@@ -4,355 +4,6 @@
         <name>LAIR.Extensions</name>
     </assembly>
     <members>
-        <member name="T:LAIR.Extensions.StringExtensions">
-            <summary>
-            Provides extension methods for strings
-            </summary>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.#cctor">
-            <summary>
-            Constructor
-            </summary>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.Replace(System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean)">
-            <summary>
-            Replaces strings within a string
-            </summary>
-            <param name="s">String to process</param>
-            <param name="replacements">Replacement string pairs, where the key is the string to find and the value is the replacement</param>
-            <param name="repeatUntilNoChange">Whether or not to repeat replacement procedure until no changes are made</param>
-            <returns>String with replacements made</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.TrimPunctuation(System.String)">
-            <summary>
-            Removes leading and trailing punctuation from a string
-            </summary> 
-            <param name="s">String to trim punctuation from</param>
-            <returns>Trimmed string</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.TrimPunctuation(System.String,System.Boolean,System.Boolean)">
-            <summary>
-            Removes leading and trailing punctuation from a string
-            </summary> 
-            <param name="s">String to trim punctuation from</param>
-            <param name="leading">Whether or not to trim leading punctuation</param>
-            <param name="trailing">Whether or not to trim trailing punctuation</param>
-            <returns>Trimmed string</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.RemovePunctuation(System.String)">
-            <summary>
-            Removes punctuation characters (any that aren't a-z, A-Z, or 0-9)
-            </summary>
-            <param name="s">String to process</param>
-            <returns>String without punctuation</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.ReplacePunctuation(System.String,System.String)">
-            <summary>
-            Replaces punctuation characters (any that aren't a-z, A-Z, or 0-9) with something else
-            </summary>
-            <param name="s"></param>
-            <param name="replacement"></param>
-            <returns></returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.RemoveWhitespace(System.String)">
-            <summary>
-            Removes all whitespace characters from a string (\s regex character class)
-            </summary>
-            <param name="s">String to process</param>
-            <returns>String without whitespace</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.RemoveRepeatedWhitespace(System.String)">
-            <summary>
-            Removes repeated whitespace from a string
-            </summary>
-            <param name="s">String to process</param>
-            <returns>String without repeated whitespace</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.Disallow(System.String,System.Char[])">
-            <summary>
-            Throws an exception if any of the given characters are present in the string
-            </summary>
-            <param name="s">String to check</param>
-            <param name="chars">Character(s) to disallow</param>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.Split(System.String,System.Int32)">
-            <summary>
-            Splits a string on space characters, guaranteeing a specific number of parts. Will throw an exception if the expected number of parts is not found.
-            </summary>
-            <param name="s">String to split</param>
-            <param name="expectedParts">Number of parts expected</param>
-            <returns>Parts resulting from split</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.Split(System.String,System.Int32,System.Char[])">
-            <summary>
-            Splits a string on space characters, guaranteeing a specific number of parts. Will throw an exception if the expected number of parts is not found.
-            </summary>
-            <param name="s">String to split</param>
-            <param name="expectedParts">Number of parts expected</param>
-            <param name="splitCharacters">Characters to split on</param>
-            <returns>Parts resulting from split</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.GetParts(System.String)">
-            <summary>
-            Gets enumeration of parts within a string, delimited by space characters
-            </summary>
-            <param name="s"></param>
-            <returns></returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.EscapeXmlElement(System.String)">
-            <summary>
-            Converts a string to its XML-escaped version
-            </summary>
-            <param name="text">Text to convert</param>
-            <returns>XML-escaped version of text</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.UnescapeXML(System.String)">
-            <summary>
-            Unescapes an string that has been XML-escaped
-            </summary>
-            <param name="text">Text to convert</param>
-            <returns>Unescaped XML text</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.GetRelativePathTo(System.String,System.String)">
-            <summary>
-            Gets path relative to another path
-            </summary>
-            <param name="path">Base path for absolute path</param>
-            <param name="absolutePath">Absolute path</param>
-            <returns>Relative path</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.GetCommonInitialSubstring(System.String,System.String)">
-            <summary>
-            Gets the common initial substring between two strings
-            </summary>
-            <param name="string1">First string</param>
-            <param name="string2">Second string</param>
-            <returns>Common initial substring</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.InitialCharactersToUpper(System.String,System.Int32)">
-            <summary>
-            Changes the first n characters of a string to uppercase
-            </summary>
-            <param name="s">String to change</param>
-            <param name="numChars">Number of characters to change</param>
-            <returns>Modified string</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.GetNthNonSpaceIndex(System.String,System.Int32)">
-            <summary>
-            Gets the index of the nth non-space character within a string
-            </summary>
-            <param name="s">String to search</param>
-            <param name="n">n</param>
-            <returns>Index of nth non-space character</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.GetNthIndexOf(System.String,System.Char,System.Int32)">
-            <summary>
-            Gets the index of the nth occurrence of a character
-            </summary>
-            <param name="s">String to search</param>
-            <param name="c">Character to search for</param>
-            <param name="n">Value of n</param>
-            <returns>Index of the nth occurrence of c</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.GetIndexesOf(System.String,System.String)">
-            <summary>
-            Gets all indexes of a substring within the current string
-            </summary>
-            <param name="s">String to search</param>
-            <param name="substring">Substring to search for</param>
-            <returns>Indexes</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.Concatenate(System.Collections.Generic.IEnumerable{System.String},System.String)">
-            <summary>
-            Concatenates an enumeration of strings
-            </summary>
-            <param name="strings">Strings to concatenate</param>
-            <param name="separator">Separator for strings</param>
-            <returns>Concatenated string</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.Encrypt(System.String,System.Byte[],System.Byte[])">
-            <summary>
-            Encrypts a string using AES encryption
-            </summary>
-            <param name="s">String to encrypt</param>
-            <param name="key">Encryption key to use</param>
-            <param name="initialization">Initialization to use</param>
-            <returns>Encrypted bytes</returns>
-        </member>
-        <member name="M:LAIR.Extensions.StringExtensions.Decrypt(System.Byte[],System.Byte[],System.Byte[])">
-            <summary>
-            Decrypts a string using AES encryption
-            </summary>
-            <param name="bytes">Bytes to decrypt</param>
-            <param name="key">Encryption key used to produce the bytes</param>
-            <param name="initialization">Initialization that was used to produce the bytes</param>
-            <returns>Unencrypted string</returns>
-        </member>
-        <member name="T:LAIR.Extensions.TreeBankNodeExtensions">
-            <summary>
-            Provides extension methods for TreeBank nodes
-            </summary>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetArgumentIndex(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean)">
-            <summary>
-            Gets the argument index for a node. Node can only have a single index associated with it. An 
-            exception will be thrown if it has multiple indexes.
-            </summary>
-            <param name="n">Node to get argument index for. Must be a NomBankNode or a PropBankNode</param>
-            <param name="nomBankToPropBank">Whether or not to convert NomBank argument indexes to PropBank indexes when
-            possible</param>
-            <returns>Argument index</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetArgumentIndexes(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean)">
-            <summary>
-            Gets the argument indexes for a node. Node can have multiple indexes, as opposed to GetArgumentIndex. Of course,
-            calling this on PropBank nodes will only ever return a single index.
-            </summary>
-            <param name="n">Node to get argument indexes for. Must be a NomBankNode or a PropBankNode.</param>
-            <param name="nomBankToPropBank">Whether or not to convert NomBank argument indexes to PropBank indexes when
-            possible</param>
-            <returns>Argument indexes</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetArgumentIndexes(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean,LAIR.Collections.Generic.Set{System.Int32}@)">
-            <summary>
-            Gets the argument indexes for a node. Node can have multiple indexes, as opposed to GetArgumentIndex. Of course,
-            calling this on PropBank nodes will only ever return a single index.
-            </summary>
-            <param name="n">Node to get argument indexes for. Must be a NomBankNode or a PropBankNode.</param>
-            <param name="nomBankToPropBank">Whether or not to convert NomBank argument indexes to PropBank indexes when
-            possible</param>
-            <param name="originalIndexes">Original argument indexes, before they were converted to PropBank indexes. If
-            nomBankToPropBank is false, this must be null. If nomBankToPropBank is true, this may be either null or non-null. In 
-            the latter case, argument indexes will be added to the passed set using Set.Add. This set will also contain any PropBank
-            argument indexes.</param>
-            <returns>Argument indexes</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetPredicateNode(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean)">
-            <summary>
-            Gets the predicate node for a given predicate tree
-            </summary>
-            <param name="n">Predicate tree - must be either a NomBankNode or a PropBankNode</param>
-            <param name="allowPhrasalPredicates">Whether or not to allow phrasal predicates. If true and a phrasal predicate is 
-            encountered, the first token of the phrasal predicate will be returned.</param>
-            <returns>Predicate node</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetBasePredicate(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean)">
-            <summary>
-            Gets base predicate for a predicate tree (i.e., the predicate contained in Information.Noun or Information.Verb). Only
-            valid for root nodes.
-            </summary>
-            <param name="n">Predicate tree for which to get base predicate (must be root)</param>
-            <param name="nomBankToPropBank">Whether or not to convert NomBank predicates to PropBank predicates where possible</param>
-            <returns>Base predicate</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetBasePredicate(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean,System.Boolean@)">
-            <summary>
-            Gets base predicate for a predicate tree (i.e., the predicate contained in Information.Noun or Information.Verb). Only
-            valid for root nodes.
-            </summary>
-            <param name="n">Predicate tree for which to get base predicate (must be root)</param>
-            <param name="nomBankToPropBank">Whether or not to convert NomBank predicates to PropBank predicates where possible</param>
-            <param name="predicateIsVerb">Whether or not the returned predicate is a verb or a noun converted to a verb</param>
-            <returns>Base predicate</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetBasePredicate(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean,System.Boolean@,System.String@,System.Boolean@)">
-            <summary>
-            Gets base predicate for a predicate tree (i.e., the predicate contained in Information.Noun or Information.Verb). Only
-            valid for root nodes.
-            </summary>
-            <param name="n">Predicate tree for which to get base predicate (must be root)</param>
-            <param name="nomBankToPropBank">Whether or not to convert NomBank predicates to PropBank predicates where possible</param>
-            <param name="predicateIsVerb">Whether or not the returned predicate is a verb or a noun converted to a verb</param>
-            <param name="originalPredicate">Original predicate, before any NomBank-PropBank conversion</param>
-            <param name="originalPredicateIsVerb">Whether or not the original predicate is a verb</param>
-            <returns>Base predicate</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetArgumentNodes(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
-            <summary>
-            Gets argument nodes for a predicate tree. Only valid for root nodes of PropBank and NomBank trees.
-            </summary>
-            <param name="n">Predicate tree to get arguments for - must be a NomBankNode or PropBankNode</param>
-            <param name="includeNullElements">Whether or not to include null-element argument nodes</param>
-            <param name="includeSplitArguments">Whether or not to include split arguments</param>
-            <param name="headSplitArgumentNodesOnly">If including split nodes, this specifies whether or not to only include the head node
-            of the split argument. The head node is defined as the node containing the semantic head of the LCA of all nodes
-            in the split argument.</param>
-            <param name="includeSingleNodeArguments">Whether or not to include single nodes</param>
-            <param name="excludeSingleNodeArgumentsWhenMultiple">Whether or not to exclude single nodes if there are more than one</param>
-            <returns>Set of argument nodes</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetArgumentNodeCollections(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean)">
-            <summary>
-            Gets the argument node collections for a TreeBankNode, which must be a NomBank or PropBank node.
-            </summary>
-            <param name="n">Node to get collections for</param>
-            <param name="removeNullElements">Whether or not to remove null element nodes from the collections. This does not change the
-            underlying PropBank or NomBank tree - null elements will still remain in these trees.</param>
-            <returns>Node collections</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetModifierNodes(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
-            <summary>
-            Gets modifier nodes for a predicate tree. Only valid for root nodes of PropBank and NomBank trees.
-            </summary>
-            <param name="n">Predicate tree to get modifiers for - must be a NomBankNode or PropBankNode</param>
-            <param name="includeNullElements">Whether or not to include null-element modifier nodes</param>
-            <param name="includeSplitModifiers">Whether or not to include split modifiers</param>
-            <param name="headSplitModifierNodesOnly">If including split nodes, this specifies whether or not to only include the head node
-            of the split modifier. The head node is defined as the node containing the semantic head of the LCA of all nodes
-            in the split modifier.</param>
-            <param name="includeSingleNodeModifiers">Whether or not to include single nodes</param>
-            <param name="excludeSingleNodeModifiersWhenMultiple">Whether or not to exclude single nodes if there are more than one</param>
-            <returns>Set of modifier nodes</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.TryGetRoleInformation(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Int32,System.String@)">
-            <summary>
-            Tries to get information for a role in a predicate tree
-            </summary>
-            <param name="predicateTree">Predicate tree to get information</param>
-            <param name="argumentIndex">Argument index to get information for</param>
-            <param name="description">Role description for the passed argument</param>
-            <returns>True if the role denoted by argumentIndex was found</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.TryGetRoleInformation(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Int32,System.String@,System.Int32@)">
-            <summary>
-            Tries to get information for a role in a predicate tree
-            </summary>
-            <param name="predicateTree">Predicate tree to get information</param>
-            <param name="argumentIndex">Argument index to get information for</param>
-            <param name="description">Role description for the passed argument</param>
-            <param name="sourceIndex">Source index for argument index</param>
-            <returns>True if the role denoted by argumentIndex was found</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetRoleSetID(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean)">
-            <summary>
-            Gets the role set for a TreeBankNode
-            </summary>
-            <param name="n">Node (must be root)</param>
-            <param name="nomBankToPropBank">Whether or not to convert NomBank role set IDs to PropBank role set IDs where possible</param>
-            <returns>Role set</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetUnfilledRoles(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode,System.Boolean)">
-            <summary>
-            Gets unfilled roles for a PropBank or NomBank predicate tree
-            </summary>
-            <param name="predicateTree">Predicate tree to get unfilled roles for (must be PropBank or NomBank node)</param>
-            <param name="considerNullElementNodes">Whether or not to consider null-element nodes when checking whether a role is filled</param>
-            <returns>Unfilled roles</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetArgumentConfidence(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankNode)">
-            <summary>
-            Gets confidence of an argument node. Node must be either PropBankNode or NomBankNode, and must be an argument node.
-            </summary>
-            <param name="n">Node to get argument confidence for. Must be either PropBankNode or NomBankNode, and must be an argument node.</param>
-            <returns>Confidence of argument label</returns>
-        </member>
-        <member name="M:LAIR.Extensions.TreeBankNodeExtensions.GetWordNetPOS(LAIR.ResourceAPIs.PennBank.TreeBank.TreeBankEngine.SyntacticCategory)">
-            <summary>
-            Gets the WordNet POS for a TreeBank syntactic category
-            </summary>
-            <param name="c">TreeBank syntactic category to get WordNet POS for</param>
-            <returns>WordNet POS</returns>
-        </member>
         <member name="T:LAIR.Extensions.DictionaryExtensions">
             <summary>
             Provides extension methods for the .NET Dictionary class
@@ -560,6 +211,190 @@
             </summary>
             <param name="reader">StreamReader to reset</param>
             <param name="position">Position to reset to</param>
+        </member>
+        <member name="T:LAIR.Extensions.StringExtensions">
+            <summary>
+            Provides extension methods for strings
+            </summary>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.#cctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.Replace(System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean)">
+            <summary>
+            Replaces strings within a string
+            </summary>
+            <param name="s">String to process</param>
+            <param name="replacements">Replacement string pairs, where the key is the string to find and the value is the replacement</param>
+            <param name="repeatUntilNoChange">Whether or not to repeat replacement procedure until no changes are made</param>
+            <returns>String with replacements made</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.TrimPunctuation(System.String)">
+            <summary>
+            Removes leading and trailing punctuation from a string
+            </summary> 
+            <param name="s">String to trim punctuation from</param>
+            <returns>Trimmed string</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.TrimPunctuation(System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Removes leading and trailing punctuation from a string
+            </summary> 
+            <param name="s">String to trim punctuation from</param>
+            <param name="leading">Whether or not to trim leading punctuation</param>
+            <param name="trailing">Whether or not to trim trailing punctuation</param>
+            <returns>Trimmed string</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.RemovePunctuation(System.String)">
+            <summary>
+            Removes punctuation characters (any that aren't a-z, A-Z, or 0-9)
+            </summary>
+            <param name="s">String to process</param>
+            <returns>String without punctuation</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.ReplacePunctuation(System.String,System.String)">
+            <summary>
+            Replaces punctuation characters (any that aren't a-z, A-Z, or 0-9) with something else
+            </summary>
+            <param name="s"></param>
+            <param name="replacement"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.RemoveWhitespace(System.String)">
+            <summary>
+            Removes all whitespace characters from a string (\s regex character class)
+            </summary>
+            <param name="s">String to process</param>
+            <returns>String without whitespace</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.RemoveRepeatedWhitespace(System.String)">
+            <summary>
+            Removes repeated whitespace from a string
+            </summary>
+            <param name="s">String to process</param>
+            <returns>String without repeated whitespace</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.Disallow(System.String,System.Char[])">
+            <summary>
+            Throws an exception if any of the given characters are present in the string
+            </summary>
+            <param name="s">String to check</param>
+            <param name="chars">Character(s) to disallow</param>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.Split(System.String,System.Int32)">
+            <summary>
+            Splits a string on space characters, guaranteeing a specific number of parts. Will throw an exception if the expected number of parts is not found.
+            </summary>
+            <param name="s">String to split</param>
+            <param name="expectedParts">Number of parts expected</param>
+            <returns>Parts resulting from split</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.Split(System.String,System.Int32,System.Char[])">
+            <summary>
+            Splits a string on space characters, guaranteeing a specific number of parts. Will throw an exception if the expected number of parts is not found.
+            </summary>
+            <param name="s">String to split</param>
+            <param name="expectedParts">Number of parts expected</param>
+            <param name="splitCharacters">Characters to split on</param>
+            <returns>Parts resulting from split</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.GetParts(System.String)">
+            <summary>
+            Gets enumeration of parts within a string, delimited by space characters
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.EscapeXmlElement(System.String)">
+            <summary>
+            Converts a string to its XML-escaped version
+            </summary>
+            <param name="text">Text to convert</param>
+            <returns>XML-escaped version of text</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.UnescapeXML(System.String)">
+            <summary>
+            Unescapes an string that has been XML-escaped
+            </summary>
+            <param name="text">Text to convert</param>
+            <returns>Unescaped XML text</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.GetRelativePathTo(System.String,System.String)">
+            <summary>
+            Gets path relative to another path
+            </summary>
+            <param name="path">Base path for absolute path</param>
+            <param name="absolutePath">Absolute path</param>
+            <returns>Relative path</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.GetCommonInitialSubstring(System.String,System.String)">
+            <summary>
+            Gets the common initial substring between two strings
+            </summary>
+            <param name="string1">First string</param>
+            <param name="string2">Second string</param>
+            <returns>Common initial substring</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.InitialCharactersToUpper(System.String,System.Int32)">
+            <summary>
+            Changes the first n characters of a string to uppercase
+            </summary>
+            <param name="s">String to change</param>
+            <param name="numChars">Number of characters to change</param>
+            <returns>Modified string</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.GetNthNonSpaceIndex(System.String,System.Int32)">
+            <summary>
+            Gets the index of the nth non-space character within a string
+            </summary>
+            <param name="s">String to search</param>
+            <param name="n">n</param>
+            <returns>Index of nth non-space character</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.GetNthIndexOf(System.String,System.Char,System.Int32)">
+            <summary>
+            Gets the index of the nth occurrence of a character
+            </summary>
+            <param name="s">String to search</param>
+            <param name="c">Character to search for</param>
+            <param name="n">Value of n</param>
+            <returns>Index of the nth occurrence of c</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.GetIndexesOf(System.String,System.String)">
+            <summary>
+            Gets all indexes of a substring within the current string
+            </summary>
+            <param name="s">String to search</param>
+            <param name="substring">Substring to search for</param>
+            <returns>Indexes</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.Concatenate(System.Collections.Generic.IEnumerable{System.String},System.String)">
+            <summary>
+            Concatenates an enumeration of strings
+            </summary>
+            <param name="strings">Strings to concatenate</param>
+            <param name="separator">Separator for strings</param>
+            <returns>Concatenated string</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.Encrypt(System.String,System.Byte[],System.Byte[])">
+            <summary>
+            Encrypts a string using AES encryption
+            </summary>
+            <param name="s">String to encrypt</param>
+            <param name="key">Encryption key to use</param>
+            <param name="initialization">Initialization to use</param>
+            <returns>Encrypted bytes</returns>
+        </member>
+        <member name="M:LAIR.Extensions.StringExtensions.Decrypt(System.Byte[],System.Byte[],System.Byte[])">
+            <summary>
+            Decrypts a string using AES encryption
+            </summary>
+            <param name="bytes">Bytes to decrypt</param>
+            <param name="key">Encryption key used to produce the bytes</param>
+            <param name="initialization">Initialization that was used to produce the bytes</param>
+            <returns>Unencrypted string</returns>
         </member>
     </members>
 </doc>

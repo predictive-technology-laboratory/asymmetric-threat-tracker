@@ -104,23 +104,23 @@ namespace PTL.ATT.Models
                 {
                     // spatial distance
                     parameters = new FeatureParameterCollection();
-                    parameters.Add(SpatialDistanceParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
-                    parameters.Add(SpatialDistanceParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDistanceParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDistanceParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
                     yield return new Feature(typeof(FeatureType), FeatureType.MinimumDistanceToGeometry, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (distance)", parameters);
 
                     // spatial density
                     parameters = new FeatureParameterCollection();
-                    parameters.Add(SpatialDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
-                    parameters.Add(SpatialDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
-                    parameters.Add(SpatialDensityParameter.SampleSize, "500", "Sample size for spatial density estimate.");
-                    parameters.Add(SpatialDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few spatial objects).");
+                    parameters.Set(SpatialDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                    parameters.Set(SpatialDensityParameter.SampleSize, "500", "Sample size for spatial density estimate.");
+                    parameters.Set(SpatialDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few spatial objects).");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryDensity, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (density)", parameters);
 
                     // geometry attribute
                     parameters = new FeatureParameterCollection();
-                    parameters.Add(GeometryAttributeParameter.AttributeColumn, "", "Name of column within geometry from which to draw value.");
-                    parameters.Add(GeometryAttributeParameter.AttributeType, "", "Type of attribute:  Nominal or Numeric");
-                    parameters.Add(GeometryAttributeParameter.DefaultValue, "0", "Value to use when geometry does not overlap a model point.");
+                    parameters.Set(GeometryAttributeParameter.AttributeColumn, "", "Name of column within geometry from which to draw value.");
+                    parameters.Set(GeometryAttributeParameter.AttributeType, "", "Type of attribute:  Nominal or Numeric");
+                    parameters.Set(GeometryAttributeParameter.DefaultValue, "0", "Value to use when geometry does not overlap a model point.");
                     yield return new Feature(typeof(FeatureType), FeatureType.GeometryAttribute, shapefile.Id.ToString(), shapefile.Id.ToString(), shapefile.Name + " (attribute)", parameters);
                 }
 
@@ -128,11 +128,11 @@ namespace PTL.ATT.Models
             foreach (string incidentType in Incident.GetUniqueTypes(DateTime.MinValue, DateTime.MaxValue, area).OrderBy(i => i))
             {
                 parameters = new FeatureParameterCollection();
-                parameters.Add(IncidentDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
-                parameters.Add(IncidentDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
-                parameters.Add(IncidentDensityParameter.LagCount, "1", "Number of lags of the given offset and duration to use, with offsets being additive.");
-                parameters.Add(IncidentDensityParameter.SampleSize, "500", "Sample size for incident density estimate.");
-                parameters.Add(IncidentDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few incidents).");
+                parameters.Set(IncidentDensityParameter.LagOffset, "31.00:00:00", "Offset prior to training/prediction window. Format:  DAYS.HH:MM:SS");
+                parameters.Set(IncidentDensityParameter.LagDuration, "30.23:59:59", "Duration of lag window. Format:  DAYS.HH:MM:SS");
+                parameters.Set(IncidentDensityParameter.LagCount, "1", "Number of lags of the given offset and duration to use, with offsets being additive.");
+                parameters.Set(IncidentDensityParameter.SampleSize, "500", "Sample size for incident density estimate.");
+                parameters.Set(IncidentDensityParameter.DefaultValue, "0", "Value to use when density is not computable (e.g., too few incidents).");
                 yield return new Feature(typeof(FeatureType), FeatureType.IncidentDensity, incidentType, incidentType, "\"" + incidentType + "\" density", parameters);
             }
 
@@ -370,7 +370,7 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(o =>
                         {
                             int core = (int)o;
                             NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
@@ -427,7 +427,10 @@ namespace PTL.ATT.Models
                                 NumericFeature distanceFeature = _idNumericFeature[spatialDistanceFeature.Id];
                                 while (reader.Read())
                                 {
-                                    FeatureVector vector = pointIdFeatureVector[Convert.ToInt32(reader["points_" + Point.Columns.Id])];
+                                    FeatureVector vector;
+                                    if (!pointIdFeatureVector.TryGetValue(Convert.ToInt32(reader["points_" + Point.Columns.Id]), out vector))  // above, we select all points that fall between point_start and point_end. the latter can be one tick short of the next minute, and npgsql rounds up causing points to appear in the reader that we didn't add to the pointIdFeatureVector collection.
+                                        continue;
+
                                     double value = Convert.ToDouble(reader["feature_value"]);
 
                                     // value > threshold shouldn't happen here, since we exluced such objects from consideration above; however, the calculations aren't perfect in postgis, so we check again and reset appropriately
@@ -460,13 +463,12 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(core =>
                         {
-                            int core = (int)o;
                             NpgsqlCommand command = DB.Connection.NewCommand(null);
-                            for (int j = 0; j + core < spatialDensityFeatures.Count; j += Configuration.ProcessorCount)
+                            for (int j = (int)core; j < spatialDensityFeatures.Count; j += Configuration.ProcessorCount)
                             {
-                                Feature spatialDensityFeature = spatialDensityFeatures[j + core];
+                                Feature spatialDensityFeature = spatialDensityFeatures[j];
 
                                 DateTime spatialDensityFeatureStart = start - spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagOffset);
                                 DateTime spatialDensityFeatureEnd = spatialDensityFeatureStart + spatialDensityFeature.Parameters.GetTimeSpanValue(SpatialDensityParameter.LagDuration);
@@ -526,7 +528,7 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(o =>
                         {
                             int core = (int)o;
                             NpgsqlConnection threadConnection = DB.Connection.OpenConnection;
@@ -538,7 +540,7 @@ namespace PTL.ATT.Models
                                 NpgsqlCommand cmd = DB.Connection.NewCommand("SELECT " + pointTableName + "." + Point.Columns.Id + " as point_id," + shapefile.GeometryTable + "." + attributeColumn + " as geometry_attribute " +
                                                                              "FROM " + pointTableName + " " +
                                                                              "LEFT JOIN " + shapefile.GeometryTable + " " + // the geometry might not overlap the point, in which case we'll use the default feature value below
-                                                                             "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") " + 
+                                                                             "ON st_intersects(" + pointTableName + "." + Point.Columns.Location + "," + shapefile.GeometryTable + "." + ShapefileGeometry.Columns.Geometry + ") " +
                                                                              "WHERE " + pointTableName + "." + Point.Columns.Id + " % " + Configuration.ProcessorCount + " = " + core + " AND " +
                                                                                         "(" +
                                                                                           pointTableName + "." + Point.Columns.Time + "='-infinity'::timestamp OR " +
@@ -622,12 +624,11 @@ namespace PTL.ATT.Models
                 threads.Clear();
                 for (int i = 0; i < Configuration.ProcessorCount; ++i)
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                    Thread t = new Thread(new ParameterizedThreadStart(core =>
                         {
-                            int core = (int)o;
-                            for (int j = 0; j + core < kdeFeatures.Count; j += Configuration.ProcessorCount)
+                            for (int j = (int)core; j < kdeFeatures.Count; j += Configuration.ProcessorCount)
                             {
-                                Feature kdeFeature = kdeFeatures[j + core];
+                                Feature kdeFeature = kdeFeatures[j];
 
                                 List<PostGIS.Point> kdeInputPoints = new List<PostGIS.Point>();
                                 string incident = training ? kdeFeature.TrainingResourceId : kdeFeature.PredictionResourceId;

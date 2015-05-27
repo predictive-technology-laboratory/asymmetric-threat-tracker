@@ -15,6 +15,7 @@ There are two installation choices: binary installer and compilation from source
 
 ## Binary Installer
 Download and run the installer for the version you would like:
+* [2.1.0](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v2.1.0/setup.exe) (5/27/2015)
 * [2.0.0](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v2.0.0/setup.exe) (8/21/2014)
 * [1.3](https://github.com/MatthewGerber/asymmetric-threat-tracker/releases/download/v1.3/setup.exe) (5/27/2014)
 
@@ -28,6 +29,7 @@ After you run the installer, edit the configuration files in the Config sub-dire
 * Obtain the source code:
   * Clone the [ATT GitHub repository](https://github.com/MatthewGerber/asymmetric-threat-tracker.git).
   * Source archives:
+    * 2.1.0 (5/27/2015) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v2.1.0.zip), [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v2.1.0.tar.gz))
     * 2.0.0 (8/21/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v2.0.0.zip), [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v2.0.0.tar.gz))
     * 1.3 (5/27/2014) ([zip](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.zip), [tar.gz](https://github.com/MatthewGerber/asymmetric-threat-tracker/archive/v1.3.tar.gz))
 * If you're going to build the installer or cut releases, edit "Installer\Installer.isl" replacing "C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker" (or whatever appears) with the appropriate path to your local repository. This assumes that you have installed the InstallShield add-on as described above. If you're not going to work with the installer, skip this step.

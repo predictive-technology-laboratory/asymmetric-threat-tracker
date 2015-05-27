@@ -120,17 +120,16 @@ namespace PTL.ATT
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        int core = (int)o;
                         NpgsqlCommand cmd = DB.Connection.NewCommand(null);
                         StringBuilder cmdText = new StringBuilder();
                         int pointNum = 0;
                         int pointsPerBatch = 5000;
                         string table = GetTableName(prediction);
-                        for (int j = 0; j + core < valueParameters.Count; j += Configuration.ProcessorCount)
+                        for (int j = (int)core; j < valueParameters.Count; j += Configuration.ProcessorCount)
                         {
-                            Tuple<string, Parameter> valueParameter = valueParameters[j + core];
+                            Tuple<string, Parameter> valueParameter = valueParameters[j];
                             cmdText.Append((cmdText.Length == 0 ? "INSERT INTO " + table + " (" + Columns.Insert + ") VALUES " : ",") + valueParameter.Item1);
 
                             if (valueParameter.Item2 != null)
@@ -191,17 +190,16 @@ namespace PTL.ATT
             Set<Thread> threads = new Set<Thread>();
             for (int i = 0; i < Configuration.ProcessorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
+                Thread t = new Thread(new ParameterizedThreadStart(core =>
                     {
-                        int core = (int)o;
                         int pointsPerBatch = 1000;
                         int pointNum = 0;
                         NpgsqlCommand cmd = DB.Connection.NewCommand("");
                         StringBuilder cmdText = new StringBuilder();
                         string table = GetTableName(prediction);
-                        for (int j = 0; j + core < pointPredictions.Count; j += Configuration.ProcessorCount)
+                        for (int j = (int)core; j < pointPredictions.Count; j += Configuration.ProcessorCount)
                         {
-                            PointPrediction pointPrediction = pointPredictions[j + core];
+                            PointPrediction pointPrediction = pointPredictions[j];
                             string labels, scores;
                             GetLabelsScoresSQL(pointPrediction.IncidentScore, out labels, out scores);
 
