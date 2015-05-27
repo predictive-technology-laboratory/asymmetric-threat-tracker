@@ -8,7 +8,7 @@ The process for cutting a release is as follows:
 * Build the ATT solution and test it, fixing any errors.
 * Commit all changes to develop.
 * Merge all changes from develop into master and check out master.
-* Build the ATT solution from, resolve any errors, and test the ATT by installing and running it. The installer should be at the following location:
+* Build the ATT solution, resolve any errors, and test the ATT by installing and running it. The installer should be at the following location:
 
     {att_repository}\Installer\Installer\Express\SingleImage\DiskImages\DISK1\setup.exe
 
