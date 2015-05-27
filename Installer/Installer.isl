@@ -1923,28 +1923,28 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
-		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\ATT\att_config.xml</td><td>1</td><td/></row>
-		<row><td>building_violations_jan_mar_</td><td>ISX_DEFAULTCOMPONENT3</td><td>BUILDI~1.ZIP|building_violations_jan-mar_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Events\building_violations_jan-mar_2013.zip</td><td>1</td><td/></row>
-		<row><td>chicago.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago.attimp</td><td>1</td><td/></row>
-		<row><td>chicago_bicycle_racks.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Bicycle_Racks.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Bicycle_Racks.attimp</td><td>1</td><td/></row>
-		<row><td>chicago_bike_racks.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_bike_racks.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.zip</td><td>1</td><td/></row>
-		<row><td>chicago_city_boundary.zip</td><td>ISX_DEFAULTCOMPONENT6</td><td>CHICAG~1.ZIP|chicago_city_boundary.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.zip</td><td>1</td><td/></row>
-		<row><td>chicago_crime_dec_2012_to_ma</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Crime_Dec_2012_to_Mar_2013.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Crime_Dec_2012_to_Mar_2013.attimp</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_december_2012</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.ZIP|chicago_crimes_december_2012-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_december_2012-march_2013.zip</td><td>1</td><td/></row>
-		<row><td>chicago_crimes_simple_format</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.XML|chicago_crimes_simple_format_sample.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_simple_format_sample.xml</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Major_Streets.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Major_Streets.attimp</td><td>1</td><td/></row>
-		<row><td>chicago_major_streets.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_major_streets.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.zip</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.atti</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Police_Stations.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Police_Stations.attimp</td><td>1</td><td/></row>
-		<row><td>chicago_police_stations.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_police_stations.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.zip</td><td>1</td><td/></row>
+		<row><td>att_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>ATT_CO~1.XML|att_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\ATT\att_config.xml</td><td>1</td><td/></row>
+		<row><td>building_violations_jan_mar_</td><td>ISX_DEFAULTCOMPONENT3</td><td>BUILDI~1.ZIP|building_violations_jan-mar_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Events\building_violations_jan-mar_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago.attimp</td><td>1</td><td/></row>
+		<row><td>chicago_bicycle_racks.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Bicycle_Racks.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Bicycle_Racks.attimp</td><td>1</td><td/></row>
+		<row><td>chicago_bike_racks.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_bike_racks.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_bike_racks.zip</td><td>1</td><td/></row>
+		<row><td>chicago_city_boundary.zip</td><td>ISX_DEFAULTCOMPONENT6</td><td>CHICAG~1.ZIP|chicago_city_boundary.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\AO\chicago_city_boundary.zip</td><td>1</td><td/></row>
+		<row><td>chicago_crime_dec_2012_to_ma</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Crime_Dec_2012_to_Mar_2013.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Crime_Dec_2012_to_Mar_2013.attimp</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_december_2012</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.ZIP|chicago_crimes_december_2012-march_2013.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_december_2012-march_2013.zip</td><td>1</td><td/></row>
+		<row><td>chicago_crimes_simple_format</td><td>ISX_DEFAULTCOMPONENT2</td><td>CHICAG~1.XML|chicago_crimes_simple_format_sample.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Crimes\chicago_crimes_simple_format_sample.xml</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.attimp</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Major_Streets.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Major_Streets.attimp</td><td>1</td><td/></row>
+		<row><td>chicago_major_streets.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_major_streets.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_major_streets.zip</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.atti</td><td>ISX_DEFAULTCOMPONENT12</td><td>CHICAG~1.ATT|Chicago_Police_Stations.attimp</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Importers\Chicago_Police_Stations.attimp</td><td>1</td><td/></row>
+		<row><td>chicago_police_stations.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CHICAG~1.ZIP|chicago_police_stations.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Chicago\Features\chicago_police_stations.zip</td><td>1</td><td/></row>
 		<row><td>gui.primary_output</td><td>GUI.Primary_output</td><td>GUI.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;GUI&gt;|Built</td><td>3</td><td/></row>
-		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\GUI\gui_config.xml</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_aquedctl.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_hydro_aquedctl.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.zip</td><td>1</td><td/></row>
-		<row><td>kabol_hydro_daml.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_hydro_daml.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.zip</td><td>1</td><td/></row>
-		<row><td>kabol_trans_roadl.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_trans_roadl.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.zip</td><td>1</td><td/></row>
-		<row><td>kabul_city_boundary.zip</td><td>ISX_DEFAULTCOMPONENT10</td><td>KABUL_~1.ZIP|kabul_city_boundary.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.zip</td><td>1</td><td/></row>
-		<row><td>license.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>LICENSE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\LICENSE.txt</td><td>1</td><td/></row>
-		<row><td>notice.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>NOTICE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\NOTICE.txt</td><td>1</td><td/></row>
-		<row><td>readme.txt</td><td>ISX_DEFAULTCOMPONENT</td><td>README.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\matt\Documents\GitHub\asymmetric-threat-tracker\GUI\Config\README.txt</td><td>1</td><td/></row>
+		<row><td>gui_config.xml</td><td>ISX_DEFAULTCOMPONENT</td><td>GUI_CO~1.XML|gui_config.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\GUI\gui_config.xml</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_aquedctl.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_hydro_aquedctl.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_aquedctl.zip</td><td>1</td><td/></row>
+		<row><td>kabol_hydro_daml.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_hydro_daml.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_hydro_daml.zip</td><td>1</td><td/></row>
+		<row><td>kabol_trans_roadl.zip</td><td>ISX_DEFAULTCOMPONENT11</td><td>KABOL_~1.ZIP|kabol_trans_roadl.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\Features\kabol_trans_roadl.zip</td><td>1</td><td/></row>
+		<row><td>kabul_city_boundary.zip</td><td>ISX_DEFAULTCOMPONENT10</td><td>KABUL_~1.ZIP|kabul_city_boundary.zip</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\Data\Shapefiles\Kabul\AO\kabul_city_boundary.zip</td><td>1</td><td/></row>
+		<row><td>license.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>LICENSE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\LICENSE.txt</td><td>1</td><td/></row>
+		<row><td>notice.txt</td><td>ISX_DEFAULTCOMPONENT9</td><td>NOTICE.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\NOTICE.txt</td><td>1</td><td/></row>
+		<row><td>readme.txt</td><td>ISX_DEFAULTCOMPONENT</td><td>README.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\msg8u\Documents\GitHub\asymmetric-threat-tracker\GUI\Config\README.txt</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -2690,7 +2690,7 @@
 		<col def="I2">Order</col>
 		<col def="I2">ISSetupLocation</col>
 		<col def="S255">ISReleaseFlags</col>
-		<row><td>_1C35338C_ABD5_46B8_95D3_2ED89AC8618E_</td><td>Microsoft .NET Framework 4.5 Full.prq</td><td/><td>1</td><td/></row>
+		<row><td>_1C35338C_ABD5_46B8_95D3_2ED89AC8618E_</td><td>Microsoft .NET Framework 4.5 Full.prq</td><td/><td>2</td><td/></row>
 	</table>
 
 	<table name="ISSetupType">
@@ -4457,7 +4457,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{55543AF0-BB2E-4BC0-A41E-3370CA7C8F2C}</td><td/></row>
 		<row><td>ProductName</td><td>Asymmetric Threat Tracker</td><td/></row>
-		<row><td>ProductVersion</td><td>2.0.0</td><td/></row>
+		<row><td>ProductVersion</td><td>2.1.0</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
