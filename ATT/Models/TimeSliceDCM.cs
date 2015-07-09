@@ -106,7 +106,7 @@ namespace PTL.ATT.Models
         private int _timeSliceHours;
         private int _periodTimeSlices;
         private long _timeSliceTicks;
-
+        private int _slicesToRun; 
         public int TimeSliceHours
         {
             get { return _timeSliceHours; }
@@ -127,7 +127,15 @@ namespace PTL.ATT.Models
                 Update();
             }
         }
-
+        public int SlicesToRun
+        {
+            get { return _slicesToRun; }
+            set
+            {
+                _slicesToRun = value;
+                Update();
+            }
+        }
         public long TimeSliceTicks
         {
             get { return _timeSliceTicks; }
@@ -147,13 +155,14 @@ namespace PTL.ATT.Models
                             PTL.ATT.Classifiers.Classifier classifier,
                             IEnumerable<Feature> features,
                             int timeSliceHours,
-                            int periodTimeSlices)
+                            int periodTimeSlices,
+                            int slicesToRun)
             : base(name, incidentTypes, trainingArea, trainingStart, trainingEnd, smoothers, trainingPointSpacing, featureDistanceThreshold, negativePointStandoff, classifier, features)
         {
             _timeSliceHours = timeSliceHours;
             _periodTimeSlices = periodTimeSlices;
             _timeSliceTicks = new TimeSpan(_timeSliceHours, 0, 0).Ticks;
-
+            _slicesToRun = slicesToRun;
             Update();
         }
 
@@ -177,27 +186,40 @@ namespace PTL.ATT.Models
             long firstSlice = (long)((training ? prediction.Model.TrainingStart.Ticks : prediction.PredictionStartTime.Ticks) / _timeSliceTicks);
             long lastSlice = (long)((training ? prediction.Model.TrainingEnd.Ticks : prediction.PredictionEndTime.Ticks) / _timeSliceTicks);
             long ticksPerHour = new TimeSpan(1, 0, 0).Ticks;
+            List< long > TimeSlicesStates = new List< long >();
+            int Mask = (int)Math.Pow(2, _periodTimeSlices-1);
+            for (long k = firstSlice; k <= lastSlice; k++)
+            {
+                if (k % _periodTimeSlices == 0) Mask = (int)Math.Pow(2, _periodTimeSlices - 1);
+                if ((SlicesToRun & Mask) != 0)
+                    TimeSlicesStates.Add(k * _timeSliceTicks);
+                Mask = Mask >> 1;
+            }
             List<FeatureVectorList> completeFeatureVectorLists = new List<FeatureVectorList>();
             List<FeatureVectorList> incompleteFeatureVectorLists = new List<FeatureVectorList>();
             AutoResetEvent emitCompleteFeatureVectorLists = new AutoResetEvent(false);
             IFeatureExtractor externalFeatureExtractor = InitializeExternalFeatureExtractor(typeof(TimeSliceDCM));
             for (int i = 0; i < processorCount; ++i)
             {
-                Thread t = new Thread(new ParameterizedThreadStart(core =>
+                Thread t = new Thread(new ParameterizedThreadStart(delegate(object o)
                     {
-                        for (long slice = firstSlice + (int)core; slice <= lastSlice; slice += processorCount)
-                        {
-                            Console.Out.WriteLine("Processing slice " + (slice - firstSlice + 1) + " of " + (lastSlice - firstSlice + 1));
+                        int core = (int)o;
 
-                            DateTime sliceStart = new DateTime(slice * _timeSliceTicks);
+                        for (int j = 0; j + core < TimeSlicesStates.Count; j += processorCount)
+                        {
+                            long sliceStartTicks = TimeSlicesStates[j + core];
+                            long slice = sliceStartTicks / _timeSliceTicks;
+                            Console.Out.WriteLine("Processing slice " + (j + core + 1) + " of " + TimeSlicesStates.Count);
+
+                            DateTime sliceStart = new DateTime(sliceStartTicks);
                             DateTime sliceEnd = sliceStart.Add(new TimeSpan(_timeSliceTicks - 1));
                             DateTime sliceMid = new DateTime((sliceStart.Ticks + sliceEnd.Ticks) / 2L);
 
                             #region get interval features that are true for all points in the current slice
-                            Dictionary<NumericFeature, int> threeHourIntervalFeatureValue = new Dictionary<NumericFeature, int>();
+                            Dictionary<NominalFeature, string> threeHourIntervalFeatureValue = new Dictionary<NominalFeature,string>();
                             int startingThreeHourInterval = sliceStart.Hour / 3;                                                  // which 3-hour interval does the current slice start in?
                             int threeHourIntervalsTouched = (int)(((sliceEnd.Ticks - sliceStart.Ticks) / ticksPerHour) / 3) + 1;  // how many 3-hour intervals does the current slice touch?
-                            int endingThreeHourInterval = startingThreeHourInterval + threeHourIntervalsTouched - 1;              // which 3-hour interval does the current slice end in?
+                            int endingThreeHourInterval = startingThreeHourInterval + threeHourIntervalsTouched - 1;                  // which 3-hour interval does the current slice end in?
                             for (int k = 0; k < threeHourIntervals.Count; ++k)
                             {
                                 TimeSliceFeature threeHourInterval = threeHourIntervals[k];
@@ -209,7 +231,7 @@ namespace PTL.ATT.Models
                                         if (interval % 8 == k)
                                             covered = true;
 
-                                    threeHourIntervalFeatureValue.Add(IdNumericFeature[id], covered ? 1 : 0);
+                                    threeHourIntervalFeatureValue.Add(IdNominalFeature[id], covered.ToString());
                                 }
                             }
                             #endregion
@@ -231,8 +253,8 @@ namespace PTL.ATT.Models
                                     else if ((long)(point.Time.Ticks / _timeSliceTicks) != slice)
                                         throw new Exception("Point should not be in slice:  " + point);
 
-                                    foreach (LAIR.MachineLearning.NumericFeature threeHourIntervalFeature in threeHourIntervalFeatureValue.Keys)
-                                        featureVector.Add(threeHourIntervalFeature, threeHourIntervalFeatureValue[threeHourIntervalFeature]);
+                                    foreach (LAIR.MachineLearning.NominalFeature feature in threeHourIntervalFeatureValue.Keys)
+                                        featureVector.Add(feature, threeHourIntervalFeatureValue[feature]);
 
                                     double percentThroughPeriod = (slice % _periodTimeSlices) / (double)(_periodTimeSlices - 1);
                                     double radians = 2 * Math.PI * percentThroughPeriod;
@@ -310,7 +332,7 @@ namespace PTL.ATT.Models
 
         public override DiscreteChoiceModel Copy()
         {
-            return new TimeSliceDCM(Name, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, TrainingPointSpacing, FeatureDistanceThreshold, NegativePointStandoff, Classifier, Features, _timeSliceHours, _periodTimeSlices);
+            return new TimeSliceDCM(Name, IncidentTypes, TrainingArea, TrainingStart, TrainingEnd, Smoothers, TrainingPointSpacing, FeatureDistanceThreshold, NegativePointStandoff, Classifier, Features, _timeSliceHours, _periodTimeSlices,_slicesToRun);
         }
 
         public override string ToString()
@@ -328,6 +350,7 @@ namespace PTL.ATT.Models
             return base.GetDetails(indentLevel) + Environment.NewLine +
                    indent + "Time slice hours:  " + _timeSliceHours + Environment.NewLine +
                    indent + "Time slices per period:  " + _periodTimeSlices + Environment.NewLine +
+                    indent + "Slices to run:  " + _slicesToRun + Environment.NewLine +
                    indent + "External feature extractor (" + typeof(TimeSliceDCM) + "):  " + (externalFeatureExtractor == null ? "None" : externalFeatureExtractor.GetDetails(indentLevel + 1));
         }
     }
