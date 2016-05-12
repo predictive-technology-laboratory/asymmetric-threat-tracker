@@ -45,14 +45,33 @@ namespace PTL.ATT.Evaluation
 
             DiscreteChoiceModel model = prediction.Model;
             long sliceTicks = -1;
+            List<long> SlicesToRun = new List<long>();
             if (model is TimeSliceDCM)
+            {
                 sliceTicks = (model as TimeSliceDCM).TimeSliceTicks;
+                int sliceToRun = (model as TimeSliceDCM).SlicesToRun;
+                long firstSlice = prediction.PredictionStartTime.Ticks / sliceTicks;
+                long lastSlice = prediction.PredictionEndTime.Ticks / sliceTicks;
+                int preiodTimeSlices = (model as TimeSliceDCM).PeriodTimeSlices;
+                int Mask = (int)Math.Pow(2, preiodTimeSlices - 1);
+                for (long k = firstSlice; k <= lastSlice; k++)
+                {
+                    if (k % preiodTimeSlices == 0) Mask = (int)Math.Pow(2, preiodTimeSlices - 1);
+                    if ((sliceToRun & Mask) != 0)
+                        SlicesToRun.Add(k);
+                    Mask = Mask >> 1;
+                }
+            }
 
             foreach (Incident incident in incidents)
             {
                 long slice = 1;
                 if (sliceTicks > 0)
+                {
                     slice = incident.Time.Ticks / sliceTicks;
+                    if (!SlicesToRun.Contains(slice))
+                        continue;
+                }
 
                 int row = (int)((incident.Location.Y - prediction.PredictionArea.BoundingBox.MinY) / prediction.PredictionPointSpacing);
                 int col = (int)((incident.Location.X - prediction.PredictionArea.BoundingBox.MinX) / prediction.PredictionPointSpacing);
@@ -258,13 +277,13 @@ namespace PTL.ATT.Evaluation
 
                 Func<List<PointF>, List<PointF>, List<PointF>> seriesDifferencer = new Func<List<PointF>, List<PointF>, List<PointF>>((series1, series2) =>
                     series1.Zip(series2, (p1, p2) =>
-                        {
-                            if (p1.X != p2.X)
-                                throw new Exception("Differing x values in series comparison");
+                    {
+                        if (p1.X != p2.X)
+                            throw new Exception("Differing x values in series comparison");
 
-                            return new PointF(p1.X, p2.Y - p1.Y);
+                        return new PointF(p1.X, p2.Y - p1.Y);
 
-                        }).ToList());
+                    }).ToList());
 
                 List<PointF> diffSeries = null;
                 if (plotSeriesDifference.Item1 == null && plotSeriesDifference.Item2 == null)
@@ -346,12 +365,12 @@ main.title = paste(title.lines, sep=""\n"")");
                 else
                     plotCommand = "lines(x,y,type=\"o\",col=" + plotColor + ",pch=" + plotCharacterVector; // for subsequent series, just plot the series line
 
-                if(args != null)
+                if (args != null)
                     plotCommand += "," + args[1]; // add additional plot arguments, which are passed in
 
                 plotCommand += ")"; // close plot command
 
-                if(seriesNum == 0)
+                if (seriesNum == 0)
                     plotCommand += Environment.NewLine + "abline(0,1,lty=\"dashed\")"; //  and add the diagonal line for the first series
 
                 rCmd.Append(@"
