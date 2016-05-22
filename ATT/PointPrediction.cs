@@ -76,7 +76,10 @@ namespace PTL.ATT
 
             return table;
         }
-
+        internal static void DeleteTable(Prediction prediction, int zipcode)
+        {
+            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(prediction) + "_" + zipcode + " CASCADE");
+        }
         internal static void DeleteTable(Prediction prediction)
         {
             DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(prediction) + " CASCADE");

@@ -17,16 +17,22 @@ namespace PTL.ATT.Classifiers
     {
         static GlmerClassifier()
         {
-        //  R.InstallPackages(R.CheckForMissingPackages(new string[] { "lme4" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+          R.InstallPackages(R.CheckForMissingPackages(new string[] { "lme4" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
+        private string _zipcodeFeatureName;
 
+        public string ZipcodeFeatureName
+        {
+            get { return _zipcodeFeatureName; }
+            set { _zipcodeFeatureName = value; }
+        }
         
 
         private string RawTrainPath { get { return Path.Combine(Model.ModelDirectory, "TrainRaw.csv"); } }
 
         private string ColumnMaxMinPath { get { return Path.Combine(Model.ModelDirectory, "MaxMin.csv"); } }
 
-        private string RandomForestModelPath { get { return Path.Combine(Model.ModelDirectory, "glmer.RData"); } }
+        private string GlmerModelPath { get { return Path.Combine(Model.ModelDirectory, "glmer.RData"); } }
 
         private string RawPredictionInstancesPath { get { return Path.Combine(Model.ModelDirectory, "PredRaw.csv"); } }
 
@@ -86,7 +92,7 @@ namespace PTL.ATT.Classifiers
             string zipCodeFeature = "";
             foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
             {
-                if (f.Description.Contains("zip"))
+                if (f.Description == ZipcodeFeatureName)
                     zipCodeFeature = f.Id;
                 else
                     otherFeatures += "X" + f.Id + "+";
@@ -104,19 +110,19 @@ trainNorm$Class[which (trainNorm$Class=='NULL')]<-'0'
 trainNorm$Class<-as.factor(trainNorm$Class)
 library(lme4)
 gl=glmer(Class ~  " + otherFeatures + @"  (1   | X" + zipCodeFeature + @"), data=trainNorm, family = binomial)" + @"
-save(gl, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
+save(gl, file=""" + GlmerModelPath.Replace("\\", "/") + @""")" + @"
 ");
             string output="", error="";
              R.Execute(rCmd.ToString(), false, out output, out error);
 
             try
             {
-                if (!File.Exists(RandomForestModelPath))
-                    throw new Exception("RandomForest model was not created at \"" + RandomForestModelPath + "\".");
+                if (!File.Exists(GlmerModelPath))
+                    throw new Exception("Hierarchical model was not created at \"" + GlmerModelPath + "\".");
             }
             catch (Exception ex)
             {
-                throw new Exception("ERROR:  RandomForest failed to build model. Output and error messages follow:" + Environment.NewLine +
+                throw new Exception("ERROR:  Hierarchical failed to build model. Output and error messages follow:" + Environment.NewLine +
                                     "\tException message:  " + ex.Message + Environment.NewLine +
                                     "\tR output:  " + output + Environment.NewLine +
                                     "\tR orror:  " + error);
@@ -129,7 +135,7 @@ save(gl, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
         }
         public override IEnumerable<string> SelectFeatures(Prediction prediction)
         {
-            throw new NotImplementedException("Feature selection has not been implemented for Glmer classifiers.");
+            throw new NotImplementedException("Feature selection has not been implemented for Hierarchical classifiers.");
         }
         public override void Classify(FeatureVectorList featureVectors)
         {
@@ -161,7 +167,7 @@ save(gl, file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
                 }
                 string zipCodeFeature = "";
                 foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
-                    if (!f.Description.Contains("density"))
+                    if (f.Description == ZipcodeFeatureName)
                         zipCodeFeature = f.Id;
                 string incidentType = Model.IncidentTypes.First();
 
@@ -171,7 +177,7 @@ predNorm=predRaw
 predNorm$X" + zipCodeFeature + @" <- as.factor(predNorm$X" + zipCodeFeature + @")
 predNorm[is.na(predNorm)]=0
 library(lme4)
-load(file=""" + RandomForestModelPath.Replace("\\", "/") + @""")" + @"
+load(file=""" + GlmerModelPath.Replace("\\", "/") + @""")" + @"
 gl.pred=predict(gl, predNorm,   type='response')
 dfp<-data.frame(gl.pred)
 dfp[,'NULL']<-(1-dfp$gl.pred)
@@ -211,7 +217,7 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("ERROR:  RandomForest failed to classify points. Output and error messages follow:" + Environment.NewLine +
+                    throw new Exception("ERROR:  Hierarchical failed to classify points. Output and error messages follow:" + Environment.NewLine +
                                         "\tException message:  " + ex.Message + Environment.NewLine +
                                         "\tR output:  " + output + Environment.NewLine +
                                         "\tR orror:  " + error);
@@ -220,7 +226,7 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
                 {
                     try { File.Delete(ColumnMaxMinPath); }
                     catch { }
-                    try { File.Delete(RandomForestModelPath); }
+                    try { File.Delete(GlmerModelPath); }
                     catch { }
                     try { File.Delete(RawPredictionInstancesPath); }
                     catch { }
@@ -232,7 +238,7 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
 
         internal override string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation)
         {
-            return "No details available for RandomForest predictions.";
+            return "No details available for Hierarchical predictions.";
         }
 
         public override Classifier Copy()
@@ -251,7 +257,7 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
                 indent += "\t";
 
             return base.GetDetails(indentLevel) + Environment.NewLine +
-                   indent + "Number of trees:  "  ;
+                   indent + "Zipcode feature name:  "+ZipcodeFeatureName  ;
         }
     }
 }

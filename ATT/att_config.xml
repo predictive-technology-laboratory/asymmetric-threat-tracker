@@ -39,6 +39,9 @@
       <predict></predict>                             <!-- Path to predict.exe executable for LibLinear. -->
       <solver>0</solver>                              <!-- Model type to use (0 = logistic regression). See LibLinear documentation for other model types (solvers other than 0 have not been tested and are unlikely to work properly). -->
     </classifier>
+    <classifier type="PTL.ATT.Classifiers.MultiTaskClassifier">
+      <path></path> <!-- Path to executable for MT-SVM. -->
+    </classifier>
     <classifier type="PTL.ATT.Classifiers.SvmRank"> <!-- Use the most current version of SvmRank:  http://www.cs.cornell.edu/people/tj/svm_light/svm_rank.html -->
       <learn></learn>                               <!-- Path to svm_rank_learn.exe executable for SvmRank. -->
       <classify></classify>                         <!-- Path to svm_rank_classify.exe executable for SvmRank. --> 

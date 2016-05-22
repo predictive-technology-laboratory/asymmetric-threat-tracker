@@ -167,10 +167,10 @@ namespace PTL.ATT.Models
             return externalFeatureExtractor;
         }
 
-        private PTL.ATT.Classifiers.Classifier _classifier;
-        private int _trainingPointSpacing;
+        protected PTL.ATT.Classifiers.Classifier _classifier;
+        protected int _trainingPointSpacing;
         private int _featureDistanceThreshold;
-        private int _negativePointStandoff;
+        protected int _negativePointStandoff;
         private List<Feature> _features;
         private Dictionary<string, NumericFeature> _idNumericFeature;
         private Dictionary<string, NominalFeature> _idNominalFeature;
@@ -283,7 +283,7 @@ namespace PTL.ATT.Models
             _idNumericFeature = new Dictionary<string, NumericFeature>();
             _idNominalFeature = new Dictionary<string, NominalFeature>();
         }
-
+  
         protected virtual void InsertPointsIntoPrediction(NpgsqlConnection connection, Prediction prediction, bool training, bool vacuum)
         {
             Area area = training ? prediction.Model.TrainingArea : prediction.Model.PredictionArea;

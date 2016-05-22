@@ -17,34 +17,43 @@ namespace PTL.ATT.Classifiers
     [Serializable]
    public class MultiTaskClassifier : Classifier
     {
+        private string jarPath;
         static MultiTaskClassifier()
         {
-        //  R.InstallPackages(R.CheckForMissingPackages(new string[] { "lme4" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+          
         }
+        private string _zipcodeFeatureName;
 
+        public string ZipcodeFeatureName
+        {
+            get { return _zipcodeFeatureName; }
+            set { _zipcodeFeatureName = value; }
+        }
         
 
         private string RawTrainPath { get { return Path.Combine(Model.ModelDirectory, "TrainRaw.csv"); } }
 
-        private string ColumnMaxMinPath { get { return Path.Combine(Model.ModelDirectory, "MaxMin.csv"); } }
-
         public double AdaptationRate;
-        public bool UseBallancedForumla = false;
+
         private string RawPredictionInstancesPath { get { return Path.Combine(Model.ModelDirectory, "PredRaw.csv"); } }
 
         private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, "Predictions.csv"); } }
 
         public MultiTaskClassifier()
-            : this(false, null )
+            : this(false, null,"zip",0.01 )
         {
+         
         }
-        public MultiTaskClassifier(bool runFeatureSelection, FeatureBasedDCM model )
+        public MultiTaskClassifier(bool runFeatureSelection, FeatureBasedDCM model, string ZipcodeFeatureName,double AdaptationRate)
             : base(runFeatureSelection, model)
         {
-           
+            this.ZipcodeFeatureName = ZipcodeFeatureName;
+            this.AdaptationRate = AdaptationRate;
         }
         public override void Initialize()
         {
+            jarPath = Configuration.ClassifierTypeOptions[GetType()]["path"];
+            // write training file
             using (StreamWriter trainingFile = new StreamWriter(RawTrainPath, true))
             {
                 trainingFile.Write("Class");
@@ -80,23 +89,19 @@ namespace PTL.ATT.Classifiers
                     trainingFile.Close();
                 }
             }
-            if (UseBallancedForumla) { 
-             if (truePoints > 1000) AdaptationRate = 0.1; else AdaptationRate = 0.9;
-            }
+          
         }
 
         protected override void BuildModel()
         {
-           // string densityFeature = "";
             string numericalColumns = "";
             int columnNumber = 2;
             string zipCodeFeature = "";
             int numberOfFeatures = Model.Features.Count;
             foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
             {
-                if (f.Description.Contains("zip"))
-                    //     densityFeature = f.Id;
-                    // else
+
+                if (f.Description == ZipcodeFeatureName+" (attribute)")
                     zipCodeFeature = f.Id;
                 else
                     numericalColumns +=  columnNumber  + ",";
@@ -124,8 +129,7 @@ write.table(data.frame(trainNorm), file=""" + RawPredictionInstancesPath.Replace
              {
 
                  classifyProcess.StartInfo.FileName = "java";
-                 classifyProcess.StartInfo.Arguments = "-jar \"C:\\Users\\Mohammad\\Desktop\\ATT research\\LinAdapt\\LinAdapt" + (UseBallancedForumla ? "-1" : "") + ".jar\" adapt_MT 0 " + numberOfFeatures + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
-                 //classifyProcess.StartInfo.Arguments = "-jar /nv/blue/ma2sm/AreaSpecific/LinAdapt.jar adapt_MT 0 " + numberOfFeatures + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
+                 classifyProcess.StartInfo.Arguments = "-jar \""+jarPath+"\" adapt_MT 0 " + numberOfFeatures + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
                  classifyProcess.StartInfo.CreateNoWindow = true;
                  classifyProcess.StartInfo.UseShellExecute = false;
                  classifyProcess.StartInfo.RedirectStandardOutput = true;
@@ -138,8 +142,8 @@ write.table(data.frame(trainNorm), file=""" + RawPredictionInstancesPath.Replace
                      string perror = classifyProcess.StandardError.ReadToEnd().Trim();
 
                      classifyProcess.WaitForExit();
-                     //if (perror != "")
-                     //    throw new Exception(perror);
+                     if (perror != "")
+                         throw new Exception(perror);
                  }
                  else
                      throw new Exception("Failed to start train process");
@@ -153,7 +157,7 @@ write.table(data.frame(trainNorm), file=""" + RawPredictionInstancesPath.Replace
         }
         public override IEnumerable<string> SelectFeatures(Prediction prediction)
         {
-            throw new NotImplementedException("Feature selection has not been implemented for Glmer classifiers.");
+            throw new NotImplementedException("Feature selection has not been implemented for MT-SVM classifiers.");
         }
         public override void Classify(FeatureVectorList featureVectors)
         {
@@ -188,7 +192,7 @@ write.table(data.frame(trainNorm), file=""" + RawPredictionInstancesPath.Replace
                 string zipCodeFeature = "";
                 foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
                 {
-                    if (f.Description.Contains("zip"))
+                    if (f.Description == ZipcodeFeatureName + " (attribute)")
                         zipCodeFeature = f.Id;
                     else
                         numericalColumns += columnNumber + ",";
@@ -214,8 +218,7 @@ write.table(data.frame(predNorm), file=""" + RawPredictionInstancesPath.Replace(
                 {
 
                     classifyProcess.StartInfo.FileName = "java";
-                    classifyProcess.StartInfo.Arguments = "-jar \"C:\\Users\\Mohammad\\Desktop\\ATT research\\LinAdapt\\LinAdapt" + (UseBallancedForumla ? "-1" : "") + ".jar\" predict_MT 0 " + Model.Features.Count + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
-                    //classifyProcess.StartInfo.Arguments = "-jar /nv/blue/ma2sm/AreaSpecific/LinAdapt.jar predict_MT 0 " + Model.Features.Count + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
+                    classifyProcess.StartInfo.Arguments = "-jar \""+jarPath+"\" predict_MT 0 " + Model.Features.Count + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
                     classifyProcess.StartInfo.CreateNoWindow = true;
                     classifyProcess.StartInfo.UseShellExecute = false;
                     classifyProcess.StartInfo.RedirectStandardOutput = true;
@@ -268,7 +271,7 @@ write.table(data.frame(predNorm), file=""" + RawPredictionInstancesPath.Replace(
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("ERROR:  RandomForest failed to classify points. Output and error messages follow:" + Environment.NewLine +
+                    throw new Exception("ERROR:  MT-SVM failed to classify points. Output and error messages follow:" + Environment.NewLine +
                                         "\tException message:  " + ex.Message + Environment.NewLine +
                                         "\tR output:  " + output + Environment.NewLine +
                                         "\tR orror:  " + error);
@@ -283,12 +286,12 @@ write.table(data.frame(predNorm), file=""" + RawPredictionInstancesPath.Replace(
 
         internal override string GetDetails(Prediction prediction, Dictionary<string, string> attFeatureIdInformation)
         {
-            return "No details available for RandomForest predictions.";
+            return "No details available for MT-SVM predictions.";
         }
 
         public override Classifier Copy()
         {
-            return new MultiTaskClassifier(RunFeatureSelection, Model );
+            return new MultiTaskClassifier(RunFeatureSelection, Model,ZipcodeFeatureName,AdaptationRate);
         }
 
         internal override void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId)
@@ -301,7 +304,8 @@ write.table(data.frame(predNorm), file=""" + RawPredictionInstancesPath.Replace(
             for (int i = 0; i < indentLevel; ++i)
                 indent += "\t";
 
-            return base.GetDetails(indentLevel) + Environment.NewLine   ;
+            return base.GetDetails(indentLevel) + Environment.NewLine  +
+                   indent + "zipcode feature name:  " + ZipcodeFeatureName;
         }
     }
 }

@@ -33,8 +33,7 @@ namespace PTL.ATT.Classifiers
     {
         static AdaBoost()
         {
-
-           //  R.InstallPackages(R.CheckForMissingPackages(new string[] { "ada" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
+             R.InstallPackages(R.CheckForMissingPackages(new string[] { "ada" }), Configuration.RCranMirror, Configuration.RPackageInstallDirectory);
         }
 
         private int _iterations;
