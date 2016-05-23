@@ -1834,7 +1834,6 @@ namespace PTL.ATT.GUI
                         foreach (Prediction prediction in selectedPredictions)
                         {
                             Console.Out.WriteLine("Deleting prediction " + ++predictionNum + " of " + selectedPredictions.Count);
-                            if (prediction.Model is AreaSpecificFeatureBasedDCM) prediction.DeleteAreaSpecific((prediction.Model as AreaSpecificFeatureBasedDCM).AreasZipCodes);
                             prediction.Delete();
                         }
 
