@@ -129,7 +129,7 @@ write.table(data.frame(trainNorm), file=""" + RawPredictionInstancesPath.Replace
              {
 
                  classifyProcess.StartInfo.FileName = "java";
-                 classifyProcess.StartInfo.Arguments = "-jar \""+jarPath+"\" adapt_MT 0 " + numberOfFeatures + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
+                 classifyProcess.StartInfo.Arguments = "-jar \""+jarPath+"\" adapt_MT 0 " + numberOfFeatures + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate+" "+Configuration.ProcessorCount;
                  classifyProcess.StartInfo.CreateNoWindow = true;
                  classifyProcess.StartInfo.UseShellExecute = false;
                  classifyProcess.StartInfo.RedirectStandardOutput = true;
@@ -218,7 +218,7 @@ write.table(data.frame(predNorm), file=""" + RawPredictionInstancesPath.Replace(
                 {
 
                     classifyProcess.StartInfo.FileName = "java";
-                    classifyProcess.StartInfo.Arguments = "-jar \""+jarPath+"\" predict_MT 0 " + Model.Features.Count + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate;
+                    classifyProcess.StartInfo.Arguments = "-jar \"" + jarPath + "\" predict_MT 0 " + Model.Features.Count + " " + zipCodeFeature + " \"" + RawPredictionInstancesPath.Replace("\\", "/") + "\" \"" + Model.ModelDirectory + "\" " + "\"_\" \"" + incidentType + "\" " + AdaptationRate + " " + Configuration.ProcessorCount;
                     classifyProcess.StartInfo.CreateNoWindow = true;
                     classifyProcess.StartInfo.UseShellExecute = false;
                     classifyProcess.StartInfo.RedirectStandardOutput = true;

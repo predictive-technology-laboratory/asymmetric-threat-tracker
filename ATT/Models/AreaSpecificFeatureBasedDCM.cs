@@ -37,9 +37,22 @@ namespace PTL.ATT.Models
     [Serializable]
     public class AreaSpecificFeatureBasedDCM : FeatureBasedDCM
     {
-        public List<int> AreasZipCodes = new List<int>();
+        private List<int>_areasZipCodes =new List<int>();
+        public List<int> AreasZipCodes
+        {
+            set
+            {
+                _areasZipCodes.Clear();
+                _areasZipCodes.AddRange(value); 
+                Update();
+            }
+            get
+            {
+                return _areasZipCodes;
+            }
+        }
         private string _zipcodeShapeFile;
-        public string ZipcodeShapeFile { set { _zipcodeShapeFile = value; } get { return _zipcodeShapeFile; } }
+        public string ZipcodeShapeFile { set { _zipcodeShapeFile = value; Update(); } get { return _zipcodeShapeFile; } }
         public AreaSpecificFeatureBasedDCM() : base() { }
         public AreaSpecificFeatureBasedDCM(string name,
                            IEnumerable<string> incidentTypes,

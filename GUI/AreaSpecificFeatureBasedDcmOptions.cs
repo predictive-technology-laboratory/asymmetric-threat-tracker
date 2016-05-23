@@ -75,7 +75,8 @@ namespace PTL.ATT.GUI
 
         public string ValidateInput()
         {
-            return "";
+            
+            return zipCodes.Count==0?"Must select one or more areas.":"";
         }
 
         internal void CommitValues(AreaSpecificFeatureBasedDCM model)

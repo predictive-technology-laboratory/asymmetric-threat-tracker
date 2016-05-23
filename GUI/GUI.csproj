@@ -422,12 +422,14 @@
     <Content Include="Config\README.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="External Resources\mtsvm.jar" />
     <Content Include="gui_config.xml">
       <SubType>Designer</SubType>
     </Content>
     <None Include="Resources\resetZoom.jpg" />
     <None Include="Resources\resetPan.jpg" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
