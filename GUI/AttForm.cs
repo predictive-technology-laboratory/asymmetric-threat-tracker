@@ -309,6 +309,7 @@ namespace PTL.ATT.GUI
         #region construction / loading / closing
         public AttForm()
         {
+           
             InitializeComponent();
 
             _groups = new List<string>();
@@ -316,6 +317,7 @@ namespace PTL.ATT.GUI
 
         private void AttForm_Load(object sender, EventArgs e)
         {
+           
             Splash splash = new Splash(4);
             bool done = false;
             Thread t = new Thread(new ParameterizedThreadStart(o =>
@@ -394,11 +396,11 @@ namespace PTL.ATT.GUI
                 return;
             }
 
-            models.Anchor = predictionAreas.Anchor = predictions.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+         //   models.Anchor = predictionAreas.Anchor = predictions.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
 
             WindowState = FormWindowState.Maximized;
 
-            verticalSplitContainer.SplitterDistance = models.Right + 20;
+        //    verticalSplitContainer.SplitterDistance = models.Right + 20;
 
             done = true;
 
@@ -1036,7 +1038,12 @@ namespace PTL.ATT.GUI
                         if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                             model = f.ResultingModel;
                     }
-
+                    else if (modelType == typeof(AreaSpecificFeatureBasedDCM))
+                    {
+                        AreaSpecificFeatureBasedDcmForm f = new AreaSpecificFeatureBasedDcmForm();
+                        if (f.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                            model = f.ResultingModel;
+                    }
                     if (model != null)
                         RefreshModels(model.Id);
                 }
@@ -1066,6 +1073,12 @@ namespace PTL.ATT.GUI
                 if (m is TimeSliceDCM)
                 {
                     TimeSliceDcmForm f = new TimeSliceDcmForm(m as TimeSliceDCM);
+                    if (f.ShowDialog() == DialogResult.OK)
+                        f.ResultingModel.Update();
+                }
+                else if (m is AreaSpecificFeatureBasedDCM)
+                {
+                    AreaSpecificFeatureBasedDcmForm f = new AreaSpecificFeatureBasedDcmForm(m as AreaSpecificFeatureBasedDCM);
                     if (f.ShowDialog() == DialogResult.OK)
                         f.ResultingModel.Update();
                 }
@@ -1420,7 +1433,8 @@ namespace PTL.ATT.GUI
                 if (SelectedPredictions[0] != threatMap.DisplayedPrediction)
                 {
                     Prediction p = SelectedPredictions[0];
-
+                    p.AssessmentPlots.Clear();
+                    p.MostRecentlyEvaluatedIncidentTime = DateTime.MinValue;
                     Thread displayThread = new Thread(new ThreadStart(delegate()
                         {
                             List<Thread> threads = new List<Thread>();
@@ -1486,13 +1500,16 @@ namespace PTL.ATT.GUI
                             overlays.Reverse();
 
                             threatMap.Display(p, overlays);
+                            dynamicThreatMap.Display(p, overlays);
 
                             if (threatMap.DisplayedPrediction != null)
                                 Invoke(new Action(RefreshAssessments));
+                          
                         }));
 
                     displayThread.Start();
                 }
+
             }
             else
                 MessageBox.Show("Select a single prediction to display.");
@@ -1539,7 +1556,14 @@ namespace PTL.ATT.GUI
                     threatMap.DisplayedPrediction.AssessmentPlots.AddRange(newPlots);
                     RefreshAssessments();
                 }
-
+                if (dynamicThreatMap.DisplayedPrediction != null && selectedIds.Contains(dynamicThreatMap.DisplayedPrediction.Id))
+                {
+                    List<Plot> newPlots = selectedPredictions.Where(p => p.Id == dynamicThreatMap.DisplayedPrediction.Id).First().AssessmentPlots.ToList();
+                    dynamicThreatMap.DisplayedPrediction.AssessmentPlots.Clear();
+                    dynamicThreatMap.DisplayedPrediction.AssessmentPlots.AddRange(newPlots);
+                    RefreshAssessments();
+                }
+                
                 RefreshPredictions(selectedPredictions.ToArray());
             }
         }
@@ -1666,7 +1690,11 @@ namespace PTL.ATT.GUI
                                     RefreshPredictions(threatMap.DisplayedPrediction);
                                     displayPredictionToolStripMenuItem_Click(sender, e);
                                 }
-
+                                if (dynamicThreatMap.DisplayedPrediction != null && selectedPredictions.Select(p => p.Id).Contains(dynamicThreatMap.DisplayedPrediction.Id))
+                                {
+                                    RefreshPredictions(dynamicThreatMap.DisplayedPrediction);
+                                    displayPredictionToolStripMenuItem_Click(sender, e);
+                                }
                                 string msg = "Done smoothing predictions";
                                 Console.Out.WriteLine(msg);
                                 Notify(msg, "");
@@ -1806,6 +1834,7 @@ namespace PTL.ATT.GUI
                         foreach (Prediction prediction in selectedPredictions)
                         {
                             Console.Out.WriteLine("Deleting prediction " + ++predictionNum + " of " + selectedPredictions.Count);
+                            if (prediction.Model is AreaSpecificFeatureBasedDCM) prediction.DeleteAreaSpecific((prediction.Model as AreaSpecificFeatureBasedDCM).AreasZipCodes);
                             prediction.Delete();
                         }
 
@@ -1818,6 +1847,7 @@ namespace PTL.ATT.GUI
 
                         RefreshPredictions();
                         threatMap.Clear();
+                        dynamicThreatMap.Clear();
                         Invoke(new Action(() => assessments.ClearPlots()));
                     }));
                 t.Start();
@@ -1881,6 +1911,7 @@ namespace PTL.ATT.GUI
             models.Items.Clear();
             predictions.Nodes.Clear();
             threatMap.Clear();
+            dynamicThreatMap.Clear();
             assessments.ClearPlots();
 
             try
@@ -2008,6 +2039,7 @@ namespace PTL.ATT.GUI
                 if (!float.IsNaN(correlation))
                     toolTip.SetToolTip(plotBox, "Correlation between threat and crime count:  " + correlation);
             }
+            
         }
         #endregion
 
@@ -2190,5 +2222,26 @@ namespace PTL.ATT.GUI
             return importArea;
         }
         #endregion
+
+        private void compareThreatSurfacesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (TraversePredictionTree().Count(n => n.Checked) <= 1)
+                MessageBox.Show("Select two or more predictions / groups to make a comparison.");
+            else
+            {
+                
+                
+                List<Prediction> selectedPredictions = TraversePredictionTree().Where(n => n.Checked && !(n.Tag is PredictionGroup)).Select(n => n.Tag as Prediction).ToList();
+                // check if one of more predictions has the same name
+                var predictionsName=(from pred in selectedPredictions select pred.Name);
+                if (predictionsName.Count() != predictionsName.Distinct().Count())
+                    MessageBox.Show("Selected predictions must have different names.");
+                else
+                {
+                    ThreatSurfaceComparisonForm f = new ThreatSurfaceComparisonForm(selectedPredictions, PlotHeight, Size);
+                    f.ShowDialog();
+                }
+            }
+        }
     }
 }

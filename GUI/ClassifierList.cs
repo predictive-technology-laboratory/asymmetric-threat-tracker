@@ -75,6 +75,21 @@ namespace PTL.ATT.GUI
                         liblinear.Weighting = f.GetValue<LibLinear.PositiveClassWeighting>("positive_weighting");
                     }
                 }
+                else if(classifier is MultiTaskClassifier)
+                {
+
+                    MultiTaskClassifier mtsvm = classifier as MultiTaskClassifier;
+                    DynamicForm f = new DynamicForm("Set Multi-Task parameters", DynamicForm.CloseButtons.OkCancel);
+                    Shapefile[] shapefiles=Shapefile.GetAll().ToArray();
+                    var selectedShapefile=shapefiles.Where(file => file.Name == mtsvm.ZipcodeFeatureName);
+                    f.AddDropDown("Zipcode feature:", shapefiles, selectedShapefile.Count()>0?selectedShapefile.First():null, "zipcode_feature", true);
+                    f.AddNumericUpdown("Area-Specific/Global tradeoff:", (decimal)mtsvm.AdaptationRate, 4, 0, decimal.MaxValue, (decimal).05, "ratio");
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        mtsvm.ZipcodeFeatureName = f.GetValue<Shapefile>("zipcode_feature").Name;
+                        mtsvm.AdaptationRate = Convert.ToDouble(f.GetValue<decimal>("ratio"));
+                    }
+                }
                 else if (classifier is SvmRank)
                 {
                     SvmRank svmRank = classifier as SvmRank;

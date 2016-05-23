@@ -81,7 +81,25 @@ namespace PTL.ATT
         {
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + GetTableName(prediction));
         }
+        internal static void FilterByZipCode(NpgsqlConnection connection,string zipcodeShapeFile, Prediction prediction, int zipcode, bool vacuum, int maxIncidentID)
+        {
+            NpgsqlCommand cmd = DB.Connection.NewCommand(null, null, connection);
+            string pointTable = GetTableName(prediction);
+           cmd.CommandText = "DELETE FROM " + pointTable + " WHERE " + pointTable + "." + Columns.Id + " not in" +
+                "((SELECT " + pointTable + "." + Columns.Id + "  FROM " + pointTable + " LEFT JOIN " + zipcodeShapeFile + " " +
+                  "ON st_intersects(st_expand(" + pointTable + "." + Columns.Location + "," + prediction.PredictionPointSpacing / 2 + ")," + zipcodeShapeFile + ".geom) WHERE " + pointTable + "." + Columns.Id + ">" + maxIncidentID +
+                "  AND  " + zipcodeShapeFile + ".zip ='" + zipcode + "') union (SELECT " + pointTable + "." + Columns.Id + "  FROM " + pointTable + " LEFT JOIN " + zipcodeShapeFile + " " +
+                 "ON st_intersects( " + pointTable + "." + Columns.Location + "," + zipcodeShapeFile + ".geom) WHERE " + pointTable + "." + Columns.Id + "<=" + maxIncidentID +
+                " AND  " + zipcodeShapeFile + ".zip ='" + zipcode + "'))";
+            cmd.ExecuteNonQuery();
 
+            if (vacuum)
+                VacuumTable(prediction);
+        }
+        internal static void DeleteTable(Prediction prediction, int zipcode)
+        {
+            DB.Connection.ExecuteNonQuery("DROP TABLE " + GetTableName(prediction) + "_" + zipcode + " CASCADE");
+        }
         internal static List<int> Insert(NpgsqlConnection connection,
                                          IEnumerable<Tuple<PostGIS.Point, string, DateTime>> points,
                                          Prediction prediction,

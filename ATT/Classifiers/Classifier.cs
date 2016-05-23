@@ -39,7 +39,7 @@ namespace PTL.ATT.Classifiers
 
         private FeatureBasedDCM _model;
         private bool _runFeatureSelection;
-        private int _numFeaturesInEachVector;
+        protected int _numFeaturesInEachVector;
 
         public FeatureBasedDCM Model
         {

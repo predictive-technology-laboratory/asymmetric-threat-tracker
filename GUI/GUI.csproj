@@ -102,6 +102,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AreaSpecificFeatureBasedDcmForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AreaSpecificFeatureBasedDcmForm.Designer.cs">
+      <DependentUpon>AreaSpecificFeatureBasedDcmForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AreaSpecificFeatureBasedDcmOptions.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="AreaSpecificFeatureBasedDcmOptions.designer.cs">
+      <DependentUpon>AreaSpecificFeatureBasedDcmOptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="AttForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -152,6 +164,12 @@
     <Compile Include="Splash.Designer.cs">
       <DependentUpon>Splash.cs</DependentUpon>
     </Compile>
+    <Compile Include="ThreatSurfaceComparisonForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ThreatSurfaceComparisonForm.designer.cs">
+      <DependentUpon>ThreatSurfaceComparisonForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="TimeSliceDcmOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -163,6 +181,24 @@
     </Compile>
     <Compile Include="Visualization\CustomSpatialFeatureForm.Designer.cs">
       <DependentUpon>CustomSpatialFeatureForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Visualization\DynamicThreatMap.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Visualization\DynamicThreatMap.designer.cs">
+      <DependentUpon>DynamicThreatMap.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Visualization\MultiDynamicThreatMap.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Visualization\MultiDynamicThreatMap.designer.cs">
+      <DependentUpon>MultiDynamicThreatMap.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Visualization\MultiVisualizer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Visualization\MultiVisualizer.designer.cs">
+      <DependentUpon>MultiVisualizer.cs</DependentUpon>
     </Compile>
     <Compile Include="Visualization\SmootherChooser.cs">
       <SubType>Form</SubType>
@@ -253,6 +289,12 @@
     <Compile Include="Visualization\Visualizer.Designer.cs">
       <DependentUpon>Visualizer.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="AreaSpecificFeatureBasedDcmForm.resx">
+      <DependentUpon>AreaSpecificFeatureBasedDcmForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AreaSpecificFeatureBasedDcmOptions.resx">
+      <DependentUpon>AreaSpecificFeatureBasedDcmOptions.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="AttForm.resx">
       <DependentUpon>AttForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -277,11 +319,20 @@
     <EmbeddedResource Include="Splash.resx">
       <DependentUpon>Splash.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ThreatSurfaceComparisonForm.resx">
+      <DependentUpon>ThreatSurfaceComparisonForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="TimeSliceDcmOptions.resx">
       <DependentUpon>TimeSliceDcmOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Visualization\CustomSpatialFeatureForm.resx">
       <DependentUpon>CustomSpatialFeatureForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Visualization\DynamicThreatMap.resx">
+      <DependentUpon>DynamicThreatMap.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Visualization\MultiDynamicThreatMap.resx">
+      <DependentUpon>MultiDynamicThreatMap.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Visualization\SmootherChooser.resx">
       <DependentUpon>SmootherChooser.cs</DependentUpon>
@@ -364,11 +415,9 @@
     <Content Include="bullseye.ico" />
     <Content Include="Config\att_config.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Config\gui_config.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Config\README.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

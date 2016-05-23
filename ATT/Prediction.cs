@@ -74,7 +74,22 @@ namespace PTL.ATT
         {
             DB.Connection.ExecuteNonQuery("VACUUM ANALYZE " + Table);
         }
+        public void DeleteAreaSpecific(List<int> zipcodes)
+        {
 
+            zipcodes.ForEach(zipcode =>
+            {
+
+                try { Point.DeleteTable(this, zipcode); }
+                catch (Exception ex) { Console.Out.WriteLine("Failed to delete point table:  " + ex.Message); }
+
+                try { PointPrediction.DeleteTable(this, zipcode); }
+                catch (Exception ex) { Console.Out.WriteLine("Failed to delete point prediction table:  " + ex.Message); }
+
+
+            });
+
+        }
         public static List<Prediction> GetAll(bool onlyFinishedPredictions)
         {
             List<Prediction> predictions = new List<Prediction>();

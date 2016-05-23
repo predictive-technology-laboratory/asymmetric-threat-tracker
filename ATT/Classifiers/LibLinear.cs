@@ -243,7 +243,7 @@ namespace PTL.ATT.Classifiers
 
             System.IO.File.Delete(featureSelectionTrainingPath);
             System.IO.File.Delete(groupNamePath);
-
+            this._numFeaturesInEachVector = featureRankContribution.Count;
             return featureRankContribution.Keys.Select(groupName => groupNameFeatureId[groupName]);
         }
 
