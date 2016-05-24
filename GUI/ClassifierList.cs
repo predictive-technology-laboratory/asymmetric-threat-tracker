@@ -90,6 +90,19 @@ namespace PTL.ATT.GUI
                         mtsvm.AdaptationRate = Convert.ToDouble(f.GetValue<decimal>("ratio"));
                     }
                 }
+                else if (classifier is GlmerClassifier)
+                {
+
+                    GlmerClassifier glmer = classifier as GlmerClassifier;
+                    DynamicForm f = new DynamicForm("Set Glmer parameters", DynamicForm.CloseButtons.OkCancel);
+                    Shapefile[] shapefiles = Shapefile.GetAll().ToArray();
+                    var selectedShapefile = shapefiles.Where(file => file.Name == glmer.ZipcodeFeatureName);
+                    f.AddDropDown("Zipcode feature:", shapefiles, selectedShapefile.Count() > 0 ? selectedShapefile.First() : null, "zipcode_feature", true);
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        glmer.ZipcodeFeatureName = f.GetValue<Shapefile>("zipcode_feature").Name; 
+                    }
+                }
                 else if (classifier is SvmRank)
                 {
                     SvmRank svmRank = classifier as SvmRank;

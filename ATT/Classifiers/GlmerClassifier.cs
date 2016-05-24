@@ -39,13 +39,13 @@ namespace PTL.ATT.Classifiers
         private string PredictionsPath { get { return Path.Combine(Model.ModelDirectory, "Predictions.csv"); } }
 
         public GlmerClassifier()
-            : this(false, null )
+            : this(false, null,"" )
         {
         }
-        public GlmerClassifier(bool runFeatureSelection, FeatureBasedDCM model )
+        public GlmerClassifier(bool runFeatureSelection, FeatureBasedDCM model,string ZipcodeFeatureName )
             : base(runFeatureSelection, model)
         {
-           
+            this.ZipcodeFeatureName = ZipcodeFeatureName;
         }
         public override void Initialize()
         {
@@ -92,7 +92,7 @@ namespace PTL.ATT.Classifiers
             string zipCodeFeature = "";
             foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
             {
-                if (f.Description == ZipcodeFeatureName)
+                if (f.Description == ZipcodeFeatureName + " (attribute)")
                     zipCodeFeature = f.Id;
                 else
                     otherFeatures += "X" + f.Id + "+";
@@ -167,7 +167,7 @@ save(gl, file=""" + GlmerModelPath.Replace("\\", "/") + @""")" + @"
                 }
                 string zipCodeFeature = "";
                 foreach (PTL.ATT.Models.Feature f in Model.Features.OrderBy(i => i.Id))
-                    if (f.Description == ZipcodeFeatureName)
+                    if (f.Description == ZipcodeFeatureName + " (attribute)")
                         zipCodeFeature = f.Id;
                 string incidentType = Model.IncidentTypes.First();
 
@@ -243,7 +243,7 @@ write.table(dfp, file=""" + PredictionsPath.Replace("\\", "/") + @""", row.names
 
         public override Classifier Copy()
         {
-            return new GlmerClassifier(RunFeatureSelection, Model );
+            return new GlmerClassifier(RunFeatureSelection, Model, ZipcodeFeatureName);
         }
 
         internal override void ChangeFeatureIds(Dictionary<string, string> oldNewFeatureId)

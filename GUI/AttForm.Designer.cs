@@ -112,6 +112,7 @@ namespace PTL.ATT.GUI
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.smoothPredictionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.comparePredictionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.compareThreatSurfacesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aggregateAndEvaluateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.showModelDetailsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -143,7 +144,6 @@ namespace PTL.ATT.GUI
             this.assessments = new PTL.ATT.GUI.Visualization.Assessments();
             this.horizontalSplitContainer = new System.Windows.Forms.SplitContainer();
             this.log = new System.Windows.Forms.RichTextBox();
-            this.compareThreatSurfacesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainMenu.SuspendLayout();
             this.modelMenu.SuspendLayout();
             this.predictionsMenu.SuspendLayout();
@@ -441,33 +441,33 @@ namespace PTL.ATT.GUI
             this.editModelToolStripMenuItem,
             this.deleteModelToolStripMenuItem});
             this.modelMenu.Name = "modelMenu";
-            this.modelMenu.Size = new System.Drawing.Size(123, 100);
+            this.modelMenu.Size = new System.Drawing.Size(176, 128);
             // 
             // addModelToolStripMenuItem
             // 
             this.addModelToolStripMenuItem.Name = "addModelToolStripMenuItem";
-            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(122, 24);
+            this.addModelToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.addModelToolStripMenuItem.Text = "Add";
             this.addModelToolStripMenuItem.Click += new System.EventHandler(this.addModelToolStripMenuItem_Click);
             // 
             // copyModelToolStripMenuItem
             // 
             this.copyModelToolStripMenuItem.Name = "copyModelToolStripMenuItem";
-            this.copyModelToolStripMenuItem.Size = new System.Drawing.Size(122, 24);
+            this.copyModelToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.copyModelToolStripMenuItem.Text = "Copy";
             this.copyModelToolStripMenuItem.Click += new System.EventHandler(this.copyModelToolStripMenuItem_Click);
             // 
             // editModelToolStripMenuItem
             // 
             this.editModelToolStripMenuItem.Name = "editModelToolStripMenuItem";
-            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(122, 24);
+            this.editModelToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.editModelToolStripMenuItem.Text = "Edit";
             this.editModelToolStripMenuItem.Click += new System.EventHandler(this.editModelToolStripMenuItem_Click);
             // 
             // deleteModelToolStripMenuItem
             // 
             this.deleteModelToolStripMenuItem.Name = "deleteModelToolStripMenuItem";
-            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(122, 24);
+            this.deleteModelToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.deleteModelToolStripMenuItem.Text = "Delete";
             this.deleteModelToolStripMenuItem.Click += new System.EventHandler(this.deleteModelToolStripMenuItem_Click);
             // 
@@ -606,7 +606,7 @@ namespace PTL.ATT.GUI
             this.showModelDetailsToolStripMenuItem,
             this.openModelDirectoryToolStripMenuItem});
             this.predictionsMenu.Name = "predictionsMenu";
-            this.predictionsMenu.Size = new System.Drawing.Size(245, 362);
+            this.predictionsMenu.Size = new System.Drawing.Size(245, 334);
             // 
             // displayPredictionToolStripMenuItem
             // 
@@ -732,6 +732,13 @@ namespace PTL.ATT.GUI
             this.comparePredictionsToolStripMenuItem.Size = new System.Drawing.Size(244, 24);
             this.comparePredictionsToolStripMenuItem.Text = "Compare";
             this.comparePredictionsToolStripMenuItem.Click += new System.EventHandler(this.comparePredictionsToolStripMenuItem_Click);
+            // 
+            // compareThreatSurfacesToolStripMenuItem
+            // 
+            this.compareThreatSurfacesToolStripMenuItem.Name = "compareThreatSurfacesToolStripMenuItem";
+            this.compareThreatSurfacesToolStripMenuItem.Size = new System.Drawing.Size(244, 24);
+            this.compareThreatSurfacesToolStripMenuItem.Text = "Compare Threat Surfaces";
+            this.compareThreatSurfacesToolStripMenuItem.Click += new System.EventHandler(this.compareThreatSurfacesToolStripMenuItem_Click);
             // 
             // aggregateAndEvaluateToolStripMenuItem
             // 
@@ -1166,13 +1173,6 @@ namespace PTL.ATT.GUI
             this.log.Size = new System.Drawing.Size(1310, 236);
             this.log.TabIndex = 0;
             this.log.Text = "";
-            // 
-            // compareThreatSurfacesToolStripMenuItem
-            // 
-            this.compareThreatSurfacesToolStripMenuItem.Name = "compareThreatSurfacesToolStripMenuItem";
-            this.compareThreatSurfacesToolStripMenuItem.Size = new System.Drawing.Size(244, 24);
-            this.compareThreatSurfacesToolStripMenuItem.Text = "Compare Threat Surfaces";
-            this.compareThreatSurfacesToolStripMenuItem.Click += new System.EventHandler(this.compareThreatSurfacesToolStripMenuItem_Click);
             // 
             // AttForm
             // 
